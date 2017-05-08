@@ -1,0 +1,44 @@
+{
+  "name": "jtl/connector/woocommerce",
+  "type": "APP",
+  "description": "WooCommerce Connector based on jtl/connector",
+  "keywords": [
+    "jtl",
+    "connector",
+    "WooCommerce"
+  ],
+  "homepage": "http://www.jtl-software.de",
+  "license": "GPL",
+  "authors": [
+    {
+      "name": "Sven Mäurer",
+      "email": "sven.maeurer@jtl-software.com",
+      "homepage": "http://www.jtl-software.de",
+      "role": "Developer"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "git@gitlab.jtl-software.de:jtl-software-gmbh/jtlconnector.git",
+      "reference": "origin/master"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "jtl/connector": "~2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "4.8.*"
+  },
+  "autoload": {
+    "psr-0": {
+      "jtl\\Connector\\WooCommerce\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-0": {
+      "jtl\\Connector\\WooCommerce\\Tests\\": "tests/"
+    }
+  }
+}

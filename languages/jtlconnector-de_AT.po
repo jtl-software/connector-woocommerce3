@@ -1,0 +1,201 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: JTL-Connector\n"
+"Report-Msgid-Bugs-To: sven.maeurer@jtl-software.com\n"
+"POT-Creation-Date: 2017-05-03 10:00+0200\n"
+"PO-Revision-Date: 2017-05-03 10:00+0200\n"
+"Last-Translator: Sven Mäurer\n"
+"Language-Team: \n"
+"Language: de_AT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.1\n"
+
+#: jtlconnector.php:107
+msgid "Activate WooCommerce in order to use the JTL-Connector."
+msgstr "Aktivieren Sie WooCommerce, um den JTL-Connector verwenden zu können."
+
+#: jtlconnector.php:112
+msgid "At least WooCommerce 3.0 has to be installed."
+msgstr "Mindestens WooCommerce 3.0 muss installiert sein."
+
+#: jtlconnector.php:117
+msgid "Rewriting is disabled. Please select another permalink setting."
+msgstr ""
+"Rewriting ist deaktiviert. Bitte wählen Sie eine andere Permalink-"
+"Einstellung."
+
+#: src/jtl/Connector/WooCommerce/Utility/UtilGermanized.php:42
+msgid "Mr."
+msgstr "Herr"
+
+#: src/jtl/Connector/WooCommerce/Utility/UtilGermanized.php:43
+msgid "Ms."
+msgstr "Frau"
+
+#: src/jtl/Connector/WooCommerce/Controller/Product/Product.php:127
+#, php-format
+msgid "Variation #%s of %s"
+msgstr "Variation #%s von %s"
+
+#: src/jtl/Connector/WooCommerce/Authentication/TokenLoader.php:19
+msgid "There was no token found."
+msgstr "Es wurde kein Token gefunden."
+
+#: includes/JtlConnectorAdmin.php:224
+msgid "Documentation"
+msgstr "Dokumentation"
+
+#: includes/JtlConnectorAdmin.php:243
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: includes/JtlConnectorAdmin.php:258
+msgid "Options"
+msgstr "Einstellungen"
+
+#: includes/JtlConnectorAdmin.php:260
+msgid ""
+"Settings for the usage of the connector. By default the completed orders are "
+"pulled with no time limit."
+msgstr ""
+"Einstellungen für die Verwendung des Connectors. Standardmäßig werden "
+"abgeschlossene Aufträge ohne Zeitlimit importiert."
+
+#: includes/JtlConnectorAdmin.php:264
+msgid "Pull completed orders"
+msgstr "Importiere abgeschlossene Bestellungen"
+
+#: includes/JtlConnectorAdmin.php:266
+msgid ""
+"Choose when having a large amount of data and low server specifications."
+msgstr "Bei vielen Daten aber schwachem Server wählen."
+
+#: includes/JtlConnectorAdmin.php:270
+msgid "Pull orders since"
+msgstr "Ziehe Bestellungen ab"
+
+#: includes/JtlConnectorAdmin.php:272
+msgid "Define a start date for pulling of orders."
+msgstr "Definieren Sie ein Startdatum für das Ziehen von Bestellungen."
+
+#: includes/JtlConnectorAdmin.php:276
+msgid "Variation name format"
+msgstr "Kindartikel Namensformat"
+
+#: includes/JtlConnectorAdmin.php:280
+msgid "Variation #22 of Product name"
+msgstr "Variation #22 von Produktname"
+
+#: includes/JtlConnectorAdmin.php:281
+msgid "Variation #22 of Product name Color: black, Size: S"
+msgstr "Variation #22 von Produktname Farbe: schwarz, Größe: S"
+
+#: includes/JtlConnectorAdmin.php:282
+msgid "Variation #22 of Product name (Color: black, Size: S)"
+msgstr "Variation #22 von Produktname (Farbe: schwarz, Größe: S)"
+
+#: includes/JtlConnectorAdmin.php:283
+msgid "Product name Color: black, Size: S"
+msgstr "Produktname Farbe: schwarz, Größe: S"
+
+#: includes/JtlConnectorAdmin.php:284
+msgid "Product name (Color: black, Size: S)"
+msgstr "Produktname (Farbe: schwarz, Größe: S)"
+
+#: includes/JtlConnectorAdmin.php:286
+msgid "Define how the child product name is formatted."
+msgstr "Definieren Sie wie der Name von Kindartikel formatiert werden soll."
+
+#: includes/JtlConnectorAdmin.php:504
+msgid ""
+"The linking table migration was not successful. Please use the forum for "
+"help."
+msgstr ""
+"Die Linking Tabelle konnte nicht erfolgreich migriert werden. Bitte nutzen "
+"Sie das Forum um Hilfe zu erhalten."
+
+#: includes/JtlConnectorAdmin.php:509
+#, php-format
+msgid "Directory %s has no write access."
+msgstr "Verzeichnis '%s' hat keinen Schreibzugriff."
+
+#: includes/JtlConnectorAdmin.php:514 includes/JtlConnectorAdmin.php:519
+msgid "PHP extension \"phar\" could not be found."
+msgstr "PHP-Erweiterung \"Phar\" konnte nicht gefunden werden."
+
+#: includes/settings.php:2
+msgid "Information"
+msgstr "Informationen"
+
+#: includes/settings.php:3
+msgid ""
+"Basic information and credentials of the installed connector. It is needed "
+"to configure the connector in the customer center and JTL-Wawi."
+msgstr ""
+"Grundlegende Informationen und Anmeldedaten des installierten Connectors. "
+"Diese sind notwendig um den Connector im Kundencenter und JTL-Wawi "
+"einzurichten."
+
+#: includes/settings.php:17
+msgid "Connector Password"
+msgstr "Connector Passwort"
+
+#~ msgid ""
+#~ "The multi shop migration was not successful. Please use the forum for "
+#~ "help."
+#~ msgstr ""
+#~ "Die Linking Tabellen konnte nicht erfolgreich für Multi Site migriert "
+#~ "werden. Bitte nutzen Sie das Forum um Hilfe zu erhalten."
+
+#~ msgid "Orders"
+#~ msgstr "Bestellungen"
+
+#~ msgid "Categories"
+#~ msgstr "Kategorien"
+
+#~ msgid "Products"
+#~ msgstr "Produkte"
+
+#~ msgid "Payments"
+#~ msgstr "Zahlungen"
+
+#~ msgid "Customers"
+#~ msgstr "Kunden"
+
+#~ msgid "Can be pulled by JTL-Wawi"
+#~ msgstr "Kann von JTL-Wawi abgeholt werden"
+
+#~ msgid ""
+#~ "PHP extension \"phar\" is not in the suhosin \"executor include whitelist"
+#~ "\""
+#~ msgstr ""
+#~ "PHP-Erweiterung \"Phar\" ist nicht auf der suhosin \"executor include "
+#~ "whitelist\""
+
+#~ msgid "Show Dashboard"
+#~ msgstr "Dashboard anzeigen"
+
+#~ msgid ""
+#~ "Show a dashboard widget displaying the amount of data that can be pulled. "
+#~ "If you have a huge amount of data it can slow down the dashboards loading "
+#~ "time."
+#~ msgstr ""
+#~ "Aktiviere das Dashboard-Widget, welches die Datenmenge, die gezogen "
+#~ "werden kann, anzeigt. Haben Sie eine große Anzahl von Daten kann es die "
+#~ "Ladezeit des Dashboards verlangsamen."
+
+#~ msgid ""
+#~ "Pulling all completed orders might not be possible if a huge amount of "
+#~ "them exists. This depends on your webspace or server specifications."
+#~ msgstr ""
+#~ "Importieren aller erledigten Aufträge ist möglicherweise nicht machbar, "
+#~ "wenn eine große Anzahl Daten vorhanden ist. Dies hängt von Ihrem Webspace "
+#~ "oder Server-Spezifikationen ab."
+
+#~ msgid "Could not authenticate access to the connector"
+#~ msgstr "Zugriff auf den Connector konnte nicht authentifiziert werden."
+
+#~ msgid "Could not get any Session"
+#~ msgstr "Es wurde keine Session gefunden"

@@ -1,0 +1,133 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Package Name\n"
+"Report-Msgid-Bugs-To: sven.maeurer@jtl-software.com\n"
+"POT-Creation-Date: 2017-04-19 17:05+0200\n"
+"PO-Revision-Date: 2017-04-19 17:05+0100\n"
+"Last-Translator: Sven Mäurer <sven.maeurer@jtl-software.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"X-Generator: Eazy Po 0.9.5.3\n"
+
+#: jtlconnector.php:107
+msgid "Activate WooCommerce in order to use the JTL-Connector."
+msgstr ""
+
+#: jtlconnector.php:112
+msgid "At least WooCommerce 3.0 has to be installed."
+msgstr ""
+
+#: jtlconnector.php:117
+msgid "Rewriting is disabled. Please select another permalink setting."
+msgstr ""
+
+#: src/jtl/Connector/WooCommerce/Utility/UtilGermanized.php:42
+msgid "Mr."
+msgstr ""
+
+#: src/jtl/Connector/WooCommerce/Utility/UtilGermanized.php:43
+msgid "Ms."
+msgstr ""
+
+#: src/jtl/Connector/WooCommerce/Controller/Product/Product.php:127
+#, php-format
+msgid "Variation #%s of %s"
+msgstr ""
+
+#: src/jtl/Connector/WooCommerce/Authentication/TokenLoader.php:19
+msgid "There was no token found."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:224
+msgid "Documentation"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:243
+msgid "Settings"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:258
+msgid "Options"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:260
+msgid ""
+"Settings for the usage of the connector. By default the completed orders are pulled with no time limit."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:264
+msgid "Pull completed orders"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:266
+msgid ""
+"Choose when having a large amount of data and low server specifications."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:270
+msgid "Pull orders since"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:272
+msgid "Define a start date for pulling of orders."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:276
+msgid "Variation name format"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:280
+msgid "Variation #22 of Product name"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:281
+msgid "Variation #22 of Product name Color: black, Size: S"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:282
+msgid "Variation #22 of Product name (Color: black, Size: S)"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:283
+msgid "Product name Color: black, Size: S"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:284
+msgid "Product name (Color: black, Size: S)"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:286
+msgid "Define how the child product name is formatted."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:504
+msgid ""
+"The linking table migration was not successful. Please use the forum for "
+"help."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:509
+#, php-format
+msgid "Directory %s has no write access."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:514 includes/JtlConnectorAdmin.php:519
+msgid "PHP extension \"phar\" could not be found."
+msgstr ""
+
+#: includes/settings.php:2
+msgid "Information"
+msgstr ""
+
+#: includes/settings.php:3
+msgid ""
+"Basic information and credentials of the installed connector. It is needed "
+"to configure the connector in the customer center and JTL-Wawi."
+msgstr ""
+
+#: includes/settings.php:17
+msgid "Connector Password"
+msgstr ""

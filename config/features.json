@@ -1,0 +1,467 @@
+{
+  "entities": {
+    "Category": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "CategoryI18n": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "CategoryAttr": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CategoryAttrI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CategoryCustomerGroup": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CategoryInvisibility": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ConfigGroup": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ConfigGroupI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ConfigItem": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ConfigItemI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ConfigItemPrice": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CrossSelling": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "CrossSellingGroup": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CrossSellingGroupI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CrossSellingItem": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "Currency": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "Customer": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "CustomerAttr": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerGroup": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "CustomerGroupAttr": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerGroupI18n": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "CustomerGroupPackagingQuantity": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrder": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderAttr": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderBillingAddress": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderItem": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderItemVariation": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderPaymentInfo": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "CustomerOrderShippingAddress": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "DeliveryNote": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "DeliveryNoteItem": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "DeliveryNoteItemInfo": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "DeliveryNoteTrackingList": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "FileUpload": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "FileUploadI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "Image": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "Language": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "Manufacturer": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ManufacturerI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "MeasurementUnit": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "MeasurementUnitI18n": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "PartsList": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "Payment": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "Product": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "Product2Category": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductAttr": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductAttrI18n": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductConfigGroup": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductFileDownload": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductFileDownloadI18n": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductI18n": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductInvisibility": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductMediaFile": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductMediaFileAttr": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductMediaFileAttrI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductMediaFileI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductPartsList": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductPrice": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductPriceItem": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductSpecialPrice": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductSpecialPriceItem": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductSpecific": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductStockLevel": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ProductType": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "ProductVarCombination": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductVariation": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "ProductVariationI18n": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "ProductVariationInvisibility": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductVariationValue": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "ProductVariationValueDependency": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductVariationValueExtraCharge": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductVariationValueI18n": {
+      "pull": true,
+      "push": true,
+      "delete": true
+    },
+    "ProductVariationValueInvisibility": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ProductWarehouseInfo": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "Shipment": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "ShippingClass": {
+      "pull": true,
+      "push": true,
+      "delete": false
+    },
+    "ShippingMethod": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "Specific": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "SpecificI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "SpecificValue": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "SpecificValueI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "StatusChange": {
+      "pull": false,
+      "push": true,
+      "delete": false
+    },
+    "TaxClass": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "TaxRate": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "TaxZone": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "TaxZoneCountry": {
+      "pull": true,
+      "push": false,
+      "delete": false
+    },
+    "Unit": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "UnitI18n": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    },
+    "Warehouse": {
+      "pull": false,
+      "push": false,
+      "delete": false
+    }
+  },
+  "flags": {
+    "can_reactivate_customer_order": false,
+    "can_update_customer_order": false,
+    "category_images_supported": true,
+    "config_group_images_supported": false,
+    "customer_order_partially_payable": false,
+    "free_field_supported": false,
+    "manufacturer_images_supported": false,
+    "needs_finish_call": true,
+    "product_images_supported": true,
+    "product_variation_value_images_supported": false,
+    "set_articles_supported": true,
+    "specific_images_supported": false,
+    "specific_value_images_supported": false,
+    "var_combination_child_first": false,
+    "variation_combinations_supported": true,
+    "variation_products_supported": false
+  }
+}
