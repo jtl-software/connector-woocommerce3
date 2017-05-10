@@ -9,6 +9,7 @@ namespace jtl\Connector\WooCommerce\Controller\Product;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
+use jtl\Connector\Model\ProductPriceItem;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Controller\GlobalData\CustomerGroup;
 use jtl\Connector\WooCommerce\Utility\Util;
@@ -17,14 +18,16 @@ class ProductPrice extends BaseController
 {
     public function pullData(\WC_Product $product, $model)
     {
-        $price = (new ProductPriceModel())
-            ->setId(new Identity($product->get_id()))
-            ->setProductId(new Identity($product->get_id()))
-            ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP));
-
-        new ProductPriceItem();
-
-        return $price;
+        return [
+            (new ProductPriceModel())
+                ->setId(new Identity($product->get_id()))
+                ->setProductId(new Identity($product->get_id()))
+                ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                ->addItem((new ProductPriceItem())
+                    ->setProductPriceId(new Identity($product->get_id()))
+                    ->setQuantity(1)
+                    ->setNetPrice($this->netPrice($product))),
+        ];
     }
 
     protected function netPrice(\WC_Product $product)

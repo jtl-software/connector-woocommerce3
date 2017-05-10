@@ -6,14 +6,16 @@
 
 namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
-use jtl\Connector\Model\GlobalData;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ShippingClass as ShippingClassModel;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
+use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
 
-class ShippingClass extends BaseController
+class ShippingClass
 {
+    use PullTrait, PushTrait;
+
     const TERM_TAXONOMY = 'product_shipping_class';
 
     public function pullData()
@@ -29,9 +31,9 @@ class ShippingClass extends BaseController
         return $shippingClasses;
     }
 
-    public function pushData(GlobalData $globalData)
+    public function pushData(array $shippingClasses)
     {
-        foreach ($globalData->getShippingClasses() as $shippingClass) {
+        foreach ($shippingClasses as $shippingClass) {
             $term = \get_term_by('name', $shippingClass->getName(), self::TERM_TAXONOMY);
 
             if ($term === false) {

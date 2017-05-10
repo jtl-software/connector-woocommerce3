@@ -29,16 +29,16 @@ class CrossSelling extends BaseController
             $relatedProducts = unserialize($row['meta_value']);
 
             if (!empty($relatedProducts)) {
-                $crossSelling = $this->mapper->toHost($row);
+                $crossSelling = (new CrossSellingModel())
+                    ->setId(new Identity($row['post_id']))
+                    ->setProductId(new Identity($row['post_id']));
 
-                if ($crossSelling instanceof CrossSellingModel) {
-                    foreach ($relatedProducts as $product) {
-                        $crossSelling->addItem((new CrossSellingItem())
-                            ->addProductId(new Identity($product)));
-                    }
-
-                    $return[] = $crossSelling;
+                foreach ($relatedProducts as $product) {
+                    $crossSelling->addItem((new CrossSellingItem())
+                        ->addProductId(new Identity($product)));
                 }
+
+                $return[] = $crossSelling;
             }
         }
 

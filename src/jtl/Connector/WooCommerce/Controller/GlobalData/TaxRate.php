@@ -8,16 +8,19 @@ namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\TaxRate as TaxRateModel;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
+use jtl\Connector\WooCommerce\Utility\Db;
 use jtl\Connector\WooCommerce\Utility\SQLs;
 
-class TaxRate extends BaseController
+class TaxRate
 {
+    use PullTrait;
+
     public function pullData()
     {
         $return = [];
 
-        $result = $this->database->query(SQLs::taxRatePull());
+        $result = Db::getInstance()->query(SQLs::taxRatePull());
 
         foreach ($result as $row) {
             $return[] = (new TaxRateModel)

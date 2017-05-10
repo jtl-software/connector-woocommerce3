@@ -56,6 +56,7 @@ final class Util extends Singleton
             'tax_class' => $taxClass,
             'country'   => \get_option('woocommerce_default_country'),
         ]);
+
         if (!empty($taxRates)) {
             return (double)array_values($taxRates)[0]['rate'];
         }
@@ -116,23 +117,29 @@ final class Util extends Singleton
         $page = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
         $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
         $masterProductsToSync[] = $productId;
+
         \update_option(self::TO_SYNC . '_' . $page, array_unique($masterProductsToSync));
     }
 
     public function syncMasterProducts()
     {
         $masterProductsToSyncCount = (int)\get_option(self::TO_SYNC_COUNT, 0);
+
         if ($masterProductsToSyncCount > 0) {
             $page = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
+
             for ($i = 1; $i <= $page; $i++) {
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
+
                 if (!empty($masterProductsToSync)) {
                     foreach ($masterProductsToSync as $productId) {
                         \WC_Product_Variable::sync($productId);
                     }
+
                     \delete_option(self::TO_SYNC . '_' . $page);
                 }
             }
+
             \update_option(self::TO_SYNC_COUNT, 0);
         }
     }
@@ -141,12 +148,15 @@ final class Util extends Singleton
     {
         $offset = 0;
         $limit = 100;
+
         while (!empty($result)) {
             $result = Db::getInstance()->query(SQLs::categoryProductsCount($offset, $limit));
+
             foreach ($result as $category) {
                 Db::getInstance()->query(SQLs::termTaxonomyCountUpdate($category['term_taxonomy_id'], $category['count']));
                 Db::getInstance()->query(SQLs::categoryMetaCountUpdate($category['term_id'], $category['count']));
             }
+
             $offset += $limit;
         }
     }
@@ -155,11 +165,14 @@ final class Util extends Singleton
     {
         $offset = 0;
         $limit = 100;
+
         while (!empty($result)) {
             $result = Db::getInstance()->query(SQLs::productTagsCount($offset, $limit));
+
             foreach ($result as $tag) {
                 Db::getInstance()->query(SQLs::termTaxonomyCountUpdate($tag['term_taxonomy_id'], $tag['count']));
             }
+
             $offset += $limit;
         }
     }
@@ -168,10 +181,11 @@ final class Util extends Singleton
     {
         if (isset($locale)) {
             // Fix WordPress locales like de_DE_formal or de_CH_informal
+            // FIXME: valid locales are converted to empty string
             $locale = substr($locale, 0, strpos($locale, '_', strpos($locale, '_') + 1));
             $result = Language::map($locale);
 
-            if (is_null($result)) {
+            if (empty($result)) {
                 return $this->getWooCommerceLanguage();
             } else {
                 return $result;

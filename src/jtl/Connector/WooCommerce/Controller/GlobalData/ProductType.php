@@ -8,10 +8,12 @@ namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductType as ProductTypeModel;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 
-class ProductType extends BaseController
+class ProductType
 {
+    use PullTrait;
+
     public function pullData()
     {
         $productTypes = [];

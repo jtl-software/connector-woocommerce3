@@ -39,18 +39,20 @@ class Connector extends Controller
             return (int)$value;
         };
 
-        $action->setResult(
-            (new ConnectorIdentification())
-                ->setPlatformName('WooCommerce')
-                ->setPlatformVersion(\WC()->version)
-                ->setEndpointVersion(CONNECTOR_VERSION)
-                ->setProtocolVersion(Application()->getProtocolVersion())
-                ->setServerInfo((new ConnectorServerInfo())
-                    ->setMemoryLimit($returnMegaBytes(ini_get('memory_limit')))
-                    ->setExecutionTime((int)ini_get('max_execution_time'))
-                    ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
-                    ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize'))))
-        );
+        $serverInfo = new ConnectorServerInfo();
+        $serverInfo->setMemoryLimit($returnMegaBytes(ini_get('memory_limit')))
+            ->setExecutionTime((int)ini_get('max_execution_time'))
+            ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
+            ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
+
+        $identification = new ConnectorIdentification();
+        $identification->setPlatformName('WooCommerce')
+            ->setPlatformVersion(\WC()->version)
+            ->setEndpointVersion(CONNECTOR_VERSION)
+            ->setProtocolVersion(Application()->getProtocolVersion())
+            ->setServerInfo($serverInfo);
+
+        $action->setResult($identification);
 
         return $action;
     }

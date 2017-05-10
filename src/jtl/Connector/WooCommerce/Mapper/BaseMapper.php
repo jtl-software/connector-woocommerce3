@@ -106,6 +106,7 @@ abstract class BaseMapper extends Singleton
         $model = [];
         foreach ($this->push as $endpoint => $host) {
             $functionName = strtolower($endpoint);
+            /** @var PropertyInfo $property */
             $property = $this->type->getProperty($host);
             if (method_exists($this, $functionName) && is_null($host)) {
                 $model[$endpoint] = $this->$functionName($data, $customData);

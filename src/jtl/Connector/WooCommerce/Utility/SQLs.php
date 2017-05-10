@@ -7,8 +7,8 @@
 namespace jtl\Connector\WooCommerce\Utility;
 
 use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\WooCommerce\Controller\Category\Category as CategoryCtrl;
-use jtl\Connector\WooCommerce\Controller\Image\Image as ImageCtrl;
+use jtl\Connector\WooCommerce\Controller\Category as CategoryCtrl;
+use jtl\Connector\WooCommerce\Controller\Image as ImageCtrl;
 use jtl\Connector\WooCommerce\Utility\Category as CategoryUtil;
 
 final class SQLs
@@ -115,9 +115,9 @@ final class SQLs
         return "
             SELECT pm.post_id, pm.meta_value
             FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_crosssell_ids'
+            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
             LEFT JOIN jtl_connector_link_crossselling l ON p.ID = l.endpoint_id
-            WHERE p.post_type = 'product' AND l.host_id IS NULL
+            WHERE p.post_type = 'product' AND pm.meta_key = '_crosssell_ids' AND l.host_id IS NULL
             {$limitQuery}";
     }
     // </editor-fold>

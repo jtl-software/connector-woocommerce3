@@ -9,18 +9,21 @@ namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Model\MeasurementUnitI18n;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
+use jtl\Connector\WooCommerce\Utility\Db;
 use jtl\Connector\WooCommerce\Utility\SQLsGermanized;
 use jtl\Connector\WooCommerce\Utility\Util;
 use jtl\Connector\WooCommerce\Utility\UtilGermanized;
 
-class MeasurementUnit extends BaseController
+class MeasurementUnit
 {
+    use PullTrait;
+
     public function pullData()
     {
         $return = [];
 
-        $result = $this->database->query(SQLsGermanized::globalDataMeasurementUnitPull());
+        $result = Db::getInstance()->query(SQLsGermanized::globalDataMeasurementUnitPull());
 
         foreach ((array)$result as $row) {
             $return[] = (new MeasurementUnitModel())

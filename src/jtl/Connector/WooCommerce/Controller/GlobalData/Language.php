@@ -8,11 +8,13 @@ namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Utility\Util;
 
-class Language extends BaseController
+class Language
 {
+    use PullTrait;
+
     public function pullData()
     {
         $locale = \get_locale();

@@ -28,41 +28,86 @@ class ProductVariation extends BaseController
     {
         $return = [];
 
-        if ($product->is_type('variable')) {
-            $allVariations = $product->get_attributes();
-
+        if ($product instanceof \WC_Product_Variable) {
             /**
              * @var string $slug
-             * @var \WC_Product_Attribute $variation
+             * @var \WC_Product_Attribute $attribute
              */
-            foreach ($allVariations as $slug => $variation) {
-                if (!$variation->get_variation()) {
+            foreach ($product->get_attributes() as $slug => $attribute) {
+                if (!$attribute->get_variation()) {
                     continue;
                 }
 
-                if ($variation->is_taxonomy()) {
-                    $productVariation = $this->pullTaxonomyVariation($product, $model, $variation, $slug);
-                } else {
-                    $productVariation = $this->pullCustomVariation($product, $model, $slug, $variation);
+                $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
+
+                $productVariation = (new ProductVariationModel())
+                    ->setId($id)
+                    ->setProductId($model->getId())
+                    ->setType(ProductVariationModel::TYPE_SELECT)
+                    ->addI18n((new ProductVariationI18n())
+                        ->setProductVariationId($id)
+                        ->setName(\wc_attribute_label($attribute->get_name()))
+                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
+
+                /** @var \WP_Term $term */
+                foreach ($attribute->get_terms() as $sort => $term) {
+                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
+
+                    $productVariation->addValue((new ProductVariationValue())
+                        ->setId($valueId)
+                        ->setProductVariationId($id)
+                        ->setSort($sort)
+                        ->addI18n((new ProductVariationValueI18n())
+                            ->setProductVariationValueId($valueId)
+                            ->setName($term->name)
+                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
+                    );
                 }
+
+                $return[] = $productVariation;
             }
-        } elseif ($product->is_type('variation')) {
-            $allVariations = $product->get_attributes();
+        } elseif ($product instanceof \WC_Product_Variation) {
+            $parent = \wc_get_product($product->get_parent_id());
 
             /**
              * @var string $slug
-             * @var \WC_Product_Attribute $variation
+             * @var \WC_Product_Attribute $attribute
              */
-            foreach ($allVariations as $slug => $variation) {
-                var_dump($variation);
-                if ($variation->get_variation()) {
-                    if ($variation->is_taxonomy()) {
-                        $productVariation = $this->pullTaxonomyVariation($product, $model, $variation, $slug);
-                    } else {
-                        $productVariation = $this->pullCustomVariation($product, $model, $slug, $variation);
+            foreach ($product->get_attributes() as $slug => $attribute) {
+                foreach (\get_terms(['taxonomy' => $slug]) as $term) {
+                    if ($term->slug !== $attribute) {
+                        continue;
                     }
 
-                    $productVariation->setProductId($model->getId());
+                    /** @var \WC_Product_Attribute $parentAttribute */
+                    foreach ($parent->get_attributes() as $parentAttribute) {
+                        if ($parentAttribute->get_name() === $slug) {
+                            $attribute = $parentAttribute;
+                            break;
+                        }
+                    }
+
+                    $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
+
+                    $productVariation = (new ProductVariationModel())
+                        ->setId($id)
+                        ->setProductId($model->getId())
+                        ->setType(ProductVariationModel::TYPE_SELECT)
+                        ->addI18n((new ProductVariationI18n())
+                            ->setProductVariationId($id)
+                            ->setName(\wc_attribute_label($attribute->get_name()))
+                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
+
+                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
+
+                    $productVariation->addValue((new ProductVariationValue())
+                        ->setId($valueId)
+                        ->setProductVariationId($id)
+                        ->addI18n((new ProductVariationValueI18n())
+                            ->setProductVariationValueId($valueId)
+                            ->setName($term->name)
+                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
+                    );
 
                     $return[] = $productVariation;
                 }
@@ -70,104 +115,6 @@ class ProductVariation extends BaseController
         }
 
         return $return;
-    }
-
-    private function pullTaxonomyVariation(\WC_Product $product, ProductModel $model, \WC_Product_Attribute $variation, $slug)
-    {
-        // Term created for variation => take term and taxonomy
-        $productVariation = (new ProductVariationModel())
-            ->setId(new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $variation->get_id()])))
-            ->setType(ProductVariationModel::TYPE_SELECT);
-
-        $i18n = (new ProductVariationI18n())
-            ->setProductVariationId($productVariation->getId())
-            ->setName(\wc_attribute_label($variation['name']))
-            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
-
-        $terms = \get_terms(['taxonomy' => $slug]);
-        $variationAttributes = $product->get_variation_attributes();
-
-        foreach ($terms as $sort => $term) {
-            if ($product->is_type('variable')) {
-                if (in_array($term->slug, $variationAttributes[$term->taxonomy])) {
-                    $this->addTaxonomyVariationValue($productVariation, $productVariation->getId(), $term, $sort);
-                }
-            } elseif ($product->is_type('variation')) {
-                $van = 'attribute_' . \sanitize_title($term->taxonomy);
-                if (isset($variationAttributes[$van]) && $variationAttributes[$van] === $term->slug) {
-                    $this->addTaxonomyVariationValue($productVariation, $productVariation->getId(), $term, $sort);
-                }
-            }
-        }
-
-        $productVariation->addI18n($i18n);
-
-        return $productVariation;
-    }
-
-    private function addTaxonomyVariationValue(ProductVariationModel &$productVariation, $productVariationId, $term, $sort)
-    {
-        $i18n = (new ProductVariationValueI18n())
-            ->setProductVariationValueId(new Identity(IdConcatenation::link([$productVariationId, $term->term_id])))
-            ->setName($term->name)
-            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
-
-        $productVariationValue = (new ProductVariationValue())
-            ->setId($productVariationId)
-            ->setProductVariationId($i18n->getProductVariationValueId())
-            ->setSort($sort)
-            ->addI18n($i18n);
-
-        $productVariation->addValue($productVariationValue);
-    }
-
-    private function pullCustomVariation(\WC_Product $product, ProductModel $model, $slug, $variation)
-    {
-        // Custom variation => take post meta
-        $productVarId = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $slug]));
-        $productVariation = (new ProductVariationModel())
-            ->setId($productVarId);
-
-        $productVarI18n = (new ProductVariationI18n())
-            ->setProductVariationId($productVarId)
-            ->setName($variation['name'])
-            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
-
-        $values = array_map('trim', explode(WC_DELIMITER, $variation['value']));
-        $variationAttributes = $product->get_variation_attributes();
-
-        foreach ($values as $sort => $value) {
-            if ($product->is_type('variable')) {
-                $this->addCustomVariationValue($productVariation, $productVarId, $value, $sort);
-            } elseif ($product->is_type('variation')) {
-                $van = 'attribute_' . \sanitize_title($slug);
-                if (isset($variationAttributes[$van]) && $variationAttributes[$van] === $value) {
-                    $this->addCustomVariationValue($productVariation, $productVarId, $value, $sort);
-                }
-            }
-        }
-
-        $productVariation->addI18n($productVarI18n);
-
-        return $productVariation;
-    }
-
-    private function addCustomVariationValue(ProductVariationModel &$productVariation, Identity $productVarId, $value, $sort)
-    {
-        $varValueId = new Identity(IdConcatenation::link([$productVarId->getEndpoint(), \sanitize_key($value)]));
-
-        $i18n = (new ProductVariationValueI18n())
-            ->setProductVariationValueId($varValueId)
-            ->setName($value)
-            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
-
-        $productVariationValue = (new ProductVariationValue())
-            ->setId($varValueId)
-            ->setProductVariationId($productVarId)
-            ->setSort($sort)
-            ->addI18n($i18n);
-
-        $productVariation->addValue($productVariationValue);
     }
     // </editor-fold>
 

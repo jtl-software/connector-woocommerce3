@@ -19,16 +19,16 @@ class GlobalData extends BaseController
     public function pullData($limit)
     {
         $globalData = (new GlobalDataModel())
-            ->addCurrency(Currency::getInstance()->pullData())
-            ->addCustomerGroup(CustomerGroup::getInstance()->pullData())
-            ->addLanguage(Language::getInstance()->pullData())
-            ->setProductTypes(ProductType::getInstance()->pullData())
-            ->setShippingClasses(ShippingClass::getInstance()->pullData())
-            ->setShippingMethods(ShippingMethod::getInstance()->pullData())
-            ->setTaxRates(TaxRate::getInstance()->pullData());
+            ->addCurrency((new Currency())->pullData())
+            ->addCustomerGroup((new CustomerGroup())->pullData())
+            ->addLanguage((new Language())->pullData())
+            ->setProductTypes((new ProductType())->pullData())
+            ->setShippingClasses((new ShippingClass())->pullData())
+            ->setShippingMethods((new ShippingMethod())->pullData())
+            ->setTaxRates((new TaxRate())->pullData());
 
         if (UtilGermanized::getInstance()->isActive()) {
-            $globalData->setMeasurementUnits(MeasurementUnit::getInstance()->pullData());
+            $globalData->setMeasurementUnits((new MeasurementUnit())->pullData());
         }
 
         return [$globalData];
@@ -36,8 +36,8 @@ class GlobalData extends BaseController
 
     public function pushData(GlobalDataModel $data)
     {
-        Currency::getInstance()->pushData($data->getCurrencies());
-        ShippingClass::getInstance()->pushData($data->getShippingClasses());
+        (new Currency)->pushData($data->getCurrencies());
+        (new ShippingClass)->pushData($data->getShippingClasses());
 
         return $data;
     }

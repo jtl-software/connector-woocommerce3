@@ -8,10 +8,12 @@ namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ShippingMethod as ShippingMethodModel;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 
-class ShippingMethod extends BaseController
+class ShippingMethod
 {
+    use PullTrait;
+
     public function pullData()
     {
         $shippingMethods = [];

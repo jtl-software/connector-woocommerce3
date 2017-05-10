@@ -6,7 +6,6 @@
 
 namespace jtl\Connector\WooCommerce\Mapper;
 
-use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class LocaleBaseObjectMapper extends BaseObjectMapper

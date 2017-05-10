@@ -7,37 +7,44 @@
 namespace jtl\Connector\WooCommerce\Controller\GlobalData;
 
 use jtl\Connector\Model\Currency as CurrencyModel;
-use jtl\Connector\Model\GlobalData;
 use jtl\Connector\Model\Identity;
-use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
+use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 
-class Currency extends BaseController
+class Currency
 {
+    use PullTrait, PushTrait;
+
+    const ISO = 'woocommerce_currency';
+    const SIGN_POSITION = 'woocommerce_currency_pos';
+    const CENT_DELIMITER = 'woocommerce_price_decimal_sep';
+    const THOUSAND_DELIMITER = 'woocommerce_price_thousand_sep';
+
     public function pullData()
     {
         return
             (new CurrencyModel())
                 ->setId(new Identity(strtolower(\get_woocommerce_currency())))
                 ->setName(\get_woocommerce_currency())
-                ->setDelimiterCent(\get_option('woocommerce_price_thousand_sep', ''))
-                ->setDelimiterThousand(\get_option('woocommerce_price_decimal_sep', ''))
-                ->setIsDefault(true)
+                ->setDelimiterCent(\get_option(self::THOUSAND_DELIMITER, ''))
+                ->setDelimiterThousand(\get_option(self::CENT_DELIMITER, ''))
                 ->setIso(\get_woocommerce_currency())
                 ->setNameHtml(\get_woocommerce_currency_symbol())
-                ->setHasCurrencySignBeforeValue(\get_option('woocommerce_currency_pos', '') === 'left');
+                ->setHasCurrencySignBeforeValue(\get_option(self::SIGN_POSITION, '') === 'left')
+                ->setIsDefault(true);
     }
 
-    public function pushData(GlobalData $globalData)
+    public function pushData(array $currencies)
     {
-        foreach ($globalData->getCurrencies() as $currency) {
+        foreach ($currencies as $currency) {
             if (!$currency->getIsDefault()) {
                 continue;
             }
 
-            \update_option('woocommerce_currency', $currency->getIso(), 'yes');
-            \update_option('woocommerce_price_decimal_sep', $currency->getDelimiterCent(), 'yes');
-            \update_option('woocommerce_price_thousand_sep', $currency->getDelimiterThousand(), 'yes');
-            \update_option('woocommerce_currency_pos', $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right', 'yes');
+            \update_option(self::ISO, $currency->getIso(), 'yes');
+            \update_option(self::CENT_DELIMITER, $currency->getDelimiterCent(), 'yes');
+            \update_option(self::THOUSAND_DELIMITER, $currency->getDelimiterThousand(), 'yes');
+            \update_option(self::SIGN_POSITION, $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right', 'yes');
 
             break;
         }

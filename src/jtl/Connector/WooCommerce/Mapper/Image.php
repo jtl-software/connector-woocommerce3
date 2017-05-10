@@ -4,9 +4,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace jtl\Connector\WooCommerce\Mapper\Image;
-
-use jtl\Connector\WooCommerce\Mapper\BaseMapper;
+namespace jtl\Connector\WooCommerce\Mapper;
 
 class Image extends BaseMapper
 {
@@ -16,7 +14,7 @@ class Image extends BaseMapper
         'foreignKey' => 'parent',
         'remoteUrl'  => 'guid',
         'sort'       => 'sort',
-        'filename'   => null
+        'filename'   => null,
     ];
 
     protected function filename(array $data)
