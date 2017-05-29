@@ -22,10 +22,8 @@ final class UtilGermanized extends Singleton
      * @var array Controllers where a Germanized implementation is provided for.
      */
     private static $germanizedController = [
-        'CustomerOrder',
         'GlobalData',
-        'Payment',
-        'Product',
+        'Payment'
     ];
 
     private static $units = [

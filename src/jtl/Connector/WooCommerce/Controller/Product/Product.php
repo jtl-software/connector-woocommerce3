@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\WooCommerce\Controller\Product;
 
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Controller\Traits\DeleteTrait;
@@ -35,11 +36,38 @@ class Product extends BaseController
                 continue;
             }
 
-            $result = $this->mapper->toHost($product);
+            $result = (new ProductModel())
+                ->setId(new Identity($product->get_id()))
+                ->setIsMasterProduct($product->is_type('variable'))
+                ->setSku($product->get_sku())
+                ->setVat(Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->get_tax_class()))
+                ->setSort($product->get_menu_order())
+                ->setIsTopProduct($product->is_featured())
+                ->setProductTypeId(new Identity($product->get_type()))
+                ->setKeywords(($tags = \wc_get_product_tag_list($product->get_id())) ? $tags : null)
+                ->setCreationDate($product->get_date_created())
+                ->setModified($product->get_date_modified())
+                ->setAvailableFrom($this->availableFrom($product))
+                ->setHeight((double)$product->get_height())
+                ->setLength((double)$product->get_length())
+                ->setWidth((double)$product->get_width())
+                ->setShippingWeight((double)$product->get_weight())
+                ->setConsiderStock($product->managing_stock())
+                ->setPermitNegativeStock($product->backorders_allowed())
+                ->setShippingClassId(new Identity($product->get_shipping_class_id()));
 
-            if (!$result instanceof ProductModel) {
-                continue;
+            if ($product->get_parent_id() !== 0) {
+                $result->setMasterProductId(new Identity($product->get_parent_id()));
             }
+
+            $result
+                ->setI18ns(ProductI18n::getInstance()->pullData($product, $result))
+                ->setStockLevel(ProductStockLevel::getInstance()->pullData($product, $result))
+                ->setPrices(ProductPrice::getInstance()->pullData($product, $result))
+                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product, $result))
+                ->setCategories(Product2Category::getInstance()->pullData($product, $result))
+                ->setAttributes(ProductAttr::getInstance()->pullData($product, $result))
+                ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
 
             $this->onProductMapped($result);
 
@@ -47,11 +75,6 @@ class Product extends BaseController
         }
 
         return $products;
-    }
-
-    protected function getStats()
-    {
-        return count($this->database->queryList(SQLs::productPull()));
     }
 
     protected function pushData(ProductModel $product, $model)
@@ -189,7 +212,20 @@ class Product extends BaseController
         return $product;
     }
 
+    protected function getStats()
+    {
+        return count($this->database->queryList(SQLs::productPull()));
+    }
+
     protected function onProductMapped(ProductModel &$product)
     {
+    }
+
+    private function availableFrom(\WC_Product $product)
+    {
+        $postDate = $product->get_date_created();
+        $modDate = $product->get_date_modified();
+
+        return $postDate <= $modDate ? null : $postDate;
     }
 }

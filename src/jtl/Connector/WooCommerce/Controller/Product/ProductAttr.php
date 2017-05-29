@@ -20,7 +20,6 @@ class ProductAttr extends BaseController
 {
     const PAYABLE = 'payable';
     const NOSEARCH = 'nosearch';
-    const ACTIVE = 'isActive';
 
     final public function pullData(\WC_Product $product, ProductModel $model)
     {
@@ -59,16 +58,29 @@ class ProductAttr extends BaseController
         }
 
         if (!$product->is_purchasable()) {
-            $attrI18n = (new ProductAttrI18nModel())
-                ->setProductAttrId(new Identity(self::ACTIVE))
-                ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                ->setName(self::ACTIVE)
-                ->setValue('false');
+            $isPurchasable = false;
 
-            $productAttributes[] = (new ProductAttrModel())
-                ->setId(new Identity(self::ACTIVE))
-                ->setIsCustomProperty(true)
-                ->addI18n($attrI18n);
+            if ($product->has_child()) {
+                $isPurchasable = true;
+
+                foreach ($product->get_children() as $childId) {
+                    $child = \wc_get_product($childId);
+                    $isPurchasable = $isPurchasable & $child->is_purchasable();
+                }
+            }
+
+            if (!$isPurchasable) {
+                $attrI18n = (new ProductAttrI18nModel())
+                    ->setProductAttrId(new Identity(self::PAYABLE))
+                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
+                    ->setName(self::PAYABLE)
+                    ->setValue('false');
+
+                $productAttributes[] = (new ProductAttrModel())
+                    ->setId(new Identity(self::PAYABLE))
+                    ->setIsCustomProperty(true)
+                    ->addI18n($attrI18n);
+            }
         }
 
         return $productAttributes;
@@ -108,7 +120,7 @@ class ProductAttr extends BaseController
         $productId = (int)$attribute->getProductId()->getEndpoint();
 
         if ($attribute->getIsCustomProperty()) {
-            if (in_array(strtolower($i18n->getName()), [strtolower(self::ACTIVE), strtolower(self::PAYABLE)])) {
+            if (strtolower($i18n->getName()) === strtolower(self::PAYABLE)) {
                 \wp_update_post([
                     'ID'          => $productId,
                     'post_status' => 'private',

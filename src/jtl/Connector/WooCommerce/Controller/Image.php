@@ -7,6 +7,7 @@
 namespace jtl\Connector\WooCommerce\Controller;
 
 use jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
 use jtl\Connector\WooCommerce\Controller\Traits\DeleteTrait;
@@ -57,8 +58,8 @@ class Image extends BaseController
                 $model
                     ->setRelationType($type)
                     ->addI18n((new ImageI18n())
-                        ->setId($image['ID'])
-                        ->setImageId($image['ID'])
+                        ->setId(new Identity($image['ID']))
+                        ->setImageId(new Identity($image['ID']))
                         ->setAltText(\get_post_meta($image['ID'], '_wp_attachment_image_alt', true))
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                     );
@@ -82,6 +83,7 @@ class Image extends BaseController
     {
         $imageCount = 0;
         $attachments = [];
+
         $this->alreadyLinked = $this->database->queryList(SQLs::linkedProductImages());
 
         try {
@@ -141,14 +143,17 @@ class Image extends BaseController
 
         if ($product->is_type('variation')) {
             $pictureId = \get_post_meta($product->variation_id, self::PRODUCT_THUMBNAIL, true);
+
             if (!empty($pictureId)) {
                 $attachmentIds[] = $pictureId;
             }
         } else {
             $pictureId = \get_post_meta($product->get_id(), self::PRODUCT_THUMBNAIL, true);
+
             if (!empty($pictureId)) {
                 $attachmentIds[] = $pictureId;
             }
+
             if (!empty($product->product_image_gallery)) {
                 $attachmentIds = array_merge($attachmentIds, array_map('trim', explode(',', $product->product_image_gallery)));
             }
@@ -175,23 +180,36 @@ class Image extends BaseController
 
     private function fetchProductAttachments($attachmentIds, $productId)
     {
+        $sort = 0;
         $attachments = [];
-        if (!empty($attachmentIds)) {
-            $sort = 0;
-            foreach ($attachmentIds as $attachmentId) {
-                if (file_exists(\get_attached_file($attachmentId))) {
-                    $picture = \get_post($attachmentId, ARRAY_A);
-                    $picture['id'] = IdConcatenation::linkProductImage($attachmentId, $productId);
-                    $picture['parent'] = $productId;
-                    if ($attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
-                        $picture['sort'] = ++$sort;
-                    } else {
-                        $picture['sort'] = $sort;
-                    }
-                    $attachments[] = $picture;
-                    ++$sort;
-                }
+
+        if (empty($attachmentIds)) {
+            return $attachments;
+        }
+
+        foreach ($attachmentIds as $attachmentId) {
+            if (!file_exists(\get_attached_file($attachmentId))) {
+                continue;
             }
+
+            $picture = \get_post($attachmentId, ARRAY_A);
+
+            if (!is_array($picture)) {
+                continue;
+            }
+
+            $picture['id'] = IdConcatenation::linkProductImage($attachmentId, $productId);
+            $picture['parent'] = $productId;
+
+            if ($attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
+                $picture['sort'] = ++$sort;
+            } else {
+                $picture['sort'] = $sort;
+            }
+
+            ++$sort;
+
+            $attachments[] = $picture;
         }
 
         return $attachments;
@@ -205,6 +223,7 @@ class Image extends BaseController
 
         foreach ($attachmentIds as $attachmentId) {
             $endpointId = IdConcatenation::link([$attachmentId, $productId]);
+
             if (!in_array($endpointId, $this->alreadyLinked)) {
                 $filtered[] = $attachmentId;
                 $this->alreadyLinked[] = $endpointId;
@@ -217,10 +236,12 @@ class Image extends BaseController
     private function categoryPull($limit)
     {
         $result = [];
+
         $images = $this->database->query(SQLs::imageCategoryPull($limit));
 
         foreach ($images as $image) {
             $image['sort'] = 0;
+
             $result[] = $image;
         }
 

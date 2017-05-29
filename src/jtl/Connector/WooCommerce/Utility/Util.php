@@ -179,20 +179,23 @@ final class Util extends Singleton
 
     public function mapLanguageIso($locale)
     {
-        if (isset($locale)) {
-            // Fix WordPress locales like de_DE_formal or de_CH_informal
-            // FIXME: valid locales are converted to empty string
-            $locale = substr($locale, 0, strpos($locale, '_', strpos($locale, '_') + 1));
-            $result = Language::map($locale);
+        $result = null;
 
-            if (empty($result)) {
-                return $this->getWooCommerceLanguage();
-            } else {
-                return $result;
+        if (strpos($locale, '_')) {
+            $result = Language::map(substr($locale, 0, 5));
+        } else {
+            if (count($locale) === 2) {
+                $result = is_null(Language::convert($locale)) ? null : $locale;
+            } elseif (count($locale) === 3) {
+                $result = Language::convert(null, $locale);
             }
         }
 
-        return $this->getWooCommerceLanguage();
+        if (empty($result)) {
+            return $this->getWooCommerceLanguage();
+        } else {
+            return $result;
+        }
     }
 
     public function mapPaymentModuleCode(\WC_Order $order)

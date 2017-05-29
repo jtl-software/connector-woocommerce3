@@ -169,7 +169,7 @@ class CustomerOrderItem extends BaseController
                         ->setCustomerOrderId(new Identity($order->get_id()))
                         ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
                         ->setName($shippingItem->get_name())
-                        ->setPriceGross(round($costs, $this->priceDecimals))
+                        ->setPriceGross(round($costs + $taxAmount, $this->priceDecimals))
                         ->setQuantity(1);
 
                     if (isset(self::$taxRateCache[$taxRateId])) {
@@ -180,7 +180,7 @@ class CustomerOrderItem extends BaseController
                         self::$taxRateCache[$taxRateId] = $rate;
                     }
 
-                    $customerOrderItem->setPrice(round($costs - $taxAmount, $this->priceDecimals));
+                    $customerOrderItem->setPrice(round($costs, $this->priceDecimals));
 
                     $customerOrderItems[] = $customerOrderItem;
                 }

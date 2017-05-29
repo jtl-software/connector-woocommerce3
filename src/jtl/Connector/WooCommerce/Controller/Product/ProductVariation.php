@@ -23,34 +23,50 @@ class ProductVariation extends BaseController
 {
     private $values = [];
 
-    // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(\WC_Product $product, ProductModel $model)
     {
         $return = [];
 
         if ($product instanceof \WC_Product_Variable) {
-            /**
-             * @var string $slug
-             * @var \WC_Product_Attribute $attribute
-             */
-            foreach ($product->get_attributes() as $slug => $attribute) {
-                if (!$attribute->get_variation()) {
+            $this->pullParent($product, $model, $return);
+        } elseif ($product instanceof \WC_Product_Variation) {
+            $this->pullChild($product, $model, $return);
+        }
+
+        return $return;
+    }
+
+    private function pullParent(\WC_Product $product, ProductModel $model, &$return)
+    {
+        /**
+         * @var string $slug
+         * @var \WC_Product_Attribute $attribute
+         */
+        foreach ($product->get_attributes() as $slug => $attribute) {
+            if (!$attribute->get_variation()) {
+                continue;
+            }
+
+            $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
+
+            $productVariation = (new ProductVariationModel())
+                ->setId($id)
+                ->setProductId($model->getId())
+                ->setType(ProductVariationModel::TYPE_SELECT)
+                ->addI18n((new ProductVariationI18n())
+                    ->setProductVariationId($id)
+                    ->setName(\wc_attribute_label($attribute->get_name()))
+                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
+
+            if ($attribute->is_taxonomy()) {
+                $terms = $attribute->get_terms();
+
+                if (!is_array($terms)) {
                     continue;
                 }
 
-                $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
-
-                $productVariation = (new ProductVariationModel())
-                    ->setId($id)
-                    ->setProductId($model->getId())
-                    ->setType(ProductVariationModel::TYPE_SELECT)
-                    ->addI18n((new ProductVariationI18n())
-                        ->setProductVariationId($id)
-                        ->setName(\wc_attribute_label($attribute->get_name()))
-                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
-
                 /** @var \WP_Term $term */
-                foreach ($attribute->get_terms() as $sort => $term) {
+                foreach ($terms as $sort => $term) {
                     $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
 
                     $productVariation->addValue((new ProductVariationValue())
@@ -63,62 +79,101 @@ class ProductVariation extends BaseController
                             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
                     );
                 }
+            } else {
+                $options = $attribute->get_options();
 
-                $return[] = $productVariation;
+                foreach ($options as $sort => $option) {
+                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), \sanitize_key($option)]));
+
+                    $productVariation->addValue((new ProductVariationValue())
+                        ->setId($valueId)
+                        ->setProductVariationId($id)
+                        ->setSort($sort)
+                        ->addI18n((new ProductVariationValueI18n())
+                            ->setProductVariationValueId($valueId)
+                            ->setName($option)
+                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
+                    );
+                }
             }
-        } elseif ($product instanceof \WC_Product_Variation) {
-            $parent = \wc_get_product($product->get_parent_id());
 
-            /**
-             * @var string $slug
-             * @var \WC_Product_Attribute $attribute
-             */
-            foreach ($product->get_attributes() as $slug => $attribute) {
-                foreach (\get_terms(['taxonomy' => $slug]) as $term) {
-                    if ($term->slug !== $attribute) {
+            $return[] = $productVariation;
+        }
+    }
+
+    private function pullChild(\WC_Product $product, ProductModel $model, &$return)
+    {
+        $parent = \wc_get_product($product->get_parent_id());
+
+        /**
+         * @var string $slug
+         * @var \WC_Product_Attribute $attribute
+         */
+        foreach ($parent->get_attributes() as $slug => $attribute) {
+            $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $slug]));
+
+            $productVariation = (new ProductVariationModel())
+                ->setId($id)
+                ->setProductId($model->getId())
+                ->setType(ProductVariationModel::TYPE_SELECT)
+                ->addI18n((new ProductVariationI18n())
+                    ->setProductVariationId($id)
+                    ->setName(\wc_attribute_label($attribute->get_name()))
+                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
+
+            if ($attribute->is_taxonomy()) {
+                $terms = $attribute->get_terms();
+
+                if (!is_array($terms)) {
+                    continue;
+                }
+
+                $value = $product->get_attribute($slug);
+
+                /** @var \WP_Term $term */
+                foreach ($terms as $sort => $term) {
+                    if ($term->name !== $value) {
                         continue;
                     }
-
-                    /** @var \WC_Product_Attribute $parentAttribute */
-                    foreach ($parent->get_attributes() as $parentAttribute) {
-                        if ($parentAttribute->get_name() === $slug) {
-                            $attribute = $parentAttribute;
-                            break;
-                        }
-                    }
-
-                    $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
-
-                    $productVariation = (new ProductVariationModel())
-                        ->setId($id)
-                        ->setProductId($model->getId())
-                        ->setType(ProductVariationModel::TYPE_SELECT)
-                        ->addI18n((new ProductVariationI18n())
-                            ->setProductVariationId($id)
-                            ->setName(\wc_attribute_label($attribute->get_name()))
-                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
 
                     $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
 
                     $productVariation->addValue((new ProductVariationValue())
                         ->setId($valueId)
                         ->setProductVariationId($id)
+                        ->setSort($sort)
                         ->addI18n((new ProductVariationValueI18n())
                             ->setProductVariationValueId($valueId)
                             ->setName($term->name)
                             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
                     );
+                }
+            } else {
+                $value = $product->get_attribute($slug);
 
-                    $return[] = $productVariation;
+                foreach ($attribute->get_options() as $sort => $option) {
+                    if ($option !== $value) {
+                        continue;
+                    }
+
+                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), \sanitize_key($option)]));
+
+                    $productVariation->addValue((new ProductVariationValue())
+                        ->setId($valueId)
+                        ->setProductVariationId($id)
+                        ->setSort($sort)
+                        ->addI18n((new ProductVariationValueI18n())
+                            ->setProductVariationValueId($valueId)
+                            ->setName($option)
+                            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()))
+                    );
                 }
             }
+
+            $return[] = $productVariation;
         }
-
-        return $return;
     }
-    // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Push">
     public function pushData(ProductModel $product, $model)
     {
         if ($product->getIsMasterProduct()) {
@@ -256,5 +311,4 @@ class ProductVariation extends BaseController
             }
         }
     }
-    // </editor-fold>
 }

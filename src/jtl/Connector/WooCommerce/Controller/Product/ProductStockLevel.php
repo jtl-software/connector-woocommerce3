@@ -8,6 +8,7 @@ namespace jtl\Connector\WooCommerce\Controller\Product;
 
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductStockLevel extends BaseController

@@ -10,15 +10,22 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Utility\Util;
+use jtl\Connector\WooCommerce\Utility\UtilGermanized;
 
 class ProductI18n extends BaseController
 {
-    public function pullData(\WC_Product $product, $model)
+    public function pullData(\WC_Product $product, ProductModel $model)
     {
-        $i18n = $this->mapper->toHost($product);
+        $i18n = (new ProductI18nModel())
+            ->setProductId($model->getId())
+            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
+            ->setName($this->name($product))
+            ->setDescription($product->get_description())
+            ->setShortDescription($product->get_short_description())
+            ->setUrlPath($product->get_slug());
 
-        if ($i18n instanceof ProductI18nModel) {
-            $this->onProductI18nMapped($i18n, $product);
+        if (UtilGermanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
+            $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
 
         return [$i18n];
@@ -34,23 +41,25 @@ class ProductI18n extends BaseController
         }
     }
 
-    protected function onProductI18nMapped(ProductI18nModel &$i18n, \WC_Product $product)
+    private function name(\WC_Product $product)
     {
         if ($product instanceof \WC_Product_Variation) {
             switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT, '')) {
                 case 'space':
-                    $i18n->setName($i18n->getName() . ' ' . $product->get_formatted_variation_attributes(true));
-                    break;
+                    return $product->get_name() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets':
-                    $i18n->setName(sprintf('%s (%s)', $i18n->getName(), $product->get_formatted_variation_attributes(true)));
-                    break;
+                    return sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
                 case 'space_parent':
-                    $i18n->setName($product->parent->get_title() . ' ' . $product->get_formatted_variation_attributes(true));
-                    break;
+                    $parent = \wc_get_product($product->get_parent_id());
+
+                    return $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets_parent':
-                    $i18n->setName(sprintf('%s (%s)', $product->parent->get_title(), $product->get_formatted_variation_attributes(true)));
-                    break;
+                    $parent = \wc_get_product($product->get_parent_id());
+
+                    return sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
             }
         }
+
+        return $product->get_name();
     }
 }

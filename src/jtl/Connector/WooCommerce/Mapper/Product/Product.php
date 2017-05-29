@@ -13,45 +13,6 @@ use jtl\Connector\WooCommerce\Utility\Util;
 
 class Product extends BaseObjectMapper
 {
-    protected $pull = [
-        // Identifier
-        'id'                     => null,
-        'isMasterProduct'        => null,
-        'masterProductId'        => null,
-        // Base data
-        'sku'                    => null,
-        'vat'                    => null,
-        'sort'                   => null,
-        'isTopProduct'           => null,
-        'productTypeId'          => null,
-        'keywords'               => null,
-        // Dates
-        'creationDate'           => null,
-        'modified'               => null,
-        'availableFrom'          => null,
-        // Dimensions
-        'height'                 => 'height',
-        'length'                 => 'length',
-        'width'                  => 'width',
-        'shippingWeight'         => 'weight',
-        // Stock
-        'considerStock'          => null,
-        'considerVariationStock' => null,
-        'permitNegativeStock'    => null,
-        'stockLevel'             => 'Product\ProductStockLevel',
-        // Other
-        'shippingClassId'        => null,
-        // Price
-        'prices'                 => 'Product\ProductPrice',
-        'specialPrices'          => 'Product\ProductSpecialPrice',
-        // Relations
-        'categories'             => 'Product\Product2Category',
-        'i18ns'                  => 'Product\ProductI18n',
-        'attributes'             => 'Product\ProductAttr',
-        'variations'             => 'Product\ProductVariation',
-        'checksums'              => 'Product\ProductChecksum',
-    ];
-
     protected $push = [
         'id'                  => 'id',
         'sku'                 => 'sku',
@@ -68,93 +29,6 @@ class Product extends BaseObjectMapper
         'width'               => null,
         'Product\ProductI18n' => 'i18ns',
     ];
-
-    protected function id(\WC_Product $product)
-    {
-        return new Identity($product->get_id());
-    }
-
-    protected function isMasterProduct(\WC_Product $product)
-    {
-        return $product->is_type('variable');
-    }
-
-    protected function masterProductId(\WC_Product $product)
-    {
-        if ($product->get_parent_id() === 0) {
-            return null;
-        } else {
-            return new Identity($product->get_parent_id());
-        }
-    }
-
-    protected function productTypeId(\WC_Product $product)
-    {
-        return new Identity($product->get_type());
-    }
-
-    protected function sku(\WC_Product $product)
-    {
-        return $product->get_sku();
-    }
-
-    protected function sort(\WC_Product $product)
-    {
-        return $product->get_menu_order();
-    }
-
-    protected function isTopProduct(\WC_Product $product)
-    {
-        return $product->get_featured();
-    }
-
-    protected function keywords(\WC_Product $product)
-    {
-        return \wc_get_product_tag_list($product->get_id(), ' ');
-    }
-
-    protected function vat(\WC_Product $product)
-    {
-        return Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->get_tax_class());
-    }
-
-    protected function creationDate(\WC_Product $product)
-    {
-        return $product->get_date_created();
-    }
-
-    protected function modified(\WC_Product $product)
-    {
-        return $product->get_date_modified();
-    }
-
-    protected function availableFrom(\WC_Product $product)
-    {
-        $postDate = $product->get_date_created();
-        $modDate = $product->get_date_modified();
-
-        return $postDate <= $modDate ? null : $postDate;
-    }
-
-    protected function considerStock(\WC_Product $product)
-    {
-        return $product->managing_stock();
-    }
-
-    protected function considerVariationStock(\WC_Product $product)
-    {
-        return $this->considerStock($product);
-    }
-
-    protected function permitNegativeStore(\WC_Product $product)
-    {
-        return $product->backorders_allowed();
-    }
-
-    protected function shippingClassId(\WC_Product $product)
-    {
-        return new Identity($product->get_shipping_class_id());
-    }
 
     protected function post_parent(ProductModel $product)
     {
