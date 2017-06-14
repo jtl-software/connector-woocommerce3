@@ -79,40 +79,33 @@ class Product extends BaseController
 
     protected function pushData(ProductModel $product, $model)
     {
-        if ($this->isValidForWooCommerce($product)) {
-            $masterProductId = $product->getMasterProductId()->getEndpoint();
+        $masterProductId = $product->getMasterProductId()->getEndpoint();
 
-            if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
-                $masterProductId = self::$idCache[$product->getMasterProductId()->getHost()];
-                $product->getMasterProductId()->setEndpoint($masterProductId);
-            }
-
-            $productId = $product->getId()->getEndpoint();
-            $endpoint = $this->mapper->toEndpoint($product);
-
-            if (!empty($productId)) {
-                $endpoint['ID'] = (int)$productId;
-            }
-
-            $result = \wp_insert_post($endpoint, true);
-
-            if ($result instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($result);
-
-                return $product;
-            }
-
-            $product->getId()->setEndpoint($result);
-
-            $this->onProductInserted($product, $endpoint);
+        if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
+            $masterProductId = self::$idCache[$product->getMasterProductId()->getHost()];
+            $product->getMasterProductId()->setEndpoint($masterProductId);
         }
 
-        return $product;
-    }
+        $productId = $product->getId()->getEndpoint();
+        $endpoint = $this->mapper->toEndpoint($product);
 
-    private function isValidForWooCommerce(ProductModel $product)
-    {
-        return $product->getPackagingQuantity() <= 1.0 && $product->getMinimumOrderQuantity() <= 1.0;
+        if (!empty($productId)) {
+            $endpoint['ID'] = (int)$productId;
+        }
+
+        $result = \wp_insert_post($endpoint, true);
+
+        if ($result instanceof \WP_Error) {
+            WpErrorLogger::getInstance()->logError($result);
+
+            return $product;
+        }
+
+        $product->getId()->setEndpoint($result);
+
+        $this->onProductInserted($product, $endpoint);
+
+        return $product;
     }
 
     protected function onProductInserted(ProductModel &$product, array &$endpoint)
