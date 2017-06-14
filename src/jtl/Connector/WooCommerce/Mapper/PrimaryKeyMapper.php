@@ -18,19 +18,20 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
     public function getHostId($endpointId, $type)
     {
-        $hostId = false;
         $tableName = $this->getTableName($type);
 
-        if ($tableName !== null) {
-            if ($type === IdentityLinker::TYPE_IMAGE) {
-                list($endpointId, $imageType) = IdConcatenation::unlinkImage($endpointId);
-                $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostImage($endpointId, $imageType), false);
-            } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
-                list($endpointId, $isGuest) = IdConcatenation::unlinkCustomer($endpointId);
-                $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostCustomer($endpointId, $isGuest), false);
-            } else {
-                $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostInteger($endpointId, $tableName), false);
-            }
+        if (is_null($tableName)) {
+            return null;
+        }
+
+        if ($type === IdentityLinker::TYPE_IMAGE) {
+            list($endpointId, $imageType) = IdConcatenation::unlinkImage($endpointId);
+            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostImage($endpointId, $imageType), false);
+        } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
+            list($endpointId, $isGuest) = IdConcatenation::unlinkCustomer($endpointId);
+            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostCustomer($endpointId, $isGuest), false);
+        } else {
+            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostInteger($endpointId, $tableName), false);
         }
 
         PrimaryKeyMappingLogger::getInstance()->getHostId($endpointId, $type, $hostId);
@@ -43,6 +44,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         $clause = '';
         $tableName = $this->getTableName($type);
 
+        if (is_null($tableName)) {
+            return null;
+        }
+
         if ($type === IdentityLinker::TYPE_IMAGE) {
             switch ($relationType) {
                 case ImageRelationType::TYPE_PRODUCT:
@@ -52,6 +57,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     $relationType = IdentityLinker::TYPE_CATEGORY;
                     break;
             }
+
             $clause = "AND type = {$relationType}";
         }
 
@@ -65,6 +71,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     public function save($endpointId, $hostId, $type)
     {
         $tableName = $this->getTableName($type);
+
+        if (is_null($tableName)) {
+            return null;
+        }
 
         PrimaryKeyMappingLogger::getInstance()->save($endpointId, $hostId, $type);
 
@@ -83,10 +93,14 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 
     public function delete($endpointId = null, $hostId = null, $type)
     {
-        PrimaryKeyMappingLogger::getInstance()->delete($endpointId, $hostId, $type);
-
         $where = '';
         $tableName = $this->getTableName($type);
+
+        if (is_null($tableName)) {
+            return null;
+        }
+
+        PrimaryKeyMappingLogger::getInstance()->delete($endpointId, $hostId, $type);
 
         if ($type === IdentityLinker::TYPE_IMAGE || $type === IdentityLinker::TYPE_CUSTOMER) {
             $endpoint = "'{$endpointId}'";

@@ -370,21 +370,21 @@ final class SQLs
     public static function primaryKeyMappingHostString($endpointId, $tableName)
     {
         return "SELECT host_id
-                FROM {$tableName}
+                FROM `{$tableName}`
                 WHERE endpoint_id = '{$endpointId}'";
     }
 
     public static function primaryKeyMappingHostInteger($endpointId, $tableName)
     {
         return "SELECT host_id
-                FROM {$tableName}
+                FROM `{$tableName}`
                 WHERE endpoint_id = {$endpointId}";
     }
 
     public static function primaryKeyMappingEndpoint($hostId, $tableName, $clause)
     {
         return "SELECT endpoint_id
-                FROM {$tableName}
+                FROM `{$tableName}`
                 WHERE host_id = {$hostId} {$clause}";
     }
 
