@@ -115,8 +115,7 @@ class ProductAttr extends BaseController
         }
 
         if (!empty($attributes)) {
-            $wcProduct->set_attributes($attributes);
-            $wcProduct->save();
+            \update_post_meta($wcProduct->get_id(), '_product_attributes', $attributes);
         }
     }
 
@@ -156,25 +155,25 @@ class ProductAttr extends BaseController
      */
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, $productId, array &$attributes)
     {
-        if ($attribute->getIsCustomProperty()) {
-            $this->saveCustomProperty($attribute, $i18n, $productId);
-        } else {
-            $this->addNewAttributeOrEditExisting($i18n, [
-                'name'  => \wc_clean($i18n->getName()),
-                'value' => \wc_clean($i18n->getValue()),
-            ], $attributes);
-        }
-    }
-
-    private function saveCustomProperty(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, $productId)
-    {
         if (strtolower($i18n->getName()) === strtolower(self::PAYABLE)) {
             \wp_update_post(['ID' => $productId, 'post_status' => 'private']);
+
+            return;
         } elseif (strtolower($i18n->getName()) === strtolower(self::NOSEARCH)) {
             \update_post_meta($productId, '_visibility', 'catalog');
-        } else {
+
+            return;
+        }
+
+        if ($attribute->getIsCustomProperty()) {
             $this->saveGlobalAttribute($attribute, $i18n);
         }
+
+        $this->addNewAttributeOrEditExisting($i18n, [
+            'name'             => \wc_clean($i18n->getName()),
+            'value'            => \wc_clean($i18n->getValue()),
+            'isCustomProperty' => $attribute->getIsCustomProperty(),
+        ], $attributes);
     }
 
     private function saveGlobalAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n)
@@ -349,7 +348,7 @@ class ProductAttr extends BaseController
                 'position'     => 0,
                 'is_visible'   => 1,
                 'is_variation' => 0,
-                'is_taxonomy'  => 0,
+                'is_taxonomy'  => (int)$data['isCustomProperty'],
             ];
         }
     }
