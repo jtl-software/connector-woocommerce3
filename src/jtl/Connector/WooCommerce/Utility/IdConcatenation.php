@@ -61,6 +61,7 @@ final class IdConcatenation
     public static function unlinkImage($endpointId)
     {
         list($typePrefix, $parts) = explode(self::SEPARATOR, $endpointId, 2);
+
         if ($typePrefix === self::CATEGORY_PREFIX) {
             return [$parts, IdentityLinker::TYPE_CATEGORY];
         } elseif ($typePrefix === self::PRODUCT_PREFIX) {

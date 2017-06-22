@@ -110,7 +110,7 @@ class ProductVariation extends BaseController
          * @var \WC_Product_Attribute $attribute
          */
         foreach ($parent->get_attributes() as $slug => $attribute) {
-            $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $slug]));
+            $id = new Identity(IdConcatenation::link([$parent->get_id(), $attribute->get_id()]));
 
             $productVariation = (new ProductVariationModel())
                 ->setId($id)

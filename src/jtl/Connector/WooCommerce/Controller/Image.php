@@ -58,8 +58,8 @@ class Image extends BaseController
                 $model
                     ->setRelationType($type)
                     ->addI18n((new ImageI18n())
-                        ->setId(new Identity($image['ID']))
-                        ->setImageId(new Identity($image['ID']))
+                        ->setId(new Identity($image['id']))
+                        ->setImageId(new Identity($image['id']))
                         ->setAltText(\get_post_meta($image['ID'], '_wp_attachment_image_alt', true))
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                     );
@@ -141,25 +141,19 @@ class Image extends BaseController
     {
         $attachmentIds = [];
 
-        if ($product->is_type('variation')) {
-            $pictureId = \get_post_meta($product->variation_id, self::PRODUCT_THUMBNAIL, true);
+        $pictureId = $product->get_image_id();
 
-            if (!empty($pictureId)) {
-                $attachmentIds[] = $pictureId;
-            }
-        } else {
-            $pictureId = \get_post_meta($product->get_id(), self::PRODUCT_THUMBNAIL, true);
+        if (!empty($pictureId)) {
+            $attachmentIds[] = $pictureId;
+        }
 
-            if (!empty($pictureId)) {
-                $attachmentIds[] = $pictureId;
-            }
-
-            if (!empty($product->product_image_gallery)) {
-                $attachmentIds = array_merge($attachmentIds, array_map('trim', explode(',', $product->product_image_gallery)));
+        if (!$product->is_type('variation')) {
+            if (!empty($product->get_gallery_image_ids())) {
+                $attachmentIds = array_merge($attachmentIds, $product->get_gallery_image_ids());
             }
         }
 
-        return [$product->is_type('variation') ? $product->variation_id : $product->get_id(), $attachmentIds];
+        return [$product->get_id(), $attachmentIds];
     }
 
     /**

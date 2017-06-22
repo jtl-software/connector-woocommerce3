@@ -357,7 +357,7 @@ final class SQLs
     {
         return "SELECT host_id
                 FROM `jtl_connector_link_image`
-                WHERE endpoint_id = '{$endpointId}' AND type = {$type}";
+                WHERE endpoint_id = '{$endpointId}' AND `type` = {$type}";
     }
 
     public static function primaryKeyMappingHostCustomer($endpointId, $isGuest)
