@@ -15,14 +15,12 @@ use jtl\Connector\WooCommerce\Utility\IdConcatenation;
 
 class Product2Category extends BaseController
 {
-    const TAXONOMY = 'product_cat';
-
     public function pullData(\WC_Product $product)
     {
         $productCategories = [];
 
         if (!$product->is_type('variation')) {
-            $categories = \wp_get_post_terms($product->get_id(), self::TAXONOMY, ['fields' => 'ids']);
+            $categories = $product->get_category_ids();
 
             if ($categories instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($categories);
@@ -43,16 +41,26 @@ class Product2Category extends BaseController
         return $productCategories;
     }
 
-    public function pushData(ProductModel $product, $model)
+    public function pushData(ProductModel $product, array $model)
     {
-        $func = function (Product2CategoryModel $category) {
+        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+        $wcProduct->set_category_ids($this->getCategoryIds($product->getCategories()));
+        $wcProduct->save();
+    }
+
+    private function getCategoryIds(array $categories)
+    {
+        $productCategories = [];
+
+        /** @var Product2CategoryModel $category */
+        foreach ($categories as $category) {
             $categoryId = $category->getCategoryId()->getEndpoint();
 
             if (!empty($categoryId)) {
                 $productCategories[] = (int)$categoryId;
             }
-        };
+        }
 
-        \wp_set_object_terms($product->getId()->getEndpoint(), array_map($func, $product->getCategories()), self::TAXONOMY);
+        return $productCategories;
     }
 }

@@ -21,7 +21,8 @@ class ProductAttr extends BaseController
     const PAYABLE = 'payable';
     const NOSEARCH = 'nosearch';
 
-    final public function pullData(\WC_Product $product, ProductModel $model)
+    // <editor-fold defaultstate="collapsed" desc="Pull">
+    public function pullData(\WC_Product $product, ProductModel $model)
     {
         $productAttributes = [];
 
@@ -85,67 +86,98 @@ class ProductAttr extends BaseController
 
         return $productAttributes;
     }
+    // </editor-fold>
 
-    public function pushData(ProductModel $data, &$model)
+    // <editor-fold defaultstate="collapsed" desc="Push">
+    public function pushData(ProductModel $product, array $model)
     {
-        $attributes = [];
-        $productId = $data->getId()->getEndpoint();
-        $product = \wc_get_product($productId);
+        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
-        if ($product === false) {
+        if ($wcProduct === false) {
             return;
         }
 
-        $this->addVariationAttributes($product, $attributes);
-        $productAttributes = $data->getAttributes();
+        if ($wcProduct->get_parent_id() !== 0) {
+            return;
+        }
 
-        foreach ($productAttributes as $attribute) {
-            $attribute->getProductId()->setEndpoint($productId);
+        $attributes = $this->getVariationAttributes($wcProduct);
 
+        foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
-                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    $this->handleAttribute($attribute, $i18n, $attributes);
-                    break;
+                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    continue;
                 }
+
+                $this->saveAttribute($attribute, $i18n, $wcProduct->get_id(), $attributes);
+                break;
             }
         }
 
-        if (!empty($productAttributes)) {
-            \update_post_meta($productId, '_product_attributes', $attributes);
+        if (!empty($attributes)) {
+            $wcProduct->set_attributes($attributes);
+            $wcProduct->save();
         }
     }
 
-    private function handleAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, &$attributes)
+    /**
+     * Get variation attributes as they will be overwritten if they are not added again.
+     *
+     * @param \WC_Product $product The product.
+     *
+     * @return array The variation attributes.
+     */
+    private function getVariationAttributes(\WC_Product $product)
     {
-        $productId = (int)$attribute->getProductId()->getEndpoint();
+        $attributes = [];
 
-        if ($attribute->getIsCustomProperty()) {
-            if (strtolower($i18n->getName()) === strtolower(self::PAYABLE)) {
-                \wp_update_post([
-                    'ID'          => $productId,
-                    'post_status' => 'private',
-                ]);
+        $currentAttributes = $product->get_attributes();
 
-                return;
+        /**
+         * @var string $slug The attributes unique slug.
+         * @var \WC_Product_Attribute $attribute The attribute.
+         */
+        foreach ($currentAttributes as $slug => $attribute) {
+            if ($attribute->get_variation()) {
+                $attributes[$slug] = $attribute;
             }
-
-            if (strtolower($i18n->getName()) === strtolower(self::NOSEARCH)) {
-                \update_post_meta($productId, '_visibility', 'catalog');
-
-                return;
-            }
-
-            $this->handleGlobalAttributes($attribute, $i18n);
         }
 
-        $this->addNewAttributeOrEditExisting($attributes, $i18n, [
-            'name'             => \wc_clean($i18n->getName()),
-            'value'            => \wc_clean($i18n->getValue()),
-            'isCustomProperty' => $attribute->getIsCustomProperty(),
-        ]);
+        return $attributes;
     }
 
-    private function handleGlobalAttributes(ProductAttrModel $attribute, ProductAttrI18nModel $i18n)
+    /**
+     * Check if the attribute is a custom property or a simple attribute and save it regarding to that fact.
+     *
+     * @param ProductAttrModel $attribute The attribute.
+     * @param ProductAttrI18nModel $i18n The used language attribute.
+     * @param string $productId The product id.
+     * @param array $attributes The product attributes.
+     */
+    private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, $productId, array &$attributes)
+    {
+        if ($attribute->getIsCustomProperty()) {
+            $this->saveCustomProperty($attribute, $i18n, $productId);
+        } else {
+            $this->addNewAttributeOrEditExisting($i18n, [
+                'name'  => \wc_clean($i18n->getName()),
+                'value' => \wc_clean($i18n->getValue()),
+            ], $attributes);
+        }
+    }
+
+    private function saveCustomProperty(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, $productId)
+    {
+        if (strtolower($i18n->getName()) === strtolower(self::PAYABLE)) {
+            \wp_update_post(['ID' => $productId, 'post_status' => 'private']);
+        } elseif (strtolower($i18n->getName()) === strtolower(self::NOSEARCH)) {
+            \update_post_meta($productId, '_visibility', 'catalog');
+        } else {
+            $this->saveGlobalAttribute($attribute, $i18n);
+        }
+    }
+
+    private function saveGlobalAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n)
     {
         global $wpdb;
 
@@ -170,7 +202,9 @@ class ProductAttr extends BaseController
     private function handleAttributeTaxonomy(ProductAttrI18nModel $i18n, $taxonomy)
     {
         global $wpdb;
+
         $slug = \wc_sanitize_taxonomy_name($i18n->getName());
+
         if (\taxonomy_exists($taxonomy)) {
             $wpdb->update(
                 $wpdb->prefix . 'woocommerce_attribute_taxonomies',
@@ -221,19 +255,23 @@ class ProductAttr extends BaseController
                     ['term_id' => $existingTerm['term_id']],
                     ['%d']
                 );
+
                 $wpdb->delete(
                     $wpdb->term_relationships,
                     ['term_taxonomy_id' => $existingTerm['term_taxonomy_id'], 'product_id' => $productId],
                     ['%d', '%d']
                 );
             }
+
             $result = $wpdb->insert(
                 $wpdb->terms,
                 ['name' => $value, 'slug' => \sanitize_title($value)],
                 ['%s', '%s']
             );
+
             if ($result !== false) {
                 $termId = $wpdb->insert_id;
+
                 $wpdb->update(
                     $wpdb->term_taxonomy,
                     ['term_id' => $termId],
@@ -255,7 +293,9 @@ class ProductAttr extends BaseController
     private function setTermRelationShips($productId, $termTaxonomyId, $termId)
     {
         global $wpdb;
+
         $result = $wpdb->get_var(SQLs::findTermTaxonomyRelation($productId, $termTaxonomyId));
+
         if (is_null($result)) {
             $result = $wpdb->insert(
                 $wpdb->term_relationships,
@@ -266,33 +306,35 @@ class ProductAttr extends BaseController
                 ],
                 ['%d', '%d', '%d']
             );
+
             if ($result === false) {
                 $wpdb->delete($wpdb->terms, ['term_id' => $termId], ['%d']);
             }
         }
     }
 
-    private function addNewAttributeOrEditExisting(&$attr, ProductAttrI18nModel $i18n, array $args)
+    private function addNewAttributeOrEditExisting(ProductAttrI18nModel $i18n, array $data, array &$attributes)
     {
         $slug = \wc_sanitize_taxonomy_name($i18n->getName());
-        if (isset($attr[$slug])) {
-            $this->editAttributeValues($attr, $slug, $i18n->getValue());
+
+        if (isset($attributes[$slug])) {
+            $this->editAttribute($slug, $i18n->getValue(), $attributes);
         } else {
-            $this->addNewAttribute($attr, $slug, $args);
+            $this->addAttribute($slug, $data, $attributes);
         }
     }
 
-    private function editAttributeValues(&$attr, $slug, $value)
+    private function editAttribute($slug, $value, array &$attributes)
     {
-        $values = explode(WC_DELIMITER, $attr[$slug]['value']);
+        $values = explode(WC_DELIMITER, $attributes[$slug]['value']);
         $values[] = \wc_clean($value);
-        $attr[$slug]['value'] = implode(' ' . WC_DELIMITER . ' ', $values);
+        $attributes[$slug]['value'] = implode(' ' . WC_DELIMITER . ' ', $values);
     }
 
-    private function addNewAttribute(&$attr, $slug, array $args)
+    private function addAttribute($slug, array $data, array &$attributes)
     {
-        if ($args['isCustomProperty']) {
-            $attr['pa_' . $slug] = [
+        if ($data['isCustomProperty']) {
+            $attributes['pa_' . $slug] = [
                 'name'         => 'pa_' . $slug,
                 'value'        => '',
                 'position'     => 0,
@@ -301,30 +343,15 @@ class ProductAttr extends BaseController
                 'is_taxonomy'  => 1,
             ];
         } else {
-            $attr[$slug] = [
-                'name'         => $args['name'],
-                'value'        => $args['value'],
+            $attributes[$slug] = [
+                'name'         => $data['name'],
+                'value'        => $data['value'],
                 'position'     => 0,
                 'is_visible'   => 1,
                 'is_variation' => 0,
-                'is_taxonomy'  => (int)$args['isCustomProperty'],
+                'is_taxonomy'  => 0,
             ];
         }
     }
-
-    /**
-     * Add variation attributes as they will be overwritten if they are not added again
-     *
-     * @param \WC_Product $product The product..
-     * @param array $attributes Variation attributes.
-     */
-    private function addVariationAttributes(\WC_Product $product, array &$attributes)
-    {
-        $existingAttributes = $product->get_attributes();
-        foreach ($existingAttributes as $slug => $existingAttribute) {
-            if ($existingAttribute['is_variation']) {
-                $attributes[$slug] = $existingAttribute;
-            }
-        }
-    }
+    // </editor-fold>
 }

@@ -62,12 +62,15 @@ class Product extends BaseController
 
             $result
                 ->setI18ns(ProductI18n::getInstance()->pullData($product, $result))
-                ->setStockLevel(ProductStockLevel::getInstance()->pullData($product, $result))
                 ->setPrices(ProductPrice::getInstance()->pullData($product, $result))
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product, $result))
                 ->setCategories(Product2Category::getInstance()->pullData($product, $result))
                 ->setAttributes(ProductAttr::getInstance()->pullData($product, $result))
                 ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
+
+            if ($product->managing_stock()) {
+                $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product, $result));
+            }
 
             $this->onProductMapped($result);
 

@@ -6,16 +6,21 @@
 
 namespace jtl\Connector\WooCommerce\Controller\Product;
 
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\ProductStockLevel as StockLevelModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductStockLevel extends BaseController
 {
     public function pullData(\WC_Product $product, $model)
     {
-        return $product->managing_stock() ? $this->mapper->toHost($product) : null;
+        $stockLevel = $product->get_stock_quantity();
+
+        return (new StockLevelModel())
+            ->setProductId(new Identity($product->get_id()))
+            ->setStockLevel((double)is_null($stockLevel) ? 0 : $stockLevel);
     }
 
     public function pushDataChild(ProductModel $product)
@@ -29,6 +34,7 @@ class ProductStockLevel extends BaseController
         \update_post_meta($variationId, '_manage_stock', $product->getConsiderStock() ? 'yes' : 'no');
 
         $stockLevel = $product->getStockLevel()->getStockLevel();
+
         \wc_update_product_stock_status($variationId, Util::getInstance()->getStockStatus(
             $stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock()
         ));
