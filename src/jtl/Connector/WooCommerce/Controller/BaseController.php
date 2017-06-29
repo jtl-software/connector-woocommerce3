@@ -15,7 +15,6 @@ use jtl\Connector\Result\Action;
 use jtl\Connector\WooCommerce\Mapper\BaseMapper;
 use jtl\Connector\WooCommerce\Traits\BaseControllerTrait;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\WooCommerceDatabase;
 
 abstract class BaseController extends Controller
 {
@@ -26,7 +25,7 @@ abstract class BaseController extends Controller
      */
     protected $mapper;
     /**
-     * @var WooCommerceDatabase
+     * @var Db
      */
     protected $database;
     /**
@@ -36,7 +35,7 @@ abstract class BaseController extends Controller
 
     public function __construct()
     {
-        $this->setDatabase();
+        $this->database = Db::getInstance();
 
         $reflect = new \ReflectionClass($this);
         $shortName = $reflect->getShortName();
@@ -46,18 +45,6 @@ abstract class BaseController extends Controller
 
         if (class_exists($mapperClass)) {
             $this->mapper = new $mapperClass();
-        }
-    }
-
-    /**
-     * Extracted method which can be overwritten by tests to use another database or manipulate the WooCommerce helper.
-     *
-     * @param WooCommerceDatabase $database The implementation of the WooCommerceDatabase.
-     */
-    protected function setDatabase(WooCommerceDatabase $database = null)
-    {
-        if (is_null($database)) {
-            $this->database = Db::getInstance();
         }
     }
 

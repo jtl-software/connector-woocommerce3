@@ -10,13 +10,13 @@ use jtl\Connector\Model\GlobalData as GlobalDataModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class GlobalData extends BaseController
 {
     use PullTrait, PushTrait;
 
-    public function pullData($limit)
+    public function pullData()
     {
         $globalData = (new GlobalDataModel())
             ->addCurrency((new Currency())->pullData())
@@ -27,7 +27,7 @@ class GlobalData extends BaseController
             ->setShippingMethods((new ShippingMethod())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
 
-        if (UtilGermanized::getInstance()->isActive()) {
+        if (Germanized::getInstance()->isActive()) {
             $globalData->setMeasurementUnits((new MeasurementUnit())->pullData());
         }
 

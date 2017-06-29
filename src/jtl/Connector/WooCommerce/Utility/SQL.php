@@ -7,11 +7,10 @@
 namespace jtl\Connector\WooCommerce\Utility;
 
 use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\WooCommerce\Controller\Category as CategoryCtrl;
 use jtl\Connector\WooCommerce\Controller\Image as ImageCtrl;
 use jtl\Connector\WooCommerce\Utility\Category as CategoryUtil;
 
-final class SQLs
+final class SQL
 {
     // <editor-fold defaultstate="collapsed" desc="Checksums">
     public static function checksumRead($endpointId, $type)
@@ -34,40 +33,73 @@ final class SQLs
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Category">
+    public static function categoryTreeGet($where)
+    {
+        global $wpdb;
+
+        list($table, $column) = CategoryUtil::getTermMetaData();
+
+        return sprintf("
+            SELECT tt.term_id, tt.parent
+            FROM `{$wpdb->term_taxonomy}` tt
+            LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id
+            WHERE tt.taxonomy = '%s' AND tm.meta_key = 'order' {$where}
+            ORDER BY tt.parent ASC, cast(tm.meta_value as unsigned) ASC",
+            CategoryUtil::TERM_TAXONOMY
+        );
+    }
+
+    public static function categoryTreeAddIgnore($categoryId, $level, $sort)
+    {
+        return sprintf(
+            "INSERT IGNORE INTO `%s` VALUES ({$categoryId}, {$level}, {$sort})",
+            CategoryUtil::LEVEL_TABLE
+        );
+    }
+
     public static function categoryTreeAdd($categoryId, $level, $sort)
     {
-        return "INSERT INTO `jtl_connector_category_level`
-                VALUES ({$categoryId}, {$level}, {$sort})";
+        return sprintf(
+            "INSERT INTO `%s` VALUES ({$categoryId}, {$level}, {$sort})",
+            CategoryUtil::LEVEL_TABLE
+        );
     }
 
     public static function categoryTreeUpdate($categoryId, $level, $sort)
     {
-        return "UPDATE `jtl_connector_category_level`
-                SET `level` = {$level}, `sort` = {$sort}
-                WHERE `category_id` = {$categoryId}";
+        return sprintf(
+            "UPDATE `%s` SET `level` = {$level}, `sort` = {$sort} WHERE `category_id` = {$categoryId}",
+            CategoryUtil::LEVEL_TABLE
+        );
     }
 
     public static function categoryTreePreOrderRoot()
     {
         global $wpdb;
 
-        return "SELECT ccl.category_id, ccl.level
-                FROM `jtl_connector_category_level` ccl
-                LEFT JOIN {$wpdb->terms} t ON t.term_id = ccl.category_id
-                WHERE ccl.level = 0
-                ORDER BY ccl.sort, t.slug";
+        return sprintf("
+            SELECT ccl.category_id, ccl.level
+            FROM `%s` ccl
+            LEFT JOIN {$wpdb->terms} t ON t.term_id = ccl.category_id
+            WHERE ccl.level = 0
+            ORDER BY ccl.sort, t.slug",
+            CategoryUtil::LEVEL_TABLE
+        );
     }
 
     public static function categoryTreePreOrder($categoryId, $level)
     {
         global $wpdb;
 
-        return "SELECT ccl.category_id, ccl.level
-                FROM `jtl_connector_category_level` ccl
-                LEFT JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = ccl.category_id
-                LEFT JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
-                WHERE tt.parent = {$categoryId} AND ccl.level = {$level}
-                ORDER BY ccl.sort, t.slug";
+        return sprintf("
+            SELECT ccl.category_id, ccl.level
+            FROM `%s` ccl
+            LEFT JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = ccl.category_id
+            LEFT JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+            WHERE tt.parent = {$categoryId} AND ccl.level = {$level}
+            ORDER BY ccl.sort, t.slug",
+            CategoryUtil::LEVEL_TABLE
+        );
     }
 
     public static function categoryPull($limit)
@@ -76,14 +108,15 @@ final class SQLs
 
         return sprintf("
             SELECT tt.parent, tt.description, cl.*, t.name, t.slug, tt.count
-            FROM {$wpdb->terms} t
-            LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
-            LEFT JOIN jtl_connector_category_level cl ON tt.term_id = cl.category_id
-            LEFT JOIN jtl_connector_link_category l ON t.term_id = l.endpoint_id
-            WHERE tt.taxonomy = 'product_cat' AND l.host_id IS NULL
+            FROM `{$wpdb->terms}` t
+            LEFT JOIN `{$wpdb->term_taxonomy}` tt ON t.term_id = tt.term_id
+            LEFT JOIN `%s` cl ON tt.term_id = cl.category_id
+            LEFT JOIN `jtl_connector_link_category` l ON t.term_id = l.endpoint_id
+            WHERE tt.taxonomy = '%s' AND l.host_id IS NULL
             ORDER BY cl.level ASC, tt.parent ASC, cl.sort ASC
             LIMIT {$limit}",
-            CategoryUtil::LEVEL_TABLE
+            CategoryUtil::LEVEL_TABLE,
+            CategoryUtil::TERM_TAXONOMY
         );
     }
 
@@ -91,11 +124,13 @@ final class SQLs
     {
         global $wpdb;
 
-        return "
+        return sprintf("
             SELECT COUNT(tt.term_id)
-            FROM {$wpdb->term_taxonomy} tt
+            FROM `{$wpdb->term_taxonomy}` tt
             LEFT JOIN `jtl_connector_link_category` l ON tt.term_id = l.endpoint_id
-            WHERE tt.taxonomy = 'product_cat' AND l.host_id IS NULL";
+            WHERE tt.taxonomy = '%s' AND l.host_id IS NULL",
+            CategoryUtil::TERM_TAXONOMY
+        );
     }
 
     public static function categorySlug($slug)
@@ -114,15 +149,15 @@ final class SQLs
 
         return "
             SELECT pm.post_id, pm.meta_value
-            FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            LEFT JOIN jtl_connector_link_crossselling l ON p.ID = l.endpoint_id
+            FROM `{$wpdb->posts}` p
+            LEFT JOIN `{$wpdb->postmeta}` pm ON p.ID = pm.post_id
+            LEFT JOIN `jtl_connector_link_crossselling` l ON p.ID = l.endpoint_id
             WHERE p.post_type = 'product' AND pm.meta_key = '_crosssell_ids' AND l.host_id IS NULL
             {$limitQuery}";
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Customer">
-    public static function customerNotLinked($limit, $includeCompletedOrders)
+    public static function customerNotLinked($limit)
     {
         global $wpdb;
 
@@ -135,24 +170,25 @@ final class SQLs
         }
 
         $status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-        if ($includeCompletedOrders) {
+
+        if (\get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes') {
             $status .= ", 'wc-completed'";
         }
 
         return "
             SELECT {$select}
-            FROM {$wpdb->postmeta} pm
-            LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-            LEFT JOIN jtl_connector_link_customer l ON l.endpoint_id = pm.meta_value * 1 AND l.is_guest = 0
+            FROM `{$wpdb->postmeta}` pm
+            LEFT JOIN `{$wpdb->posts}` p ON p.ID = pm.post_id
+            LEFT JOIN `jtl_connector_link_customer` l ON l.endpoint_id = pm.meta_value * 1 AND l.is_guest = 0
             WHERE l.host_id IS NULL AND p.post_status IN ({$status}) AND pm.meta_key = '_customer_user' AND pm.meta_value != 0
             {$limitQuery}";
     }
 
-    public static function guestNotLinked($limit, $includeCompletedOrders)
+    public static function guestNotLinked($limit)
     {
         global $wpdb;
 
-        $guestPrefix = IdConcatenation::GUEST_PREFIX . IdConcatenation::SEPARATOR;
+        $guestPrefix = Id::GUEST_PREFIX . Id::SEPARATOR;
 
         if (is_null($limit)) {
             $select = 'COUNT(p.ID)';
@@ -163,7 +199,8 @@ final class SQLs
         }
 
         $status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-        if (!$includeCompletedOrders) {
+
+        if (\get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes') {
             $status .= ", 'wc-completed'";
         }
 
@@ -177,7 +214,7 @@ final class SQLs
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Customer Order">
-    public static function customerOrderPull($limit, $includeCompletedOrders)
+    public static function customerOrderPull($limit)
     {
         global $wpdb;
 
@@ -191,7 +228,7 @@ final class SQLs
 
         $status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
 
-        if ($includeCompletedOrders) {
+        if (\get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes') {
             $status .= ", 'wc-completed'";
         }
 
@@ -231,8 +268,8 @@ final class SQLs
             LEFT JOIN jtl_connector_link_image l ON l.endpoint_id = p.ID AND type = %d
             WHERE l.host_id IS NULL AND tt.taxonomy = '%s' AND tm.meta_key = '%s' AND tm.meta_value != 0
             {$limitQuery}",
-            IdConcatenation::SEPARATOR, IdConcatenation::CATEGORY_PREFIX, IdentityLinker::TYPE_CATEGORY,
-            CategoryCtrl::TERM_TAXONOMY, ImageCtrl::CATEGORY_THUMBNAIL
+            Id::SEPARATOR, Id::CATEGORY_PREFIX, IdentityLinker::TYPE_CATEGORY,
+            CategoryUtil::TERM_TAXONOMY, ImageCtrl::CATEGORY_THUMBNAIL
         );
     }
 
@@ -247,7 +284,7 @@ final class SQLs
             LEFT JOIN jtl_connector_link_image l ON SUBSTRING_INDEX(l.endpoint_id, '%s', -1) = pm.post_id  AND l.type = %d
             WHERE p.post_type = 'product' AND p.post_status IN ('future', 'publish', 'inherit', 'private') AND 
             pm.meta_key = '%s' AND pm.meta_value != 0 AND l.host_id IS NULL",
-            IdConcatenation::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
+            Id::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
 
@@ -267,7 +304,7 @@ final class SQLs
 
     public static function linkedProductImages()
     {
-        return sprintf("SELECT endpoint_id FROM jtl_connector_link_image WHERE type = %d", IdentityLinker::TYPE_PRODUCT);
+        return sprintf("SELECT endpoint_id FROM jtl_connector_link_image WHERE `type` = '%d'", IdentityLinker::TYPE_PRODUCT);
     }
 
     public static function imageVariationCombinationPull($limit = null)
@@ -284,7 +321,7 @@ final class SQLs
             WHERE p.post_type = 'product_variation' AND p.post_status IN ('future', 'publish', 'inherit', 'private') AND 
             pm.meta_key = '%s' AND pm.meta_value != 0 AND l.host_id IS NULL AND p.post_parent IN (SELECT p2.ID FROM {$wpdb->posts} p2)
             {$limitQuery}",
-            IdConcatenation::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
+            Id::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
 
@@ -317,7 +354,7 @@ final class SQLs
         return sprintf("
             DELETE FROM jtl_connector_link_image
             WHERE `type` = %d AND endpoint_id LIKE '%%%s{$productId}'",
-            IdentityLinker::TYPE_PRODUCT, IdConcatenation::SEPARATOR
+            IdentityLinker::TYPE_PRODUCT, Id::SEPARATOR
         );
     }
     // </editor-fold>
@@ -550,6 +587,30 @@ final class SQLs
             GROUP BY tt.term_taxonomy_id
             OFFSET {$offset}
             LIMIT {$limit}";
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Germanized">
+    public static function globalDataMeasurementUnitPull()
+    {
+        global $wpdb;
+
+        return "
+            SELECT tt.term_id as id, t.slug as code
+            FROM {$wpdb->term_taxonomy} tt
+            LEFT JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+            WHERE tt.taxonomy = 'product_unit'";
+    }
+
+    public static function deliveryStatusByText($status)
+    {
+        global $wpdb;
+
+        return "
+            SELECT tt.term_id
+            FROM {$wpdb->terms} t
+            LEFT JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = t.term_id
+            WHERE tt.taxonomy = 'product_delivery_time' AND t.name = '{$status}'";
     }
     // </editor-fold>
 }

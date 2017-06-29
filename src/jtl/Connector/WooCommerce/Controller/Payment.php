@@ -11,7 +11,7 @@ use jtl\Connector\Model\Payment as PaymentModel;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class Payment extends BaseController
@@ -24,7 +24,7 @@ class Payment extends BaseController
 
         $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
 
-        $completedOrders = $this->database->queryList(SQLs::paymentCompletedPull($limit, $includeCompletedOrders));
+        $completedOrders = $this->database->queryList(SQL::paymentCompletedPull($limit, $includeCompletedOrders));
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
@@ -64,6 +64,6 @@ class Payment extends BaseController
     {
         $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
 
-        return (int)$this->database->queryOne(SQLs::paymentCompletedPull(null, $includeCompletedOrders));
+        return (int)$this->database->queryOne(SQL::paymentCompletedPull(null, $includeCompletedOrders));
     }
 }

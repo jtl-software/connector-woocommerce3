@@ -15,8 +15,8 @@ use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class Image extends BaseController
@@ -84,7 +84,7 @@ class Image extends BaseController
         $imageCount = 0;
         $attachments = [];
 
-        $this->alreadyLinked = $this->database->queryList(SQLs::linkedProductImages());
+        $this->alreadyLinked = $this->database->queryList(SQL::linkedProductImages());
 
         try {
             $page = 0;
@@ -192,7 +192,7 @@ class Image extends BaseController
                 continue;
             }
 
-            $picture['id'] = IdConcatenation::linkProductImage($attachmentId, $productId);
+            $picture['id'] = Id::linkProductImage($attachmentId, $productId);
             $picture['parent'] = $productId;
 
             if ($attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
@@ -216,7 +216,7 @@ class Image extends BaseController
         $attachmentIds = $productAttachments[1];
 
         foreach ($attachmentIds as $attachmentId) {
-            $endpointId = IdConcatenation::link([$attachmentId, $productId]);
+            $endpointId = Id::link([$attachmentId, $productId]);
 
             if (!in_array($endpointId, $this->alreadyLinked)) {
                 $filtered[] = $attachmentId;
@@ -231,7 +231,7 @@ class Image extends BaseController
     {
         $result = [];
 
-        $images = $this->database->query(SQLs::imageCategoryPull($limit));
+        $images = $this->database->query(SQL::imageCategoryPull($limit));
 
         foreach ($images as $image) {
             $image['sort'] = 0;
@@ -246,10 +246,10 @@ class Image extends BaseController
     // <editor-fold defaultstate="collapsed" desc="Stats">
     protected function getStats()
     {
-        $imageCount = (int)$this->database->queryOne(SQLs::imageProductThumbnailStats());
+        $imageCount = (int)$this->database->queryOne(SQL::imageProductThumbnailStats());
         $imageCount += $this->productGalleryStats();
-        $imageCount += count($this->database->query(SQLs::imageVariationCombinationPull()));
-        $imageCount += count($this->database->query(SQLs::imageCategoryPull()));
+        $imageCount += count($this->database->query(SQL::imageVariationCombinationPull()));
+        $imageCount += count($this->database->query(SQL::imageCategoryPull()));
 
         return $imageCount;
     }
@@ -257,8 +257,8 @@ class Image extends BaseController
     private function productGalleryStats()
     {
         $attachments = [];
-        $this->alreadyLinked = $this->database->queryList(SQLs::linkedProductImages());
-        $productImagesMappings = $this->database->query(SQLs::imageProductGalleryStats());
+        $this->alreadyLinked = $this->database->queryList(SQL::linkedProductImages());
+        $productImagesMappings = $this->database->query(SQL::imageProductGalleryStats());
         foreach ($productImagesMappings as $productImagesMapping) {
             $attachmentIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
             $attachmentIds = [(int)$productImagesMapping['ID'], $attachmentIds];
@@ -375,7 +375,7 @@ class Image extends BaseController
             }
         }
 
-        return IdConcatenation::linkProductImage($attachmentId, $productId);
+        return Id::linkProductImage($attachmentId, $productId);
     }
 
     private function pushCategoryImage(ImageModel $image)
@@ -389,7 +389,7 @@ class Image extends BaseController
         $attachmentId = $this->saveImage($image);
         \update_term_meta($categoryId, self::CATEGORY_THUMBNAIL, $attachmentId);
 
-        return IdConcatenation::linkCategoryImage($attachmentId);
+        return Id::linkCategoryImage($attachmentId);
     }
     // </editor-fold>
 
@@ -410,14 +410,14 @@ class Image extends BaseController
         \delete_term_meta($image->getForeignKey()->getEndpoint(), self::CATEGORY_THUMBNAIL);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers(IdConcatenation::unlinkCategoryImage($image->getId()->getEndpoint()));
+            $this->deleteIfNotUsedByOthers(Id::unlinkCategoryImage($image->getId()->getEndpoint()));
         }
     }
 
     private function deleteProductImage(ImageModel $image, $realDelete)
     {
         $imageEndpoint = $image->getId()->getEndpoint();
-        $ids = IdConcatenation::unlink($imageEndpoint);
+        $ids = Id::unlink($imageEndpoint);
 
         if (count($ids) !== 2) {
             return;
@@ -428,7 +428,7 @@ class Image extends BaseController
 
         if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
             $this->deleteAllProductImages($productId);
-            $this->database->query(SQLs::imageDeleteLinks($productId));
+            $this->database->query(SQL::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
                 \set_post_thumbnail($productId, 0);
@@ -449,11 +449,11 @@ class Image extends BaseController
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
-        if (((int)$this->database->queryOne(SQLs::imageProductDelete($attachmentId))) !== 0) {
+        if (((int)$this->database->queryOne(SQL::imageProductDelete($attachmentId))) !== 0) {
             // Used by any other product
             return;
         }
-        if ((int)$this->database->queryOne(SQLs::imageCategoryDelete($attachmentId)) === 0) {
+        if ((int)$this->database->queryOne(SQL::imageCategoryDelete($attachmentId)) === 0) {
             // Not used by either product or category
             if (\get_attached_file($attachmentId) !== false) {
                 \wp_delete_attachment($attachmentId, true);

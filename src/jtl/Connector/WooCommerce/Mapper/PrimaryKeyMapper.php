@@ -11,8 +11,8 @@ use jtl\Connector\Linker\IdentityLinker;
 use jtl\Connector\Mapper\IPrimaryKeyMapper;
 use jtl\Connector\WooCommerce\Logger\PrimaryKeyMappingLogger;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 
 class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
@@ -25,13 +25,13 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         }
 
         if ($type === IdentityLinker::TYPE_IMAGE) {
-            list($endpointId, $imageType) = IdConcatenation::unlinkImage($endpointId);
-            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostImage($endpointId, $imageType), false);
+            list($endpointId, $imageType) = Id::unlinkImage($endpointId);
+            $hostId = Db::getInstance()->queryOne(SQL::primaryKeyMappingHostImage($endpointId, $imageType), false);
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
-            list($endpointId, $isGuest) = IdConcatenation::unlinkCustomer($endpointId);
-            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostCustomer($endpointId, $isGuest), false);
+            list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
+            $hostId = Db::getInstance()->queryOne(SQL::primaryKeyMappingHostCustomer($endpointId, $isGuest), false);
         } else {
-            $hostId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingHostInteger($endpointId, $tableName), false);
+            $hostId = Db::getInstance()->queryOne(SQL::primaryKeyMappingHostInteger($endpointId, $tableName), false);
         }
 
         PrimaryKeyMappingLogger::getInstance()->getHostId($endpointId, $type, $hostId);
@@ -61,7 +61,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             $clause = "AND type = {$relationType}";
         }
 
-        $endpointId = Db::getInstance()->queryOne(SQLs::primaryKeyMappingEndpoint($hostId, $tableName, $clause), false);
+        $endpointId = Db::getInstance()->queryOne(SQL::primaryKeyMappingEndpoint($hostId, $tableName, $clause), false);
 
         PrimaryKeyMappingLogger::getInstance()->getEndpointId($hostId, $type, $endpointId);
 
@@ -79,13 +79,13 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         PrimaryKeyMappingLogger::getInstance()->save($endpointId, $hostId, $type);
 
         if ($type === IdentityLinker::TYPE_IMAGE) {
-            list($endpointId, $imageType) = IdConcatenation::unlinkImage($endpointId);
-            $id = Db::getInstance()->query(SQLs::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType), false);
+            list($endpointId, $imageType) = Id::unlinkImage($endpointId);
+            $id = Db::getInstance()->query(SQL::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType), false);
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
-            list($endpointId, $isGuest) = IdConcatenation::unlinkCustomer($endpointId);
-            $id = Db::getInstance()->query(SQLs::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest), false);
+            list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
+            $id = Db::getInstance()->query(SQL::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest), false);
         } else {
-            $id = Db::getInstance()->query(SQLs::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName), false);
+            $id = Db::getInstance()->query(SQL::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName), false);
         }
 
         return $id !== false;
@@ -116,14 +116,14 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             $where = "WHERE host_id = {$hostId}";
         }
 
-        return Db::getInstance()->query(SQLs::primaryKeyMappingDelete($where, $tableName), false);
+        return Db::getInstance()->query(SQL::primaryKeyMappingDelete($where, $tableName), false);
     }
 
     public function clear()
     {
         PrimaryKeyMappingLogger::getInstance()->writeLog('Clearing linking tables');
 
-        foreach (SQLs::primaryKeyMappingClear() as $query) {
+        foreach (SQL::primaryKeyMappingClear() as $query) {
             Db::getInstance()->query($query);
         }
 

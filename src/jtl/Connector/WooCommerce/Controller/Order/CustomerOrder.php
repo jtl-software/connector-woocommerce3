@@ -13,10 +13,10 @@ use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class CustomerOrder extends BaseController
 {
@@ -29,9 +29,7 @@ class CustomerOrder extends BaseController
     {
         $orders = [];
 
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
-
-        $nonLinkedOrderIds = $this->database->queryList(SQLs::customerOrderPull($limit, $includeCompletedOrders));
+        $nonLinkedOrderIds = $this->database->queryList(SQL::customerOrderPull($limit));
 
         foreach ($nonLinkedOrderIds as $orderId) {
             $order = \wc_get_order($orderId);
@@ -46,7 +44,7 @@ class CustomerOrder extends BaseController
                 ->setCurrencyIso($order->get_currency())
                 ->setNote($order->get_customer_note())
                 ->setCustomerId($order->get_customer_id() === 0
-                    ? new Identity(IdConcatenation::link([IdConcatenation::GUEST_PREFIX, $order->get_id()]))
+                    ? new Identity(Id::link([Id::GUEST_PREFIX, $order->get_id()]))
                     : new Identity($order->get_customer_id())
                 )
                 ->setOrderNumber($order->get_order_number())
@@ -58,6 +56,7 @@ class CustomerOrder extends BaseController
                 ->setTotalSumGross(round($order->get_total(), \wc_get_price_decimals()));
 
             $customerOrder
+                ->setItems(CustomerOrderItem::getInstance()->pullData($order, $customerOrder))
                 ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order, $customerOrder))
                 ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order, $customerOrder));
 
@@ -65,13 +64,8 @@ class CustomerOrder extends BaseController
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
 
-            $customerOrder->setItems(CustomerOrderItemGermanized::getInstance()->pullData($order, $customerOrder));
-
-            if (UtilGermanized::getInstance()->isActive()) {
+            if (Germanized::getInstance()->isActive()) {
                 $this->setPaymentInfo($customerOrder);
-
-            } else {
-                //$customerOrder->setItems(CustomerOrderItem::getInstance()->pullData($order, $customerOrder));
             }
 
             $orders[] = $customerOrder;
@@ -138,8 +132,6 @@ class CustomerOrder extends BaseController
 
     public function getStats()
     {
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
-
-        return $this->database->queryOne(SQLs::customerOrderPull(null, $includeCompletedOrders));
+        return $this->database->queryOne(SQL::customerOrderPull(null));
     }
 }

@@ -10,7 +10,7 @@ use jtl\Connector\Checksum\IChecksumLoader;
 use jtl\Connector\Model\Checksum;
 use jtl\Connector\WooCommerce\Logger\ChecksumLogger;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\SQL;
 
 class ChecksumLoader implements IChecksumLoader
 {
@@ -20,7 +20,7 @@ class ChecksumLoader implements IChecksumLoader
             return '';
         }
 
-        $checksum = Db::getInstance()->queryOne(SQLs::checksumRead($endpointId, $type));
+        $checksum = Db::getInstance()->queryOne(SQL::checksumRead($endpointId, $type));
 
         ChecksumLogger::getInstance()->readAction($endpointId, $type, $checksum);
 
@@ -33,7 +33,7 @@ class ChecksumLoader implements IChecksumLoader
             return false;
         }
 
-        $statement = Db::getInstance()->query(SQLs::checksumWrite($endpointId, $type, $checksum));
+        $statement = Db::getInstance()->query(SQL::checksumWrite($endpointId, $type, $checksum));
 
         ChecksumLogger::getInstance()->writeAction($endpointId, $type, $checksum);
 
@@ -46,7 +46,7 @@ class ChecksumLoader implements IChecksumLoader
             return false;
         }
 
-        $rows = Db::getInstance()->query(SQLs::checksumDelete($endpointId, $type));
+        $rows = Db::getInstance()->query(SQL::checksumDelete($endpointId, $type));
 
         ChecksumLogger::getInstance()->deleteAction($endpointId, $type);
 

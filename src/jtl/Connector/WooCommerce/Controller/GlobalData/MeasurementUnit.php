@@ -11,9 +11,9 @@ use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Model\MeasurementUnitI18n;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\SQLsGermanized;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class MeasurementUnit
 {
@@ -23,12 +23,12 @@ class MeasurementUnit
     {
         $return = [];
 
-        $result = Db::getInstance()->query(SQLsGermanized::globalDataMeasurementUnitPull());
+        $result = Db::getInstance()->query(SQL::globalDataMeasurementUnitPull());
 
         foreach ((array)$result as $row) {
             $return[] = (new MeasurementUnitModel())
                 ->setId(new Identity($row['id']))
-                ->setCode(UtilGermanized::getInstance()->parseUnit($row['code']))
+                ->setCode(Germanized::getInstance()->parseUnit($row['code']))
                 ->setDisplayCode($row['code'])
                 ->setI18ns([(new MeasurementUnitI18n())
                     ->setMeasurementUnitId(new Identity($row['id']))

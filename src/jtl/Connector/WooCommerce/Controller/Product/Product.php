@@ -14,7 +14,7 @@ use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class Product extends BaseController
@@ -27,7 +27,7 @@ class Product extends BaseController
     {
         $products = [];
 
-        $ids = $this->database->queryList(SQLs::productPull($limit));
+        $ids = $this->database->queryList(SQL::productPull($limit));
 
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
@@ -134,7 +134,7 @@ class Product extends BaseController
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
         \wp_set_post_terms($productId, implode(',', $tags), 'product_tag');
 
-        $taxClass = $this->database->queryOne(SQLs::taxClassByRate($product->getVat()));
+        $taxClass = $this->database->queryOne(SQL::taxClassByRate($product->getVat()));
         \update_post_meta($productId, '_tax_class', is_null($taxClass) ? '' : $taxClass);
 
         \update_post_meta($productId, '_featured', $product->getIsTopProduct() ? 'yes' : 'no');
@@ -210,7 +210,7 @@ class Product extends BaseController
 
     protected function getStats()
     {
-        return count($this->database->queryList(SQLs::productPull()));
+        return count($this->database->queryList(SQL::productPull()));
     }
 
     protected function onProductMapped(ProductModel &$product)

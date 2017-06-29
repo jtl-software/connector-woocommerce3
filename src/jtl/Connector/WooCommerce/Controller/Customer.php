@@ -12,8 +12,10 @@ use jtl\Connector\WooCommerce\Controller\GlobalData\CustomerGroup;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Logger\WooCommerceLogger;
+use jtl\Connector\WooCommerce\Utility\Germanized;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 
 class Customer extends BaseController
 {
@@ -21,19 +23,17 @@ class Customer extends BaseController
 
     public function pullData($limit)
     {
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
-
-        $customers = $this->pullCustomers($limit, $includeCompletedOrders);
-        $guests = $this->pullGuests($limit - count($customers), $includeCompletedOrders);
+        $customers = $this->pullCustomers($limit);
+        $guests = $this->pullGuests($limit - count($customers));
 
         return array_merge($customers, $guests);
     }
 
-    protected function pullCustomers($limit, $includeCompletedOrders)
+    protected function pullCustomers($limit)
     {
         $customers = [];
 
-        $customerIds = $this->database->queryList(SQLs::customerNotLinked($limit, $includeCompletedOrders));
+        $customerIds = $this->database->queryList(SQL::customerNotLinked($limit));
 
         foreach ($customerIds as $customerId) {
             $wcCustomer = new \WC_Customer($customerId);
@@ -72,24 +72,29 @@ class Customer extends BaseController
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
 
+            if (Germanized::getInstance()->isActive()) {
+                $index = \get_user_meta($customerId, 'billing_title', true);
+                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+            }
+
             $customers[] = $customer;
         }
 
         return $customers;
     }
 
-    private function pullGuests($limit, $includeCompletedOrders)
+    private function pullGuests($limit)
     {
-        $users = [];
+        $customers = [];
 
-        $guests = $this->database->queryList(SQLs::guestNotLinked($limit, $includeCompletedOrders));
+        $guests = $this->database->queryList(SQL::guestNotLinked($limit));
 
         foreach ($guests as $guest) {
-            $order = new \WC_Order((IdConcatenation::unlink($guest)[1]));
+            $order = new \WC_Order((Id::unlink($guest)[1]));
 
-            $users[] = (new CustomerModel)
-                ->setId(new Identity(IdConcatenation::link([IdConcatenation::GUEST_PREFIX, $order->get_id()])))
-                ->setCustomerNumber(IdConcatenation::link([IdConcatenation::GUEST_PREFIX, $order->get_id()]))
+            $customer = (new CustomerModel)
+                ->setId(new Identity(Id::link([Id::GUEST_PREFIX, $order->get_id()])))
+                ->setCustomerNumber(Id::link([Id::GUEST_PREFIX, $order->get_id()]))
                 ->setFirstName($order->get_billing_first_name())
                 ->setLastName($order->get_billing_last_name())
                 ->setCompany($order->get_billing_company())
@@ -105,9 +110,16 @@ class Customer extends BaseController
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(false)
                 ->setHasCustomerAccount(false);
+
+            if (Germanized::getInstance()->isActive()) {
+                $index = \get_post_meta($order->get_id(), '_billing_title', true);
+                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+            }
+
+            $customers[] = $customer;
         }
 
-        return $users;
+        return $customers;
     }
 
     public function pushData(CustomerModel $customer, $model)
@@ -135,7 +147,7 @@ class Customer extends BaseController
             $wcCustomer->set_billing_phone($customer->getPhone());
             $wcCustomer->save();
         } catch (\Exception $exception) {
-
+            WooCommerceLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
 
         return $customer;
@@ -143,10 +155,8 @@ class Customer extends BaseController
 
     public function getStats()
     {
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
-
-        $customers = (int)$this->database->queryOne(SQLs::customerNotLinked(null, $includeCompletedOrders));
-        $customers += (int)$this->database->queryOne(SQLs::guestNotLinked(null, $includeCompletedOrders));
+        $customers = (int)$this->database->queryOne(SQL::customerNotLinked(null));
+        $customers += (int)$this->database->queryOne(SQL::guestNotLinked(null));
 
         return $customers;
     }

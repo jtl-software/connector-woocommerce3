@@ -11,7 +11,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\Product2Category as Product2CategoryModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
+use jtl\Connector\WooCommerce\Utility\Id;
 
 class Product2Category extends BaseController
 {
@@ -30,7 +30,7 @@ class Product2Category extends BaseController
 
             foreach ($categories as $category) {
                 $productCategory = (new Product2CategoryModel())
-                    ->setId(new Identity(IdConcatenation::link([$product->get_id(), $category])))
+                    ->setId(new Identity(Id::link([$product->get_id(), $category])))
                     ->setProductId(new Identity($product->get_id()))
                     ->setCategoryId(new Identity($category));
 

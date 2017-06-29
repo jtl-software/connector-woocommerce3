@@ -15,25 +15,22 @@ use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
 use jtl\Connector\WooCommerce\Utility\Category as CategoryUtil;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class Category extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
 
-    const TERM_TAXONOMY = 'product_cat';
-    const OPTION_CATEGORY_HAS_CHANGED = 'jtlconnector_category_has_changes';
-
     private static $idCache = [];
 
-    public function pullData($limit)
+    protected function pullData($limit)
     {
         $categories = [];
 
         CategoryUtil::fillCategoryLevelTable();
 
-        $categoryData = $this->database->query(SQLs::categoryPull($limit));
+        $categoryData = $this->database->query(SQL::categoryPull($limit));
 
         foreach ($categoryData as $categoryDataSet) {
             $category = (new CategoryModel)
@@ -51,19 +48,20 @@ class Category extends BaseController
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                 ->setName($categoryDataSet['name'])
                 ->setDescription($categoryDataSet['description'])
-                ->setUrlPath($categoryDataSet['slug']));
+                ->setUrlPath($categoryDataSet['slug'])
+                ->setTitleTag($categoryDataSet['name']));
         }
 
         return $categories;
     }
 
-    public function pushData(CategoryModel $category)
+    protected function pushData(CategoryModel $category)
     {
         if (!$category->getIsActive()) {
             return $category;
         }
 
-        \update_option(self::OPTION_CATEGORY_HAS_CHANGED, 'yes');
+        \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
 
         $parentCategoryId = $category->getParentCategoryId();
 
@@ -71,30 +69,30 @@ class Category extends BaseController
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
 
-        $categoryMeta = null;
+        $meta = null;
         $categoryId = $category->getId()->getEndpoint();
 
         foreach ($category->getI18ns() as $i18n) {
             if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $categoryMeta = $i18n;
+                $meta = $i18n;
                 break;
             }
         }
 
-        if (is_null($categoryMeta)) {
+        if (is_null($meta)) {
             return $category;
         }
 
         $categoryData = [
-            'description' => $categoryMeta->getDescription(),
-            'parent'      => $category->getParentCategoryId()->getEndpoint(),
-            'slug'        => $this->getSlug($categoryMeta),
+            'description' => $meta->getDescription(),
+            'parent'      => $parentCategoryId->getEndpoint(),
+            'slug'        => CategoryUtil::getSlug($meta),
         ];
 
         if (empty($categoryId)) {
-            $result = \wp_insert_term($categoryMeta->getName(), self::TERM_TAXONOMY, $categoryData);
+            $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
-            $result = \wp_update_term((int)$categoryId, self::TERM_TAXONOMY, $categoryData);
+            $result = \wp_update_term((int)$categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
         }
 
         if ($result instanceof \WP_Error) {
@@ -106,19 +104,19 @@ class Category extends BaseController
         $category->getId()->setEndpoint($result['term_id']);
         self::$idCache[$category->getId()->getHost()] = $result['term_id'];
 
-        $this->updateCategoryTree($category, empty($categoryId));
+        CategoryUtil::updateCategoryTree($category, empty($categoryId));
 
         return $category;
     }
 
-    public function deleteData(CategoryModel $category)
+    protected function deleteData(CategoryModel $category)
     {
         $categoryId = $category->getId()->getEndpoint();
 
         if (!empty($categoryId)) {
-            \update_option(self::OPTION_CATEGORY_HAS_CHANGED, 'yes');
+            \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
 
-            $result = \wp_delete_term($categoryId, self::TERM_TAXONOMY);
+            $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
 
             if ($result instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($result);
@@ -132,41 +130,8 @@ class Category extends BaseController
         return $category;
     }
 
-    public function getStats()
+    protected function getStats()
     {
-        return $this->database->queryOne(SQLs::categoryStats());
+        return $this->database->queryOne(SQL::categoryStats());
     }
-
-    // <editor-fold defaultstate="collapsed" desc="Private Methods">
-    private function getSlug(CategoryI18nModel $i18n)
-    {
-        $url = $i18n->getUrlPath();
-        $slug = empty($url) ? \sanitize_title($i18n->getName()) : $i18n->getUrlPath();
-        $term = \get_term_by('slug', $slug, Category::TERM_TAXONOMY);
-
-        if ($term !== false && $term->term_id != $i18n->getCategoryId()->getEndpoint()) {
-            $num = 1;
-
-            do {
-                $oldSlug = $slug . '_' . ++$num;
-                $slugCheck = $this->database->queryOne(SQLs::categorySlug($oldSlug));
-            } while ($slugCheck);
-
-            $slug = $oldSlug;
-        }
-
-        return $slug;
-    }
-
-    private function updateCategoryTree(CategoryModel $category, $isNew)
-    {
-        if ($isNew) {
-            $categoryTreeQuery = SQLs::categoryTreeAdd($category->getId()->getEndpoint(), $category->getLevel(), $category->getSort());
-        } else {
-            $categoryTreeQuery = SQLs::categoryTreeUpdate($category->getId()->getEndpoint(), $category->getLevel(), $category->getSort());
-        }
-
-        $this->database->query($categoryTreeQuery);
-    }
-    // </editor-fold>
 }

@@ -9,8 +9,8 @@ namespace jtl\Connector\WooCommerce\Controller\Order;
 use jtl\Connector\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class CustomerOrderBillingAddress extends BaseController
 {
@@ -31,11 +31,11 @@ class CustomerOrderBillingAddress extends BaseController
             ->setPhone($order->get_billing_phone())
             ->setCustomerId(new Identity($order->get_customer_id() !== 0
                 ? $order->get_customer_id()
-                : IdConcatenation::link([IdConcatenation::GUEST_PREFIX, $order->get_id()])));
+                : Id::link([Id::GUEST_PREFIX, $order->get_id()])));
 
-        if (UtilGermanized::getInstance()->isActive()) {
+        if (Germanized::getInstance()->isActive()) {
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
-            $address->setSalutation(UtilGermanized::getInstance()->parseIndexToSalutation($index));
+            $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
 
         return $address;

@@ -13,19 +13,23 @@ use jtl\Connector\WooCommerce\Controller\Traits\DeleteTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\PushTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\SQL;
 
 class CrossSelling extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
 
-    public function pullData($limit)
+    protected function pullData($limit)
     {
         $return = [];
 
-        $result = $this->database->query(SQLs::crossSellingPull($limit));
+        $result = $this->database->query(SQL::crossSellingPull($limit));
 
         foreach ($result as $row) {
+            if (!isset($row['meta_value'])) {
+                continue;
+            }
+
             $relatedProducts = unserialize($row['meta_value']);
 
             if (!empty($relatedProducts)) {
@@ -45,13 +49,53 @@ class CrossSelling extends BaseController
         return $return;
     }
 
+    protected function pushData(CrossSellingModel $crossSelling)
+    {
+        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+
+        if (!$product instanceof \WC_Product) {
+            return $crossSelling;
+        }
+
+        $crossSelling->getId()->setEndpoint($crossSelling->getProductId()->getEndpoint());
+
+        $crossSells = $this->getProductIds($crossSelling);
+
+        foreach ($product->get_cross_sell_ids() as $crossSell) {
+            $crossSells[] = (int)$crossSell;
+        }
+
+        $product->set_cross_sell_ids(array_unique($crossSells));
+        $product->save();
+
+        return $crossSelling;
+    }
+
+    protected function deleteData(CrossSellingModel $crossSelling)
+    {
+        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+
+        if (!$product instanceof \WC_Product) {
+            return $crossSelling;
+        }
+
+        $product->set_cross_sell_ids(array_diff($product->get_cross_sell_ids(), $this->getProductIds($crossSelling)));
+        $product->save();
+
+        return $crossSelling;
+    }
+
     protected function getStats()
     {
         $count = 0;
 
-        $result = $this->database->query(SQLs::crossSellingPull());
+        $result = $this->database->query(SQL::crossSellingPull());
 
         foreach ($result as $row) {
+            if (!isset($row['meta_value'])) {
+                continue;
+            }
+
             $relatedProducts = unserialize($row['meta_value']);
 
             if (!empty($relatedProducts)) {
@@ -62,41 +106,22 @@ class CrossSelling extends BaseController
         return $count;
     }
 
-    protected function pushData(CrossSellingModel $crossSelling)
+    /**
+     * Return an array of unique product ids linked as cross selling.
+     *
+     * @param CrossSellingModel $crossSelling The cross selling.
+     * @return array The product ids.
+     */
+    private function getProductIds(CrossSellingModel $crossSelling)
     {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+        $products = [];
 
-        if ($product instanceof \WC_Product) {
-            $crossSells = [];
-
-            foreach ($product->get_cross_sell_ids() as $crossSell) {
-                $crossSells[] = (int)$crossSell;
+        foreach ($crossSelling->getItems() as $item) {
+            foreach ($item->getProductIds() as $productId) {
+                $products[] = (int)$productId->getEndpoint();
             }
-
-            foreach ($crossSelling->getItems() as $item) {
-                foreach ($item->getProductIds() as $productId) {
-                    $crossSells[] = (int)$productId->getEndpoint();
-                }
-            }
-
-            $product->set_cross_sell_ids(array_unique($crossSells));
-            $product->save();
         }
 
-        $crossSelling->getId()->setEndpoint($crossSelling->getProductId()->getEndpoint());
-
-        return $crossSelling;
-    }
-
-    protected function deleteData(CrossSellingModel $crossSelling)
-    {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
-
-        if ($product instanceof \WC_Product) {
-            $product->set_cross_sell_ids([]);
-            $product->save();
-        }
-
-        return $crossSelling;
+        return array_unique($products);
     }
 }

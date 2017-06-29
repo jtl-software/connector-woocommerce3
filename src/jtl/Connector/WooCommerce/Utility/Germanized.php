@@ -12,7 +12,7 @@ use jtl\Connector\Core\Utilities\Singleton;
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
  * @package jtl\Connector\WooCommerce\Utility
  */
-final class UtilGermanized extends Singleton
+final class Germanized extends Singleton
 {
     /**
      * @var array Index used in database mapped to translated salutation.
@@ -74,7 +74,7 @@ final class UtilGermanized extends Singleton
     }
 
     /**
-     * @return UtilGermanized
+     * @return Germanized
      */
     public static function getInstance()
     {

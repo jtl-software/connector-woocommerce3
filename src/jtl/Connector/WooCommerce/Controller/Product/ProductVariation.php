@@ -15,8 +15,8 @@ use jtl\Connector\Model\ProductVariationI18n;
 use jtl\Connector\Model\ProductVariationValue;
 use jtl\Connector\Model\ProductVariationValueI18n;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductVariation extends BaseController
@@ -47,7 +47,7 @@ class ProductVariation extends BaseController
                 continue;
             }
 
-            $id = new Identity(IdConcatenation::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
+            $id = new Identity(Id::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
 
             $productVariation = (new ProductVariationModel())
                 ->setId($id)
@@ -67,7 +67,7 @@ class ProductVariation extends BaseController
 
                 /** @var \WP_Term $term */
                 foreach ($terms as $sort => $term) {
-                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
+                    $valueId = new Identity(Id::link([$id->getEndpoint(), $term->term_id]));
 
                     $productVariation->addValue((new ProductVariationValue())
                         ->setId($valueId)
@@ -83,7 +83,7 @@ class ProductVariation extends BaseController
                 $options = $attribute->get_options();
 
                 foreach ($options as $sort => $option) {
-                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), \sanitize_key($option)]));
+                    $valueId = new Identity(Id::link([$id->getEndpoint(), \sanitize_key($option)]));
 
                     $productVariation->addValue((new ProductVariationValue())
                         ->setId($valueId)
@@ -110,7 +110,7 @@ class ProductVariation extends BaseController
          * @var \WC_Product_Attribute $attribute
          */
         foreach ($parent->get_attributes() as $slug => $attribute) {
-            $id = new Identity(IdConcatenation::link([$parent->get_id(), $attribute->get_id()]));
+            $id = new Identity(Id::link([$parent->get_id(), $attribute->get_id()]));
 
             $productVariation = (new ProductVariationModel())
                 ->setId($id)
@@ -136,7 +136,7 @@ class ProductVariation extends BaseController
                         continue;
                     }
 
-                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), $term->term_id]));
+                    $valueId = new Identity(Id::link([$id->getEndpoint(), $term->term_id]));
 
                     $productVariation->addValue((new ProductVariationValue())
                         ->setId($valueId)
@@ -156,7 +156,7 @@ class ProductVariation extends BaseController
                         continue;
                     }
 
-                    $valueId = new Identity(IdConcatenation::link([$id->getEndpoint(), \sanitize_key($option)]));
+                    $valueId = new Identity(Id::link([$id->getEndpoint(), \sanitize_key($option)]));
 
                     $productVariation->addValue((new ProductVariationValue())
                         ->setId($valueId)
@@ -246,7 +246,7 @@ class ProductVariation extends BaseController
                 }
             }
         }
-        $attributesToDelete = $this->database->queryList(SQLs::productVariationObsoletes(
+        $attributesToDelete = $this->database->queryList(SQL::productVariationObsoletes(
             $product->getId()->getEndpoint(),
             $updatedAttributeKeys
         ));

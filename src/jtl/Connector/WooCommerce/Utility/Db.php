@@ -6,10 +6,19 @@
 
 namespace jtl\Connector\WooCommerce\Utility;
 
+use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\WooCommerce\Logger\DatabaseLogger;
 
-class Db extends WooCommerceDatabase
+class Db extends Singleton
 {
+    /**
+     * Run a plain SQL query on the database.
+     *
+     * @param string $query SQL query.
+     * @param bool $shouldLog Query should be written to log files.
+     *
+     * @return array|null Database query results
+     */
     public function query($query, $shouldLog = true)
     {
         global $wpdb;
@@ -23,6 +32,14 @@ class Db extends WooCommerceDatabase
         return $result;
     }
 
+    /**
+     * Run a SQL query which should only return one value.
+     *
+     * @param string $query SQL query.
+     * @param bool $shouldLog Query should be written to log files.
+     *
+     * @return null|string Found value or null.
+     */
     public function queryOne($query, $shouldLog = true)
     {
         global $wpdb;
@@ -34,6 +51,14 @@ class Db extends WooCommerceDatabase
         return $wpdb->get_var($query);
     }
 
+    /**
+     * Run a SQL query which should return a list of single values.
+     *
+     * @param string $query SQL query.
+     * @param bool $shouldLog Query should be written to log files.
+     *
+     * @return array The array of values
+     */
     public function queryList($query, $shouldLog = true)
     {
         global $wpdb;
@@ -55,5 +80,13 @@ class Db extends WooCommerceDatabase
         }
 
         return $return;
+    }
+
+    /**
+     * @return Db
+     */
+    public static function getInstance()
+    {
+        return parent::getInstance();
     }
 }

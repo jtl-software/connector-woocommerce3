@@ -9,9 +9,9 @@ namespace jtl\Connector\WooCommerce\Controller\Product;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
-use jtl\Connector\WooCommerce\Utility\SQLsGermanized;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class ProductGermanized extends Product
 {
@@ -35,7 +35,7 @@ class ProductGermanized extends Product
                 $unitObject = \get_term_by('slug', $wcProduct->gzd_product->unit, 'product_unit');
             }
 
-            $code = UtilGermanized::getInstance()->parseUnit($unitObject->slug);
+            $code = Germanized::getInstance()->parseUnit($unitObject->slug);
 
             $productQuantity = (double)$wcProduct->gzd_product->unit_product;
             $product->setMeasurementQuantity($productQuantity);
@@ -96,7 +96,7 @@ class ProductGermanized extends Product
         foreach ($product->getI18ns() as $i18n) {
             $deliveryStatus = $i18n->getDeliveryStatus();
             if (Util::getInstance()->isWooCommerceLanguage($deliveryStatus) && !empty($deliveryStatus)) {
-                $term = $this->database->queryOne(SQLsGermanized::deliveryStatusByText($deliveryStatus));
+                $term = $this->database->queryOne(SQL::deliveryStatusByText($deliveryStatus));
                 if (empty($term)) {
                     $result = \wp_insert_term($i18n->getDeliveryStatus(), 'product_delivery_time');
                     if ($result instanceof \WP_Error) {

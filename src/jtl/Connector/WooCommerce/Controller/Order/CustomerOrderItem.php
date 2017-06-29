@@ -9,8 +9,8 @@ namespace jtl\Connector\WooCommerce\Controller\Order;
 use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class CustomerOrderItem extends BaseController
@@ -18,7 +18,9 @@ class CustomerOrderItem extends BaseController
     protected $priceDecimals;
     private $hasNoTax = false;
 
+    /** @var array $taxRateCache Map tax rate id to tax rate */
     protected static $taxRateCache = [];
+    /** @var array $taxClassRateCache Map tax class to tax rate */
     protected static $taxClassRateCache = [];
 
     public function __construct()
@@ -32,8 +34,8 @@ class CustomerOrderItem extends BaseController
         $customerOrderItems = [];
 
         $this->pullProductOrderItems($order, $customerOrderItems);
-        $this->pullFreePositions($order, $customerOrderItems);
         $this->pullShippingOrderItems($order, $customerOrderItems);
+        $this->pullFreePositions($order, $customerOrderItems);
         $this->pullDiscountOrderItems($order, $customerOrderItems);
 
         return $customerOrderItems;
@@ -76,7 +78,7 @@ class CustomerOrderItem extends BaseController
                             break;
                     }
 
-                    $orderItem->setName(sprintf($format, $orderItem->getName(), wc_get_formatted_variation($product)));
+                    $orderItem->setName(sprintf($format, $orderItem->getName(), \wc_get_formatted_variation($product, true)));
                 }
             }
 
@@ -110,103 +112,119 @@ class CustomerOrderItem extends BaseController
         }
     }
 
-    public function pullFreePositions(\WC_Order $order, &$customerOrderItems)
+    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
     {
-        /** @var \WC_Order_Item_Fee $fee */
-        foreach ($order->get_fees() as $fee) {
-            $taxes = $fee->get_taxes();
+        $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
+        $totalProductItems = array_sum(array_values($productTotalByVat));
 
-            if (isset($taxes['total'])) {
+        /** @var \WC_Order_Item_Shipping $shippingItem */
+        foreach ($order->get_shipping_methods() as $shippingItem) {
+            $taxes = $shippingItem->get_taxes();
+            $total = (float)$shippingItem->get_total();
+            $totalTax = (float)$shippingItem->get_total_tax();
+
+            if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
-                    $customerOrderItem = (new CustomerOrderItemModel())
-                        ->setId(new Identity(IdConcatenation::link([$fee->get_id(), $taxRateId])))
-                        ->setCustomerOrderId(new Identity($order->get_id()))
-                        ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
-                        ->setName($fee->get_name())
-                        ->setQuantity(1);
+                    $taxAmount = (float)$taxAmount;
+                    $customerOrderItem = $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
 
-                    $netPrice = $order->get_item_total($fee, false, false);
-                    $priceGross = $order->get_item_total($fee, true, false);
+                    if (isset(self::$taxRateCache[$taxRateId])) {
+                        $taxRate = self::$taxRateCache[$taxRateId];
+                    } else {
+                        $taxRate = (float)$this->database->queryOne(SQL::taxRateById($taxRateId));
+                        self::$taxRateCache[$taxRateId] = $taxRate;
+                    }
 
-                    $customerOrderItem
-                        ->setVat(round(($priceGross / $netPrice - 1) * 100))
-                        ->setPrice(round($netPrice, $this->priceDecimals))
-                        ->setPriceGross(round($priceGross, $this->priceDecimals));
+                    $customerOrderItem->setVat($taxRate);
+
+                    if ($taxRate === 0.0) {
+                        continue;
+                    } else {
+                        $vatKey = "" . round($taxRate);
+
+                        if (!isset($productTotalByVat[$vatKey])) {
+                            $factor = 1;
+                        } else {
+                            $factor = 1 / $totalProductItems * $productTotalByVat[$vatKey];
+                        }
+
+                        $fees = (float)$order->get_item_total($shippingItem) * $factor;
+
+                        $netPrice = round($fees, $this->priceDecimals);
+                        $priceGross = round($netPrice + $taxAmount, $this->priceDecimals);
+                    }
+
+                    $customerOrderItem->setPrice($netPrice);
+                    $customerOrderItem->setPriceGross($priceGross);
 
                     $customerOrderItems[] = $customerOrderItem;
                 }
             } else {
-                $customerOrderItem = (new CustomerOrderItemModel())
-                    ->setId(new Identity($fee->get_id()))
-                    ->setCustomerOrderId(new Identity($order->get_id()))
-                    ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
-                    ->setName($fee->get_name())
-                    ->setQuantity(1);
+                $customerOrderItem = $this->getShippingOrderItem($shippingItem, $order);
 
-                $priceGross = $netPrice = $order->get_item_total($fee, false, false);
-
-                $customerOrderItem
-                    ->setVat(0)
-                    ->setPrice(round($netPrice, $this->priceDecimals))
-                    ->setPriceGross(round($priceGross, $this->priceDecimals));
+                $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
+                $customerOrderItem->setPrice(round($total, $this->priceDecimals));
+                $customerOrderItem->setPriceGross(round($total + $totalTax, $this->priceDecimals));
 
                 $customerOrderItems[] = $customerOrderItem;
             }
         }
     }
 
-    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
+    public function pullFreePositions(\WC_Order $order, &$customerOrderItems)
     {
-        /** @var \WC_Order_Item_Shipping $shippingItem */
-        foreach ($order->get_shipping_methods() as $shippingItem) {
-            $taxes = $shippingItem->get_taxes();
-            $costs = (float)$shippingItem->get_total();
+        $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
+        $totalProductItems = array_sum(array_values($productTotalByVat));
 
-            if (isset($taxes['total'])) {
+        /** @var \WC_Order_Item_Fee $fee */
+        foreach ($order->get_fees() as $fee) {
+            $taxes = $fee->get_taxes();
+            $total = (float)$fee->get_total();
+            $totalTax = (float)$fee->get_total_tax();
+
+            if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
-                    $customerOrderItem = (new CustomerOrderItemModel())
-                        ->setId(new Identity($shippingItem->get_id()))
-                        ->setCustomerOrderId(new Identity($order->get_id()))
-                        ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
-                        ->setName($shippingItem->get_name())
-                        ->setPriceGross(round($costs + $taxAmount, $this->priceDecimals))
-                        ->setQuantity(1);
+                    $taxAmount = (float)$taxAmount;
+
+                    $customerOrderItem = $this->getSurchargeOrderItem($fee, $order, $taxRateId);
 
                     if (isset(self::$taxRateCache[$taxRateId])) {
-                        $customerOrderItem->setVat(self::$taxRateCache[$taxRateId]);
+                        $taxRate = self::$taxRateCache[$taxRateId];
                     } else {
-                        $rate = (float)$this->database->queryOne(SQLs::taxRateById($taxRateId));
-                        $customerOrderItem->setVat($rate);
-                        self::$taxRateCache[$taxRateId] = $rate;
+                        $taxRate = (float)$this->database->queryOne(SQL::taxRateById($taxRateId));
+                        self::$taxRateCache[$taxRateId] = $taxRate;
                     }
 
-                    $customerOrderItem->setPrice(round($costs, $this->priceDecimals));
+                    $customerOrderItem->setVat($taxRate);
+
+                    if ($taxRate === 0.0) {
+                        continue;
+                    } else {
+                        $vatKey = "" . round($taxRate);
+
+                        if (!isset($productTotalByVat[$vatKey])) {
+                            $factor = 1;
+                        } else {
+                            $factor = 1 / $totalProductItems * $productTotalByVat[$vatKey];
+                        }
+
+                        $fees = (float)$order->get_item_total($fee) * $factor;
+
+                        $netPrice = round($fees, $this->priceDecimals);
+                        $priceGross = round($netPrice + $taxAmount, $this->priceDecimals);
+                    }
+
+                    $customerOrderItem->setPrice($netPrice);
+                    $customerOrderItem->setPriceGross($priceGross);
 
                     $customerOrderItems[] = $customerOrderItem;
                 }
             } else {
-                $customerOrderItem = (new CustomerOrderItemModel())
-                    ->setId(new Identity($shippingItem->get_id()))
-                    ->setCustomerOrderId(new Identity($order->get_id()))
-                    ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
-                    ->setName($shippingItem->get_name())
-                    ->setQuantity(1);
+                $customerOrderItem = $this->getSurchargeOrderItem($fee, $order);
 
-                $taxes = array_values($order->get_taxes());
-
-                if (!empty($taxes) && isset($taxes['rate_id'])) {
-                    $taxRateId = $taxes['rate_id'];
-                    if (isset(self::$taxRateCache[$taxRateId])) {
-                        $customerOrderItem->setVat(self::$taxRateCache[$taxRateId]);
-                    } else {
-                        $rate = (float)$this->database->queryOne(SQLs::taxRateById($taxRateId));
-                        $customerOrderItem->setVat($rate);
-                        self::$taxRateCache[$taxRateId] = $rate;
-                    }
-                }
-
-                $customerOrderItem->setPrice(round($costs, $this->priceDecimals));
-                $customerOrderItem->setPriceGross(round($costs, $this->priceDecimals));
+                $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
+                $customerOrderItem->setPrice(round($total, $this->priceDecimals));
+                $customerOrderItem->setPriceGross(round($total + $totalTax, $this->priceDecimals));
 
                 $customerOrderItems[] = $customerOrderItem;
             }
@@ -215,30 +233,62 @@ class CustomerOrderItem extends BaseController
 
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
-        foreach ($order->get_items('coupon') as $itemId => $couponItem) {
-            $customerOrderItem = $this->getCommonOrderItem($order, $itemId, $couponItem);
-            if ($this->hasNoTax) {
-                $price = (float)$couponItem['discount_amount'];
-                $priceGross = $price;
-            } else {
-                $price = (float)$couponItem['discount_amount'];
-                $priceGross = (float)$couponItem['discount_amount'] + (float)$couponItem['discount_amount_tax'];
-            }
-            $customerOrderItem->setPrice(-1 * round($price, $this->priceDecimals));
-            $customerOrderItem->setPriceGross(-1 * round($priceGross, $this->priceDecimals));
-            $customerOrderItem->setType(CustomerOrderItemModel::TYPE_COUPON);
-            $customerOrderItems[] = $customerOrderItem;
+        /**
+         * @var integer $itemId
+         * @var \WC_Order_Item_Coupon $item
+         */
+        foreach ($order->get_items('coupon') as $itemId => $item) {
+            $customerOrderItems[] = (new CustomerOrderItemModel())
+                ->setId(new Identity($itemId))
+                ->setCustomerOrderId(new Identity($order->get_id()))
+                ->setName(empty($item->get_name()) ? $item->get_code() : $item->get_name())
+                ->setType(CustomerOrderItemModel::TYPE_COUPON)
+                ->setPrice(-1 * round((float)$item->get_discount(), $this->priceDecimals))
+                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), $this->priceDecimals))
+                ->setQuantity(1);
         }
     }
 
-    public function getCommonOrderItem(\WC_Order $order, $itemId, $item)
+    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
     {
-        $customerOrderItem = (new CustomerOrderItemModel())
-            ->setId(new Identity($itemId))
+        return (new CustomerOrderItemModel())
+            ->setId(new Identity($shippingItem->get_id() . is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId))
             ->setCustomerOrderId(new Identity($order->get_id()))
-            ->setName(isset($item['name']) ? $item['name'] : '')
+            ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
+            ->setName($shippingItem->get_name())
             ->setQuantity(1);
+    }
 
-        return $customerOrderItem;
+    private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
+    {
+        return (new CustomerOrderItemModel())
+            ->setId(new Identity($feeItem->get_id() . is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId))
+            ->setCustomerOrderId(new Identity($order->get_id()))
+            ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
+            ->setName($feeItem->get_name())
+            ->setQuantity(1);
+    }
+
+    private function getProductTotalByVat(array $customerOrderItems)
+    {
+        $totalPriceForVats = [];
+
+        foreach ($customerOrderItems as $item) {
+            if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
+                $taxRate = $item->getVat();
+
+                if ($taxRate == 0) {
+                    continue;
+                }
+
+                if (isset($totalPriceForVats["{$taxRate}"])) {
+                    $totalPriceForVats["{$taxRate}"] += $item->getPrice();
+                } else {
+                    $totalPriceForVats["{$taxRate}"] = $item->getPrice();
+                }
+            }
+        }
+
+        return $totalPriceForVats;
     }
 }

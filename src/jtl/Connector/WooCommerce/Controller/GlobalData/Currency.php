@@ -22,13 +22,15 @@ class Currency
 
     public function pullData()
     {
+        $iso = \get_woocommerce_currency();
+
         return
             (new CurrencyModel())
-                ->setId(new Identity(strtolower(\get_woocommerce_currency())))
-                ->setName(\get_woocommerce_currency())
+                ->setId(new Identity(strtolower($iso)))
+                ->setName($iso)
                 ->setDelimiterCent(\get_option(self::THOUSAND_DELIMITER, ''))
                 ->setDelimiterThousand(\get_option(self::CENT_DELIMITER, ''))
-                ->setIso(\get_woocommerce_currency())
+                ->setIso($iso)
                 ->setNameHtml(\get_woocommerce_currency_symbol())
                 ->setHasCurrencySignBeforeValue(\get_option(self::SIGN_POSITION, '') === 'left')
                 ->setIsDefault(true);
@@ -48,5 +50,7 @@ class Currency
 
             break;
         }
+
+        return $currencies;
     }
 }

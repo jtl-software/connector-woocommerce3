@@ -21,7 +21,7 @@ use jtl\Connector\WooCommerce\Event\HandlePushEvent;
 use jtl\Connector\WooCommerce\Event\HandleStatsEvent;
 use jtl\Connector\WooCommerce\Mapper\PrimaryKeyMapper;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class Connector extends BaseConnector
 {
@@ -50,7 +50,7 @@ class Connector extends BaseConnector
     {
         $controllerName = RpcMethod::buildController($this->getMethod()->getController());
         $controllerClass = Util::getInstance()->getControllerNamespace($controllerName);
-        $controllerClass = UtilGermanized::getInstance()->getController($controllerName, $controllerClass);
+        $controllerClass = Germanized::getInstance()->getController($controllerName, $controllerClass);
         if (class_exists($controllerClass) && method_exists($controllerClass, 'getInstance')) {
             $this->controller = $controllerClass::getInstance();
             $this->action = RpcMethod::buildAction($this->getMethod()->getAction());

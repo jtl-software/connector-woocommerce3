@@ -12,8 +12,8 @@ use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\IdConcatenation;
-use jtl\Connector\WooCommerce\Utility\SQLs;
+use jtl\Connector\WooCommerce\Utility\Id;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductAttr extends BaseController
@@ -44,7 +44,7 @@ class ProductAttr extends BaseController
 
                 foreach ($values as $i => $value) {
                     $i18n = (new ProductAttrI18nModel())
-                        ->setProductAttrId(new Identity(IdConcatenation::link([$slug, $i])))
+                        ->setProductAttrId(new Identity(Id::link([$slug, $i])))
                         ->setName($attribute->get_name())
                         ->setValue(trim($value))
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
@@ -231,7 +231,7 @@ class ProductAttr extends BaseController
     {
         global $wpdb;
 
-        $results = Db::getInstance()->query(SQLs::findTermsForProduct($productId, $taxonomy));
+        $results = Db::getInstance()->query(SQL::findTermsForProduct($productId, $taxonomy));
 
         if (empty($results)) {
             $result = $wpdb->insert(
@@ -293,7 +293,7 @@ class ProductAttr extends BaseController
     {
         global $wpdb;
 
-        $result = $wpdb->get_var(SQLs::findTermTaxonomyRelation($productId, $termTaxonomyId));
+        $result = $wpdb->get_var(SQL::findTermTaxonomyRelation($productId, $termTaxonomyId));
 
         if (is_null($result)) {
             $result = $wpdb->insert(

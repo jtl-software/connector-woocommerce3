@@ -8,7 +8,7 @@ namespace jtl\Connector\WooCommerce\Utility;
 
 use jtl\Connector\Linker\IdentityLinker;
 
-final class IdConcatenation
+final class Id
 {
     const SEPARATOR = '_';
     const PRODUCT_PREFIX = 'p';

@@ -427,13 +427,13 @@ final class JtlConnectorAdmin
             UPDATE `jtl_connector_link_customer` 
             SET `is_guest` = 1
             WHERE `endpoint_id` LIKE "%s_%%"',
-            \jtl\Connector\WooCommerce\Utility\IdConcatenation::GUEST_PREFIX
+            \jtl\Connector\WooCommerce\Utility\Id::GUEST_PREFIX
         ));
         $wpdb->query(sprintf('
             UPDATE `jtl_connector_link_customer` 
             SET `is_guest` = 0
             WHERE `endpoint_id` NOT LIKE "%s_%%"',
-            \jtl\Connector\WooCommerce\Utility\IdConcatenation::GUEST_PREFIX
+            \jtl\Connector\WooCommerce\Utility\Id::GUEST_PREFIX
         ));
 
         // Add type column for images instead of using a prefix
@@ -444,11 +444,11 @@ final class JtlConnectorAdmin
             WHERE `endpoint_id` LIKE "%s_%%"';
         $wpdb->query(sprintf($updateImageLinkingTable,
             \jtl\Connector\Linker\IdentityLinker::TYPE_CATEGORY,
-            \jtl\Connector\WooCommerce\Utility\IdConcatenation::CATEGORY_PREFIX
+            \jtl\Connector\WooCommerce\Utility\Id::CATEGORY_PREFIX
         ));
         $wpdb->query(sprintf($updateImageLinkingTable,
             \jtl\Connector\Linker\IdentityLinker::TYPE_PRODUCT,
-            \jtl\Connector\WooCommerce\Utility\IdConcatenation::PRODUCT_PREFIX
+            \jtl\Connector\WooCommerce\Utility\Id::PRODUCT_PREFIX
         ));
 
         self::add_constraints_for_multi_linking_tables();

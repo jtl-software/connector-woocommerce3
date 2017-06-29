@@ -150,11 +150,11 @@ final class Util extends Singleton
         $limit = 100;
 
         while (!empty($result)) {
-            $result = Db::getInstance()->query(SQLs::categoryProductsCount($offset, $limit));
+            $result = Db::getInstance()->query(SQL::categoryProductsCount($offset, $limit));
 
             foreach ($result as $category) {
-                Db::getInstance()->query(SQLs::termTaxonomyCountUpdate($category['term_taxonomy_id'], $category['count']));
-                Db::getInstance()->query(SQLs::categoryMetaCountUpdate($category['term_id'], $category['count']));
+                Db::getInstance()->query(SQL::termTaxonomyCountUpdate($category['term_taxonomy_id'], $category['count']));
+                Db::getInstance()->query(SQL::categoryMetaCountUpdate($category['term_id'], $category['count']));
             }
 
             $offset += $limit;
@@ -167,10 +167,10 @@ final class Util extends Singleton
         $limit = 100;
 
         while (!empty($result)) {
-            $result = Db::getInstance()->query(SQLs::productTagsCount($offset, $limit));
+            $result = Db::getInstance()->query(SQL::productTagsCount($offset, $limit));
 
             foreach ($result as $tag) {
-                Db::getInstance()->query(SQLs::termTaxonomyCountUpdate($tag['term_taxonomy_id'], $tag['count']));
+                Db::getInstance()->query(SQL::termTaxonomyCountUpdate($tag['term_taxonomy_id'], $tag['count']));
             }
 
             $offset += $limit;

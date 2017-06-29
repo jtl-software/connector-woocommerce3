@@ -10,7 +10,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\UtilGermanized;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class ProductI18n extends BaseController
 {
@@ -24,7 +24,7 @@ class ProductI18n extends BaseController
             ->setShortDescription($product->get_short_description())
             ->setUrlPath($product->get_slug());
 
-        if (UtilGermanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
+        if (Germanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
 
