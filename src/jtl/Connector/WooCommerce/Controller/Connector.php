@@ -63,9 +63,9 @@ class Connector extends Controller
         $action->setHandled(true);
 
         try {
-            if (\get_option(Category::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
+            if (\get_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
                 CategoryUtil::saveCategoryLevelsAsPreOrder();
-                \update_option(Category::OPTION_CATEGORY_HAS_CHANGED, 'no');
+                \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no');
             }
 
             Util::getInstance()->countCategories();

@@ -20,8 +20,8 @@ use jtl\Connector\WooCommerce\Event\HandlePullEvent;
 use jtl\Connector\WooCommerce\Event\HandlePushEvent;
 use jtl\Connector\WooCommerce\Event\HandleStatsEvent;
 use jtl\Connector\WooCommerce\Mapper\PrimaryKeyMapper;
-use jtl\Connector\WooCommerce\Utility\Util;
 use jtl\Connector\WooCommerce\Utility\Germanized;
+use jtl\Connector\WooCommerce\Utility\Util;
 
 class Connector extends BaseConnector
 {
@@ -50,44 +50,57 @@ class Connector extends BaseConnector
     {
         $controllerName = RpcMethod::buildController($this->getMethod()->getController());
         $controllerClass = Util::getInstance()->getControllerNamespace($controllerName);
-        $controllerClass = Germanized::getInstance()->getController($controllerName, $controllerClass);
+
         if (class_exists($controllerClass) && method_exists($controllerClass, 'getInstance')) {
             $this->controller = $controllerClass::getInstance();
             $this->action = RpcMethod::buildAction($this->getMethod()->getAction());
+
             return is_callable([$this->controller, $this->action]);
         }
+
         $event = new CanHandleEvent($this->getMethod()->getController(), $this->getMethod()->getAction());
         $this->eventDispatcher->dispatch(CanHandleEvent::EVENT_NAME, $event);
+
         return $event->isCanHandle();
     }
 
     public function handle(RequestPacket $requestPacket)
     {
         $event = new CanHandleEvent($this->getMethod()->getController(), $this->getMethod()->getAction());
+
         $this->eventDispatcher->dispatch(CanHandleEvent::EVENT_NAME, $event);
+
         if ($event->isCanHandle()) {
             return $this->handleCallByPlugin($requestPacket);
         }
 
         $this->controller->setMethod($this->getMethod());
+
         if ($this->action === Method::ACTION_PUSH || $this->action === Method::ACTION_DELETE) {
             if (!is_array($requestPacket->getParams())) {
                 throw new \Exception("Expecting request array, invalid data given");
             }
-            $action = new Action();
+
             $results = [];
+            $action = new Action();
             $entities = $requestPacket->getParams();
+
             foreach ($entities as $entity) {
                 $result = $this->controller->{$this->action}($entity);
+
                 if ($result instanceof Action && $result->getResult() !== null) {
                     $results[] = $result->getResult();
                 }
-                $action->setHandled(true)
+
+                $action
+                    ->setHandled(true)
                     ->setResult($results)
                     ->setError($result->getError());
             }
+
             return $action;
         }
+
         return $this->controller->{$this->action}($requestPacket->getParams());
     }
 
@@ -99,6 +112,7 @@ class Connector extends BaseConnector
     public function setController(CoreController $controller)
     {
         $this->controller = $controller;
+
         return $this;
     }
 
@@ -110,6 +124,7 @@ class Connector extends BaseConnector
     public function setAction($action)
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -124,6 +139,7 @@ class Connector extends BaseConnector
     {
         $action = new Action();
         $action->setHandled(true);
+
         if ($this->getMethod()->getAction() === 'pull') {
             $event = new HandlePullEvent($this->getMethod()->getController(), $requestPacket->getParams());
             $this->eventDispatcher->dispatch(HandlePullEvent::EVENT_NAME, $event);
@@ -137,7 +153,9 @@ class Connector extends BaseConnector
             $event = new HandleDeleteEvent($this->getMethod()->getController(), $requestPacket->getParams());
             $this->eventDispatcher->dispatch(HandleDeleteEvent::EVENT_NAME, $event);
         }
+
         $action->setResult($event->getResult());
+
         return $action;
     }
 

@@ -16,7 +16,7 @@ class GlobalData extends BaseController
 {
     use PullTrait, PushTrait;
 
-    public function pullData()
+    public function pullData($limit)
     {
         $globalData = (new GlobalDataModel())
             ->addCurrency((new Currency())->pullData())

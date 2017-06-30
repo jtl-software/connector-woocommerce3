@@ -18,13 +18,6 @@ final class Germanized extends Singleton
      * @var array Index used in database mapped to translated salutation.
      */
     private $salutations;
-    /**
-     * @var array Controllers where a Germanized implementation is provided for.
-     */
-    private static $germanizedController = [
-        'GlobalData',
-        'Payment'
-    ];
 
     private static $units = [
         'l'  => 'L',
@@ -51,21 +44,6 @@ final class Germanized extends Singleton
     public function parseIndexToSalutation($index)
     {
         return isset($this->salutations[(int)$index]) ? $this->salutations[$index] : '';
-    }
-
-    public function getController($controller, $namespaceController)
-    {
-        if ($this->isActive()) {
-            if (in_array($controller, self::$germanizedController)) {
-                $namespaceController .= 'Germanized';
-
-                return $namespaceController;
-            }
-
-            return $namespaceController;
-        }
-
-        return $namespaceController;
     }
 
     public function parseUnit($code)
