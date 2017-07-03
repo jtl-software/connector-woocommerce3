@@ -16,7 +16,6 @@ use jtl\Connector\WooCommerce\Utility\Util;
 class CustomerOrderItem extends BaseController
 {
     protected $priceDecimals;
-    private $hasNoTax = false;
 
     /** @var array $taxRateCache Map tax rate id to tax rate */
     protected static $taxRateCache = [];
@@ -26,6 +25,7 @@ class CustomerOrderItem extends BaseController
     public function __construct()
     {
         parent::__construct();
+
         $this->priceDecimals = 4;
     }
 
@@ -87,11 +87,9 @@ class CustomerOrderItem extends BaseController
 
             if ($tax === 0.0) {
                 // Take subtotal because coupons are subtracted in total
-                $this->hasNoTax = true;
                 $priceGross = $netPrice = $order->get_item_subtotal($item, true, false);
             } else {
                 // Default is an empty tax class and tax amount unequal zero
-                $this->hasNoTax = false;
                 $netPrice = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, false);
             }
@@ -147,12 +145,17 @@ class CustomerOrderItem extends BaseController
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
+        $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
+            return $vat !== 0;
+        }, ARRAY_FILTER_USE_KEY);
         $totalProductItems = array_sum(array_values($productTotalByVat));
+        $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
 
         foreach ($order->get_items($type) as $shippingItem) {
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
+            $costs = (float)$order->get_item_total($shippingItem, false, false);
 
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
@@ -174,16 +177,16 @@ class CustomerOrderItem extends BaseController
                     } else {
                         $vatKey = "" . round($taxRate);
 
-                        if (!isset($productTotalByVat[$vatKey])) {
+                        if (!isset($productTotalByVatWithoutZero[$vatKey])) {
                             $factor = 1;
                         } else {
-                            $factor = 1 / $totalProductItems * $productTotalByVat[$vatKey];
+                            $factor = $productTotalByVatWithoutZero[$vatKey] / $totalProductItemsWithoutZero;
                         }
 
-                        $fees = (float)$order->get_item_total($shippingItem) * $factor;
+                        $fees = $costs * $factor;
 
                         $netPrice = round($fees, $this->priceDecimals);
-                        $priceGross = round($netPrice + $taxAmount, $this->priceDecimals);
+                        $priceGross = round($fees + $taxAmount, $this->priceDecimals);
                     }
 
                     $customerOrderItem->setPrice($netPrice);
@@ -193,7 +196,7 @@ class CustomerOrderItem extends BaseController
                 }
             } else {
                 /** @var CustomerOrderItemModel $customerOrderItem */
-                $customerOrderItem = $getItem($shippingItem, $order);
+                $customerOrderItem = $getItem($shippingItem, $order, null);
 
                 $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
                 $customerOrderItem->setPrice(round($total, $this->priceDecimals));
@@ -231,10 +234,6 @@ class CustomerOrderItem extends BaseController
         foreach ($customerOrderItems as $item) {
             if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
                 $taxRate = $item->getVat();
-
-                if ($taxRate == 0) {
-                    continue;
-                }
 
                 if (isset($totalPriceForVats["{$taxRate}"])) {
                     $totalPriceForVats["{$taxRate}"] += $item->getPrice();
