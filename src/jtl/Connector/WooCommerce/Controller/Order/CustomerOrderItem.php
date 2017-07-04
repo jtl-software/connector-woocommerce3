@@ -15,19 +15,12 @@ use jtl\Connector\WooCommerce\Utility\Util;
 
 class CustomerOrderItem extends BaseController
 {
-    protected $priceDecimals;
+    const PRICE_DECIMALS = 4;
 
     /** @var array $taxRateCache Map tax rate id to tax rate */
     protected static $taxRateCache = [];
     /** @var array $taxClassRateCache Map tax class to tax rate */
     protected static $taxClassRateCache = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->priceDecimals = 4;
-    }
 
     public function pullData(\WC_Order $order)
     {
@@ -103,8 +96,8 @@ class CustomerOrderItem extends BaseController
 
             $orderItem
                 ->setVat($taxRate)
-                ->setPrice(round($netPrice, $this->priceDecimals))
-                ->setPriceGross(round($priceGross, $this->priceDecimals));
+                ->setPrice(round($netPrice, self::PRICE_DECIMALS))
+                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
 
             $customerOrderItems[] = $orderItem;
         }
@@ -136,8 +129,8 @@ class CustomerOrderItem extends BaseController
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($item->get_name()) ? $item->get_code() : $item->get_name())
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * round((float)$item->get_discount(), $this->priceDecimals))
-                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), $this->priceDecimals))
+                ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
+                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), self::PRICE_DECIMALS))
                 ->setQuantity(1);
         }
     }
@@ -148,7 +141,6 @@ class CustomerOrderItem extends BaseController
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
             return $vat !== 0;
         }, ARRAY_FILTER_USE_KEY);
-        $totalProductItems = array_sum(array_values($productTotalByVat));
         $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
 
         foreach ($order->get_items($type) as $shippingItem) {
@@ -175,18 +167,16 @@ class CustomerOrderItem extends BaseController
                     if ($taxRate === 0.0) {
                         continue;
                     } else {
-                        $vatKey = "" . round($taxRate);
-
-                        if (!isset($productTotalByVatWithoutZero[$vatKey])) {
+                        if (!isset($productTotalByVatWithoutZero[$taxRate])) {
                             $factor = 1;
                         } else {
-                            $factor = $productTotalByVatWithoutZero[$vatKey] / $totalProductItemsWithoutZero;
+                            $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                         }
 
                         $fees = $costs * $factor;
 
-                        $netPrice = round($fees, $this->priceDecimals);
-                        $priceGross = round($fees + $taxAmount, $this->priceDecimals);
+                        $netPrice = round($fees, self::PRICE_DECIMALS);
+                        $priceGross = round($fees + $taxAmount, self::PRICE_DECIMALS);
                     }
 
                     $customerOrderItem->setPrice($netPrice);
@@ -199,8 +189,8 @@ class CustomerOrderItem extends BaseController
                 $customerOrderItem = $getItem($shippingItem, $order, null);
 
                 $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
-                $customerOrderItem->setPrice(round($total, $this->priceDecimals));
-                $customerOrderItem->setPriceGross(round($total + $totalTax, $this->priceDecimals));
+                $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
+                $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
 
                 $customerOrderItems[] = $customerOrderItem;
             }
@@ -235,10 +225,10 @@ class CustomerOrderItem extends BaseController
             if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
                 $taxRate = $item->getVat();
 
-                if (isset($totalPriceForVats["{$taxRate}"])) {
-                    $totalPriceForVats["{$taxRate}"] += $item->getPrice();
+                if (isset($totalPriceForVats[$taxRate])) {
+                    $totalPriceForVats[$taxRate] += $item->getPrice();
                 } else {
-                    $totalPriceForVats["{$taxRate}"] = $item->getPrice();
+                    $totalPriceForVats[$taxRate] = $item->getPrice();
                 }
             }
         }
