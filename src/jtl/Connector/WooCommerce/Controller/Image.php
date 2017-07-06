@@ -135,13 +135,13 @@ class Image extends BaseController
      *
      * @param \WC_Product $product The product for which the cover image and gallery images should be fetched.
      *
-     * @return array An array with the product id as first argument and the the images as second.
+     * @return array An array with the image ids.
      */
     private function fetchProductAttachmentIds(\WC_Product $product)
     {
         $attachmentIds = [];
 
-        $pictureId = $product->get_image_id();
+        $pictureId = (int)$product->get_image_id();
 
         if (!empty($pictureId)) {
             $attachmentIds[] = $pictureId;
@@ -153,7 +153,7 @@ class Image extends BaseController
             }
         }
 
-        return [$product->get_id(), $attachmentIds];
+        return $attachmentIds;
     }
 
     /**
@@ -166,7 +166,7 @@ class Image extends BaseController
      */
     private function addProductImagesForPost($attachmentIds, $postId)
     {
-        $attachmentIds = $this->filterAlreadyLinkedProducts($attachmentIds);
+        $attachmentIds = $this->filterAlreadyLinkedProducts($attachmentIds, $postId);
         $newAttachments = $this->fetchProductAttachments($attachmentIds, $postId);
 
         return $newAttachments;
@@ -209,11 +209,10 @@ class Image extends BaseController
         return $attachments;
     }
 
-    private function filterAlreadyLinkedProducts($productAttachments)
+    private function filterAlreadyLinkedProducts($productAttachments, $productId)
     {
         $filtered = [];
-        $productId = $productAttachments[0];
-        $attachmentIds = $productAttachments[1];
+        $attachmentIds = $productAttachments;
 
         foreach ($attachmentIds as $attachmentId) {
             $endpointId = Id::link([$attachmentId, $productId]);
@@ -246,8 +245,7 @@ class Image extends BaseController
     // <editor-fold defaultstate="collapsed" desc="Stats">
     protected function getStats()
     {
-        $imageCount = (int)$this->database->queryOne(SQL::imageProductThumbnailStats());
-        $imageCount += $this->productGalleryStats();
+        $imageCount = $this->productGalleryStats();
         $imageCount += count($this->database->query(SQL::imageVariationCombinationPull()));
         $imageCount += count($this->database->query(SQL::imageCategoryPull()));
 
@@ -256,16 +254,34 @@ class Image extends BaseController
 
     private function productGalleryStats()
     {
-        $attachments = [];
         $this->alreadyLinked = $this->database->queryList(SQL::linkedProductImages());
-        $productImagesMappings = $this->database->query(SQL::imageProductGalleryStats());
-        foreach ($productImagesMappings as $productImagesMapping) {
-            $attachmentIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
-            $attachmentIds = [(int)$productImagesMapping['ID'], $attachmentIds];
-            $attachments = array_merge($attachments, $this->filterAlreadyLinkedProducts($attachmentIds));
+
+        $count = 0;
+        $images = [];
+
+        // Fetch the cover images
+        $thumbnails = $this->database->query(SQL::imageProductThumbnail());
+
+        foreach ($thumbnails as $thumbnail) {
+            $images[(int)$thumbnail['ID']] = (int)$thumbnail['meta_value'];
         }
 
-        return count($attachments);
+        // add the gallery images
+        $productImagesMappings = $this->database->query(SQL::imageProductGalleryStats());
+
+        foreach ($productImagesMappings as $productImagesMapping) {
+            $productId = (int)$productImagesMapping['ID'];
+            $attachmentIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
+
+            if (isset($images[$productId])) {
+                $attachmentIds[] = $images[$productId];
+            }
+
+            // Count unique product images
+            $count += count(array_unique($this->filterAlreadyLinkedProducts($attachmentIds, $productId)));
+        }
+
+        return $count;
     }
     // </editor-fold>
 

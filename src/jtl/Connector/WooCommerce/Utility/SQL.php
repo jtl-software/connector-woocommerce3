@@ -273,17 +273,18 @@ final class SQL
         );
     }
 
-    public static function imageProductThumbnailStats()
+    public static function imageProductThumbnail()
     {
         global $wpdb;
 
         return sprintf("
-            SELECT count(p.ID)
+            SELECT p.ID, pm.meta_value
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
             LEFT JOIN jtl_connector_link_image l ON SUBSTRING_INDEX(l.endpoint_id, '%s', -1) = pm.post_id  AND l.type = %d
             WHERE p.post_type = 'product' AND p.post_status IN ('future', 'publish', 'inherit', 'private') AND 
-            pm.meta_key = '%s' AND pm.meta_value != 0 AND l.host_id IS NULL",
+            pm.meta_key = '%s' AND pm.meta_value != 0 AND l.host_id IS NULL
+            GROUP BY p.ID, pm.meta_value",
             Id::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
