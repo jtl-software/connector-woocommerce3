@@ -4,7 +4,7 @@
 - Only pull double product image once
 - Refactoring order item taxes for accurate tax calculation
 - Refactor Germanized integration
-- Remove mimimum oder and packaging quantity validation on push
+- Remove minimum oder and packaging quantity validation on push
 - Fix primary key mapper for unsupported types
 
 1.3.6
