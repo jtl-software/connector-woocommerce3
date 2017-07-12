@@ -1,3 +1,7 @@
+1.4.1
+-----
+- Fix free shipping
+
 1.4.0
 -----
 - Support of WooCommerce 3
