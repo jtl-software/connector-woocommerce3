@@ -1,6 +1,7 @@
 1.4.1
 -----
 - Fix free shipping
+- Strip HTML tags from keywords
 
 1.4.0
 -----
