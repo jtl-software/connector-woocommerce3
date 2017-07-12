@@ -188,9 +188,11 @@ class CustomerOrderItem extends BaseController
                 /** @var CustomerOrderItemModel $customerOrderItem */
                 $customerOrderItem = $getItem($shippingItem, $order, null);
 
-                $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
-                $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
-                $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
+                if ($total != 0) {
+                    $customerOrderItem->setVat(round(100 / $total * ($total + $totalTax) - 100, 1));
+                    $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
+                    $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
+                }
 
                 $customerOrderItems[] = $customerOrderItem;
             }
