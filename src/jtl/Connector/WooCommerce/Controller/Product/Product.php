@@ -100,6 +100,12 @@ class Product extends BaseController
 
         if (!empty($productId)) {
             $endpoint['ID'] = (int)$productId;
+        } else {
+            $productId = \wc_get_product_id_by_sku($product->getSku());
+
+            if ($productId != 0) {
+                $endpoint['ID'] = $productId;
+            }
         }
 
         $result = \wp_insert_post($endpoint, true);
