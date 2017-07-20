@@ -31,7 +31,7 @@ class Image extends BaseController
     private $alreadyLinked = [];
 
     private $pushMethods = [
-        ImageRelationType::TYPE_PRODUCT  => 'pushProductImage',
+        ImageRelationType::TYPE_PRODUCT => 'pushProductImage',
         ImageRelationType::TYPE_CATEGORY => 'pushCategoryImage',
     ];
 
@@ -55,12 +55,14 @@ class Image extends BaseController
             $model = $this->mapper->toHost($image);
 
             if ($model instanceof ImageModel) {
+                $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
+
                 $model
                     ->setRelationType($type)
                     ->addI18n((new ImageI18n())
                         ->setId(new Identity($image['id']))
                         ->setImageId(new Identity($image['id']))
-                        ->setAltText(\get_post_meta($image['ID'], '_wp_attachment_image_alt', true))
+                        ->setAltText($altText !== false ? $altText : '')
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                     );
 
@@ -91,11 +93,11 @@ class Image extends BaseController
 
             while ($imageCount < $limit) {
                 $query = new \WP_Query([
-                    'fields'         => 'ids',
-                    'post_type'      => ['product', 'product_variation'],
-                    'post_status'    => 'publish',
+                    'fields' => 'ids',
+                    'post_type' => ['product', 'product_variation'],
+                    'post_status' => 'publish',
                     'posts_per_page' => 50,
-                    'paged'          => $page++,
+                    'paged' => $page++,
                 ]);
                 if ($query->have_posts()) {
                     foreach ($query->posts as $postId) {
@@ -333,11 +335,11 @@ class Image extends BaseController
             $fileType = \wp_check_filetype(basename($destination), null);
 
             $attachment = [
-                'guid'           => $uploadDir['url'] . '/' . $fileName,
+                'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
-                'post_title'     => preg_replace('/\.[^.]+$/', '', $fileName),
-                'post_content'   => '',
-                'post_status'    => 'inherit',
+                'post_title' => preg_replace('/\.[^.]+$/', '', $fileName),
+                'post_content' => '',
+                'post_status' => 'inherit',
             ];
 
             $endpointId = $image->getId()->getEndpoint();
