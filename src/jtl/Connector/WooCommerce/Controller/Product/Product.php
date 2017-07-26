@@ -158,7 +158,7 @@ class Product extends BaseController
         $wcProduct->set_width($product->getWidth());
         $wcProduct->set_weight($product->getShippingWeight());
 
-        $wcProduct->set_date_modified($product->getModified());
+        $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         $wcProduct->set_status(is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future');
 
         $wcProduct->save();
