@@ -202,7 +202,7 @@ class CustomerOrderItem extends BaseController
     private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
     {
         return (new CustomerOrderItemModel())
-            ->setId(new Identity($shippingItem->get_id() . is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId))
+            ->setId(new Identity($shippingItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
             ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
             ->setName($shippingItem->get_name())
@@ -212,7 +212,7 @@ class CustomerOrderItem extends BaseController
     private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
     {
         return (new CustomerOrderItemModel())
-            ->setId(new Identity($feeItem->get_id() . is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId))
+            ->setId(new Identity($feeItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
             ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
             ->setName($feeItem->get_name())
