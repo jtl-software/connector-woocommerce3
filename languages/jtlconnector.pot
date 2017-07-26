@@ -64,7 +64,7 @@ msgstr ""
 
 #: includes/JtlConnectorAdmin.php:266
 msgid ""
-"Choose when having a large amount of data and low server specifications."
+"Do not choose when having a large amount of data and low server specifications."
 msgstr ""
 
 #: includes/JtlConnectorAdmin.php:270

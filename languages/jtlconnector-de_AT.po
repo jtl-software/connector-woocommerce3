@@ -69,8 +69,8 @@ msgstr "Importiere abgeschlossene Bestellungen"
 
 #: includes/JtlConnectorAdmin.php:266
 msgid ""
-"Choose when having a large amount of data and low server specifications."
-msgstr "Bei vielen Daten aber schwachem Server wählen."
+"Do not choose when having a large amount of data and low server specifications."
+msgstr "Bei vielen Daten aber schwachem Server nicht auswählen."
 
 #: includes/JtlConnectorAdmin.php:270
 msgid "Pull orders since"
