@@ -84,7 +84,7 @@ final class JtlConnectorAdmin
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
-                INDEX (`host_id`),
+                INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
 
         $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
@@ -262,7 +262,7 @@ final class JtlConnectorAdmin
             [
                 'title' => __('Pull completed orders', TEXT_DOMAIN),
                 'type'  => 'checkbox',
-                'desc'  => __('Choose when having a large amount of data and low server specifications.', TEXT_DOMAIN),
+                'desc'  => __('Do not choose when having a large amount of data and low server specifications.', TEXT_DOMAIN),
                 'id'    => self::OPTIONS_COMPLETED_ORDERS,
             ],
             [
