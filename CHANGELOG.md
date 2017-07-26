@@ -1,3 +1,11 @@
+1.4.2
+-----
+- Update product by matching SKU
+- Fix linking table creation SQL
+- Fix setting updated as timestamp 
+- Fallback alt text for image
+- Update translation
+
 1.4.1
 -----
 - Fix free shipping
