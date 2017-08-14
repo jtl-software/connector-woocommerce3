@@ -138,7 +138,14 @@ class ProductAttr extends BaseController
          */
         foreach ($currentAttributes as $slug => $attribute) {
             if ($attribute->get_variation()) {
-                $attributes[$slug] = $attribute;
+                $attributes[$slug] = [
+                    'name' => $attribute->get_name(),
+                    'value' => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
+                    'position' => $attribute->get_position(),
+                    'is_visible' => $attribute->get_visible(),
+                    'is_variation' => $attribute->get_variation(),
+                    'is_taxonomy' => $attribute->get_taxonomy()
+                ];
             }
         }
 

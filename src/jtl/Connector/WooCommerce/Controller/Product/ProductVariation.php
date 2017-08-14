@@ -189,39 +189,52 @@ class ProductVariation extends BaseController
     {
         $attributes = [];
         $productId = $data->getId()->getEndpoint();
+
         $product = \wc_get_product($productId);
         $existingAttributes = $product->get_attributes();
+
         $this->addProductAttributes($existingAttributes, $attributes);
+
         $variations = $data->getVariations();
+
         foreach ($variations as $variation) {
             foreach ($variation->getI18ns() as $variationI18n) {
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
+
                 if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                     continue;
                 }
+
                 $values = [];
+
                 $this->values = $variation->getValues();
                 usort($this->values, [$this, 'sortI18nValues']);
+
                 foreach ($this->values as $vv) {
                     foreach ($vv->getI18ns() as $valueI18n) {
                         if (!Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
                             continue;
                         }
+
                         $values[] = $valueI18n->getName();
+
                         break;
                     }
                 }
+
                 $attributes[$taxonomyName] = [
-                    'name'         => $variationI18n->getName(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $values),
-                    'position'     => $variation->getSort(),
-                    'is_visible'   => 0,
+                    'name' => $variationI18n->getName(),
+                    'value' => implode(' ' . WC_DELIMITER . ' ', $values),
+                    'position' => $variation->getSort(),
+                    'is_visible' => 0,
                     'is_variation' => 1,
-                    'is_taxonomy'  => 0,
+                    'is_taxonomy' => 0
                 ];
+
                 break;
             }
         }
+
         \update_post_meta($productId, '_product_attributes', $attributes);
     }
 
@@ -263,6 +276,7 @@ class ProductVariation extends BaseController
                 return 0;
             } else {
                 $indexA = $indexB = 0;
+
                 foreach ($this->values as $index => $value) {
                     if ($value->getId() === $a->getId()) {
                         $indexA = $index;
@@ -282,8 +296,10 @@ class ProductVariation extends BaseController
     {
         if (count($product->getVariations()) > 0) {
             $productId = $product->getId()->getEndpoint();
+
             if (!empty($productId)) {
                 $checksum = ChecksumLinker::find($product, ProductChecksum::TYPE_VARIATION);
+
                 if ($checksum === null) {
                     return false;
                 }
@@ -305,9 +321,20 @@ class ProductVariation extends BaseController
      */
     private function addProductAttributes(array $existingAttributes, array &$attributes)
     {
-        foreach ($existingAttributes as $slug => $existingAttribute) {
-            if (!$existingAttribute['is_variation']) {
-                $attributes[$slug] = $existingAttribute;
+        /**
+         * @var string $slug
+         * @var \WC_Product_Attribute $existingAttribute
+         */
+        foreach ($existingAttributes as $slug => $attribute) {
+            if (!$attribute->get_variation()) {
+                $attributes[$slug] = [
+                    'name' => $existingAttribute->get_name(),
+                    'value' => implode(' ' . WC_DELIMITER . ' ', $existingAttribute->get_options()),
+                    'position' => $existingAttribute->get_position(),
+                    'is_visible' => $existingAttribute->get_visible(),
+                    'is_variation' => $existingAttribute->get_variation(),
+                    'is_taxonomy' => $existingAttribute->get_taxonomy()
+                ];
             }
         }
     }
