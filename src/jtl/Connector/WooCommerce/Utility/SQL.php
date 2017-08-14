@@ -40,11 +40,12 @@ final class SQL
         list($table, $column) = CategoryUtil::getTermMetaData();
 
         return sprintf("
-            SELECT tt.term_id, tt.parent
+            SELECT tt.term_id, tt.parent, IF(tm.meta_key IS NULL, 0, tm.meta_value) as sort
             FROM `{$wpdb->term_taxonomy}` tt
-            LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id
-            WHERE tt.taxonomy = '%s' AND tm.meta_key = 'order' {$where}
-            ORDER BY tt.parent ASC, cast(tm.meta_value as unsigned) ASC",
+            LEFT JOIN `{$wpdb->terms}` t ON tt.term_id = t.term_id
+            LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id AND tm.meta_key = 'order'
+            WHERE tt.taxonomy = '%s' {$where}
+            ORDER BY tt.parent ASC, sort ASC, t.name ASC",
             CategoryUtil::TERM_TAXONOMY
         );
     }

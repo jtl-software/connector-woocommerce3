@@ -17,7 +17,7 @@ class Category
 
     public static function fillCategoryLevelTable(array $parentIds = null, $level = 0)
     {
-        $where = 'AND tt.parent = 0';
+        $where = ' AND tt.parent = 0';
 
         if ($parentIds === null) {
             Db::getInstance()->query(sprintf('TRUNCATE TABLE `%s`', self::LEVEL_TABLE));
@@ -32,6 +32,7 @@ class Category
         if (!empty($categories)) {
             $sort = 0;
             $parents = [];
+
             foreach ($categories as $category) {
                 $categoryId = (int)$category['term_id'];
                 $parentCategoryId = (int)$category['parent'];
@@ -40,10 +41,12 @@ class Category
                     $sort = 0;
                     $parents[] = $parentCategoryId;
                 }
+
                 $parentIds[] = $categoryId;
 
                 Db::getInstance()->query(SQL::categoryTreeAddIgnore($categoryId, $level, $sort++));
             }
+
             self::fillCategoryLevelTable($parentIds, $level + 1);
         }
     }
