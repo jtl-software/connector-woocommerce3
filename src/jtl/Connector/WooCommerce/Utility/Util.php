@@ -23,7 +23,8 @@ final class Util extends Singleton
 
     public function __construct()
     {
-        $this->locale = Language::map(\get_locale());
+        $this->locale = $this->mapLanguageIso(\get_locale());
+
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',
             'GlobalData'    => 'GlobalData\\',
