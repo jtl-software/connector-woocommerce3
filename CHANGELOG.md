@@ -1,3 +1,10 @@
+1.4.3
+-----
+- Fix product variations not pushed
+- Fix not detected locale
+- Fix category sort table not filled
+- Fix for getting the product of an order item returns a product even it does not exists
+
 1.4.2
 -----
 - Update product by matching SKU
