@@ -328,12 +328,12 @@ class ProductVariation extends BaseController
         foreach ($existingAttributes as $slug => $attribute) {
             if (!$attribute->get_variation()) {
                 $attributes[$slug] = [
-                    'name' => $existingAttribute->get_name(),
-                    'value' => implode(' ' . WC_DELIMITER . ' ', $existingAttribute->get_options()),
-                    'position' => $existingAttribute->get_position(),
-                    'is_visible' => $existingAttribute->get_visible(),
-                    'is_variation' => $existingAttribute->get_variation(),
-                    'is_taxonomy' => $existingAttribute->get_taxonomy()
+                    'name' => $attribute->get_name(),
+                    'value' => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
+                    'position' => $attribute->get_position(),
+                    'is_visible' => $attribute->get_visible(),
+                    'is_variation' => $attribute->get_variation(),
+                    'is_taxonomy' => $attribute->get_taxonomy()
                 ];
             }
         }

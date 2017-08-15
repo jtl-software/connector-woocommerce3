@@ -20,7 +20,6 @@ use jtl\Connector\WooCommerce\Event\HandlePullEvent;
 use jtl\Connector\WooCommerce\Event\HandlePushEvent;
 use jtl\Connector\WooCommerce\Event\HandleStatsEvent;
 use jtl\Connector\WooCommerce\Mapper\PrimaryKeyMapper;
-use jtl\Connector\WooCommerce\Utility\Germanized;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class Connector extends BaseConnector

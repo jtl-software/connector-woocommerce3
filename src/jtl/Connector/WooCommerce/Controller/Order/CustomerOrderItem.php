@@ -142,6 +142,7 @@ class CustomerOrderItem extends BaseController
         }, ARRAY_FILTER_USE_KEY);
         $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
 
+        /** @var \WC_Order_Item_Shipping $shippingItem */
         foreach ($order->get_items($type) as $shippingItem) {
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
