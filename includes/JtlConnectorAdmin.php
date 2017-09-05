@@ -31,7 +31,6 @@ final class JtlConnectorAdmin
             self::activate_linking();
             self::activate_checksum();
             self::activate_category_tree();
-            self::create_constraints();
             add_option(self::OPTIONS_TOKEN, self::create_password());
             add_option(self::OPTIONS_COMPLETED_ORDERS, 'yes');
             add_option(self::OPTIONS_PULL_ORDERS_SINCE, '');
@@ -57,6 +56,13 @@ final class JtlConnectorAdmin
                     add_action('admin_notices', 'directory_no_write_access');
                 }
             }
+
+            if (file_exists(CONNECTOR_DIR . DS . 'connector.phar')) {
+                require_once join(DS, ['phar://' . CONNECTOR_DIR, 'connector.phar', 'vendor', 'autoload.php']);
+            } else {
+                require_once join(DS, [CONNECTOR_DIR, 'vendor', 'autoload.php']);
+            }
+
             \jtl\Connector\Core\System\Check::run();
         } catch (\Exception $e) {
             wp_die($e->getMessage());
@@ -122,33 +128,6 @@ final class JtlConnectorAdmin
     {
         global $wpdb;
 
-        $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
-                `product_id` BIGINT(20) unsigned NOT NULL,
-                `type` tinyint unsigned NOT NULL,
-                `checksum` varchar(255) NOT NULL,
-                PRIMARY KEY (`product_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
-    }
-
-    private static function activate_category_tree()
-    {
-        global $wpdb;
-
-        $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
-                `category_id` BIGINT(20) unsigned NOT NULL,
-                `level` int(10) unsigned NOT NULL,
-                `sort` int(10) unsigned NOT NULL,
-                PRIMARY KEY (`category_id`),
-                INDEX (`level`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
-    }
-
-    private static function create_constraints()
-    {
-        global $wpdb;
-
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
@@ -157,11 +136,23 @@ final class JtlConnectorAdmin
         ));
 
         if ($engine === 'InnoDB') {
-            $wpdb->query("
-                ALTER TABLE `jtl_connector_product_checksum`
-                ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES {$wpdb->posts} (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+            $constraint = ", CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES {$wpdb->posts} (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION";
+        } else {
+            $constraint = '';
         }
+
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
+                `product_id` BIGINT(20) unsigned NOT NULL,
+                `type` tinyint unsigned NOT NULL,
+                `checksum` varchar(255) NOT NULL,
+                PRIMARY KEY (`product_id`) {$constraint}
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+    }
+
+    private static function activate_category_tree()
+    {
+        global $wpdb;
 
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
@@ -171,11 +162,19 @@ final class JtlConnectorAdmin
         ));
 
         if ($engine === 'InnoDB') {
-            $wpdb->query("
-                ALTER TABLE `jtl_connector_category_level`
-                ADD CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+            $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
+        } else {
+            $constraint = '';
         }
+
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
+                `category_id` BIGINT(20) unsigned NOT NULL,
+                `level` int(10) unsigned NOT NULL,
+                `sort` int(10) unsigned NOT NULL,
+                PRIMARY KEY (`category_id`),
+                INDEX (`level`) {$constraint}
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
 
     private static function create_password()
@@ -256,30 +255,30 @@ final class JtlConnectorAdmin
         $settings = apply_filters('woocommerce_settings_jtlconnector', [
             [
                 'title' => __('Options', TEXT_DOMAIN),
-                'type'  => 'title',
-                'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.', TEXT_DOMAIN),
+                'type' => 'title',
+                'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.', TEXT_DOMAIN),
             ],
             [
                 'title' => __('Pull completed orders', TEXT_DOMAIN),
-                'type'  => 'checkbox',
-                'desc'  => __('Do not choose when having a large amount of data and low server specifications.', TEXT_DOMAIN),
-                'id'    => self::OPTIONS_COMPLETED_ORDERS,
+                'type' => 'checkbox',
+                'desc' => __('Do not choose when having a large amount of data and low server specifications.', TEXT_DOMAIN),
+                'id' => self::OPTIONS_COMPLETED_ORDERS,
             ],
             [
-                'title'    => __('Pull orders since', TEXT_DOMAIN),
-                'type'     => 'date',
+                'title' => __('Pull orders since', TEXT_DOMAIN),
+                'type' => 'date',
                 'desc_tip' => __('Define a start date for pulling of orders.', TEXT_DOMAIN),
-                'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
+                'id' => self::OPTIONS_PULL_ORDERS_SINCE,
             ],
             [
-                'title'    => __('Variation name format', TEXT_DOMAIN),
-                'type'     => 'select',
-                'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
-                'options'  => [
-                    ''                => __('Variation #22 of Product name', TEXT_DOMAIN),
-                    'space'           => __('Variation #22 of Product name Color: black, Size: S', TEXT_DOMAIN),
-                    'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)', TEXT_DOMAIN),
-                    'space_parent'    => __('Product name Color: black, Size: S', TEXT_DOMAIN),
+                'title' => __('Variation name format', TEXT_DOMAIN),
+                'type' => 'select',
+                'id' => self::OPTIONS_VARIATION_NAME_FORMAT,
+                'options' => [
+                    '' => __('Variation #22 of Product name', TEXT_DOMAIN),
+                    'space' => __('Variation #22 of Product name Color: black, Size: S', TEXT_DOMAIN),
+                    'brackets' => __('Variation #22 of Product name (Color: black, Size: S)', TEXT_DOMAIN),
+                    'space_parent' => __('Product name Color: black, Size: S', TEXT_DOMAIN),
                     'brackets_parent' => __('Product name (Color: black, Size: S)', TEXT_DOMAIN),
                 ],
                 'desc_tip' => __('Define how the child product name is formatted.', TEXT_DOMAIN),
