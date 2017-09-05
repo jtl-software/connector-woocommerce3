@@ -25,7 +25,7 @@
     }
   ],
   "require": {
-    "php": ">=5.4.0",
+    "php": ">=5.6.0",
     "jtl/connector": "~2.0"
   },
   "require-dev": {
@@ -39,6 +39,11 @@
   "autoload-dev": {
     "psr-0": {
       "jtl\\Connector\\WooCommerce\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "5.6"
     }
   }
 }
