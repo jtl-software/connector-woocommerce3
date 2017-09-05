@@ -46,7 +46,7 @@ class Product extends BaseController
                 ->setSku($product->get_sku())
                 ->setVat(Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
-                ->setIsTopProduct($product->is_featured())
+                ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp === 'yes')
                 ->setProductTypeId(new Identity($product->get_type()))
                 ->setKeywords(($tags = \wc_get_product_tag_list($product->get_id())) ? strip_tags($tags) : '')
                 ->setCreationDate($postDate)
@@ -56,8 +56,8 @@ class Product extends BaseController
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock($product->managing_stock())
-                ->setPermitNegativeStock($product->backorders_allowed())
+                ->setConsiderStock(is_bool($ms = $product->managing_stock()) ? $ms : $ms === 'yes')
+                ->setPermitNegativeStock(is_bool($pns = $product->backorders_allowed()) ? $pns : $pns === 'yes')
                 ->setShippingClassId(new Identity($product->get_shipping_class_id()));
 
             if ($product->get_parent_id() !== 0) {
