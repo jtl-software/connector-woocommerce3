@@ -2,7 +2,7 @@
 /**
  * Plugin Name: JTL-Connector
  * Description: Verbinden Sie Ihren Shop mit JTL-Wawi, der kostenlosen Multichannel-Warenwirtschaft für den Versandhandel.
- * Version: 1.4.3
+ * Version: 1.4.4
  *
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
@@ -35,7 +35,7 @@ if (rewriting_disabled()) {
     add_action('admin_notices', 'rewriting_not_activated');
 } else {
     define('CONNECTOR_DIR', __DIR__);
-    define('CONNECTOR_VERSION', '1.4.3');
+    define('CONNECTOR_VERSION', '1.4.4');
     define('DS', DIRECTORY_SEPARATOR);
     define('INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . DS);
 
@@ -50,12 +50,6 @@ if (rewriting_disabled()) {
     if (is_admin()) {
         add_action('init', ['JtlConnectorAdmin', 'init']);
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), ['JtlConnectorAdmin', 'settings_link']);
-
-        if (file_exists(CONNECTOR_DIR . DS . 'connector.phar')) {
-            require_once join(DS, ['phar://' . CONNECTOR_DIR, 'connector.phar', 'vendor', 'autoload.php']);
-        } else {
-            require_once join(DS, [CONNECTOR_DIR, 'vendor', 'autoload.php']);
-        }
     }
 }
 

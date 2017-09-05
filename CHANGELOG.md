@@ -1,3 +1,9 @@
+1.4.4
+-----
+- Fix build on PHP7 error
+- Fix string to boolean parse error
+- Fix constraint creation on installation
+
 1.4.3
 -----
 - Fix product variations not pushed
