@@ -27,8 +27,8 @@ final class Util extends Singleton
 
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',
-            'GlobalData'    => 'GlobalData\\',
-            'Product'       => 'Product\\',
+            'GlobalData' => 'GlobalData\\',
+            'Product' => 'Product\\',
         ];
     }
 
@@ -51,11 +51,25 @@ final class Util extends Singleton
         return $language === self::getWooCommerceLanguage();
     }
 
-    public function getTaxRateByTaxClassAndShopLocation($taxClass)
+    public function getTaxRateByTaxClass($taxClass, $order = null)
     {
+        $countryIso = \get_option('woocommerce_default_country');
+
+        if (!is_null($order)) {
+            $option = \get_option('woocommerce_tax_based_on', 'base');
+
+            if ($option === 'shipping') {
+                $countryIso = $order->get_shipping_country();
+            }
+
+            if ($option === 'billing' || $option === 'shipping' && empty($country)) {
+                $countryIso = $order->get_billing_country();
+            }
+        }
+
         $taxRates = \WC_Tax::find_rates([
             'tax_class' => $taxClass,
-            'country'   => \get_option('woocommerce_default_country'),
+            'country' => $countryIso
         ]);
 
         if (!empty($taxRates)) {

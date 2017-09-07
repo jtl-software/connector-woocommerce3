@@ -89,7 +89,7 @@ class CustomerOrderItem extends BaseController
             if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
                 $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
             } else {
-                $taxRate = Util::getInstance()->getTaxRateByTaxClassAndShopLocation($item->get_tax_class());
+                $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
                 self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
             }
 

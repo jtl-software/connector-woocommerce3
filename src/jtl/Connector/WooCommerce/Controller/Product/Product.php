@@ -44,7 +44,7 @@ class Product extends BaseController
                 ->setId(new Identity($product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
                 ->setSku($product->get_sku())
-                ->setVat(Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->get_tax_class()))
+                ->setVat(Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
                 ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp === 'yes')
                 ->setProductTypeId(new Identity($product->get_type()))

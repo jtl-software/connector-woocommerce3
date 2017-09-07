@@ -19,7 +19,7 @@ class ProductPrice extends BaseController
         $product = \wc_get_product($productPrice->getProductId()->getEndpoint());
 
         if ($product !== false) {
-            $vat = Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->tax_class);
+            $vat = Util::getInstance()->getTaxRateByTaxClass($product->tax_class);
             Util::getInstance()->updateProductPrice($productPrice, $vat);
             // Update the max and min prices for the parent product
             if ($product->is_type('variation')) {

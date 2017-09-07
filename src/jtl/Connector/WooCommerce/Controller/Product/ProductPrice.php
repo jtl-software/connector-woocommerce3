@@ -32,7 +32,7 @@ class ProductPrice extends BaseController
 
     protected function netPrice(\WC_Product $product)
     {
-        $taxRate = Util::getInstance()->getTaxRateByTaxClassAndShopLocation($product->get_tax_class());
+        $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
 
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = ((float)$product->get_regular_price()) / ($taxRate + 100) * 100;
