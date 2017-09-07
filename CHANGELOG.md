@@ -1,3 +1,7 @@
+1.4.5
+-----
+- CO-108 Take the 'woocommerce_tax_based_on' option to calculate the order item VAT
+
 1.4.4
 -----
 - Fix build on PHP7 error
