@@ -12,12 +12,17 @@ use jtl\Connector\WooCommerce\Mapper\BaseObjectMapper;
 class Product extends BaseObjectMapper
 {
     protected $push = [
-        'id'                  => 'id',
-        'post_type'           => null,
-        'type'                => null,
-        'post_date'           => null,
+        'ID' => null,
+        'post_type' => null,
+        'type' => null,
+        'post_date' => null,
         'Product\ProductI18n' => 'i18ns',
     ];
+
+    protected function ID(ProductModel $product)
+    {
+        return (int)$product->getId()->getEndpoint();
+    }
 
     protected function post_type(ProductModel $product)
     {

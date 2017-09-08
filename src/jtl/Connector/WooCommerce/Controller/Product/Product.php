@@ -95,15 +95,14 @@ class Product extends BaseController
             $product->getMasterProductId()->setEndpoint($masterProductId);
         }
 
-        $productId = $product->getId()->getEndpoint();
         $endpoint = $this->mapper->toEndpoint($product);
 
-        if (!empty($productId)) {
-            $endpoint['ID'] = (int)$productId;
+        if ($endpoint['ID'] !== 0) {
+            $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
         } else {
             $productId = \wc_get_product_id_by_sku($product->getSku());
 
-            if ($productId != 0) {
+            if ($productId !== 0) {
                 $endpoint['ID'] = $productId;
             }
         }
