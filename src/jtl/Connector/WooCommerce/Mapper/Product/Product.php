@@ -16,6 +16,7 @@ class Product extends BaseObjectMapper
         'post_type' => null,
         'type' => null,
         'post_date' => null,
+        'post_date_gmt' => null,
         'Product\ProductI18n' => 'i18ns',
     ];
 
@@ -42,6 +43,19 @@ class Product extends BaseObjectMapper
         }
 
         $date->setTimezone(new \DateTimeZone('UTC'));
+
+        return $date->format('Y-m-d H:i:s');
+    }
+
+    protected function post_date_gmt(ProductModel $product)
+    {
+        $date = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
+
+        if (is_null($date)) {
+            return null;
+        }
+
+        $date->setTimezone(new \DateTimeZone(\wc_timezone_string()));
 
         return $date->format('Y-m-d H:i:s');
     }
