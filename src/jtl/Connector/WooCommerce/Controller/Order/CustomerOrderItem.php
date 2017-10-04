@@ -46,6 +46,10 @@ class CustomerOrderItem extends BaseController
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
+            if (!empty($variationId = $item->get_variation_id())) {
+                $orderItem->setProductId(new Identity($variationId));
+            }
+
             $product = \wc_get_product($item->get_product_id());
 
             if ($product instanceof \WC_Product) {
