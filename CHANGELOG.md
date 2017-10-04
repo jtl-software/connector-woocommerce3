@@ -1,3 +1,7 @@
+1.4.6
+-----
+- CO-112 Fix product id instead of variation id linked in order items
+
 1.4.5
 -----
 - CO-108 Take the 'woocommerce_tax_based_on' option to calculate the order item VAT
