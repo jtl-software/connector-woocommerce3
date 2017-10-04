@@ -1,6 +1,8 @@
 1.4.6
 -----
 - CO-112 Fix product id instead of variation id linked in order items
+- CO-113 Fix product creation date updated
+- CO-109 Fix product feedback is deactivated on update
 
 1.4.5
 -----
