@@ -42,15 +42,16 @@ class CustomerOrderItem extends BaseController
                 ->setId(new Identity($item->get_id()))
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName($item->get_name())
-                ->setProductId(new Identity($item->get_product_id()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
             if (!empty($variationId = $item->get_variation_id())) {
+                $product = \wc_get_product($variationId);
                 $orderItem->setProductId(new Identity($variationId));
+            } else {
+                $product = \wc_get_product($item->get_product_id());
+                $orderItem->setProductId(new Identity($item->get_product_id()));
             }
-
-            $product = \wc_get_product($item->get_product_id());
 
             if ($product instanceof \WC_Product) {
                 $orderItem->setSku($product->get_sku());
