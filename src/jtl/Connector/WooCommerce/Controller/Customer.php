@@ -49,6 +49,7 @@ class Customer extends BaseController
                 ->setState($wcCustomer->get_billing_state())
                 ->setCountryIso($wcCustomer->get_billing_country())
                 ->setPhone($wcCustomer->get_billing_phone())
+                ->setNote($wcCustomer->get_meta('description'))
                 ->setCreationDate($wcCustomer->get_date_created())
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(true)
