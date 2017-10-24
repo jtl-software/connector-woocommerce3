@@ -27,7 +27,9 @@ class Product extends BaseObjectMapper
 
     protected function post_type(ProductModel $product)
     {
-        if (empty($product->getMasterProductId()->getEndpoint())) {
+        $parent = $product->getMasterProductId()->getEndpoint();
+
+        if (empty($parent)) {
             return 'product';
         }
 

@@ -49,25 +49,28 @@ class Customer extends BaseController
                 ->setState($wcCustomer->get_billing_state())
                 ->setCountryIso($wcCustomer->get_billing_country())
                 ->setPhone($wcCustomer->get_billing_phone())
-                ->setNote($wcCustomer->get_meta('description'))
+                ->setNote(\get_user_meta($wcCustomer->get_id(), 'description', true))
                 ->setCreationDate($wcCustomer->get_date_created())
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(true)
                 ->setHasCustomerAccount(true);
 
-            if (!empty($wcCustomer->get_first_name())) {
+            $firstName = $wcCustomer->get_first_name();
+            if (!empty($firstName)) {
                 $customer->setFirstName($wcCustomer->get_first_name());
             } else {
                 $customer->setFirstName($wcCustomer->get_billing_first_name());
             }
 
-            if (!empty($wcCustomer->get_last_name())) {
+            $lastName = $wcCustomer->get_last_name();
+            if (!empty($lastName)) {
                 $customer->setLastName($wcCustomer->get_last_name());
             } else {
                 $customer->setLastName($wcCustomer->get_billing_last_name());
             }
 
-            if (!empty($wcCustomer->get_email())) {
+            $email = $wcCustomer->get_email();
+            if (!empty($email)) {
                 $customer->setEMail($wcCustomer->get_email());
             } else {
                 $customer->setEMail($wcCustomer->get_billing_email());

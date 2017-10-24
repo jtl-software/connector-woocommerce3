@@ -99,11 +99,12 @@ class Image extends BaseController
                     'posts_per_page' => 50,
                     'paged' => $page++,
                 ]);
+
                 if ($query->have_posts()) {
                     foreach ($query->posts as $postId) {
                         $product = \wc_get_product($postId);
 
-                        if ($product === false) {
+                        if (!$product instanceof \WC_Product) {
                             continue;
                         }
 
@@ -150,7 +151,9 @@ class Image extends BaseController
         }
 
         if (!$product->is_type('variation')) {
-            if (!empty($product->get_gallery_image_ids())) {
+            $imageIds = $product->get_gallery_image_ids();
+
+            if (!empty($imageIds)) {
                 $attachmentIds = array_merge($attachmentIds, $product->get_gallery_image_ids());
             }
         }

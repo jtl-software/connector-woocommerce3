@@ -18,7 +18,9 @@ class ProductSpecialPrice extends BaseController
 {
     public function pullData(\WC_Product $product, $model)
     {
-        if (empty($product->get_sale_price())) {
+        $salePrice = $product->get_sale_price();
+
+        if (empty($salePrice)) {
             return [];
         }
 

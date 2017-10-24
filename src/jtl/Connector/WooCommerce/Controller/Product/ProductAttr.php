@@ -177,8 +177,8 @@ class ProductAttr extends BaseController
         }
 
         $this->addNewAttributeOrEditExisting($i18n, [
-            'name'             => \wc_clean($i18n->getName()),
-            'value'            => \wc_clean($i18n->getValue()),
+            'name' => \wc_clean($i18n->getName()),
+            'value' => \wc_clean($i18n->getValue()),
             'isCustomProperty' => $attribute->getIsCustomProperty(),
         ], $attributes);
     }
@@ -223,11 +223,11 @@ class ProductAttr extends BaseController
             $wpdb->insert(
                 $wpdb->prefix . 'woocommerce_attribute_taxonomies',
                 [
-                    'attribute_label'   => $i18n->getName(),
-                    'attribute_name'    => $slug,
-                    'attribute_type'    => 'text',
+                    'attribute_label' => $i18n->getName(),
+                    'attribute_name' => $slug,
+                    'attribute_type' => 'text',
                     'attribute_orderby' => 'menu_order',
-                    'attribute_public'  => 0,
+                    'attribute_public' => 0,
                 ],
                 ['%s', '%s', '%s', '%s', '%d']
             );
@@ -306,9 +306,9 @@ class ProductAttr extends BaseController
             $result = $wpdb->insert(
                 $wpdb->term_relationships,
                 [
-                    'object_id'        => $productId,
+                    'object_id' => $productId,
                     'term_taxonomy_id' => $termTaxonomyId,
-                    'term_order'       => 0,
+                    'term_order' => 0,
                 ],
                 ['%d', '%d', '%d']
             );
@@ -341,21 +341,21 @@ class ProductAttr extends BaseController
     {
         if ($data['isCustomProperty']) {
             $attributes['pa_' . $slug] = [
-                'name'         => 'pa_' . $slug,
-                'value'        => '',
-                'position'     => 0,
-                'is_visible'   => 1,
+                'name' => 'pa_' . $slug,
+                'value' => '',
+                'position' => 0,
+                'is_visible' => 1,
                 'is_variation' => 0,
-                'is_taxonomy'  => 1,
+                'is_taxonomy' => 1,
             ];
         } else {
             $attributes[$slug] = [
-                'name'         => $data['name'],
-                'value'        => $data['value'],
-                'position'     => 0,
-                'is_visible'   => 1,
+                'name' => $data['name'],
+                'value' => $data['value'],
+                'position' => 0,
+                'is_visible' => 1,
                 'is_variation' => 0,
-                'is_taxonomy'  => (int)$data['isCustomProperty'],
+                'is_taxonomy' => (int)$data['isCustomProperty'],
             ];
         }
     }

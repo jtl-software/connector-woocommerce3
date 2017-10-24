@@ -148,8 +148,10 @@ class Product extends BaseController
             return;
         }
 
+        $parent = $parent = $product->getMasterProductId()->getEndpoint();
+
         $wcProduct->set_sku($product->getSku());
-        $wcProduct->set_parent_id(empty($parent = $product->getMasterProductId()->getEndpoint()) ? 0 : (int)$parent);
+        $wcProduct->set_parent_id(empty($parent) ? 0 : (int)$parent);
         $wcProduct->set_menu_order($product->getSort());
         $wcProduct->set_featured($product->getIsTopProduct());
         $wcProduct->set_weight($product->getHeight());

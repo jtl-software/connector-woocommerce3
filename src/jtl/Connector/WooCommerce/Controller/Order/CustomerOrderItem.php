@@ -45,7 +45,8 @@ class CustomerOrderItem extends BaseController
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
-            if (!empty($variationId = $item->get_variation_id())) {
+            $variationId = $item->get_variation_id();
+            if (!empty($variationId)) {
                 $product = \wc_get_product($variationId);
                 $orderItem->setProductId(new Identity($variationId));
             } else {
@@ -128,10 +129,12 @@ class CustomerOrderItem extends BaseController
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
+            $itemName = $item->get_name();
+
             $customerOrderItems[] = (new CustomerOrderItemModel())
                 ->setId(new Identity($itemId))
                 ->setCustomerOrderId(new Identity($order->get_id()))
-                ->setName(empty($item->get_name()) ? $item->get_code() : $item->get_name())
+                ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
                 ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
                 ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), self::PRICE_DECIMALS))
