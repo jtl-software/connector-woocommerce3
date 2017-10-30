@@ -27,7 +27,6 @@ abstract class BaseMapper extends Singleton
     protected $model;
     protected $push = [];
     protected $pull = [];
-    protected $timeZone;
 
     /**
      * Test classes or plugins have to specify the entity as the controller and mapper are built with this as base.
@@ -40,12 +39,13 @@ abstract class BaseMapper extends Singleton
             $reflect = new \ReflectionClass($this);
             $shortName = $reflect->getShortName();
         }
+
         $typeClass = Constants::CORE_TYPE_NAMESPACE . $shortName;
         $this->model = Constants::CORE_MODEL_NAMESPACE . $shortName;
+
         if (class_exists($typeClass)) {
             $this->type = new $typeClass();
         }
-        $this->timeZone = new \DateTimeZone('UTC');
     }
 
     /**
@@ -58,18 +58,23 @@ abstract class BaseMapper extends Singleton
     public function toHost($data)
     {
         $model = new $this->model();
+
         foreach ($this->pull as $host => $endpoint) {
             $setter = 'set' . ucfirst($host);
             $functionName = strtolower($host);
             $property = $this->type->getProperty($host);
+
             if (method_exists($this, $functionName) && is_null($endpoint)) {
                 $value = $this->$functionName($data);
             } else {
                 $value = $this->getValue($data, $endpoint);
+
                 if ($property instanceof PropertyInfo && $property->isNavigation()) {
                     $subControllerName = Constants::CONTROLLER_NAMESPACE . $endpoint;
+
                     if (class_exists($subControllerName)) {
                         $subController = new $subControllerName();
+
                         if (method_exists($subController, 'pullData')) {
                             $value = $subController->pullData($data, $model);
                         }
@@ -80,6 +85,7 @@ abstract class BaseMapper extends Singleton
                     $this->parseSimpleTypes($property, $value);
                 }
             }
+
             if (!empty($value)) {
                 $model->$setter($value);
             }
@@ -104,19 +110,24 @@ abstract class BaseMapper extends Singleton
     public function toEndpoint(DataModel $data, $customData = null)
     {
         $model = [];
+
         foreach ($this->push as $endpoint => $host) {
             $functionName = strtolower($endpoint);
             /** @var PropertyInfo $property */
             $property = $this->type->getProperty($host);
+
             if (method_exists($this, $functionName) && is_null($host)) {
                 $model[$endpoint] = $this->$functionName($data, $customData);
             } else {
                 $getter = 'get' . ucfirst($host);
                 $value = $data->$getter();
+
                 if ($property->isNavigation()) {
                     $subControllerName = Constants::CONTROLLER_NAMESPACE . $endpoint;
+
                     if (class_exists($subControllerName)) {
                         $subController = new $subControllerName();
+
                         if (method_exists($subController, 'pushData')) {
                             $subController->pushData($data, $model);
                         }
@@ -128,10 +139,10 @@ abstract class BaseMapper extends Singleton
                         if (is_null($value)) {
                             $value = '0000-00-00 00:00:00';
                         } elseif ($value instanceof \DateTime) {
-                            $value->setTimezone($this->timeZone);
                             $value = $value->format('Y-m-d H:i:s');
                         }
                     }
+
                     $model[$endpoint] = $value;
                 }
             }
@@ -151,7 +162,7 @@ abstract class BaseMapper extends Singleton
         } elseif ($property->getType() == 'double') {
             $value = (double)$value;
         } elseif ($property->getType() == 'DateTime') {
-            $value = Date::isOpenDate($value) ? null : new \DateTime($value, $this->timeZone);
+            $value = Date::isOpenDate($value) ? null : new \DateTime($value);
         }
     }
 }

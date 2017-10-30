@@ -38,6 +38,7 @@ class Currency
 
     public function pushData(array $currencies)
     {
+        /** @var CurrencyModel $currency */
         foreach ($currencies as $currency) {
             if (!$currency->getIsDefault()) {
                 continue;

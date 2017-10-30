@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -13,6 +17,8 @@ final class JtlConnectorAdmin
 
     const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
+
+    const OPTIONS_EXTRA_FIELDS = 'jtlconnector_extra_fields';
 
     private static $initiated = false;
 
@@ -211,6 +217,7 @@ final class JtlConnectorAdmin
         add_action('woocommerce_settings_tabs_jtlconnector', ['JtlConnectorAdmin', 'display_page'], 1);
         add_action('woocommerce_settings_save_jtlconnector', ['JtlConnectorAdmin', 'save']);
         add_action('woocommerce_admin_field_date', ['JtlConnectorAdmin', 'date_field']);
+        add_action('woocommerce_admin_field_extra_fields', ['JtlConnectorAdmin', 'extra_fields']);
 
         self::update();
     }
@@ -273,6 +280,7 @@ final class JtlConnectorAdmin
             [
                 'title' => __('Variation name format', TEXT_DOMAIN),
                 'type' => 'select',
+                'class' => 'wc-enhanced-select',
                 'id' => self::OPTIONS_VARIATION_NAME_FORMAT,
                 'options' => [
                     '' => __('Variation #22 of Product name', TEXT_DOMAIN),
@@ -283,6 +291,12 @@ final class JtlConnectorAdmin
                 ],
                 'desc_tip' => __('Define how the child product name is formatted.', TEXT_DOMAIN),
             ],
+            /*[
+                'title' => __('Pull orders since', TEXT_DOMAIN),
+                'type' => 'extra_fields',
+                'desc_tip' => __('Define a start date for pulling of orders.', TEXT_DOMAIN),
+                'id' => 'Blaaaa',
+            ],*/
             'section_end' => [
                 'type' => 'sectionend',
             ],
@@ -302,8 +316,128 @@ final class JtlConnectorAdmin
                 <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
             </th>
             <td class="forminp forminp-select">
-                <input id="<?= $field['id'] ?>" name="<?= $field['id'] ?>" value="<?= $option_value ?>" type="date">
+                <input id="<?= $field['id'] ?>" name="<?= $field['id'] ?>" value="<?= $option_value ?>"
+                       style="width:400px;margin:0;padding:6px;box-sizing:border-box" type="date">
                 <span class="description"><?= $field['desc'] ?></span>
+            </td>
+        </tr>
+        <?php
+    }
+
+    public static function extra_fields(array $field)
+    {
+        global $wpdb;
+
+        $extraFields = get_option(self::OPTIONS_EXTRA_FIELDS, [
+            [
+                'table' => '',
+                'field' => '',
+                'model' => '',
+                'property' => ''
+            ],
+        ]);
+
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc"><?php _e('Extra fields', 'woocommerce'); ?>:</th>
+            <td class="forminp" id="extra_fields">
+                <table class="widefat wc_input_table sortable" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th class="sort">&nbsp;</th>
+                        <th><?php _e('Table', TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Field', TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Model', TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Property', TEXT_DOMAIN); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody class="accounts">
+                    <?php
+                    $i = -1;
+                    if ($extraFields) {
+                        $tableOptions = '';
+                        $modelOptions = '';
+                        $modelPropertyOptions = [];
+
+                        foreach ($wpdb->tables as $table) {
+                            $tableOptions .= '<option>' . $table . '</option>';
+                        }
+
+                        $models = [
+                            'Product' => [
+                                'ean',
+                                'asin'
+                            ],
+                            'Customer' => [],
+                            'CustomerOrder' => [],
+                            'Payment' => [
+                                'transactionId'
+                            ],
+                            'Image' => []
+                        ];
+
+                        foreach ($models as $model => $fields) {
+                            if (empty($fields)) {
+                                continue;
+                            }
+
+                            $modelOptions .= '<option>' . $model . '</option>';
+
+                            foreach ($fields as $prop) {
+                                if (isset($modelPropertyOptions[$model])) {
+                                    $modelPropertyOptions[$model] .= '<option>' . $prop . '</option>';
+                                } else {
+                                    $modelPropertyOptions[$model] = '<option>' . $prop . '</option>';
+                                }
+                            }
+                        }
+
+                        foreach ($extraFields as $extraField) {
+                            $i++;
+
+                            echo '<tr class="account">
+									<td class="sort"></td>
+									<td><select name="extra_fields_table[' . $i . ']">' . $tableOptions . '</select></td>
+									<td><input type="text" value="' . esc_attr($extraField['field']) . '" name="extra_field_field[' . $i . ']" /></td>
+									<td><select name="extra_field_model[' . $i . ']">' . $modelOptions . '</select></td>
+									<td><select name="extra_field_property[' . $i . ']">' . $modelPropertyOptions['Product'] . '</select></td>
+								</tr>';
+                        }
+                    }
+                    ?>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th colspan="5">
+                            <a href="#" class="add button"><?php _e('+ Add extra field', 'woocommerce'); ?></a>
+                            <a href="#" class="remove_rows button"><?php _e('Remove extra field(s)', 'woocommerce'); ?></a>
+                        </th>
+                    </tr>
+                    </tfoot>
+                </table>
+                <script type="text/javascript">
+                    jQuery(function () {
+                        jQuery('#extra_fields').on('click', 'a.add', function () {
+
+                            var size = jQuery('#extra_fields').find('tbody .account').length;
+
+                            jQuery('<tr class="account">\
+									<td class="sort"></td>\
+									<td><select name="extra_fields_table[' + size + ']"></select></td>\
+									<td><input type="text" name="extra_fields_field[' + size + ']" /></td>\
+									<td><input type="text" name="extra_fields_model[' + size + ']" /></td>\
+									<td><input type="text" name="extra_fields_property[' + size + ']" /></td>\
+								</tr>').appendTo('#extra_fields table tbody');
+
+                            return false;
+                        });
+
+                        jQuery('#extra_field_model^').on('change', function () {
+
+                            return false;
+                        });
+                    });
+                </script>
             </td>
         </tr>
         <?php

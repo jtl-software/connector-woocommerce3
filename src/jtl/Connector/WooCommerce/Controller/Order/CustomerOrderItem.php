@@ -46,16 +46,16 @@ class CustomerOrderItem extends BaseController
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
             $variationId = $item->get_variation_id();
+
             if (!empty($variationId)) {
                 $product = \wc_get_product($variationId);
-                $orderItem->setProductId(new Identity($variationId));
             } else {
                 $product = \wc_get_product($item->get_product_id());
-                $orderItem->setProductId(new Identity($item->get_product_id()));
             }
 
             if ($product instanceof \WC_Product) {
                 $orderItem->setSku($product->get_sku());
+                $orderItem->setProductId(new Identity($product->get_id()));
 
                 if ($product instanceof \WC_Product_Variation) {
                     switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT)) {
@@ -80,14 +80,12 @@ class CustomerOrderItem extends BaseController
                 }
             }
 
-            // Tax and price calculation
             $tax = $order->get_item_tax($item); // the tax amount
 
             if ($tax === 0.0) {
                 // Take subtotal because coupons are subtracted in total
                 $priceGross = $netPrice = $order->get_item_subtotal($item, true, false);
             } else {
-                // Default is an empty tax class and tax amount unequal zero
                 $netPrice = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, false);
             }
@@ -142,6 +140,12 @@ class CustomerOrderItem extends BaseController
         }
     }
 
+    /**
+     * @param \WC_Order $order
+     * @param $type
+     * @param $customerOrderItems
+     * @param callable $getItem
+     */
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);

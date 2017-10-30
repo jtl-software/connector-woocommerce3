@@ -9,8 +9,8 @@ namespace jtl\Connector\WooCommerce\Controller\Product;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Utility\Util;
 use jtl\Connector\WooCommerce\Utility\Germanized;
+use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductI18n extends BaseController
 {
@@ -29,16 +29,6 @@ class ProductI18n extends BaseController
         }
 
         return [$i18n];
-    }
-
-    public function pushData(ProductModel $product, array &$model)
-    {
-        foreach ($product->getI18ns() as $i18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $model = array_merge($model, $this->mapper->toEndpoint($i18n));
-                break;
-            }
-        }
     }
 
     private function name(\WC_Product $product)

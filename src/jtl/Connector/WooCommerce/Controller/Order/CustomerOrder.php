@@ -13,14 +13,29 @@ use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 use jtl\Connector\WooCommerce\Utility\Id;
 use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class CustomerOrder extends BaseController
 {
     use PullTrait, StatsTrait;
+
+    /** Order received (unpaid) */
+    const STATUS_PENDING = 'pending';
+    /** Payment received – the order is awaiting fulfillment */
+    const STATUS_PROCESSING = 'processing';
+    /** Order fulfilled and complete */
+    const STATUS_COMPLETED = 'completed';
+    /** Awaiting payment – stock is reduced, but you need to confirm payment */
+    const STATUS_ON_HOLD = 'on-hold';
+    /** Payment failed or was declined (unpaid) */
+    const STATUS_FAILED = 'failed';
+    /** Cancelled by an admin or the customer */
+    const STATUS_CANCELLED = 'cancelled';
+    /** Already paid */
+    const STATUS_REFUNDED = 'refunded';
 
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';
@@ -76,9 +91,9 @@ class CustomerOrder extends BaseController
 
     protected function paymentStatus(\WC_Order $order)
     {
-        if ($order->has_status('completed')) {
+        if ($order->has_status(self::STATUS_COMPLETED)) {
             return CustomerOrderModel::PAYMENT_STATUS_COMPLETED;
-        } elseif ($order->has_status('processing')) {
+        } elseif ($order->has_status(self::STATUS_PROCESSING)) {
             if ($order->get_payment_method() === 'cod') {
                 return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
             }
@@ -91,17 +106,13 @@ class CustomerOrder extends BaseController
 
     protected function status(\WC_Order $order)
     {
-        $status = $order->get_status();
-
-        if ($status === 'pending' || $status === 'processing' || $status === 'on-hold' || $status === 'failed') {
-            return CustomerOrderModel::STATUS_NEW;
-        } elseif ($status === 'cancelled' || $status === 'refunded') {
-            return CustomerOrderModel::STATUS_CANCELLED;
-        } elseif ($status === 'completed') {
+        if ($order->has_status(self::STATUS_COMPLETED)) {
             return CustomerOrderModel::STATUS_SHIPPED;
+        } elseif ($order->has_status([self::STATUS_CANCELLED, self::STATUS_REFUNDED])) {
+            return CustomerOrderModel::STATUS_CANCELLED;
         }
 
-        return '';
+        return CustomerOrderModel::STATUS_NEW;
     }
 
     protected function setPaymentInfo(CustomerOrderModel &$customerOrder)

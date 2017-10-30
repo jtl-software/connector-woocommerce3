@@ -13,12 +13,15 @@ if (!class_exists('JtlConnectorIntegration')) :
             $this->id = 'jtlconnector';
             $this->method_title = 'JTL-Connector';
             $this->method_description = __('An integration demo to show you how easy it is to extend WooCommerce.', 'woocommerce-integration-demo');
+
             // Load the settings.
             $this->init_form_fields();
             $this->init_settings();
+
             // Define user set variables.
             $this->api_key = $this->get_option('api_key');
             $this->debug = $this->get_option('debug');
+
             // Actions.
             add_action('woocommerce_update_options_integration_' . $this->id, [$this, 'process_admin_options']);
         }

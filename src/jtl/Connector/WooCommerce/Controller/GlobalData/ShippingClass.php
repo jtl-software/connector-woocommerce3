@@ -34,7 +34,7 @@ class ShippingClass
     public function pushData(array $shippingClasses)
     {
         foreach ($shippingClasses as $shippingClass) {
-            $term = \get_term_by('name', $shippingClass->getName(), self::TERM_TAXONOMY);
+            $term = \get_term_by('name', $shippingClass->getName(), self::TERM_TAXONOMY, OBJECT);
 
             if ($term === false) {
                 $result = \wp_insert_term($shippingClass->getName(), self::TERM_TAXONOMY);

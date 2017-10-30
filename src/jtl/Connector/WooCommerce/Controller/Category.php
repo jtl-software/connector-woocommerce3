@@ -36,8 +36,7 @@ class Category extends BaseController
             $category = (new CategoryModel)
                 ->setId(new Identity($categoryDataSet['category_id']))
                 ->setLevel((int)$categoryDataSet['level'])
-                ->setSort((int)$categoryDataSet['sort'])
-                ->setIsActive($categoryDataSet['count'] != 0);
+                ->setSort((int)$categoryDataSet['sort']);
 
             if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));

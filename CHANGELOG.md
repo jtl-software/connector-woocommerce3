@@ -1,3 +1,11 @@
+1.4.7
+-----
+- Support WC 3.2
+- Add customer note field
+- Fix product modified date null pointer
+- Delete all options and tables on uninstall
+- Fix php backwards compatibility to 5.4
+
 1.4.6
 -----
 - CO-112 Fix product id instead of variation id linked in order items
