@@ -5,27 +5,42 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author Sven Mäurer <sven.maeurer@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 final class JtlConnectorAdmin
 {
+    /**
+     * Password for connector
+     */
     const OPTIONS_TOKEN = 'jtlconnector_password';
+    /**
+     * Pull all orders even the completed ones
+     */
     const OPTIONS_COMPLETED_ORDERS = 'jtlconnector_completed_orders';
+    /**
+     * Just pull orders created after a specific date
+     */
     const OPTIONS_PULL_ORDERS_SINCE = 'jtlconnector_pull_orders_since';
+    /**
+     * Use another format for child product names than Variation #22 of Product name
+     */
     const OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format';
-
+    /**
+     * The currently installed connector version.
+     */
     const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
+    /**
+     * The update to a new connector version failed.
+     */
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
-
-    const OPTIONS_EXTRA_FIELDS = 'jtlconnector_extra_fields';
 
     private static $initiated = false;
 
     // <editor-fold defaultstate="collapsed" desc="Activation">
     public static function plugin_activation()
     {
-        if (!woocommerce_activated()) {
+        if (woocommerce_deactivated()) {
             deactivate_plugins(__FILE__);
             add_action('admin_notices', 'woocommerce_not_activated');
         } elseif (version_compare(WC()->version, '2.3.0', '<')) {
@@ -213,11 +228,13 @@ final class JtlConnectorAdmin
         self::$initiated = true;
 
         add_filter('plugin_row_meta', ['JtlConnectorAdmin', 'jtlconnector_plugin_row_meta'], 10, 2);
+
         add_action('woocommerce_settings_tabs_array', ['JtlConnectorAdmin', 'add_settings_tab'], 50);
         add_action('woocommerce_settings_tabs_jtlconnector', ['JtlConnectorAdmin', 'display_page'], 1);
         add_action('woocommerce_settings_save_jtlconnector', ['JtlConnectorAdmin', 'save']);
+
         add_action('woocommerce_admin_field_date', ['JtlConnectorAdmin', 'date_field']);
-        add_action('woocommerce_admin_field_extra_fields', ['JtlConnectorAdmin', 'extra_fields']);
+        add_action('woocommerce_admin_field_paragraph', ['JtlConnectorAdmin', 'paragraph_field']);
 
         self::update();
     }
@@ -245,8 +262,8 @@ final class JtlConnectorAdmin
 
     public static function settings_link($links)
     {
-        $link = 'admin.php?page=wc-settings&tab=jtlconnector';
-        $settings_link = '<a href="' . $link . '">' . __('Settings', TEXT_DOMAIN) . '</a>';
+        $settings_link = '<a href="admin.php?page=wc-settings&tab=jtlconnector">' . __('Settings', TEXT_DOMAIN) . '</a>';
+
         array_unshift($links, $settings_link);
 
         return $links;
@@ -254,12 +271,35 @@ final class JtlConnectorAdmin
 
     public static function display_page()
     {
-        require_once 'settings.php';
+        return '<div class="wrap woocommerce">' . woocommerce_admin_fields(JtlConnectorAdmin::get_settings()) . '</div>';
     }
 
     public static function get_settings()
     {
         $settings = apply_filters('woocommerce_settings_jtlconnector', [
+            [
+                'title' => __('Information', TEXT_DOMAIN),
+                'type' => 'title',
+                'desc' => __('Basic information and credentials of the installed connector. It is needed to configure the connector in the customer center and JTL-Wawi.', TEXT_DOMAIN),
+            ],
+            [
+                'title' => 'Connector URL',
+                'type' => 'paragraph',
+                'desc' => get_bloginfo('url') . '/index.php/jtlconnector/'
+            ],
+            [
+                'title' => __('Connector Password', TEXT_DOMAIN),
+                'type' => 'paragraph',
+                'desc' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+            ],
+            [
+                'title' => 'Connector Version',
+                'type' => 'paragraph',
+                'desc' => CONNECTOR_VERSION
+            ],
+            [
+                'type' => 'sectionend',
+            ],
             [
                 'title' => __('Options', TEXT_DOMAIN),
                 'type' => 'title',
@@ -291,13 +331,7 @@ final class JtlConnectorAdmin
                 ],
                 'desc_tip' => __('Define how the child product name is formatted.', TEXT_DOMAIN),
             ],
-            /*[
-                'title' => __('Pull orders since', TEXT_DOMAIN),
-                'type' => 'extra_fields',
-                'desc_tip' => __('Define a start date for pulling of orders.', TEXT_DOMAIN),
-                'id' => 'Blaaaa',
-            ],*/
-            'section_end' => [
+            [
                 'type' => 'sectionend',
             ],
         ]);
@@ -324,120 +358,20 @@ final class JtlConnectorAdmin
         <?php
     }
 
-    public static function extra_fields(array $field)
+    /**
+     * Output a paragraph with non editable content.
+     *
+     * @param array $field The field information.
+     */
+    public static function paragraph_field(array $field)
     {
-        global $wpdb;
-
-        $extraFields = get_option(self::OPTIONS_EXTRA_FIELDS, [
-            [
-                'table' => '',
-                'field' => '',
-                'model' => '',
-                'property' => ''
-            ],
-        ]);
-
         ?>
         <tr valign="top">
-            <th scope="row" class="titledesc"><?php _e('Extra fields', 'woocommerce'); ?>:</th>
-            <td class="forminp" id="extra_fields">
-                <table class="widefat wc_input_table sortable" cellspacing="0">
-                    <thead>
-                    <tr>
-                        <th class="sort">&nbsp;</th>
-                        <th><?php _e('Table', TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Field', TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Model', TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Property', TEXT_DOMAIN); ?></th>
-                    </tr>
-                    </thead>
-                    <tbody class="accounts">
-                    <?php
-                    $i = -1;
-                    if ($extraFields) {
-                        $tableOptions = '';
-                        $modelOptions = '';
-                        $modelPropertyOptions = [];
-
-                        foreach ($wpdb->tables as $table) {
-                            $tableOptions .= '<option>' . $table . '</option>';
-                        }
-
-                        $models = [
-                            'Product' => [
-                                'ean',
-                                'asin'
-                            ],
-                            'Customer' => [],
-                            'CustomerOrder' => [],
-                            'Payment' => [
-                                'transactionId'
-                            ],
-                            'Image' => []
-                        ];
-
-                        foreach ($models as $model => $fields) {
-                            if (empty($fields)) {
-                                continue;
-                            }
-
-                            $modelOptions .= '<option>' . $model . '</option>';
-
-                            foreach ($fields as $prop) {
-                                if (isset($modelPropertyOptions[$model])) {
-                                    $modelPropertyOptions[$model] .= '<option>' . $prop . '</option>';
-                                } else {
-                                    $modelPropertyOptions[$model] = '<option>' . $prop . '</option>';
-                                }
-                            }
-                        }
-
-                        foreach ($extraFields as $extraField) {
-                            $i++;
-
-                            echo '<tr class="account">
-									<td class="sort"></td>
-									<td><select name="extra_fields_table[' . $i . ']">' . $tableOptions . '</select></td>
-									<td><input type="text" value="' . esc_attr($extraField['field']) . '" name="extra_field_field[' . $i . ']" /></td>
-									<td><select name="extra_field_model[' . $i . ']">' . $modelOptions . '</select></td>
-									<td><select name="extra_field_property[' . $i . ']">' . $modelPropertyOptions['Product'] . '</select></td>
-								</tr>';
-                        }
-                    }
-                    ?>
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <th colspan="5">
-                            <a href="#" class="add button"><?php _e('+ Add extra field', 'woocommerce'); ?></a>
-                            <a href="#" class="remove_rows button"><?php _e('Remove extra field(s)', 'woocommerce'); ?></a>
-                        </th>
-                    </tr>
-                    </tfoot>
-                </table>
-                <script type="text/javascript">
-                    jQuery(function () {
-                        jQuery('#extra_fields').on('click', 'a.add', function () {
-
-                            var size = jQuery('#extra_fields').find('tbody .account').length;
-
-                            jQuery('<tr class="account">\
-									<td class="sort"></td>\
-									<td><select name="extra_fields_table[' + size + ']"></select></td>\
-									<td><input type="text" name="extra_fields_field[' + size + ']" /></td>\
-									<td><input type="text" name="extra_fields_model[' + size + ']" /></td>\
-									<td><input type="text" name="extra_fields_property[' + size + ']" /></td>\
-								</tr>').appendTo('#extra_fields table tbody');
-
-                            return false;
-                        });
-
-                        jQuery('#extra_field_model^').on('change', function () {
-
-                            return false;
-                        });
-                    });
-                </script>
+            <th scope="row" class="titledesc">
+                <label><?= $field['title'] ?></label>
+            </th>
+            <td>
+                <p style="margin-top:0"><?= $field['desc'] ?></p>
             </td>
         </tr>
         <?php
@@ -650,7 +584,7 @@ final class JtlConnectorAdmin
 
     function suhosin_whitelist()
     {
-        self::show_wordpress_error(__('PHP extension "phar" could not be found.', TEXT_DOMAIN));
+        self::show_wordpress_error(__('PHP extension "phar" is not on the suhosin whitelist.', TEXT_DOMAIN));
     }
 
     private function show_wordpress_error($message)

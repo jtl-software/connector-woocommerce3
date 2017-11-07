@@ -54,9 +54,20 @@ if (rewriting_disabled()) {
     }
 }
 
+/**
+ * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
+ */
+function load_internationalization()
+{
+    load_plugin_textdomain(TEXT_DOMAIN, false, basename(dirname(__FILE__)) . '/languages');
+}
+
+/**
+ * Check the status of WC, connector and the WC version.
+ */
 function validate_plugins()
 {
-    if (!woocommerce_activated() && connector_activated()) {
+    if (woocommerce_deactivated() && connector_activated()) {
         add_action('admin_notices', 'woocommerce_not_activated');
     } elseif (version_compare(get_woocommerce_version(), '3.0', '<')) {
         deactivate_plugin();
@@ -64,33 +75,49 @@ function validate_plugins()
     }
 }
 
-function load_internationalization()
-{
-    load_plugin_textdomain(TEXT_DOMAIN, false, basename(dirname(__FILE__)) . '/languages');
-}
-
+/**
+ * Deactivate the connector.
+ */
 function deactivate_plugin()
 {
     deactivate_plugins(__FILE__);
 }
 
-function woocommerce_activated()
+/**
+ * Check if the required WC is deactivated.
+ *
+ * @return bool
+ */
+function woocommerce_deactivated()
 {
-    return in_array(WOOCOMMERCE_PLUGIN_FILE, apply_filters('active_plugins', get_option('active_plugins')));
+    return !in_array(WOOCOMMERCE_PLUGIN_FILE, apply_filters('active_plugins', get_option('active_plugins')));
 }
 
+/**
+ * Check if the connector is activated.
+ *
+ * @return bool
+ */
 function connector_activated()
 {
     return in_array('jtlconnector/jtlconnector.php', apply_filters('active_plugins', get_option('active_plugins')));
 }
 
+/**
+ * Read out the WC version from the plugin file.
+ *
+ * @return string The WC version.
+ */
 function get_woocommerce_version()
 {
     $plugin = get_plugin_data(WP_PLUGIN_DIR . '/' . WOOCOMMERCE_PLUGIN_FILE);
 
-    return isset($plugin['Version']) ? $plugin['Version'] : 0;
+    return isset($plugin['Version']) ? $plugin['Version'] : '0';
 }
 
+/**
+ * Without rewriting a URL like jtlconnector cannot be used.
+ */
 function rewriting_disabled()
 {
     $permalink_structure = \get_option('permalink_structure');
@@ -116,5 +143,6 @@ function rewriting_not_activated()
 function show_wordpress_error($message, $show_install_link = false)
 {
     $link = $show_install_link ? '<a class="" href="' . admin_url("plugin-install.php?tab=search&s=" . urlencode("WooCommerce")) . '">WooCommerce</a>' : '';
+
     echo "<div class='error'><h3>JTL-Connector</h3><p>$message</p><p>$link</p></div>";
 }
