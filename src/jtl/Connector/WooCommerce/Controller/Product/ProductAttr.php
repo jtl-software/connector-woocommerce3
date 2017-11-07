@@ -12,7 +12,6 @@ use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
 use jtl\Connector\WooCommerce\Utility\Db;
-use jtl\Connector\WooCommerce\Utility\Id;
 use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
@@ -22,10 +21,11 @@ class ProductAttr extends BaseController
     const NOSEARCH = 'nosearch';
 
     // <editor-fold defaultstate="collapsed" desc="Pull">
-    public function pullData(\WC_Product $product, ProductModel $model)
+    public function pullData(\WC_Product $product)
     {
         $productAttributes = [];
 
+        // Parent and child products
         if (!$product->is_type('variation')) {
             $attributes = $product->get_attributes();
 
@@ -34,13 +34,29 @@ class ProductAttr extends BaseController
              * @var \WC_Product_Attribute $attribute
              */
             foreach ($attributes as $slug => $attribute) {
+                // No variations and only visible on product page
                 if ($attribute->get_variation() || !$attribute->get_visible()) {
                     continue;
                 }
 
                 $productAttribute = $product->get_attribute($attribute->get_name());
 
+                // Divided by |
                 $values = explode(WC_DELIMITER, $productAttribute);
+
+                // TODO needs refactoring as an attribute cannot have more than one value, use example below or use "Merkmale"
+
+                /*$i18n = (new ProductAttrI18nModel())
+                    ->setProductAttrId(new Identity($slug))
+                    ->setName($attribute->get_name())
+                    ->setValue(implode(', ', $values))
+                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+
+                $productAttributes[] = (new ProductAttrModel())
+                    ->setId($i18n->getProductAttrId())
+                    ->setProductId(new Identity($product->get_id()))
+                    ->setIsCustomProperty($attribute->is_taxonomy())
+                    ->addI18n($i18n);*/
 
                 foreach ($values as $i => $value) {
                     $i18n = (new ProductAttrI18nModel())
@@ -89,7 +105,7 @@ class ProductAttr extends BaseController
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Push">
-    public function pushData(ProductModel $product, array $model)
+    public function pushData(ProductModel $product)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 

@@ -52,7 +52,13 @@ class Image extends BaseController
         $return = [];
 
         foreach ($images as $image) {
-            $model = $this->mapper->toHost($image);
+            $model = (new ImageModel())
+                ->setId(new Identity($image['id']))
+                ->setName($image['post_name'])
+                ->setForeignKey(new Identity($image['parent']))
+                ->setRemoteUrl($image['guid'])
+                ->setSort((int)$image['sort'])
+                ->setFilename(\wc_get_filename_from_url($image['guid']));
 
             if ($model instanceof ImageModel) {
                 $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
@@ -291,7 +297,7 @@ class Image extends BaseController
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Push">
-    protected function pushData(ImageModel $image, $model)
+    protected function pushData(ImageModel $image)
     {
         $foreignKey = $image->getForeignKey()->getEndpoint();
         if (!empty($foreignKey)) {
