@@ -159,7 +159,7 @@ class Connector extends BaseConnector
     }
 
     /**
-     * @return Connector
+     * @return $this
      */
     public static function getInstance()
     {

@@ -18,7 +18,7 @@ class ShippingMethod
     {
         $shippingMethods = [];
 
-        foreach (\WC()->shipping()->load_shipping_methods() as $shippingMethod) {
+        foreach (\WC()->shipping()->get_shipping_methods() as $shippingMethod) {
             if ($shippingMethod->enabled === 'yes') {
                 $shippingMethods[] = (new ShippingMethodModel())
                     ->setId(new Identity($shippingMethod->id))

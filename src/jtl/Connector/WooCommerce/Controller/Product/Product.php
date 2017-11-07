@@ -66,14 +66,14 @@ class Product extends BaseController
 
             $result
                 ->setI18ns(ProductI18n::getInstance()->pullData($product, $result))
-                ->setPrices(ProductPrice::getInstance()->pullData($product, $result))
-                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product, $result))
-                ->setCategories(Product2Category::getInstance()->pullData($product, $result))
-                ->setAttributes(ProductAttr::getInstance()->pullData($product, $result))
+                ->setPrices(ProductPrice::getInstance()->pullData($product))
+                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
+                ->setCategories(Product2Category::getInstance()->pullData($product))
+                ->setAttributes(ProductAttr::getInstance()->pullData($product))
                 ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
 
             if ($product->managing_stock()) {
-                $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product, $result));
+                $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
             }
 
             if (Germanized::getInstance()->isActive()) {
@@ -86,7 +86,7 @@ class Product extends BaseController
         return $products;
     }
 
-    protected function pushData(ProductModel $product, $model)
+    protected function pushData(ProductModel $product)
     {
         $meta = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
@@ -143,7 +143,7 @@ class Product extends BaseController
 
         $product->getId()->setEndpoint($result);
 
-        $this->onProductInserted($product, $endpoint);
+        $this->onProductInserted($product);
 
         if (Germanized::getInstance()->isActive()) {
             $this->updateGermanizedAttributes($product);
@@ -169,7 +169,7 @@ class Product extends BaseController
         return count($this->database->queryList(SQL::productPull()));
     }
 
-    protected function onProductInserted(ProductModel &$product, array &$endpoint)
+    protected function onProductInserted(ProductModel &$product)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
@@ -179,12 +179,12 @@ class Product extends BaseController
 
         $this->updateProductMeta($product, $wcProduct);
 
-        $this->updateProductRelations($product, $endpoint);
+        $this->updateProductRelations($product);
 
         if ($this->getType($product) === 'product_variation') {
             $this->updateVariationCombinationChild($product, $wcProduct);
         } else {
-            $this->updateProduct($product, $endpoint);
+            $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
     }
@@ -223,19 +223,19 @@ class Product extends BaseController
         }
     }
 
-    private function updateProductRelations(ProductModel $product, $endpoint)
+    private function updateProductRelations(ProductModel $product)
     {
         $product2Category = new Product2Category();
-        $product2Category->pushData($product, $endpoint);
+        $product2Category->pushData($product);
 
         $productPrice = new ProductPrice();
-        $productPrice->pushData($product, $endpoint);
+        $productPrice->pushData($product);
 
         $productSpecialPrice = new ProductSpecialPrice();
-        $productSpecialPrice->pushData($product, $endpoint);
+        $productSpecialPrice->pushData($product);
 
         $productVariation = new ProductVariation();
-        $productVariation->pushData($product, $endpoint);
+        $productVariation->pushData($product);
     }
 
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct)
@@ -252,14 +252,14 @@ class Product extends BaseController
         $productStockLevel->pushDataChild($product);
     }
 
-    private function updateProduct(ProductModel $product, $endpoint)
+    private function updateProduct(ProductModel $product)
     {
         $productId = (int)$product->getId()->getEndpoint();
 
         \update_post_meta($productId, '_visibility', 'visible');
 
         $productAttr = new ProductAttr();
-        $productAttr->pushData($product, $endpoint);
+        $productAttr->pushData($product);
 
         $productStockLevel = new ProductStockLevel();
         $productStockLevel->pushDataParent($product);

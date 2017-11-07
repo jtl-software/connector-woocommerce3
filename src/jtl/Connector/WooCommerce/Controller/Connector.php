@@ -17,7 +17,6 @@ use jtl\Connector\WooCommerce\Event\HandleStatsEvent;
 use jtl\Connector\WooCommerce\Traits\BaseControllerTrait;
 use jtl\Connector\WooCommerce\Utility\Category as CategoryUtil;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class Connector extends Controller
 {
@@ -109,7 +108,6 @@ class Connector extends Controller
                 $results[] = $event->getResult();
             } else {
                 $className = Util::getInstance()->getControllerNamespace($mainController);
-                $className = Germanized::getInstance()->getController($mainController, $className);
 
                 if (class_exists($className)) {
                     try {

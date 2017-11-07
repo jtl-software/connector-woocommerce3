@@ -9,12 +9,12 @@ namespace jtl\Connector\WooCommerce\Controller\Order;
 use jtl\Connector\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\WooCommerce\Controller\BaseController;
-use jtl\Connector\WooCommerce\Utility\Id;
 use jtl\Connector\WooCommerce\Utility\Germanized;
+use jtl\Connector\WooCommerce\Utility\Id;
 
 class CustomerOrderBillingAddress extends BaseController
 {
-    public function pullData(\WC_Order $order, $model)
+    public function pullData(\WC_Order $order)
     {
         $address = (new CustomerOrderBillingAddressModel())
             ->setId(new Identity(CustomerOrder::BILLING_ID_PREFIX . $order->get_id()))

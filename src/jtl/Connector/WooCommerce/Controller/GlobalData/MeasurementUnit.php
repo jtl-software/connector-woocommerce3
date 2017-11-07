@@ -11,9 +11,9 @@ use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Model\MeasurementUnitI18n;
 use jtl\Connector\WooCommerce\Controller\Traits\PullTrait;
 use jtl\Connector\WooCommerce\Utility\Db;
+use jtl\Connector\WooCommerce\Utility\Germanized;
 use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
-use jtl\Connector\WooCommerce\Utility\Germanized;
 
 class MeasurementUnit
 {

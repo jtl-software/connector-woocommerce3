@@ -52,7 +52,7 @@ final class Germanized extends Singleton
     }
 
     /**
-     * @return Germanized
+     * @return $this
      */
     public static function getInstance()
     {

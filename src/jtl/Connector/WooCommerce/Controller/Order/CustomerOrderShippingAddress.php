@@ -14,7 +14,7 @@ use jtl\Connector\WooCommerce\Utility\Id;
 
 class CustomerOrderShippingAddress extends BaseController
 {
-    public function pullData(\WC_Order $order, $model)
+    public function pullData(\WC_Order $order)
     {
         $address = (new CustomerOrderShippingAddressModel())
             ->setId(new Identity(CustomerOrder::SHIPPING_ID_PREFIX . $order->get_id()))

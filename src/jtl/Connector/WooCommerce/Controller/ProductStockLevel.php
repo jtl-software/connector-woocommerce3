@@ -14,7 +14,7 @@ class ProductStockLevel extends BaseController
 {
     use PushTrait;
 
-    public function pushData(ProductStockLevelModel $productStockLevel, $model)
+    public function pushData(ProductStockLevelModel $productStockLevel)
     {
         $productId = $productStockLevel->getProductId()->getEndpoint();
         $wcProduct = \wc_get_product($productId);

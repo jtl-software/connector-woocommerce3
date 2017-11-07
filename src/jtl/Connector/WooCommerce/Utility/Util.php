@@ -51,7 +51,7 @@ final class Util extends Singleton
         return $language === self::getWooCommerceLanguage();
     }
 
-    public function getTaxRateByTaxClass($taxClass, $order = null)
+    public function getTaxRateByTaxClass($taxClass, \WC_Order $order = null)
     {
         $countryIso = \get_option('woocommerce_default_country');
 
@@ -242,7 +242,7 @@ final class Util extends Singleton
     }
 
     /**
-     * @return Util
+     * @return $this
      */
     public static function getInstance()
     {

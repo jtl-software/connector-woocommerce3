@@ -12,7 +12,6 @@ use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
-use jtl\Connector\WooCommerce\Mapper\BaseMapper;
 use jtl\Connector\WooCommerce\Traits\BaseControllerTrait;
 use jtl\Connector\WooCommerce\Utility\Db;
 
@@ -20,10 +19,6 @@ abstract class BaseController extends Controller
 {
     use BaseControllerTrait;
 
-    /**
-     * @var BaseMapper
-     */
-    protected $mapper;
     /**
      * @var Db
      */
@@ -40,12 +35,6 @@ abstract class BaseController extends Controller
         $reflect = new \ReflectionClass($this);
         $shortName = $reflect->getShortName();
         $this->controllerName = $shortName;
-
-        $mapperClass = str_replace('Controller', 'Mapper', $reflect->getNamespaceName()) . '\\' . $shortName;
-
-        if (class_exists($mapperClass)) {
-            $this->mapper = new $mapperClass();
-        }
     }
 
     /**
@@ -91,7 +80,7 @@ abstract class BaseController extends Controller
             $result = null;
 
             if (method_exists($this, 'pushData')) {
-                $result = $this->pushData($data, null);
+                $result = $this->pushData($data);
             }
 
             $action->setResult($result);
@@ -153,5 +142,13 @@ abstract class BaseController extends Controller
         }
 
         return $action;
+    }
+
+    /**
+     * @return $this
+     */
+    public static function getInstance()
+    {
+        return parent::getInstance();
     }
 }

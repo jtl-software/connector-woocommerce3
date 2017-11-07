@@ -14,7 +14,7 @@ class StatusChange extends BaseController
 {
     use PushTrait;
 
-    public function pushData(StatusChangeModel $statusChange, $model)
+    public function pushData(StatusChangeModel $statusChange)
     {
         $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
 

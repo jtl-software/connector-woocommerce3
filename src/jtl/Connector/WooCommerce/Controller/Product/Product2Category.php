@@ -41,7 +41,7 @@ class Product2Category extends BaseController
         return $productCategories;
     }
 
-    public function pushData(ProductModel $product, array $model)
+    public function pushData(ProductModel $product)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
         $wcProduct->set_category_ids($this->getCategoryIds($product->getCategories()));

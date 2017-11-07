@@ -16,7 +16,7 @@ use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductPrice extends BaseController
 {
-    public function pullData(\WC_Product $product, $model)
+    public function pullData(\WC_Product $product)
     {
         return [
             (new ProductPriceModel())
@@ -43,7 +43,7 @@ class ProductPrice extends BaseController
         return $netPrice;
     }
 
-    public function pushData(ProductModel $product, $model)
+    public function pushData(ProductModel $product)
     {
         $productPrice = null;
 

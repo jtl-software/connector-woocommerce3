@@ -174,7 +174,7 @@ class ProductVariation extends BaseController
         }
     }
 
-    public function pushData(ProductModel $product, $model)
+    public function pushData(ProductModel $product)
     {
         if ($product->getIsMasterProduct()) {
             if ($this->hasVariationChanges($product)) {

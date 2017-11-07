@@ -71,9 +71,9 @@ class CustomerOrder extends BaseController
                 ->setTotalSumGross(round($order->get_total(), \wc_get_price_decimals()));
 
             $customerOrder
-                ->setItems(CustomerOrderItem::getInstance()->pullData($order, $customerOrder))
-                ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order, $customerOrder))
-                ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order, $customerOrder));
+                ->setItems(CustomerOrderItem::getInstance()->pullData($order))
+                ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order))
+                ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order));
 
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());

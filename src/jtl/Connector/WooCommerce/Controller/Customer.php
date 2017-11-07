@@ -126,7 +126,7 @@ class Customer extends BaseController
         return $customers;
     }
 
-    public function pushData(CustomerModel $customer, $model)
+    public function pushData(CustomerModel $customer)
     {
         // Only registered customers data can be updated
         if (!$customer->getHasCustomerAccount()) {

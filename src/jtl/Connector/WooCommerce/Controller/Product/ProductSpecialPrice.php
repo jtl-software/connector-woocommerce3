@@ -16,7 +16,7 @@ use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductSpecialPrice extends BaseController
 {
-    public function pullData(\WC_Product $product, $model)
+    public function pullData(\WC_Product $product)
     {
         $salePrice = $product->get_sale_price();
 
@@ -52,7 +52,7 @@ class ProductSpecialPrice extends BaseController
         return $netPrice;
     }
 
-    public function pushData(ProductModel $product, $model)
+    public function pushData(ProductModel $product)
     {
         $pd = \wc_get_price_decimals();
         $productId = $product->getId()->getEndpoint();

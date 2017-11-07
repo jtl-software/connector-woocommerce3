@@ -14,7 +14,7 @@ use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductStockLevel extends BaseController
 {
-    public function pullData(\WC_Product $product, $model)
+    public function pullData(\WC_Product $product)
     {
         $stockLevel = $product->get_stock_quantity();
 

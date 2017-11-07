@@ -20,13 +20,11 @@ class CustomerGroup
 
     public function pullData()
     {
-        global $wp_roles;
-
         $customerGroup = (new CustomerGroupModel())
             ->setId(new Identity(self::DEFAULT_GROUP))
             ->setIsDefault(true)
             ->addI18n((new CustomerGroupI18n())
-                ->setName(__($wp_roles->role_names[self::DEFAULT_GROUP], 'woocommerce'))
+                ->setName(__('Customer', 'woocommerce'))
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
 
         return $customerGroup;
