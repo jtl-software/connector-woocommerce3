@@ -206,15 +206,15 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
+        $taxClass = $this->database->queryOne(SQL::taxClassByRate($product->getVat()));
+        $wcProduct->set_tax_class(is_null($taxClass) ? '' : $taxClass);
+
         $wcProduct->save();
 
         \wp_set_object_terms($wcProduct->get_id(), $this->getType($product), 'product_type');
 
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
         \wp_set_post_terms($wcProduct->get_id(), implode(',', $tags), 'product_tag');
-
-        $taxClass = $this->database->queryOne(SQL::taxClassByRate($product->getVat()));
-        $wcProduct->set_tax_class(is_null($taxClass) ? '' : $taxClass);
 
         $shippingClass = $product->getShippingClassId()->getEndpoint();
 
