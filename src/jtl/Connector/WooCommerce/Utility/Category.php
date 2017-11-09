@@ -7,7 +7,6 @@
 namespace jtl\Connector\WooCommerce\Utility;
 
 use jtl\Connector\Model\Category as CategoryModel;
-use jtl\Connector\Model\CategoryI18n;
 
 class Category
 {
@@ -67,26 +66,6 @@ class Category
                 self::saveCategoryLevelsAsPreOrder($category, $count);
             }
         }
-    }
-
-    public static function getSlug(CategoryI18n $i18n)
-    {
-        $url = $i18n->getUrlPath();
-        $slug = empty($url) ? \sanitize_title($i18n->getName()) : $i18n->getUrlPath();
-        $term = \get_term_by('slug', $slug, self::TERM_TAXONOMY);
-
-        if ($term !== false && $term->term_id != $i18n->getCategoryId()->getEndpoint()) {
-            $num = 1;
-
-            do {
-                $oldSlug = $slug . '_' . ++$num;
-                $slugCheck = Db::getInstance()->queryOne(SQL::categorySlug($oldSlug));
-            } while ($slugCheck);
-
-            $slug = $oldSlug;
-        }
-
-        return $slug;
     }
 
     public static function updateCategoryTree(CategoryModel $category, $isNew)

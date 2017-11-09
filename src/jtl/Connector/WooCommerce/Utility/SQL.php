@@ -133,13 +133,6 @@ final class SQL
             CategoryUtil::TERM_TAXONOMY
         );
     }
-
-    public static function categorySlug($slug)
-    {
-        global $wpdb;
-
-        return "SELECT slug FROM {$wpdb->terms} WHERE slug = '{$slug}'";
-    }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Cross Selling">
     public static function crossSellingPull($limit = null)

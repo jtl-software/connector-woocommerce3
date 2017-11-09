@@ -44,9 +44,9 @@ class CustomerOrder extends BaseController
     {
         $orders = [];
 
-        $nonLinkedOrderIds = $this->database->queryList(SQL::customerOrderPull($limit));
+        $orderIds = $this->database->queryList(SQL::customerOrderPull($limit));
 
-        foreach ($nonLinkedOrderIds as $orderId) {
+        foreach ($orderIds as $orderId) {
             $order = \wc_get_order($orderId);
 
             if (!$order instanceof \WC_Order) {

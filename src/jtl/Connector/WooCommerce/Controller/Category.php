@@ -82,10 +82,12 @@ class Category extends BaseController
             return $category;
         }
 
+        $urlPath = $meta->getUrlPath();
+
         $categoryData = [
             'description' => $meta->getDescription(),
-            'parent'      => $parentCategoryId->getEndpoint(),
-            'slug'        => CategoryUtil::getSlug($meta),
+            'parent' => $parentCategoryId->getEndpoint(),
+            'slug' => empty($urlPath) ? \sanitize_title($meta->getName()) : $meta->getUrlPath()
         ];
 
         if (empty($categoryId)) {

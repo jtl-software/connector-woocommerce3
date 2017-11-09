@@ -34,6 +34,12 @@ class CustomerOrderItem extends BaseController
         return $customerOrderItems;
     }
 
+    /**
+     * Add the positions for products. Not that complicated.
+     *
+     * @param \WC_Order $order
+     * @param $customerOrderItems
+     */
     public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
     {
         /** @var \WC_Order_Item_Product $item */
@@ -83,8 +89,7 @@ class CustomerOrderItem extends BaseController
             $tax = $order->get_item_tax($item); // the tax amount
 
             if ($tax === 0.0) {
-                // Take subtotal because coupons are subtracted in total
-                $priceGross = $netPrice = $order->get_item_subtotal($item, true, false);
+                $netPrice = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
                 $netPrice = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, false);
@@ -113,6 +118,25 @@ class CustomerOrderItem extends BaseController
         });
     }
 
+    /**
+     * Create an order item with the basic non price relevant information.
+     *
+     * @param \WC_Order_Item_Shipping $shippingItem
+     * @param \WC_Order $order
+     * @param null $taxRateId
+     *
+     * @return CustomerOrderItemModel
+     */
+    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
+    {
+        return (new CustomerOrderItemModel())
+            ->setId(new Identity($shippingItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
+            ->setCustomerOrderId(new Identity($order->get_id()))
+            ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
+            ->setName($shippingItem->get_name())
+            ->setQuantity(1);
+    }
+
     public function pullFreePositions(\WC_Order $order, &$customerOrderItems)
     {
         $this->accurateItemTaxCalculation($order, 'fee', $customerOrderItems, function ($shippingItem, $order, $taxRateId) {
@@ -120,24 +144,23 @@ class CustomerOrderItem extends BaseController
         });
     }
 
-    public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
+    /**
+     * Create an order item with the basic non price relevant information.
+     *
+     * @param \WC_Order_Item_Fee $feeItem
+     * @param \WC_Order $order
+     * @param null $taxRateId
+     *
+     * @return CustomerOrderItemModel
+     */
+    private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
     {
-        /**
-         * @var integer $itemId
-         * @var \WC_Order_Item_Coupon $item
-         */
-        foreach ($order->get_items('coupon') as $itemId => $item) {
-            $itemName = $item->get_name();
-
-            $customerOrderItems[] = (new CustomerOrderItemModel())
-                ->setId(new Identity($itemId))
-                ->setCustomerOrderId(new Identity($order->get_id()))
-                ->setName(empty($itemName) ? $item->get_code() : $itemName)
-                ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
-                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), self::PRICE_DECIMALS))
-                ->setQuantity(1);
-        }
+        return (new CustomerOrderItemModel())
+            ->setId(new Identity($feeItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
+            ->setCustomerOrderId(new Identity($order->get_id()))
+            ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
+            ->setName($feeItem->get_name())
+            ->setQuantity(1);
     }
 
     /**
@@ -211,24 +234,28 @@ class CustomerOrderItem extends BaseController
         }
     }
 
-    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
+    /**
+     * @param \WC_Order $order
+     * @param $customerOrderItems
+     */
+    public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
-        return (new CustomerOrderItemModel())
-            ->setId(new Identity($shippingItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
-            ->setCustomerOrderId(new Identity($order->get_id()))
-            ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
-            ->setName($shippingItem->get_name())
-            ->setQuantity(1);
-    }
+        /**
+         * @var integer $itemId
+         * @var \WC_Order_Item_Coupon $item
+         */
+        foreach ($order->get_items('coupon') as $itemId => $item) {
+            $itemName = $item->get_name();
 
-    private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
-    {
-        return (new CustomerOrderItemModel())
-            ->setId(new Identity($feeItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
-            ->setCustomerOrderId(new Identity($order->get_id()))
-            ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
-            ->setName($feeItem->get_name())
-            ->setQuantity(1);
+            $customerOrderItems[] = (new CustomerOrderItemModel())
+                ->setId(new Identity($itemId))
+                ->setCustomerOrderId(new Identity($order->get_id()))
+                ->setName(empty($itemName) ? $item->get_code() : $itemName)
+                ->setType(CustomerOrderItemModel::TYPE_COUPON)
+                ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
+                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(), self::PRICE_DECIMALS))
+                ->setQuantity(1);
+        }
     }
 
     private function getProductTotalByVat(array $customerOrderItems)
