@@ -82,18 +82,26 @@ class Category extends BaseController
             return $category;
         }
 
-        $urlPath = $meta->getUrlPath();
-
         $categoryData = [
             'description' => $meta->getDescription(),
-            'parent' => $parentCategoryId->getEndpoint(),
-            'slug' => empty($urlPath) ? \sanitize_title($meta->getName()) : $meta->getUrlPath()
+            'parent' => $parentCategoryId->getEndpoint()
         ];
+
+        $urlPath = $meta->getUrlPath();
+
+        if (!empty($urlPath)) {
+            $categoryData['slug'] = $urlPath;
+        }
 
         if (empty($categoryId)) {
             $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
-            $result = \wp_update_term((int)$categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
+            // WordPress does not create a unique slug itself if the given already exists
+            if (isset($categoryData['slug'])) {
+                $categoryData['slug'] = wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
+            }
+
+            $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
         }
 
         if ($result instanceof \WP_Error) {
