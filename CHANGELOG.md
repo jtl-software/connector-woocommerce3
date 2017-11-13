@@ -1,3 +1,10 @@
+1.4.8
+-----
+- CO-135 Fix reduced tax rate not saved
+- Fix categories are duplicated on push
+- Fix German translations
+- Refactor plugin settings part
+
 1.4.7
 -----
 - Support WC 3.2
