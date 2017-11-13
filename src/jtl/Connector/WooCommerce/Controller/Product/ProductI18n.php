@@ -28,7 +28,7 @@ class ProductI18n extends BaseController
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
 
-        return [$i18n];
+        return $i18n;
     }
 
     private function name(\WC_Product $product)

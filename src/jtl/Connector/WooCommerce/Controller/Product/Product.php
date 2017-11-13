@@ -65,8 +65,8 @@ class Product extends BaseController
             }
 
             $result
-                ->setI18ns(ProductI18n::getInstance()->pullData($product, $result))
-                ->setPrices(ProductPrice::getInstance()->pullData($product))
+                ->addI18n(ProductI18n::getInstance()->pullData($product, $result))
+                ->addPrice(ProductPrice::getInstance()->pullData($product))
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
                 ->setCategories(Product2Category::getInstance()->pullData($product))
                 ->setAttributes(ProductAttr::getInstance()->pullData($product))

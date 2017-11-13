@@ -18,16 +18,14 @@ class ProductPrice extends BaseController
 {
     public function pullData(\WC_Product $product)
     {
-        return [
-            (new ProductPriceModel())
-                ->setId(new Identity($product->get_id()))
-                ->setProductId(new Identity($product->get_id()))
-                ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                ->addItem((new ProductPriceItem())
-                    ->setProductPriceId(new Identity($product->get_id()))
-                    ->setQuantity(1)
-                    ->setNetPrice($this->netPrice($product))),
-        ];
+        return (new ProductPriceModel())
+            ->setId(new Identity($product->get_id()))
+            ->setProductId(new Identity($product->get_id()))
+            ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+            ->addItem((new ProductPriceItem())
+                ->setProductPriceId(new Identity($product->get_id()))
+                ->setQuantity(1)
+                ->setNetPrice($this->netPrice($product)));
     }
 
     protected function netPrice(\WC_Product $product)
