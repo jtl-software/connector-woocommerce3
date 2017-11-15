@@ -11,3 +11,4 @@ logs/
 .idea/
 *.mo
 *.temp
+*.zip
