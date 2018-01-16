@@ -72,7 +72,7 @@
 			<metadata>
 				<element name="version" value="${version}"/>
 				<element name="authors">
-					<element name="Sven Mäurer">
+					<element name="Jan Weskamp">
 						<element name="email" value="jan.weskamp@jtl-software.com"/>
 					</element>
 				</element>
