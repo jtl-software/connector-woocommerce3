@@ -108,6 +108,7 @@ class Product extends BaseController
         }
 
         $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
+        $creationDate = is_null($creationDate) ? date('now') : $creationDate;
 
         $endpoint = [
             'ID' => (int)$product->getId()->getEndpoint(),

@@ -91,8 +91,12 @@ class CustomerOrderItem extends BaseController
             if ($tax === 0.0) {
                 $netPrice = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
-                $netPrice = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, false);
+                // changed get_item_subtotal to get_item_total because discount wasn't sent correctly
+               /* $netPrice = $order->get_item_subtotal($item, false, false);
+                $priceGross = $order->get_item_subtotal($item, true, false);*/
+    
+                $netPrice = $order->get_item_total($item, false, false);
+                $priceGross = $order->get_item_total($item, true, false);
             }
 
             if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
