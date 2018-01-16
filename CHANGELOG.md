@@ -1,3 +1,10 @@
+1.4.9
+-----
+- CO-152 Changed method because discount wasn't set correctly on pull.
+- Implement fallback for no creation date.
+- Remove unclear push method calls
+- CO-136 Fixed wrong count of images in stats
+
 1.4.8
 -----
 - CO-135 Fix reduced tax rate not saved
