@@ -286,7 +286,7 @@ final class JtlConnectorAdmin
                     TEXT_DOMAIN),
             ],
             [
-                'title' => __('Incompatible with this Plugins:', TEXT_DOMAIN),
+                'title' => __('Incompatible with these plugins:', TEXT_DOMAIN),
                 'type'  => 'title',
                 'desc'  => 'Wordfence',
             ],

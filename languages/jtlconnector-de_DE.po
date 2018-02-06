@@ -52,7 +52,7 @@ msgid "Information"
 msgstr "Information"
 
 #: includes/JtlConnectorAdmin.php:289
-msgid "Incompatible with these Plugins:"
+msgid "Incompatible with these plugins:"
 msgstr "Inkompatibel mit folgenden Plugins:"
 
 #: includes/JtlConnectorAdmin.php:299
