@@ -286,6 +286,11 @@ final class JtlConnectorAdmin
                     TEXT_DOMAIN),
             ],
             [
+                'title' => __('Incompatible with this Plugins:', TEXT_DOMAIN),
+                'type'  => 'title',
+                'desc'  => 'Wordfence',
+            ],
+            [
                 'title' => 'Connector URL',
                 'type'  => 'paragraph',
                 'desc'  => get_bloginfo('url') . '/index.php/jtlconnector/',
@@ -304,7 +309,7 @@ final class JtlConnectorAdmin
                 'type' => 'sectionend',
             ],
             [
-                'title' => __('Options', TEXT_DOMAIN),
+                'title' => __('Settings', TEXT_DOMAIN),
                 'type'  => 'title',
                 'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
                     TEXT_DOMAIN),
