@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * @author Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 final class JtlConnectorAdmin
@@ -34,9 +34,9 @@ final class JtlConnectorAdmin
      * The update to a new connector version failed.
      */
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
-
+    
     private static $initiated = false;
-
+    
     // <editor-fold defaultstate="collapsed" desc="Activation">
     public static function plugin_activation()
     {
@@ -66,7 +66,7 @@ final class JtlConnectorAdmin
             }
         }
     }
-
+    
     private static function run_system_check()
     {
         try {
@@ -77,19 +77,19 @@ final class JtlConnectorAdmin
                     add_action('admin_notices', 'directory_no_write_access');
                 }
             }
-
+            
             if (file_exists(CONNECTOR_DIR . DS . 'connector.phar')) {
                 require_once join(DS, ['phar://' . CONNECTOR_DIR, 'connector.phar', 'vendor', 'autoload.php']);
             } else {
                 require_once join(DS, [CONNECTOR_DIR, 'vendor', 'autoload.php']);
             }
-
+            
             \jtl\Connector\Core\System\Check::run();
         } catch (\Exception $e) {
             wp_die($e->getMessage());
         }
     }
-
+    
     private static function run_phar_check()
     {
         if (!extension_loaded('phar')) {
@@ -101,11 +101,11 @@ final class JtlConnectorAdmin
             }
         }
     }
-
+    
     private static function activate_linking()
     {
         global $wpdb;
-
+        
         $query = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -113,13 +113,13 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-
+        
         $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
-
+        
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -130,7 +130,7 @@ final class JtlConnectorAdmin
                 INDEX (`endpoint_id`, `is_guest`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
-
+        
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -141,27 +141,27 @@ final class JtlConnectorAdmin
                 INDEX (`endpoint_id`, `type`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
-
+        
         self::add_constraints_for_multi_linking_tables();
     }
-
+    
     private static function activate_checksum()
     {
         global $wpdb;
-
+        
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-
+        
         if ($engine === 'InnoDB') {
             $constraint = ", CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES {$wpdb->posts} (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION";
         } else {
             $constraint = '';
         }
-
+        
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
@@ -170,24 +170,24 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`product_id`) {$constraint}
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
-
+    
     private static function activate_category_tree()
     {
         global $wpdb;
-
+        
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-
+        
         if ($engine === 'InnoDB') {
             $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
         } else {
             $constraint = '';
         }
-
+        
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
@@ -197,48 +197,49 @@ final class JtlConnectorAdmin
                 INDEX (`level`) {$constraint}
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
-
+    
     private static function create_password()
     {
         if (function_exists('com_create_guid') === true) {
             return trim(com_create_guid(), '{}');
         }
-
+        
         return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535),
             mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
     }
-
+    
     // </editor-fold>
-
+    
     public static function plugin_deactivation()
     {
         delete_option(self::OPTIONS_TOKEN);
     }
-
+    
     public static function init()
     {
         if (!self::$initiated) {
             self::init_hooks();
         }
     }
-
+    
     public static function init_hooks()
     {
         self::$initiated = true;
-
+        
         add_filter('plugin_row_meta', ['JtlConnectorAdmin', 'jtlconnector_plugin_row_meta'], 10, 2);
-
+        
         add_action('woocommerce_settings_tabs_array', ['JtlConnectorAdmin', 'add_settings_tab'], 50);
         add_action('woocommerce_settings_tabs_jtlconnector', ['JtlConnectorAdmin', 'display_page'], 1);
         add_action('woocommerce_settings_save_jtlconnector', ['JtlConnectorAdmin', 'save']);
-
+        
         add_action('woocommerce_admin_field_date', ['JtlConnectorAdmin', 'date_field']);
         add_action('woocommerce_admin_field_paragraph', ['JtlConnectorAdmin', 'paragraph_field']);
-
+        add_action('woocommerce_admin_field_connector_password', ['JtlConnectorAdmin', 'connector_password_field']);
+        
         self::update();
     }
-
+    
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'jtlconnector.php') !== false) {
@@ -248,85 +249,94 @@ final class JtlConnectorAdmin
             ];
             $links = array_merge($links, $new_links);
         }
-
+        
         return $links;
     }
-
+    
     // <editor-fold defaultstate="collapsed" desc="Settings">
     public static function add_settings_tab($tabs)
     {
         $tabs[TEXT_DOMAIN] = 'JTL-Connector';
-
+        
         return $tabs;
     }
-
+    
     public static function settings_link($links)
     {
-        $settings_link = '<a href="admin.php?page=wc-settings&tab=jtlconnector">' . __('Settings', TEXT_DOMAIN) . '</a>';
-
+        $settings_link = '<a href="admin.php?page=wc-settings&tab=jtlconnector">' . __('Settings',
+                TEXT_DOMAIN) . '</a>';
+        
         array_unshift($links, $settings_link);
-
+        
         return $links;
     }
-
+    
     public static function display_page()
     {
         return '<div class="wrap woocommerce">' . woocommerce_admin_fields(JtlConnectorAdmin::get_settings()) . '</div>';
     }
-
+    
     public static function get_settings()
     {
         $settings = apply_filters('woocommerce_settings_jtlconnector', [
             [
                 'title' => __('Information', TEXT_DOMAIN),
-                'type' => 'title',
-                'desc' => __('Basic information and credentials of the installed connector. It is needed to configure the connector in the customer center and JTL-Wawi.', TEXT_DOMAIN),
+                'type'  => 'title',
+                'desc'  => __('Basic information and credentials of the installed connector. It is needed to configure the connector in the customer center and JTL-Wawi.',
+                    TEXT_DOMAIN),
+            ],
+            [
+                'title' => __('Incompatible with these plugins:', TEXT_DOMAIN),
+                'type'  => 'title',
+                'desc'  => 'Wordfence',
             ],
             [
                 'title' => 'Connector URL',
-                'type' => 'paragraph',
-                'desc' => get_bloginfo('url') . '/index.php/jtlconnector/'
+                'type'  => 'paragraph',
+                'desc'  => get_bloginfo('url') . '/index.php/jtlconnector/',
             ],
             [
                 'title' => __('Connector Password', TEXT_DOMAIN),
-                'type' => 'paragraph',
-                'desc' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+                'type'  => 'connector_password',
+                'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
             ],
             [
                 'title' => 'Connector Version',
-                'type' => 'paragraph',
-                'desc' => CONNECTOR_VERSION
+                'type'  => 'paragraph',
+                'desc'  => CONNECTOR_VERSION,
             ],
             [
                 'type' => 'sectionend',
             ],
             [
-                'title' => __('Options', TEXT_DOMAIN),
-                'type' => 'title',
-                'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.', TEXT_DOMAIN),
+                'title' => __('Settings', TEXT_DOMAIN),
+                'type'  => 'title',
+                'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+                    TEXT_DOMAIN),
             ],
             [
                 'title' => __('Pull completed orders', TEXT_DOMAIN),
-                'type' => 'checkbox',
-                'desc' => __('Do not choose when having a large amount of data and low server specifications.', TEXT_DOMAIN),
-                'id' => self::OPTIONS_COMPLETED_ORDERS,
+                'type'  => 'checkbox',
+                'desc'  => __('Do not choose when having a large amount of data and low server specifications.',
+                    TEXT_DOMAIN),
+                'id'    => self::OPTIONS_COMPLETED_ORDERS,
             ],
             [
-                'title' => __('Pull orders since', TEXT_DOMAIN),
-                'type' => 'date',
+                'title'    => __('Pull orders since', TEXT_DOMAIN),
+                'type'     => 'date',
                 'desc_tip' => __('Define a start date for pulling of orders.', TEXT_DOMAIN),
-                'id' => self::OPTIONS_PULL_ORDERS_SINCE,
+                'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
             ],
             [
-                'title' => __('Variation name format', TEXT_DOMAIN),
-                'type' => 'select',
-                'class' => 'wc-enhanced-select',
-                'id' => self::OPTIONS_VARIATION_NAME_FORMAT,
-                'options' => [
-                    '' => __('Variation #22 of Product name', TEXT_DOMAIN),
-                    'space' => __('Variation #22 of Product name Color: black, Size: S', TEXT_DOMAIN),
-                    'brackets' => __('Variation #22 of Product name (Color: black, Size: S)', TEXT_DOMAIN),
-                    'space_parent' => __('Product name Color: black, Size: S', TEXT_DOMAIN),
+                'title'    => __('Variation name format', TEXT_DOMAIN),
+                'type'     => 'select',
+                'class'    => 'wc-enhanced-select',
+                'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
+                'options'  => [
+                    ''                => __('Variation #22 of Product name', TEXT_DOMAIN),
+                    'space'           => __('Variation #22 of Product name Color: black, Size: S', TEXT_DOMAIN),
+                    'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)', TEXT_DOMAIN),
+                    'space_parent'    => __('Product name Color: black, Size: S', TEXT_DOMAIN),
                     'brackets_parent' => __('Product name (Color: black, Size: S)', TEXT_DOMAIN),
                 ],
                 'desc_tip' => __('Define how the child product name is formatted.', TEXT_DOMAIN),
@@ -335,14 +345,17 @@ final class JtlConnectorAdmin
                 'type' => 'sectionend',
             ],
         ]);
-
+        
         return apply_filters('woocommerce_get_settings_jtlconnector', $settings);
     }
-
+    
+    /**
+     * @param array $field
+     */
     public static function date_field(array $field)
     {
         $option_value = get_option($field['id'], $field['default']);
-
+        
         ?>
         <tr valign="top">
             <th scope="row" class="titledesc">
@@ -357,7 +370,43 @@ final class JtlConnectorAdmin
         </tr>
         <?php
     }
+    
+    /**
+     * @param array $field
+     */
+    public static function connector_password_field(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td class="connector-password">
 
+                <div class="input-group">
+                    <input class="form-control" type="text" id="connector_password" value="<?= $field['value'] ?>"
+                           readonly="readonly">
+                    <span class="input-group-btn">
+                        <button type="button"
+                                class="clip-btn btn btn-default"
+                                title="Copy"
+                                onclick="
+                                var text = document.getElementById('connector_password').value;
+                                var dummy = document.createElement('textarea');
+                                document.body.appendChild(dummy);
+                                dummy.value = text;
+                                dummy.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(dummy);
+                        ">Copy
+                        </button>
+                        </span>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
     /**
      * Output a paragraph with non editable content.
      *
@@ -376,20 +425,20 @@ final class JtlConnectorAdmin
         </tr>
         <?php
     }
-
+    
     public static function save()
     {
         $settings = self::get_settings();
         WC_Admin_Settings::save_fields($settings);
     }
-
+    
     // </editor-fold>
-
+    
     private static function update()
     {
         $installed_version = \get_option(self::OPTIONS_INSTALLED_VERSION, '');
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '' : $installed_version;
-
+        
         switch ($installed_version) {
             case '':
                 self::update_to_multi_linking();
@@ -402,15 +451,15 @@ final class JtlConnectorAdmin
             case '1.3.5':
             case '1.4.0':
         }
-
+        
         \update_option(self::OPTIONS_INSTALLED_VERSION, CONNECTOR_VERSION);
     }
-
+    
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()
     {
         global $wpdb;
-
+        
         $query =
             'CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` varchar(255) NOT NULL,
@@ -419,10 +468,10 @@ final class JtlConnectorAdmin
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-
+        
         $result = true;
         $wpdb->query('START TRANSACTION');
-
+        
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_customer'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
@@ -430,9 +479,9 @@ final class JtlConnectorAdmin
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
-
+        
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
-
+        
         foreach ($types as $type) {
             $type = (int)$type->type;
             $tableName = self::get_table_name($type);
@@ -441,7 +490,7 @@ final class JtlConnectorAdmin
                 SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
             ");
         }
-
+        
         if ($result) {
             $wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link`');
             $wpdb->query('COMMIT');
@@ -451,7 +500,7 @@ final class JtlConnectorAdmin
             add_action('admin_notices', 'update_failed');
         }
     }
-
+    
     private static function get_table_name($type)
     {
         switch ($type) {
@@ -470,16 +519,16 @@ final class JtlConnectorAdmin
             case \jtl\Connector\Linker\IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
         }
-
+        
         return null;
     }
     // </editor-fold>
-
+    
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.2">
     private static function update_multi_linking_endpoint_types()
     {
         global $wpdb;
-
+        
         // Modify varchar endpoint_id to integer
         $modifyEndpointType = 'ALTER TABLE `%s` MODIFY `endpoint_id` BIGINT(20) unsigned';
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_order'));
@@ -487,7 +536,7 @@ final class JtlConnectorAdmin
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_product'));
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_crossselling'));
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_category'));
-
+        
         // Add is_guest column for customers instead of using a prefix
         $wpdb->query('ALTER TABLE `jtl_connector_link_customer` ADD COLUMN `is_guest` BIT');
         $wpdb->query(sprintf('
@@ -502,7 +551,7 @@ final class JtlConnectorAdmin
             WHERE `endpoint_id` NOT LIKE "%s_%%"',
             \jtl\Connector\WooCommerce\Utility\Id::GUEST_PREFIX
         ));
-
+        
         // Add type column for images instead of using a prefix
         $wpdb->query('ALTER TABLE `jtl_connector_link_image` ADD COLUMN `type` INT(4) unsigned');
         $updateImageLinkingTable = '
@@ -517,21 +566,21 @@ final class JtlConnectorAdmin
             \jtl\Connector\Linker\IdentityLinker::TYPE_PRODUCT,
             \jtl\Connector\WooCommerce\Utility\Id::PRODUCT_PREFIX
         ));
-
+        
         self::add_constraints_for_multi_linking_tables();
     }
-
+    
     private static function add_constraints_for_multi_linking_tables()
     {
         global $wpdb;
-
+        
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-
+        
         if ($engine === 'InnoDB') {
             $wpdb->query("
                 ALTER TABLE `jtl_connector_link_product`
@@ -556,7 +605,7 @@ final class JtlConnectorAdmin
             WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-
+        
         if ($engine === 'InnoDB') {
             $wpdb->query("
                 ALTER TABLE `jtl_connector_link_category`
@@ -565,28 +614,29 @@ final class JtlConnectorAdmin
         }
     }
     // </editor-fold>
-
+    
     // <editor-fold defaultstate="collapsed" desc="Error messages">
     function update_failed()
     {
-        self::show_wordpress_error(__('The linking table migration was not successful. Please use the forum for help.', TEXT_DOMAIN));
+        self::show_wordpress_error(__('The linking table migration was not successful. Please use the forum for help.',
+            TEXT_DOMAIN));
     }
-
+    
     function directory_no_write_access()
     {
         self::show_wordpress_error(sprintf(__('Directory %s has no write access.', sys_get_temp_dir()), TEXT_DOMAIN));
     }
-
+    
     function phar_extension()
     {
         self::show_wordpress_error(__('PHP extension "phar" could not be found.', TEXT_DOMAIN));
     }
-
+    
     function suhosin_whitelist()
     {
         self::show_wordpress_error(__('PHP extension "phar" is not on the suhosin whitelist.', TEXT_DOMAIN));
     }
-
+    
     private function show_wordpress_error($message)
     {
         echo '<div class="error"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';

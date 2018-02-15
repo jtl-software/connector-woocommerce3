@@ -43,87 +43,90 @@ msgstr "Variation #%s von %s"
 msgid "There was no token found."
 msgstr "Es wurde kein Token gefunden."
 
-#: includes/JtlConnectorAdmin.php:224
+#: includes/JtlConnectorAdmin.php:248
 msgid "Documentation"
 msgstr "Dokumentation"
 
-#: includes/JtlConnectorAdmin.php:243
+#: includes/JtlConnectorAdmin.php:283
+msgid "Information"
+msgstr "Information"
+
+#: includes/JtlConnectorAdmin.php:289
+msgid "Incompatible with these plugins:"
+msgstr "Inkompatibel mit folgenden Plugins:"
+
+#: includes/JtlConnectorAdmin.php:299
+msgid "Connector Password"
+msgstr "Connector Passwort"
+
+#: includes/JtlConnectorAdmin.php:312
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: includes/JtlConnectorAdmin.php:258
-msgid "Options"
-msgstr "Einstellungen"
+#: includes/JtlConnectorAdmin.php:314
+msgid "Settings for the usage of the connector. By default the completed orders are pulled with no time limit."
+msgstr "Einstellungen für die Verwendung des Connectors. Standardmäßig werden die abgeschlossene Aufträge ohne Zeitlimit importiert."
 
-#: includes/JtlConnectorAdmin.php:260
-msgid ""
-"Settings for the usage of the connector. By default the completed orders are "
-"pulled with no time limit."
-msgstr ""
-"Einstellungen für die Verwendung des Connectors. Standardmässig werden "
-"abgeschlossene Aufträge ohne Zeitlimit importiert."
-
-#: includes/JtlConnectorAdmin.php:264
+#: includes/JtlConnectorAdmin.php:318
 msgid "Pull completed orders"
 msgstr "Importiere abgeschlossene Bestellungen"
 
-#: includes/JtlConnectorAdmin.php:266
-msgid ""
-"Do not choose when having a large amount of data and low server specifications."
+#: includes/JtlConnectorAdmin.php:320
+msgid "Do not choose when having a large amount of data and low server specifications."
 msgstr "Bei vielen Daten aber schwachem Server nicht auswählen."
 
-#: includes/JtlConnectorAdmin.php:270
+#: includes/JtlConnectorAdmin.php:325
 msgid "Pull orders since"
 msgstr "Ziehe Bestellungen ab"
 
-#: includes/JtlConnectorAdmin.php:272
+#: includes/JtlConnectorAdmin.php:327
 msgid "Define a start date for pulling of orders."
 msgstr "Definieren Sie ein Startdatum für das Ziehen von Bestellungen."
 
-#: includes/JtlConnectorAdmin.php:276
+#: includes/JtlConnectorAdmin.php:331
 msgid "Variation name format"
 msgstr "Kindartikel Namensformat"
 
-#: includes/JtlConnectorAdmin.php:280
+#: includes/JtlConnectorAdmin.php:336
 msgid "Variation #22 of Product name"
 msgstr "Variation #22 von Produktname"
 
-#: includes/JtlConnectorAdmin.php:281
+#: includes/JtlConnectorAdmin.php:337
 msgid "Variation #22 of Product name Color: black, Size: S"
-msgstr "Variation #22 von Produktname Farbe: schwarz, Grösse: S"
+msgstr "Variation #22 von Produktname Farbe: schwarz, Größe: S"
 
-#: includes/JtlConnectorAdmin.php:282
+#: includes/JtlConnectorAdmin.php:338
 msgid "Variation #22 of Product name (Color: black, Size: S)"
-msgstr "Variation #22 von Produktname (Farbe: schwarz, Grösse: S)"
+msgstr "Variation #22 von Produktname (Farbe: schwarz, Größe: S)"
 
-#: includes/JtlConnectorAdmin.php:283
+#: includes/JtlConnectorAdmin.php:339
 msgid "Product name Color: black, Size: S"
-msgstr "Produktname Farbe: schwarz, Grösse: S"
+msgstr "Produktname Farbe: schwarz, Größe: S"
 
-#: includes/JtlConnectorAdmin.php:284
+#: includes/JtlConnectorAdmin.php:340
 msgid "Product name (Color: black, Size: S)"
-msgstr "Produktname (Farbe: schwarz, Grösse: S)"
+msgstr "Produktname (Farbe: schwarz, Größe: S)"
 
-#: includes/JtlConnectorAdmin.php:286
+#: includes/JtlConnectorAdmin.php:342
 msgid "Define how the child product name is formatted."
 msgstr "Definieren Sie wie der Name von Kindartikel formatiert werden soll."
 
-#: includes/JtlConnectorAdmin.php:504
-msgid ""
-"The linking table migration was not successful. Please use the forum for "
-"help."
-msgstr ""
-"Die Linking Tabelle konnte nicht erfolgreich migriert werden. Bitte nutzen "
-"Sie das Forum um Hilfe zu erhalten."
+#: includes/JtlConnectorAdmin.php:621
+msgid "The linking table migration was not successful. Please use the forum for help."
+msgstr "Die Linking Tabelle konnte nicht erfolgreich migriert werden. Bitte nutzen Sie das Forum um Hilfe zu erhalten."
 
-#: includes/JtlConnectorAdmin.php:509
+#: includes/JtlConnectorAdmin.php:627
 #, php-format
 msgid "Directory %s has no write access."
 msgstr "Verzeichnis '%s' hat keinen Schreibzugriff."
 
-#: includes/JtlConnectorAdmin.php:514 includes/JtlConnectorAdmin.php:519
+#: includes/JtlConnectorAdmin.php:635
 msgid "PHP extension \"phar\" could not be found."
 msgstr "PHP-Erweiterung \"Phar\" konnte nicht gefunden werden."
+
+#: includes/JtlConnectorAdmin.php:637
+msgid "PHP extension \"phar\" is not on the suhosin whitelist."
+msgstr "Die PHP-Erweiterung \"Phar\" befindet sich nicht auf der suhosin Whitelist."
 
 #: includes/settings.php:2
 msgid "Information"

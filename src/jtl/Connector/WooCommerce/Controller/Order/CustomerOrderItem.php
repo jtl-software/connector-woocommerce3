@@ -91,46 +91,46 @@ class CustomerOrderItem extends BaseController
             if ($tax === 0.0) {
                 $netPrice = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
-                // changed get_item_subtotal to get_item_total because discount wasn't sent correctly
-               /* $netPrice = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, false);*/
+                $netPrice = $order->get_item_subtotal($item, false, false);
+                $priceGross = $order->get_item_subtotal($item, true, false);
     
-                $netPrice = $order->get_item_total($item, false, false);
-                $priceGross = $order->get_item_total($item, true, false);
-            }
-
-            if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
-                $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
-            } else {
-                $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
-                self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
-            }
-
-            $orderItem
-                ->setVat($taxRate)
-                ->setPrice(round($netPrice, self::PRICE_DECIMALS))
-                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
-
-            $customerOrderItems[] = $orderItem;
-        }
-    }
-
-    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
-    {
-        $this->accurateItemTaxCalculation($order, 'shipping', $customerOrderItems, function ($shippingItem, $order, $taxRateId) {
-            return $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
-        });
-    }
-
-    /**
-     * Create an order item with the basic non price relevant information.
-     *
-     * @param \WC_Order_Item_Shipping $shippingItem
-     * @param \WC_Order $order
-     * @param null $taxRateId
-     *
-     * @return CustomerOrderItemModel
-     */
+                // changed  get_item_total to get_item_subtotal because discount problems
+                /* $netPrice = $order->get_item_total($item, false, false);
+                 $priceGross = $order->get_item_total($item, true, false);*/
+             }
+ 
+             if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
+                 $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
+             } else {
+                 $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
+                 self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
+             }
+ 
+             $orderItem
+                 ->setVat($taxRate)
+                 ->setPrice(round($netPrice, self::PRICE_DECIMALS))
+                 ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
+ 
+             $customerOrderItems[] = $orderItem;
+         }
+     }
+ 
+     public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
+     {
+         $this->accurateItemTaxCalculation($order, 'shipping', $customerOrderItems, function ($shippingItem, $order, $taxRateId) {
+             return $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
+         });
+     }
+ 
+     /**
+      * Create an order item with the basic non price relevant information.
+      *
+      * @param \WC_Order_Item_Shipping $shippingItem
+      * @param \WC_Order $order
+      * @param null $taxRateId
+      *
+      * @return CustomerOrderItemModel
+      */
     private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
     {
         return (new CustomerOrderItemModel())
