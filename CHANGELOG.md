@@ -4,6 +4,7 @@
 - CO-171 Added copy password field on settings page
 - CO-164 Fixed setting new name in category push.
 - CO-170 Extend some language file entries
+- Fixed double subtraction of coupons
 
 1.4.9
 -----
