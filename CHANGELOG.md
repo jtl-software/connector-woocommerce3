@@ -1,3 +1,8 @@
+1.4.11
+-----
+- Fixed wrong status on product pull
+- Fixed push didn't update product_variation information
+
 1.4.10
 -----
 - CO-170 Added an incompatible list on settings page
