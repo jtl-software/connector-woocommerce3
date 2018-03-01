@@ -39,10 +39,11 @@ class Product extends BaseController
 
             $postDate = $product->get_date_created();
             $modDate = $product->get_date_modified();
-
+            $status = $product->get_status('view');
             $result = (new ProductModel())
                 ->setId(new Identity($product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
+                ->setIsActive($status === 'private' ? false : true)
                 ->setSku($product->get_sku())
                 ->setVat(Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
@@ -110,9 +111,11 @@ class Product extends BaseController
         $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
         $creationDate = is_null($creationDate) ? date('now') : $creationDate;
 
+        $isMasterProduct = empty($masterProductId);
+        
         $endpoint = [
             'ID' => (int)$product->getId()->getEndpoint(),
-            'post_type' => empty($masterProductId) ? 'product' : 'product_variation',
+            'post_type' => $isMasterProduct ? 'product' : 'product_variation',
             'post_title' => $meta->getName(),
             'post_name' => $meta->getUrlPath(),
             'post_content' => $meta->getDescription(),
@@ -121,7 +124,7 @@ class Product extends BaseController
             //'post_date_gmt' => $this->getCreationDate($creationDate, true),
             'post_status' => is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future',
         ];
-
+        
         if ($endpoint['ID'] !== 0) {
             // Needs to be set for existing products otherwise commenting is disabled
             $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
@@ -144,7 +147,7 @@ class Product extends BaseController
 
         $product->getId()->setEndpoint($result);
 
-        $this->onProductInserted($product);
+        $this->onProductInserted($product, $meta);
 
         if (Germanized::getInstance()->isActive()) {
             $this->updateGermanizedAttributes($product);
@@ -170,7 +173,7 @@ class Product extends BaseController
         return count($this->database->queryList(SQL::productPull()));
     }
 
-    protected function onProductInserted(ProductModel &$product)
+    protected function onProductInserted(ProductModel &$product, &$meta)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
@@ -181,9 +184,9 @@ class Product extends BaseController
         $this->updateProductMeta($product, $wcProduct);
 
         $this->updateProductRelations($product);
-
+        
         if ($this->getType($product) === 'product_variation') {
-            $this->updateVariationCombinationChild($product, $wcProduct);
+            $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         } else {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
@@ -239,15 +242,15 @@ class Product extends BaseController
         $productVariation->pushData($product);
     }
 
-    private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct)
+    private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
     {
         $productId = (int)$product->getId()->getEndpoint();
 
         $productTitle = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
         $variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post(['ID' => $productId, 'post_title' => $variation_post_title]);
-
-        \update_post_meta($productId, '_variation_description', $wcProduct->get_);
+        \update_post_meta($productId, '_variation_description', $meta->getDescription());
+        \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
 
         $productStockLevel = new ProductStockLevel();
         $productStockLevel->pushDataChild($product);
@@ -380,12 +383,16 @@ class Product extends BaseController
     private function getType(ProductModel $product)
     {
         $variations = $product->getVariations();
-        $type = $product->getProductTypeId()->getEndpoint();
-
-        if (in_array($type, \wc_get_product_types())) {
-            return $type;
-        } elseif (!empty($variations)) {
+        $productId = (int)$product->getId()->getEndpoint();
+        $type = \get_post_field('post_type', $productId);
+      
+        $allowedTypes = \wc_get_product_types();
+        $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
+    
+        if (!empty($variations) && $type === 'product') {
             return 'variable';
+        } elseif (array_key_exists($type, $allowedTypes)) {
+            return $type;
         }
 
         return 'simple';
