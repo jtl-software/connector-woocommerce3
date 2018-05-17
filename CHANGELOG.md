@@ -1,3 +1,7 @@
+1.4.12
+-----
+- Fixed wrong vat on shipping items
+
 1.4.11
 -----
 - Fixed wrong status on product pull

@@ -509,12 +509,19 @@ final class SQL
             number_format($rate, 4)
         );
     }
-
+    
     public static function taxRateById($taxRateId)
     {
         global $wpdb;
-
+        
         return "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = {$taxRateId}";
+    }
+    
+    public static function getAllTaxRates()
+    {
+        global $wpdb;
+        
+        return "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates";
     }
     // </editor-fold>
 
