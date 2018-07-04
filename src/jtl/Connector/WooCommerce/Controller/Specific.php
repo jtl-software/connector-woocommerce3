@@ -151,14 +151,14 @@ class Specific extends BaseController
                 )
             );
             
-            if (isset($exValId)) {
-                if (isset($exValId[0])) {
-                    if (isset($exValId[0]['term_id'])) {
-                        $exValId = $exValId[0]['term_id'];
-                    } else {
-                        $exValId = null;
-                    }
-                };
+            if (isset($exValId) && count($exValId) > 1) {
+                if (isset($exValId[0]['term_id'])) {
+                    $exValId = $exValId[0]['term_id'];
+                } else {
+                    $exValId = null;
+                }
+            } else {
+                $exValId = null;
             }
             
             $endValId = (int)$value->getId()->getEndpoint();
