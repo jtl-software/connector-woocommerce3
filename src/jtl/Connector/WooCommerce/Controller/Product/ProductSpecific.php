@@ -156,7 +156,7 @@ class ProductSpecific extends BaseController
                 'is_taxonomy'  => $slug,
             ];
             $values = [];
-            if(isset($specific['options'])){
+            if (isset($specific) && count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
                     $values[] = get_term_by('id', $valId, $slug)->slug;
                 }
