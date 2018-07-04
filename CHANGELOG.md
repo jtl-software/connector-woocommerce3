@@ -1,3 +1,9 @@
+1.5.0
+-----
+- Add specific support(Beta)
+- Add new attribute handling(Beta)
+- IntegrityCheck in install routine
+
 1.4.12
 -----
 - Fixed wrong vat on shipping items
