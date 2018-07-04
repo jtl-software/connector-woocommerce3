@@ -70,8 +70,14 @@ class Product extends BaseController
                 ->addPrice(ProductPrice::getInstance()->pullData($product))
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
                 ->setCategories(Product2Category::getInstance()->pullData($product))
-                ->setAttributes(ProductAttr::getInstance()->pullData($product))
                 ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
+                //->setAttributes(ProductAttr::getInstance()->pullData($product))
+    
+            // Simple or father articles
+            if ($product->is_type('variable') || $product->is_type('simple')) {
+                $result->setAttributes(ProductAttr::getInstance()->pullData($product))
+                    ->setSpecifics(ProductSpecific::getInstance()->pullData($product, $result));
+            }
             
             if ($product->managing_stock()) {
                 $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
@@ -262,11 +268,9 @@ class Product extends BaseController
         
         \update_post_meta($productId, '_visibility', 'visible');
         
-        $productAttr = new ProductAttr();
-        $productAttr->pushData($product);
-        
-        $productStockLevel = new ProductStockLevel();
-        $productStockLevel->pushDataParent($product);
+        (new ProductAttr)->pushData($product);
+        (new ProductSpecific)->pushData($product);
+        (new ProductStockLevel)->pushDataParent($product);
         
         if ($product->getIsMasterProduct()) {
             Util::getInstance()->addMasterProductToSync($productId);
