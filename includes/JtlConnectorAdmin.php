@@ -1,5 +1,10 @@
 <?php
 
+use jtl\Connector\Core\Exception\MissingRequirementException;
+use Jtl\Connector\Integrity\Models\Test\Result;
+use Jtl\Connector\Integrity\Models\Test\ResultCollection;
+use jtl\Connector\WooCommerce\Integrity\JTLIntegrityCheck;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -47,6 +52,7 @@ final class JtlConnectorAdmin
             deactivate_plugins(__FILE__);
             add_action('admin_notices', 'wrong_woocommerce_version');
         }
+        
         try {
             self::run_system_check();
             self::activate_linking();
@@ -85,6 +91,19 @@ final class JtlConnectorAdmin
             }
             
             \jtl\Connector\Core\System\Check::run();
+            
+            foreach (JTLIntegrityCheck::init()->run() as $error) {
+                throw new Exception(
+                    sprintf(
+                        '[%s] : %s ',
+                        $error['name'],
+                        $error['message']) . PHP_EOL
+                    . sprintf(
+                        '%s',
+                        $error['solution']
+                    ));
+            }
+            
         } catch (\Exception $e) {
             wp_die($e->getMessage());
         }
@@ -119,6 +138,8 @@ final class JtlConnectorAdmin
         $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
+        $wpdb->query(sprintf($query, 'jtl_connector_link_specific'));
+        $wpdb->query(sprintf($query, 'jtl_connector_link_specific_value'));
         
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
@@ -288,7 +309,7 @@ final class JtlConnectorAdmin
             [
                 'title' => __('Incompatible with these plugins:', TEXT_DOMAIN),
                 'type'  => 'title',
-                'desc'  => 'Wordfence',
+                'desc'  => 'Wordfence, Anti Spam Bee, WP Cerber Anti-Spam',
             ],
             [
                 'title' => 'Connector URL',
@@ -610,6 +631,12 @@ final class JtlConnectorAdmin
             $wpdb->query("
                 ALTER TABLE `jtl_connector_link_category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+            );
+            
+            $table = $wpdb->prefix.'woocommerce_attribute_taxonomies';
+            $wpdb->query("
+                ALTER TABLE `jtl_connector_link_specific`
+                ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
         }
     }

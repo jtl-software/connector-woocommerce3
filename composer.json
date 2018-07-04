@@ -22,11 +22,18 @@
       "type": "git",
       "url": "git@gitlab.jtl-software.de:jtl-software-gmbh/jtlconnector.git",
       "reference": "origin/master"
+    },
+    {
+      "type": "git",
+      "url": "git@gitlab.jtl-software.de:jtlconnector/integrity-check.git",
+      "reference": "origin/master"
     }
   ],
   "require": {
     "php": ">=5.4.0",
-    "jtl/connector": "~2.0"
+    "jtl/connector": "~2.0",
+    "jtl/integrity-check": "dev-develop",
+    "larapack/dd": "^1.1"
   },
   "require-dev": {
     "phpunit/phpunit": "4.8.*"

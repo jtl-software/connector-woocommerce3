@@ -79,7 +79,7 @@ class Category extends BaseController
         }
         
         if (is_null($meta)) {
-            return $category;
+            return $specific;
         }
         
         $categoryData = [
@@ -108,20 +108,20 @@ class Category extends BaseController
         if ($result instanceof \WP_Error) {
             WpErrorLogger::getInstance()->logError($result);
             
-            return $category;
+            return $specific;
         }
         
-        $category->getId()->setEndpoint($result['term_id']);
-        self::$idCache[$category->getId()->getHost()] = $result['term_id'];
+        $specific->getId()->setEndpoint($result['term_id']);
+        self::$idCache[$specific->getId()->getHost()] = $result['term_id'];
         
-        CategoryUtil::updateCategoryTree($category, empty($categoryId));
+        CategoryUtil::updateCategoryTree($specific, empty($categoryId));
         
-        return $category;
+        return $specific;
     }
     
-    protected function deleteData(CategoryModel $category)
+    protected function deleteData(CategoryModel $specific)
     {
-        $categoryId = $category->getId()->getEndpoint();
+        $categoryId = $specific->getId()->getEndpoint();
         
         if (!empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
@@ -131,13 +131,13 @@ class Category extends BaseController
             if ($result instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($result);
                 
-                return $category;
+                return $specific;
             }
             
-            unset(self::$idCache[$category->getId()->getHost()]);
+            unset(self::$idCache[$specific->getId()->getHost()]);
         }
         
-        return $category;
+        return $specific;
     }
     
     protected function getStats()

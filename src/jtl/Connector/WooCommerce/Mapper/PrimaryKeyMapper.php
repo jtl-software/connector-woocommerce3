@@ -19,11 +19,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     public function getHostId($endpointId, $type)
     {
         $tableName = $this->getTableName($type);
-
+        
         if (is_null($tableName)) {
             return null;
         }
-
+        
         if ($type === IdentityLinker::TYPE_IMAGE) {
             list($endpointId, $imageType) = Id::unlinkImage($endpointId);
             $hostId = Db::getInstance()->queryOne(SQL::primaryKeyMappingHostImage($endpointId, $imageType), false);
@@ -33,21 +33,21 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } else {
             $hostId = Db::getInstance()->queryOne(SQL::primaryKeyMappingHostInteger($endpointId, $tableName), false);
         }
-
+        
         PrimaryKeyMappingLogger::getInstance()->getHostId($endpointId, $type, $hostId);
-
+        
         return $hostId !== false ? (int)$hostId : null;
     }
-
+    
     public function getEndpointId($hostId, $type, $relationType = null)
     {
         $clause = '';
         $tableName = $this->getTableName($type);
-
+        
         if (is_null($tableName)) {
             return null;
         }
-
+        
         if ($type === IdentityLinker::TYPE_IMAGE) {
             switch ($relationType) {
                 case ImageRelationType::TYPE_PRODUCT:
@@ -57,27 +57,27 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     $relationType = IdentityLinker::TYPE_CATEGORY;
                     break;
             }
-
+            
             $clause = "AND type = {$relationType}";
         }
-
+        
         $endpointId = Db::getInstance()->queryOne(SQL::primaryKeyMappingEndpoint($hostId, $tableName, $clause), false);
-
+        
         PrimaryKeyMappingLogger::getInstance()->getEndpointId($hostId, $type, $endpointId);
-
+        
         return $endpointId;
     }
-
+    
     public function save($endpointId, $hostId, $type)
     {
         $tableName = $this->getTableName($type);
-
+        
         if (is_null($tableName)) {
             return null;
         }
-
+        
         PrimaryKeyMappingLogger::getInstance()->save($endpointId, $hostId, $type);
-
+        
         if ($type === IdentityLinker::TYPE_IMAGE) {
             list($endpointId, $imageType) = Id::unlinkImage($endpointId);
             $id = Db::getInstance()->query(SQL::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType), false);
@@ -87,27 +87,27 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } else {
             $id = Db::getInstance()->query(SQL::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName), false);
         }
-
+        
         return $id !== false;
     }
-
+    
     public function delete($endpointId = null, $hostId = null, $type)
     {
         $where = '';
         $tableName = $this->getTableName($type);
-
+        
         if (is_null($tableName)) {
             return null;
         }
-
+        
         PrimaryKeyMappingLogger::getInstance()->delete($endpointId, $hostId, $type);
-
+        
         if ($type === IdentityLinker::TYPE_IMAGE || $type === IdentityLinker::TYPE_CUSTOMER) {
             $endpoint = "'{$endpointId}'";
         } else {
             $endpoint = "{$endpointId}";
         }
-
+        
         if ($endpointId !== null && $hostId !== null) {
             $where = "WHERE endpoint_id = {$endpoint} AND host_id = {$hostId}";
         } elseif ($endpointId !== null) {
@@ -115,26 +115,26 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } elseif ($hostId !== null) {
             $where = "WHERE host_id = {$hostId}";
         }
-
+        
         return Db::getInstance()->query(SQL::primaryKeyMappingDelete($where, $tableName), false);
     }
-
+    
     public function clear()
     {
         PrimaryKeyMappingLogger::getInstance()->writeLog('Clearing linking tables');
-
+        
         foreach (SQL::primaryKeyMappingClear() as $query) {
             Db::getInstance()->query($query);
         }
-
+        
         return true;
     }
-
+    
     public function gc()
     {
         return true;
     }
-
+    
     public static function getTableName($type)
     {
         switch ($type) {
@@ -152,8 +152,12 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_payment';
             case IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
+            case IdentityLinker::TYPE_SPECIFIC:
+                return 'jtl_connector_link_specific';
+            case IdentityLinker::TYPE_SPECIFIC_VALUE:
+                return 'jtl_connector_link_specific_value';
         }
-
+        
         return null;
     }
 }
