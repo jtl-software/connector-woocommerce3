@@ -108,15 +108,15 @@ class Category extends BaseController
         if ($result instanceof \WP_Error) {
             WpErrorLogger::getInstance()->logError($result);
             
-            return $specific;
+            return $category;
         }
+    
+        $category->getId()->setEndpoint($result['term_id']);
+        self::$idCache[$category->getId()->getHost()] = $result['term_id'];
         
-        $specific->getId()->setEndpoint($result['term_id']);
-        self::$idCache[$specific->getId()->getHost()] = $result['term_id'];
+        CategoryUtil::updateCategoryTree($category, empty($categoryId));
         
-        CategoryUtil::updateCategoryTree($specific, empty($categoryId));
-        
-        return $specific;
+        return $category;
     }
     
     protected function deleteData(CategoryModel $specific)

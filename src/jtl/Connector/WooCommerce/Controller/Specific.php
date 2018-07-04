@@ -149,7 +149,18 @@ class Specific extends BaseController
                     $taxonomy,
                     $endpointValue['name']
                 )
-            )[0]['term_id'];
+            );
+            
+            if (isset($exValId)) {
+                if (isset($exValId[0])) {
+                    if (isset($exValId[0]['term_id'])) {
+                        $exValId = $exValId[0]['term_id'];
+                    } else {
+                        $exValId = null;
+                    }
+                };
+            }
+            
             $endValId = (int)$value->getId()->getEndpoint();
             
             if ($exValId === null && $endValId === 0) {
@@ -188,7 +199,7 @@ class Specific extends BaseController
                 \wp_delete_term($value['term_id'], $taxonomy);
             }
             
-            $result = wc_delete_attribute($specificId);
+            wc_delete_attribute($specificId);
             
             unset(self::$idCache[$specific->getId()->getHost()]);
         }

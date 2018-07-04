@@ -156,11 +156,12 @@ class ProductSpecific extends BaseController
                 'is_taxonomy'  => $slug,
             ];
             $values = [];
-            foreach ($specific['options'] as $valId) {
-                $values[] = get_term_by('id', $valId, $slug)->slug;
+            if(isset($specific['options'])){
+                foreach ($specific['options'] as $valId) {
+                    $values[] = get_term_by('id', $valId, $slug)->slug;
+                }
             }
-            $productID = $wcProduct->get_id();
-            wp_set_object_terms($productID, $values, $slug, true);
+            wp_set_object_terms($wcProduct->get_id(), $values, $slug, true);
         }
         
         if (!empty($current)) {
