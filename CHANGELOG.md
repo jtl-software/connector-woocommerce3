@@ -1,3 +1,7 @@
+1.5.1
+-----
+- Specific value language bug
+
 1.5.0
 -----
 - Add specific support(Beta)
