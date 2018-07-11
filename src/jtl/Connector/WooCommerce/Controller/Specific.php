@@ -137,6 +137,10 @@ class Specific extends BaseController
                 }
             }
             
+            if (is_null($metaValue)){
+                continue;
+            }
+            
             $slug = wc_sanitize_taxonomy_name($metaValue->getValue());
             
             $endpointValue = [
