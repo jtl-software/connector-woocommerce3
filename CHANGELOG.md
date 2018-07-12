@@ -1,3 +1,7 @@
+1.5.2
+-----
+- Specific value error bug
+
 1.5.1
 -----
 - Specific value language bug
