@@ -168,10 +168,17 @@ class Specific extends BaseController
             $endValId = (int)$value->getId()->getEndpoint();
             
             if ($exValId === null && $endValId === 0) {
-                $termId = \wp_insert_term(
+                $newTerm = \wp_insert_term(
                     $endpointValue['name'],
                     $taxonomy
-                )['term_id'];
+                );
+                
+                if ($newTerm instanceof \WP_Error) {
+                    continue;
+                   /* return $newTerm->get_error_message();*/
+                }
+                
+                $termId = $newTerm['term_id'];
             } elseif ($exValId === null && $endValId !== 0) {
                 $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
             } else {
@@ -179,7 +186,8 @@ class Specific extends BaseController
             }
             
             if ($endValId === 0 && $termId instanceof \WP_Error) {
-                return $termId->get_error_message();
+                /*return $termId->get_error_message();*/
+                continue;
             }
             
             $value->getId()->setEndpoint($termId);
