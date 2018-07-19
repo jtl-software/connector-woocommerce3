@@ -23,7 +23,7 @@ class JTLIntegrityCheckTestLoader extends AbstractTestLoader
         
         $this->addTest(new DbConnectionTest($sort++));
         //$this->addTest(new OrphanCategoriesTest($sort++));
-        $this->addTest(new ProductsWithoutCategoriesTest($sort++));
+        //$this->addTest(new ProductsWithoutCategoriesTest($sort++));
         //$this->addTest(new ProductsWithoutPriceTest($sort++));
         $this->addTest(new NotSupportedProductTypesTest($sort++));
         $this->addTest(new DuplicatedSkuTest($sort++));

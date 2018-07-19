@@ -1,3 +1,8 @@
+1.5.3
+-----
+- remove image pull bug
+- remove one integrity check test
+
 1.5.2
 -----
 - Specific value error bug
