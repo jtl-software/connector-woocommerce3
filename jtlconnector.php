@@ -36,7 +36,7 @@ if (rewriting_disabled()) {
     add_action('admin_notices', 'rewriting_not_activated');
 } else {
     define('CONNECTOR_DIR', __DIR__);
-    define('CONNECTOR_VERSION', '1.5.3');
+    define('CONNECTOR_VERSION', file_get_contents(__DIR__.'/version'));
     define('DS', DIRECTORY_SEPARATOR);
     define('INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . DS);
 
