@@ -132,12 +132,13 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        
+    
         $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
+        $wpdb->query(sprintf($query, 'jtl_connector_link_shipping_class'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_specific'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_specific_value'));
         

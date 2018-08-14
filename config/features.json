@@ -382,7 +382,7 @@
     },
     "ShippingMethod": {
       "pull": true,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "Specific": {

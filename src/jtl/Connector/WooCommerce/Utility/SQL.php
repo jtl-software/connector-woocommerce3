@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
@@ -454,6 +454,7 @@ final class SQL
             "DELETE FROM jtl_connector_link_order",
             "DELETE FROM jtl_connector_link_payment",
             "DELETE FROM jtl_connector_link_crossselling",
+            "DELETE FROM jtl_connector_link_shipping_class",
             "DELETE FROM jtl_connector_link_specific",
             "DELETE FROM jtl_connector_link_specific_value",
         ];
@@ -593,6 +594,7 @@ final class SQL
     ORDER BY tt.parent ASC;*/
     
     // </editor-fold>
+    
     // <editor-fold defaultstate="collapsed" desc="Taxes">
     public static function taxClassByRate($rate)
     {

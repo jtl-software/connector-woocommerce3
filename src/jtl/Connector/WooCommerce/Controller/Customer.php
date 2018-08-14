@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
@@ -49,7 +49,7 @@ class Customer extends BaseController
                 ->setState($wcCustomer->get_billing_state())
                 ->setCountryIso($wcCustomer->get_billing_country())
                 ->setPhone($wcCustomer->get_billing_phone())
-                ->setNote(\get_user_meta($wcCustomer->get_id(), 'description', true))
+                ->setNote((string)\get_user_meta($wcCustomer->get_id(), 'description', true))
                 ->setCreationDate($wcCustomer->get_date_created())
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(true)

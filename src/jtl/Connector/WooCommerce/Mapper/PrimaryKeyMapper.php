@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
@@ -152,6 +152,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_payment';
             case IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
+            case IdentityLinker::TYPE_SHIPPING_CLASS:
+                return 'jtl_connector_link_shipping_class';
             case IdentityLinker::TYPE_SPECIFIC:
                 return 'jtl_connector_link_specific';
             case IdentityLinker::TYPE_SPECIFIC_VALUE:

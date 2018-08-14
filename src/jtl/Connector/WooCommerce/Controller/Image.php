@@ -1,6 +1,6 @@
 <?php
 /**
- * @author    Sven Mäurer <sven.maeurer@jtl-software.com>
+ * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
