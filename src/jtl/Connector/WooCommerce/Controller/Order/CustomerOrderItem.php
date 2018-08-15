@@ -60,7 +60,11 @@ class CustomerOrderItem extends BaseController
             }
             
             if ($product instanceof \WC_Product) {
-                $orderItem->setSku($product->get_sku());
+                
+                if(is_string($product->get_sku())){
+                    $orderItem->setSku($product->get_sku());
+                }
+                
                 $orderItem->setProductId(new Identity($product->get_id()));
                 
                 if ($product instanceof \WC_Product_Variation) {
