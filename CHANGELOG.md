@@ -1,3 +1,8 @@
+1.5.4
+-----
+- fix cast bug on Customer
+- ShippingClass will now be pushed
+
 1.5.3
 -----
 - remove image pull bug
