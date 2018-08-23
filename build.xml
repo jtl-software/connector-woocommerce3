@@ -42,6 +42,7 @@
 				<include name="uninstall.php"/>
 				<include name="LICENSE"/>
 				<include name="CHANGELOG.md"/>
+				<include name="version"/>
 			</fileset>
 		</copy>
 		<copy todir="./dist/jtlconnector/includes">

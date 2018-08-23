@@ -54,7 +54,7 @@ final class JtlConnectorAdmin
         }
         
         try {
-            self::run_system_check();
+            //self::run_system_check();
             self::activate_linking();
             self::activate_checksum();
             self::activate_category_tree();
