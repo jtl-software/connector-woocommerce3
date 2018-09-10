@@ -36,10 +36,13 @@ class ProductSpecific extends BaseController
                 $name = $attribute->get_name();
                 $productAttribute = $product->get_attribute($name);
                 
-                $values = explode(',', $productAttribute);
+                $values = array_map('trim', explode(',', $productAttribute));
                 
                 foreach ($values as $value) {
-                    $productSpecifics[] = $this->buildProductSpecific($slug, trim($value), $result);
+                    if(empty($value)) {
+                        continue;
+                    }
+                    $productSpecifics[] = $this->buildProductSpecific($slug, $value, $result);
                 }
             } else {
                 continue;
