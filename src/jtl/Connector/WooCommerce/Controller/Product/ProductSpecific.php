@@ -68,7 +68,7 @@ class ProductSpecific extends BaseController
     private function getSpecificValueId($slug, $value)
     {
         $val = $this->database->query(SQL::getSpecificValueId($slug, $value));
-        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id'])
+        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id']) && !is_null($val[0]['endpoint_id']) && !is_null($val[0]['host_id'])
             ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
             : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
         
