@@ -36,10 +36,13 @@ class ProductSpecific extends BaseController
                 $name = $attribute->get_name();
                 $productAttribute = $product->get_attribute($name);
                 
-                $values = explode(',', $productAttribute);
+                $values = array_map('trim', explode(',', $productAttribute));
                 
                 foreach ($values as $value) {
-                    $productSpecifics[] = $this->buildProductSpecific($slug, trim($value), $result);
+                    if(empty($value)) {
+                        continue;
+                    }
+                    $productSpecifics[] = $this->buildProductSpecific($slug, $value, $result);
                 }
             } else {
                 continue;
@@ -65,7 +68,7 @@ class ProductSpecific extends BaseController
     private function getSpecificValueId($slug, $value)
     {
         $val = $this->database->query(SQL::getSpecificValueId($slug, $value));
-        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id'])
+        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id']) && !is_null($val[0]['endpoint_id']) && !is_null($val[0]['host_id'])
             ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
             : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
         
