@@ -39,7 +39,7 @@ class ProductSpecific extends BaseController
                 $values = array_map('trim', explode(',', $productAttribute));
                 
                 foreach ($values as $value) {
-                    if(empty($value)) {
+                    if (empty($value)) {
                         continue;
                     }
                     $productSpecifics[] = $this->buildProductSpecific($slug, $value, $result);
@@ -98,15 +98,13 @@ class ProductSpecific extends BaseController
             return;
         }
         
-        $specifics = $product->getSpecifics();
+        $pushedSpecifics = $product->getSpecifics();
         $productSpecifics = $wcProduct->get_attributes();
         
         $current = [];
-        
-        $attributes = [];
         $specificData = [];
         
-        foreach ($specifics as $specific) {
+        foreach ($pushedSpecifics as $specific) {
             $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
                 (int)$specific->getSpecificValueId()->getEndpoint();
         }
@@ -128,9 +126,11 @@ class ProductSpecific extends BaseController
                 ];
             } elseif (preg_match('/^pa_/', $slug)
                 && array_key_exists($productSpecific->get_id(), $specificData)) {
+                
                 $cOptions = $specificData[$productSpecific->get_id()]['options'];
                 $cOldOptions = $productSpecific->get_options();
                 unset($specificData[$slug]);
+                
                 $current[$slug] = [
                     'name'         => $productSpecific->get_name(),
                     'value'        => '',
@@ -139,6 +139,7 @@ class ProductSpecific extends BaseController
                     'is_variation' => $productSpecific->get_variation(),
                     'is_taxonomy'  => $productSpecific->get_taxonomy(),
                 ];
+                
                 foreach ($cOldOptions as $value) {
                     wp_remove_object_terms($product->getId()->getEndpoint(), $value, $slug);
                 }
@@ -167,9 +168,9 @@ class ProductSpecific extends BaseController
             wp_set_object_terms($wcProduct->get_id(), $values, $slug, true);
         }
         
-        if (!empty($current)) {
-            \update_post_meta($wcProduct->get_id(), '_product_attributes', $current);
-        }
+        
+        \update_post_meta($wcProduct->get_id(), '_product_attributes', $current);
+        
     }
     // </editor-fold>
 }

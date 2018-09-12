@@ -11,6 +11,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
 
 class ProductAttr extends BaseController
@@ -111,8 +112,26 @@ class ProductAttr extends BaseController
         }
         
         $attributes = $this->getVariationAndSpecificAttributes($wcProduct);
+        $pushedAttributes = $product->getAttributes();
         
-        foreach ($product->getAttributes() as $attribute) {
+        foreach ($attributes as $key => $attr) {
+            if ($attr['is_variation'] === true || $attr['is_variation'] === false && $attr['value'] === '') {
+                continue;
+            }
+            $tmp = false;
+            
+            foreach ($pushedAttributes as $pushedAttribute) {
+                if ($attr->id == $pushedAttribute->getId()->getEndpoint()) {
+                    $tmp = true;
+                }
+            }
+            
+            if ($tmp) {
+                unset($attributes[$key]);
+            }
+        }
+        
+        foreach ($pushedAttributes as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
                 if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
                     continue;
@@ -122,6 +141,7 @@ class ProductAttr extends BaseController
                 break;
             }
         }
+        
         
         if (!empty($attributes)) {
             \update_post_meta($wcProduct->get_id(), '_product_attributes', $attributes);
@@ -147,6 +167,7 @@ class ProductAttr extends BaseController
         foreach ($currentAttributes as $slug => $attribute) {
             if ($attribute->get_variation()) {
                 $attributes[$slug] = [
+                    'id'           => $attribute->get_id(),
                     'name'         => $attribute->get_name(),
                     'value'        => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
                     'position'     => $attribute->get_position(),
@@ -157,6 +178,7 @@ class ProductAttr extends BaseController
             } elseif (taxonomy_exists($slug)) {
                 $attributes[$slug] =
                     [
+                        'id'           => $attribute->get_id(),
                         'name'         => $attribute->get_name(),
                         'value'        => '',
                         'position'     => $attribute->get_position(),
