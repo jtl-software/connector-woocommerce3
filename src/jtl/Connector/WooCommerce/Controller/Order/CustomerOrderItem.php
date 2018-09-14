@@ -235,15 +235,16 @@ class CustomerOrderItem extends BaseController
                 if ($total != 0) {
                     $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
                     $vat = 0.0;
+                    $taxRates = (array)SQL::getAllTaxRates();
                     
-                    foreach (SQL::getAllTaxRates() as $taxrate){
+                    foreach ($taxRates as $taxrate){
                         if($tmpVat >= $taxrate)
                         {
                             $vat = $taxrate;
                         }
                     }
                     
-                    $customerOrderItem->setVat($vat);
+                    $customerOrderItem->setVat((double)$vat);
                     $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
                     $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
                 }

@@ -3,7 +3,6 @@
 use jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Integrity\Models\Test\Result;
 use Jtl\Connector\Integrity\Models\Test\ResultCollection;
-use jtl\Connector\WooCommerce\Integrity\JTLIntegrityCheck;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -54,7 +53,7 @@ final class JtlConnectorAdmin
         }
         
         try {
-            //self::run_system_check();
+            self::run_system_check();
             self::activate_linking();
             self::activate_checksum();
             self::activate_category_tree();
@@ -91,18 +90,6 @@ final class JtlConnectorAdmin
             }
             
             \jtl\Connector\Core\System\Check::run();
-            
-            foreach (JTLIntegrityCheck::init()->run() as $error) {
-                throw new Exception(
-                    sprintf(
-                        '[%s] : %s ',
-                        $error['name'],
-                        $error['message']) . PHP_EOL
-                    . sprintf(
-                        '%s',
-                        $error['solution']
-                    ));
-            }
             
         } catch (\Exception $e) {
             wp_die($e->getMessage());
