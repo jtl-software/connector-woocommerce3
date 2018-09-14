@@ -1,3 +1,18 @@
+1.5.7-dev
+-----
+
+1.5.6
+-----
+- CO-271 fix_product_attribute_push
+- Fixed CO-284 - VAT is not set correctly on CustomerOrderItem
+- Fixed CO-271 - Artikelattribute werden nicht entfernt
+- removed integrity check 
+
+1.5.5
+-----
+- use dynamic table prefix in all sql queries.
+- version file included into connector build.
+
 1.5.4
 -----
 - fix cast bug on Customer
