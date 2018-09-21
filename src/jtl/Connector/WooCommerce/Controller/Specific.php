@@ -18,6 +18,7 @@ use jtl\Connector\WooCommerce\Controller\Traits\StatsTrait;
 use jtl\Connector\WooCommerce\Logger\WpErrorLogger;
 use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
+use WP_Error;
 
 class Specific extends BaseController
 {
@@ -85,6 +86,7 @@ class Specific extends BaseController
         }
         
         $attrName = wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
+        
         //STOP here if already exists
         $exId = Util::getAttributeTaxonomyIdByName($attrName);
         $endId = (int)$specific->getId()->getEndpoint();
@@ -102,6 +104,7 @@ class Specific extends BaseController
         $endpoint = [
             'id'       => $attrId,
             'name'     => $meta->getName(),
+            'slug'     => wc_sanitize_taxonomy_name(substr(trim($meta->getName()), 0, 27)),
             'type'     => 'select',
             'order_by' => 'menu_order',
             //'attribute_public'  => 0,
@@ -113,14 +116,23 @@ class Specific extends BaseController
             $attributeId = wc_update_attribute($endpoint['id'], $endpoint);
         }
         
-        if ($endpoint['id'] === 0 && $attributeId instanceof \WP_Error) {
-            return $attributeId->get_error_message();
+        if ($attributeId instanceof WP_Error) {
+            //var_dump($attributeId);
+            //die();
+            //return $termId->get_error_message();
+            WpErrorLogger::getInstance()->logError($attributeId);
+            
+            return $specific;
+            
         }
         
         $specific->getId()->setEndpoint($attributeId);
         
         //Get taxonomy
-        $taxonomy = wc_attribute_taxonomy_name($attrName);
+        $taxonomy = $attrName ?
+            'pa_' . wc_sanitize_taxonomy_name(substr(trim($meta->getName()), 0, 27))
+            : '';
+        
         //Register taxonomy for current request
         register_taxonomy($taxonomy, null);
         
@@ -137,7 +149,7 @@ class Specific extends BaseController
                 }
             }
             
-            if (is_null($metaValue)){
+            if (is_null($metaValue)) {
                 continue;
             }
             
@@ -155,7 +167,7 @@ class Specific extends BaseController
                 )
             );
             
-            if (isset($exValId) && count($exValId) > 1) {
+            if (count($exValId) >= 1) {
                 if (isset($exValId[0]['term_id'])) {
                     $exValId = $exValId[0]['term_id'];
                 } else {
@@ -167,26 +179,30 @@ class Specific extends BaseController
             
             $endValId = (int)$value->getId()->getEndpoint();
             
-            if ($exValId === null && $endValId === 0) {
+            if (is_null($exValId) && $endValId === 0) {
                 $newTerm = \wp_insert_term(
                     $endpointValue['name'],
                     $taxonomy
                 );
                 
-                if ($newTerm instanceof \WP_Error) {
+                if ($newTerm instanceof WP_Error) {
+                    //  var_dump($newTerm);
+                    // die();
+                    WpErrorLogger::getInstance()->logError($newTerm);
                     continue;
-                   /* return $newTerm->get_error_message();*/
                 }
                 
                 $termId = $newTerm['term_id'];
-            } elseif ($exValId === null && $endValId !== 0) {
+            } elseif (is_null($exValId) && $endValId !== 0) {
                 $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
             } else {
                 $termId = $exValId;
             }
             
-            if ($endValId === 0 && $termId instanceof \WP_Error) {
-                /*return $termId->get_error_message();*/
+            if ($termId instanceof WP_Error) {
+                // var_dump($termId);
+                // die();
+                WpErrorLogger::getInstance()->logError($termId);
                 continue;
             }
             
