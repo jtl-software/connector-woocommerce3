@@ -1,3 +1,7 @@
+1.5.8-dev
+-----
+- ???
+
 1.5.7
 -----
 - Fixed CO-290 - "Probleme bei der gleichzeitigen Übernahme von Aufträgen mit unterschiedlichem MwSt-Satz"
