@@ -71,8 +71,8 @@ class Product extends BaseController
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
                 ->setCategories(Product2Category::getInstance()->pullData($product))
                 ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
-                //->setAttributes(ProductAttr::getInstance()->pullData($product))
-    
+            //->setAttributes(ProductAttr::getInstance()->pullData($product))
+            
             // Simple or father articles
             if ($product->is_type('variable') || $product->is_type('simple')) {
                 $result->setAttributes(ProductAttr::getInstance()->pullData($product))
@@ -226,10 +226,19 @@ class Product extends BaseController
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
         \wp_set_post_terms($wcProduct->get_id(), implode(',', $tags), 'product_tag');
         
-        $shippingClass = $product->getShippingClassId()->getEndpoint();
+        $shippingClass = get_term_by(
+            'id',
+            \wc_clean($product->getShippingClassId()->getEndpoint()),
+            'product_shipping_class'
+        );
         
         if (!empty($shippingClass)) {
-            \wp_set_object_terms($wcProduct->get_id(), \wc_clean($shippingClass), 'product_shipping_class');
+            \wp_set_object_terms(
+                $wcProduct->get_id(),
+                $shippingClass->term_id,
+                'product_shipping_class',
+                false
+            );
         }
     }
     

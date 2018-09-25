@@ -9,6 +9,7 @@ namespace jtl\Connector\WooCommerce\Controller\Order;
 use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\WooCommerce\Controller\BaseController;
+use jtl\Connector\WooCommerce\Utility\Db;
 use jtl\Connector\WooCommerce\Utility\Id;
 use jtl\Connector\WooCommerce\Utility\SQL;
 use jtl\Connector\WooCommerce\Utility\Util;
@@ -61,7 +62,7 @@ class CustomerOrderItem extends BaseController
             
             if ($product instanceof \WC_Product) {
                 
-                if(is_string($product->get_sku())){
+                if (is_string($product->get_sku())) {
                     $orderItem->setSku($product->get_sku());
                 }
                 
@@ -94,9 +95,9 @@ class CustomerOrderItem extends BaseController
             $tax = $order->get_item_tax($item); // the tax amount
             
             if ($tax === 0.0) {
-                $netPrice = $priceGross = $order->get_item_subtotal($item, true, false);
+                $priceNet = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
-                $netPrice = $order->get_item_subtotal($item, false, false);
+                $priceNet = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, false);
                 
                 // changed  get_item_total to get_item_subtotal because discount problems
@@ -104,16 +105,22 @@ class CustomerOrderItem extends BaseController
                  $priceGross = $order->get_item_total($item, true, false);*/
             }
             
-            if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
+            //Removed 1.5.7
+            /*if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
                 $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
             } else {
                 $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
                 self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
+            }*/
+            $vat = 0;
+            
+            if ($priceNet != $priceGross) {
+                $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
             }
             
             $orderItem
-                ->setVat($taxRate)
-                ->setPrice(round($netPrice, self::PRICE_DECIMALS))
+                ->setVat($vat)
+                ->setPrice(round($priceNet, self::PRICE_DECIMALS))
                 ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
             
             $customerOrderItems[] = $orderItem;
@@ -233,14 +240,14 @@ class CustomerOrderItem extends BaseController
                 $customerOrderItem = $getItem($shippingItem, $order, null);
                 
                 if ($total != 0) {
+                    
                     $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
                     $vat = 0.0;
-                    $taxRates = (array)SQL::getAllTaxRates();
+                    $taxRates = Db::getInstance()->query(SQL::getAllTaxRates());
                     
-                    foreach ($taxRates as $taxrate){
-                        if($tmpVat >= $taxrate)
-                        {
-                            $vat = $taxrate;
+                    foreach ($taxRates as $taxrate) {
+                        if ($tmpVat >= $taxrate['tax_rate']) {
+                            $vat = $taxrate['tax_rate'];
                         }
                     }
                     

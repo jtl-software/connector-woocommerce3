@@ -14,6 +14,7 @@ use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
 use jtl\Connector\WooCommerce\Traits\BaseControllerTrait;
 use jtl\Connector\WooCommerce\Utility\Db;
+use ReflectionClass;
 
 abstract class BaseController extends Controller
 {
@@ -32,7 +33,7 @@ abstract class BaseController extends Controller
     {
         $this->database = Db::getInstance();
 
-        $reflect = new \ReflectionClass($this);
+        $reflect = new ReflectionClass($this);
         $shortName = $reflect->getShortName();
         $this->controllerName = $shortName;
     }
@@ -145,7 +146,7 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * @return $this
+     * @return \jtl\Connector\Core\Utilities\Singleton|BaseController
      */
     public static function getInstance()
     {
