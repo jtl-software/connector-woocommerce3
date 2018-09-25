@@ -1,5 +1,9 @@
-1.5.7-dev
+1.5.7
 -----
+- Fixed CO-290 - "Probleme bei der gleichzeitigen Übernahme von Aufträgen mit unterschiedlichem MwSt-Satz"
+- Fixed Specific mapping issue
+- Fixed missing shipping order item vat
+- Fixed shipping class product mapping
 
 1.5.6
 -----
