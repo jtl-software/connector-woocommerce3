@@ -119,7 +119,7 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-    
+        
         $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
@@ -244,6 +244,7 @@ final class JtlConnectorAdmin
         
         add_action('woocommerce_admin_field_date', ['JtlConnectorAdmin', 'date_field']);
         add_action('woocommerce_admin_field_paragraph', ['JtlConnectorAdmin', 'paragraph_field']);
+        add_action('woocommerce_admin_field_connector_url', ['JtlConnectorAdmin', 'connector_url_field']);
         add_action('woocommerce_admin_field_connector_password', ['JtlConnectorAdmin', 'connector_password_field']);
         
         self::update();
@@ -301,12 +302,14 @@ final class JtlConnectorAdmin
             ],
             [
                 'title' => 'Connector URL',
-                'type'  => 'paragraph',
-                'desc'  => get_bloginfo('url') . '/index.php/jtlconnector/',
+                'type'  => 'connector_url',
+                'id'    => 'connector_url',
+                'value' => get_bloginfo('url') . '/index.php/jtlconnector/',
             ],
             [
                 'title' => __('Connector Password', TEXT_DOMAIN),
                 'type'  => 'connector_password',
+                'id'    => 'connector_password',
                 'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
             ],
             [
@@ -393,7 +396,7 @@ final class JtlConnectorAdmin
             <td class="connector-password">
 
                 <div class="input-group">
-                    <input class="form-control" type="text" id="connector_password" value="<?= $field['value'] ?>"
+                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
                            readonly="readonly">
                     <span class="input-group-btn">
                         <button type="button"
@@ -401,6 +404,42 @@ final class JtlConnectorAdmin
                                 title="Copy"
                                 onclick="
                                 var text = document.getElementById('connector_password').value;
+                                var dummy = document.createElement('textarea');
+                                document.body.appendChild(dummy);
+                                dummy.value = text;
+                                dummy.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(dummy);
+                        ">Copy
+                        </button>
+                        </span>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * @param array $field
+     */
+    public static function connector_url_field(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td class="connector-password">
+
+                <div class="input-group">
+                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
+                           readonly="readonly">
+                    <span class="input-group-btn">
+                        <button type="button"
+                                class="clip-btn btn btn-default"
+                                title="Copy"
+                                onclick="
+                                var text = document.getElementById('connector_url').value;
                                 var dummy = document.createElement('textarea');
                                 document.body.appendChild(dummy);
                                 dummy.value = text;
@@ -621,7 +660,7 @@ final class JtlConnectorAdmin
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             
-            $table = $wpdb->prefix.'woocommerce_attribute_taxonomies';
+            $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             $wpdb->query("
                 ALTER TABLE `jtl_connector_link_specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"

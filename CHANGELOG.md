@@ -1,6 +1,6 @@
 1.5.8-dev
 -----
-- ???
+- Added copy connector url btn
 
 1.5.7
 -----

@@ -162,7 +162,10 @@ class ProductSpecific extends BaseController
             $values = [];
             if (isset($specific) && count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
-                    $values[] = get_term_by('id', $valId, $slug)->slug;
+                    $term = get_term_by('id', $valId, $slug);
+                    if($term !== null){
+                        $values[] = $term->slug;
+                    }
                 }
             }
             wp_set_object_terms($wcProduct->get_id(), $values, $slug, true);
