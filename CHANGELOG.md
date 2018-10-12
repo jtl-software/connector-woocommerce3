@@ -1,6 +1,7 @@
 1.5.8-dev
 -----
 - Added copy connector url btn
+- New build procedure
 
 1.5.7
 -----

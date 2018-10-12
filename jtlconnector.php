@@ -35,8 +35,11 @@ if (rewriting_disabled()) {
     deactivate_plugin();
     add_action('admin_notices', 'rewriting_not_activated');
 } else {
+    require_once INCLUDES_DIR . 'JtlConnector.php';
+    require_once INCLUDES_DIR . 'JtlConnectorAdmin.php';
+    
     define('CONNECTOR_DIR', __DIR__);
-    define('CONNECTOR_VERSION', file_get_contents(__DIR__.'/version'));
+    define('CONNECTOR_VERSION',  trim(\Symfony\Component\Yaml\Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']));
     define('DS', DIRECTORY_SEPARATOR);
     define('INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . DS);
 
