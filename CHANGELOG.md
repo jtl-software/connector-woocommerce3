@@ -1,7 +1,12 @@
-1.5.8-dev
+1.6.0-dev
 -----
+- CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
+- Refactor main plugin files 
 - Added copy connector url btn
 - New build procedure
+- CO-336 - Alternativtext wird nicht gesetzt
+- CO-319 - Artikel als virtuell markieren
+* CO-302 - Plugin Update optimieren
 
 1.5.7
 -----

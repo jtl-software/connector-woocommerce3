@@ -47,11 +47,11 @@ msgstr "Es wurde kein Token gefunden."
 msgid "Documentation"
 msgstr "Dokumentation"
 
-#: includes/JtlConnectorAdmin.php:283
+#: includes/JtlConnectorAdmin.php:278
 msgid "Information"
 msgstr "Information"
 
-#: includes/JtlConnectorAdmin.php:289
+#: includes/JtlConnectorAdmin.php:284
 msgid "Incompatible with these plugins:"
 msgstr "Inkompatibel mit folgenden Plugins:"
 

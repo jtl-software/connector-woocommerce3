@@ -1,107 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JTL-Connector-WooCommerce-Endpoint" default="release">
-	<property file="./build-config.yaml" />
-	<target name="build" depends="clean">
-		<mkdir dir="./dist/jtlconnector/includes/"/>
-		<mkdir dir="./dist/jtlconnector/config"/>
-		<mkdir dir="./dist/jtlconnector/db"/>
-		<mkdir dir="./dist/jtlconnector/languages"/>
-		<mkdir dir="./dist/jtlconnector/logs"/>
-		<mkdir dir="./dist/jtlconnector/plugins"/>
-		<mkdir dir="./dist/jtlconnector/tmp"/>
+    <property file="./build-config.yaml"/>
+    <target name="build" depends="clean">
+        <mkdir dir="./dist/jtlconnector/includes/"/>
+        <mkdir dir="./dist/jtlconnector/config"/>
+        <mkdir dir="./dist/jtlconnector/db"/>
+        <mkdir dir="./dist/jtlconnector/languages"/>
+        <mkdir dir="./dist/jtlconnector/logs"/>
+        <mkdir dir="./dist/jtlconnector/plugins"/>
+        <mkdir dir="./dist/jtlconnector/tmp"/>
 
-		<copy todir="./dist/jtlconnector/config">
-			<fileset dir="./config">
-				<include name="features.json"/>
-				<include name=".htaccess"/>
-			</fileset>
-		</copy>
-		<echo file="./dist/jtlconnector/config/config.json" append="false">{"developer_logging": false}</echo>
+        <copy todir="./dist/jtlconnector/config">
+            <fileset dir="./config">
+                <include name="config.json"/>
+                <include name="features.json"/>
+                <include name=".htaccess"/>
+            </fileset>
+        </copy>
 
-		<copy todir="./dist/jtlconnector/db">
-			<fileset dir="./db">
-				<include name=".htaccess"/>
-			</fileset>
-		</copy>
+        <copy todir="./dist/jtlconnector/db">
+            <fileset dir="./db">
+                <include name=".htaccess"/>
+            </fileset>
+        </copy>
 
-		<phingcall target="translate"/>
-		<copy todir="./dist/jtlconnector/languages">
-			<fileset dir="./languages">
-				<include name="**.mo"/>
-			</fileset>
-		</copy>
+        <phingcall target="translate"/>
+        <copy todir="./dist/jtlconnector/languages">
+            <fileset dir="./languages">
+                <include name="**.mo"/>
+            </fileset>
+        </copy>
 
-		<copy todir="./dist/jtlconnector/logs">
-			<fileset dir="./logs">
-				<include name=".htaccess"/>
-			</fileset>
-		</copy>
-		<copy todir="./dist/jtlconnector/">
-			<fileset dir="./">
-				<include name="index.php"/>
-				<include name="jtlconnector.php"/>
-				<include name="uninstall.php"/>
-				<include name="LICENSE"/>
-				<include name="CHANGELOG.md"/>
-				<include name="build-config.yaml"/>
-			</fileset>
-		</copy>
-		<copy todir="./dist/jtlconnector/includes">
-			<fileset dir="./includes">
-				<include name="**.php"/>
-			</fileset>
-		</copy>
+        <copy todir="./dist/jtlconnector/logs">
+            <fileset dir="./logs">
+                <include name=".htaccess"/>
+            </fileset>
+        </copy>
+        <copy todir="./dist/jtlconnector/">
+            <fileset dir="./">
+                <include name="index.php"/>
+                <include name="jtlconnector.php"/>
+                <include name="uninstall.php"/>
+                <include name="LICENSE"/>
+                <include name="CHANGELOG.md"/>
+                <include name="build-config.yaml"/>
+            </fileset>
+        </copy>
+        <copy todir="./dist/jtlconnector/includes">
+            <fileset dir="./includes">
+                <include name="**.php"/>
+            </fileset>
+        </copy>
 
-		<copy todir="./build/">
-			<fileset dir="./">
-				<include name="src/"/>
-				<include name="vendor/"/>
-			</fileset>
-		</copy>
-	</target>
+        <copy todir="./build/">
+            <fileset dir="./">
+                <include name="src/"/>
+                <include name="vendor/"/>
+            </fileset>
+        </copy>
+    </target>
 
-	<target name="package" depends="build">
-		<pharpackage
-				destfile="./dist/jtlconnector/connector.phar"
-				basedir="./build"
-				compression="gzip"
-				stub="./stub.php"
-				signature="sha256">
-			<fileset dir="./build">
-				<include name="**/**"/>
-			</fileset>
-			<metadata>
-				<element name="version" value="${version}"/>
-				<element name="authors">
-					<element name="Jan Weskamp">
-						<element name="email" value="jan.weskamp@jtl-software.com"/>
-					</element>
-				</element>
-			</metadata>
-		</pharpackage>
-	</target>
+    <target name="package" depends="build">
+        <pharpackage
+                destfile="./dist/jtlconnector/connector.phar"
+                basedir="./build"
+                compression="gzip"
+                stub="./stub.php"
+                signature="sha256">
+            <fileset dir="./build">
+                <include name="**/**"/>
+            </fileset>
+            <metadata>
+                <element name="version" value="${version}"/>
+                <element name="authors">
+                    <element name="Jan Weskamp">
+                        <element name="email" value="jan.weskamp@jtl-software.com"/>
+                    </element>
+                </element>
+            </metadata>
+        </pharpackage>
+    </target>
 
-	<target name="release" depends="package">
-		<delete file="./${zipname}${version}.zip"></delete>
-		<zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
-		<phingcall target="clean"/>
-	</target>
+    <target name="release" depends="package">
+        <delete file="./${zipname}${version}.zip"/>
+        <zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
+        <phingcall target="clean"/>
+    </target>
 
-	<target name="clean">
-		<delete dir="./build" quiet="true"/>
-		<delete dir="./dist" quiet="true"/>
-	</target>
+    <target name="clean">
+        <delete dir="./build" quiet="true"/>
+        <delete dir="./dist" quiet="true"/>
+    </target>
 
-	<target name="translate">
-		<exec command="msgfmt -o jtlconnector-de_CH.mo jtlconnector-de_CH.po" dir="./languages"/>
-		<exec command="msgfmt -o jtlconnector-de_DE.mo jtlconnector-de_DE.po" dir="./languages"/>
-		<copy todir="./languages">
-			<fileset dir="./languages"/>
-			<mapper type="glob" from="jtlconnector-de_DE.mo" to="jtlconnector-de_DE_formal.mo"/>
-		</copy>
-		<copy todir="./languages">
-			<fileset dir="./languages"/>
-			<mapper type="glob" from="jtlconnector-de_CH.mo" to="jtlconnector-de_CH_informal.mo"/>
-		</copy>
-	</target>
+    <target name="translate">
+        <exec command="msgfmt -o jtlconnector-de_CH.mo jtlconnector-de_CH.po" dir="./languages"/>
+        <exec command="msgfmt -o jtlconnector-de_DE.mo jtlconnector-de_DE.po" dir="./languages"/>
+        <copy todir="./languages">
+            <fileset dir="./languages"/>
+            <mapper type="glob" from="jtlconnector-de_DE.mo" to="jtlconnector-de_DE_formal.mo"/>
+        </copy>
+        <copy todir="./languages">
+            <fileset dir="./languages"/>
+            <mapper type="glob" from="jtlconnector-de_CH.mo" to="jtlconnector-de_CH_informal.mo"/>
+        </copy>
+    </target>
 </project>

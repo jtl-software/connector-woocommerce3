@@ -31,8 +31,8 @@
     "phpunit/phpunit": "4.8.*"
   },
   "autoload": {
-    "psr-0": {
-      "jtl\\Connector\\WooCommerce\\": "src/"
+    "psr-4": {
+      "JtlWooCommerceConnector\\": "src/"
     }
   }
 }
