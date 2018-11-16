@@ -29,7 +29,6 @@ class Category extends BaseController
         $categories = [];
         
         CategoryUtil::fillCategoryLevelTable();
-        
         $categoryData = $this->database->query(SqlHelper::categoryPull($limit));
         
         foreach ($categoryData as $categoryDataSet) {

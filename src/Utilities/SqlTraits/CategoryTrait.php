@@ -95,11 +95,12 @@ trait CategoryTrait {
             FROM `{$wpdb->terms}` t
             LEFT JOIN `{$wpdb->term_taxonomy}` tt ON t.term_id = tt.term_id
             LEFT JOIN `%s` cl ON tt.term_id = cl.category_id
-            LEFT JOIN {$jclc} l ON t.term_id = l.endpoint_id
+            LEFT JOIN `%s` l ON t.term_id = l.endpoint_id
             WHERE tt.taxonomy = '%s' AND l.host_id IS NULL
             ORDER BY cl.level ASC, tt.parent ASC, cl.sort ASC
             LIMIT {$limit}",
-			CategoryUtil::LEVEL_TABLE,
+			$wpdb->prefix . CategoryUtil::LEVEL_TABLE,
+			$jclc,
 			CategoryUtil::TERM_TAXONOMY
 		);
 	}
@@ -111,8 +112,9 @@ trait CategoryTrait {
 		return sprintf( "
             SELECT COUNT(tt.term_id)
             FROM `{$wpdb->term_taxonomy}` tt
-            LEFT JOIN {$jclc} l ON tt.term_id = l.endpoint_id
+            LEFT JOIN `%s` l ON tt.term_id = l.endpoint_id
             WHERE tt.taxonomy = '%s' AND l.host_id IS NULL",
+			$jclc,
 			CategoryUtil::TERM_TAXONOMY
 		);
 	}

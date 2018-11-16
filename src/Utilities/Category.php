@@ -18,7 +18,11 @@ class Category {
 		$where = ' AND tt.parent = 0';
 		
 		if ( $parentIds === null ) {
-			Db::getInstance()->query( sprintf( 'TRUNCATE TABLE `%s%s`', $wpdb->prefix, self::LEVEL_TABLE ) );
+			Db::getInstance()->query( sprintf(
+				'TRUNCATE TABLE `%s%s`',
+				$wpdb->prefix,
+				self::LEVEL_TABLE
+			) );
 		} else {
 			$where = 'AND tt.parent IN (' . implode( ',', $parentIds ) . ')';
 		}
