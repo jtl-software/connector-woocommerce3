@@ -61,7 +61,9 @@ trait ImageTrait {
             AND pm.meta_value != 0
             AND l.host_id IS NULL
             GROUP BY p.ID, pm.meta_value",
-			Id::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
+			Id::SEPARATOR,
+			IdentityLinker::TYPE_PRODUCT,
+			ImageCtrl::PRODUCT_THUMBNAIL
 		);
 	}
 	
@@ -71,17 +73,22 @@ trait ImageTrait {
 		return sprintf( "
             SELECT p.ID, pm.meta_value
             FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            WHERE p.post_type = 'product' AND p.post_status IN ('future', 'publish', 'inherit', 'private') AND
-            pm.meta_key = '%s' AND pm.meta_value != 0",
+            LEFT JOIN {$wpdb->postmeta} pm
+            ON p.ID = pm.post_id
+            WHERE p.post_type = 'product'
+            AND p.post_status IN ('future', 'publish', 'inherit', 'private')
+            AND pm.meta_key = '%s' AND pm.meta_value != 0",
 			ImageCtrl::GALLERY_KEY
 		);
 	}
 	
 	public static function linkedProductImages() {
+		global $wpdb;
+		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
+		
 		return sprintf( "
 			SELECT endpoint_id
-			FROM jtl_connector_link_image
+			FROM {$jcli}
 			WHERE `type` = '%d'",
 			IdentityLinker::TYPE_PRODUCT
 		);
@@ -89,6 +96,7 @@ trait ImageTrait {
 	
 	public static function imageVariationCombinationPull( $limit = null ) {
 		global $wpdb;
+		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
 		
 		$limitQuery = is_null( $limit ) ? '' : 'LIMIT ' . $limit;
 		
@@ -97,7 +105,7 @@ trait ImageTrait {
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
             ON p.ID = pm.post_id
-            LEFT JOIN jtl_connector_link_image l
+            LEFT JOIN {$jcli} l
             ON SUBSTRING_INDEX(l.endpoint_id, '%s', -1) = pm.post_id
             AND l.type = %d
             WHERE p.post_type = 'product_variation'
@@ -108,7 +116,9 @@ trait ImageTrait {
             AND p.post_parent IN (SELECT p2.ID
             FROM {$wpdb->posts} p2)
             {$limitQuery}",
-			Id::SEPARATOR, IdentityLinker::TYPE_PRODUCT, ImageCtrl::PRODUCT_THUMBNAIL
+			Id::SEPARATOR,
+			IdentityLinker::TYPE_PRODUCT,
+			ImageCtrl::PRODUCT_THUMBNAIL
 		);
 	}
 	
@@ -142,11 +152,10 @@ trait ImageTrait {
 		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
 		
 		return sprintf( "
-            DELETE FROM %s
+            DELETE FROM {$jcli}
             WHERE `type` = %d
             AND endpoint_id
             LIKE '%%%s{$productId}'",
-			$jcli,
 			IdentityLinker::TYPE_PRODUCT, Id::SEPARATOR
 		);
 	}

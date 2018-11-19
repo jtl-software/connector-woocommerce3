@@ -136,6 +136,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper {
 	}
 	
 	public static function getTableName( $type ) {
+		global $wpdb;
+		
 		switch ( $type ) {
 			case IdentityLinker::TYPE_CATEGORY:
 				return 'jtl_connector_link_category';

@@ -28,9 +28,12 @@ trait SpecificTrait {
 		
 		return "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
-                  LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
-                  LEFT JOIN {$jclsv} lsv ON t.term_id = lsv.endpoint_id
-                WHERE lsv.host_id IS NULL AND tt.taxonomy LIKE '{$specificName}'
+                  LEFT JOIN {$wpdb->term_taxonomy} tt
+                  ON t.term_id = tt.term_id
+                  LEFT JOIN {$jclsv} lsv
+                  ON t.term_id = lsv.endpoint_id
+                WHERE lsv.host_id IS NULL
+                AND tt.taxonomy LIKE '{$specificName}'
                 ORDER BY tt.parent ASC;";
 	}
 	

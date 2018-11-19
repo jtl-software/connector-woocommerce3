@@ -159,6 +159,9 @@ class ProductAttr extends BaseController {
 		$pushedAttributes = $product->getAttributes();
 		
 		//FUNCTION ATTRIBUTES BY JTL
+		$virtual      = false;
+		$downloadable = false;
+		
 		foreach ( $pushedAttributes as $key => $pushedAttribute ) {
 			foreach ( $pushedAttribute->getI18ns() as $i18n ) {
 				if ( ! Util::getInstance()->isWooCommerceLanguage( $i18n->getLanguageISO() ) ) {
@@ -169,6 +172,15 @@ class ProductAttr extends BaseController {
 					if ( strcmp( trim( $i18n->getName() ), 'wc_virtual' ) === 0
 					     || strcmp( trim( $i18n->getName() ), 'wc_downloadable' ) === 0
 					) {
+						
+						if ( strcmp( trim( $i18n->getName() ), 'wc_virtual' ) === 0 ) {
+							$virtual = true;
+						}
+						
+						if ( strcmp( trim( $i18n->getName() ), 'wc_downloadable' ) === 0 ) {
+							$downloadable = true;
+						}
+						
 						$value = strcmp( trim( $i18n->getValue() ), 'true' ) === 0;
 						$value = $value ? 'yes' : 'no';
 						
@@ -190,6 +202,36 @@ class ProductAttr extends BaseController {
 			}
 		}
 		
+		if ( ! $virtual ) {
+			if ( ! add_post_meta(
+				$product->getId()->getEndpoint(),
+				'_virtual',
+				'no',
+				true
+			) ) {
+				update_post_meta(
+					$product->getId()->getEndpoint(),
+					'_virtual',
+					'no'
+				);
+			}
+		}
+		
+		if ( ! $downloadable ) {
+			if ( ! add_post_meta(
+				$product->getId()->getEndpoint(),
+				'_downloadable',
+				'no',
+				true
+			) ) {
+				update_post_meta(
+					$product->getId()->getEndpoint(),
+					'_downloadable',
+					'no'
+				);
+			}
+		}
+		
 		foreach ( $attributes as $key => $attr ) {
 			if ( $attr['is_variation'] === true || $attr['is_variation'] === false && $attr['value'] === '' ) {
 				continue;
@@ -208,7 +250,7 @@ class ProductAttr extends BaseController {
 		}
 		
 		foreach ( $pushedAttributes as $attribute ) {
-			if (!Util::sendCustomPropertiesEnabled() && $attribute->getIsCustomProperty() === true){
+			if ( ! Util::sendCustomPropertiesEnabled() && $attribute->getIsCustomProperty() === true ) {
 				continue;
 			}
 			
