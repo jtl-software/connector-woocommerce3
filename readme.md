@@ -1,6 +1,5 @@
 === WooCommerce JTL-Connector ===
 Contributors: ntbyk
-Donate link: http://example.com/
 Tags: warenwirtschaft, jtl, connector, wms, erp
 Requires at least: 3.0.1
 Tested up to: 4.9.8
@@ -32,6 +31,9 @@ This section describes how to install the plugin and get it working.
 1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
  
 == Changelog ==
+ 
+ = 1.6.1-dev = 
+ * dev
  
 = 1.6.0 = 
 * CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
