@@ -5,8 +5,10 @@ Tags: warenwirtschaft, jtl, connector, wms, erp
 Requires at least: 3.0.1
 Tested up to: 4.9.8
 Requires PHP: 5.6.4
-Stable tag: 4.3
-License: GPLv2 or later
+WC requires at least: 3.4
+WC tested up to: 3.5.1
+Stable tag: 1.6.0
+License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
  
 Durch die Schnittstelle können Sie den Funktionsumfang Ihrer Shop-Software um die Vorzüge einer leistungsstarken ERP-Software erweitern.
@@ -29,19 +31,9 @@ This section describes how to install the plugin and get it working.
 1. Laden Sie sich einen aktuellen JTL-Connector für WooCommerce herunter und besorgen Sie sich eine gültigen Lizenzschlüssel für Ihre Shop-Domain.
 1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
  
-== Frequently Asked Questions ==
-                           
-== Screenshots ==
- 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets 
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png` 
-(or jpg, jpeg, gif).
-2. This is the second screen shot
- 
 == Changelog ==
  
-= 1.6.0-dev = 
+= 1.6.0 = 
 * CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
 * Refactor main plugin files 
 * Added copy connector url btn

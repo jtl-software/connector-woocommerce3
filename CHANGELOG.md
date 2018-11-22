@@ -1,4 +1,4 @@
-1.6.0-dev
+1.6.0
 -----
 - CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
 - Refactor main plugin files 
