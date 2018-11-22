@@ -4,7 +4,7 @@ use jtl\Connector\Core\Exception\MissingRequirementException;
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Id;
 use Symfony\Component\Yaml\Yaml;
-use WC_Admin_Settings;
+use \WC_Admin_Settings as WC_Admin_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -292,7 +292,7 @@ final class JtlConnectorAdmin {
 			[
 				'title' => __( 'Incompatible with these plugins:', TEXT_DOMAIN ),
 				'type'  => 'title',
-				'desc'  => 'Wordfence, Anti Spam Bee, WP Cerber Anti-Spam',
+				'desc'  => 'Wordfence, Anti Spam Bee, WP Cerber Anti-Spam, WP Fastest Cache',
 			],
 			[
 				'title' => 'Connector URL',
