@@ -17,28 +17,22 @@
       "role": "Developer"
     }
   ],
-  "repositories": [
-    {
-      "type": "git",
-      "url": "git@gitlab.jtl-software.de:jtl-software-gmbh/jtlconnector.git",
-      "reference": "origin/master"
+  "config": {
+    "platform": {
+      "php": "5.6.4"
     }
-  ],
+  },
   "require": {
-    "php": ">=5.4.0",
-    "jtl/connector": "~2.0"
+    "php": ">=5.6.4",
+    "jtl/connector": "^2.4",
+    "symfony/yaml": "^3.4"
   },
   "require-dev": {
     "phpunit/phpunit": "4.8.*"
   },
   "autoload": {
-    "psr-0": {
-      "jtl\\Connector\\WooCommerce\\": "src/"
-    }
-  },
-  "config": {
-    "platform": {
-      "php": "5.4"
+    "psr-4": {
+      "JtlWooCommerceConnector\\": "src/"
     }
   }
 }

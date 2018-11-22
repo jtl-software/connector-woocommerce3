@@ -1,5 +1,5 @@
 #!/bin/bash
-
-ulimit -n 10000;
-#ulimit -f unlimited;
-php phing.phar release;
+ulimit -n 100000;
+composer update --no-dev;
+php ./phing.phar release;
+composer update;

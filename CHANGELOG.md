@@ -1,5 +1,19 @@
-1.5.7-dev
+1.6.0
 -----
+- CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
+- Refactor main plugin files 
+- Added copy connector url btn
+- New build procedure
+- CO-336 - Alternativtext wird nicht gesetzt
+- CO-319 - Artikel als virtuell markieren
+* CO-302 - Plugin Update optimieren
+
+1.5.7
+-----
+- Fixed CO-290 - "Probleme bei der gleichzeitigen Übernahme von Aufträgen mit unterschiedlichem MwSt-Satz"
+- Fixed Specific mapping issue
+- Fixed missing shipping order item vat
+- Fixed shipping class product mapping
 
 1.5.6
 -----

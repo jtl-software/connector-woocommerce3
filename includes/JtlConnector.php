@@ -30,12 +30,12 @@ final class JtlConnector
             try {
                 if (file_exists(CONNECTOR_DIR . '/connector.phar')) {
                     if (is_writable(sys_get_temp_dir())) {
-                        include_once('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
+	                    require('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
                     } else {
                         _e(sprintf('Directory %s has no write access.', sys_get_temp_dir()), TEXT_DOMAIN);
                     }
                 } else {
-                    include_once(CONNECTOR_DIR . '/src/bootstrap.php');
+	                require( CONNECTOR_DIR . '/src/bootstrap.php' );
                 }
             } catch (\Exception $e) {
                 if (is_object($application)) {

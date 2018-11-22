@@ -1,19 +1,28 @@
 <?php
 
-if (!defined('WP_UNINSTALL_PLUGIN')) {
-    exit;
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	exit;
 }
 
 global $wpdb;
 
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_category`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_crossselling`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_customer`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_image`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_order`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_payment`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link_product`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_category_level`');
-$wpdb->query('DROP TABLE IF EXISTS `jtl_connector_product_checksum`');
+$tables = [
+	'jtl_connector_link_category',
+	'jtl_connector_link_crossselling',
+	'jtl_connector_link_customer',
+	'jtl_connector_link_image',
+	'jtl_connector_link_order',
+	'jtl_connector_link_payment',
+	'jtl_connector_link_product',
+	'jtl_connector_category_level',
+	'jtl_connector_product_checksum',
+	'jtl_connector_specific',
+	'jtl_connector_specific_value',
+];
 
-$wpdb->query("DELETE FROM `{$wpdb->options}` WHERE `option_name` LIKE 'jtlconnector_%'");
+foreach ( $tables as $table ) {
+	$wpdb->query( sprintf( 'DROP TABLE IF EXISTS %s%s', $wpdb->prefix . $table );
+}
+
+
+$wpdb->query( "DELETE FROM `{$wpdb->options}` WHERE `option_name` LIKE 'jtlconnector_%'" );

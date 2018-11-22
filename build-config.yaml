@@ -1,0 +1,3 @@
+version: 1.6.0
+zipname: jtl-connector-woocommerce-
+min_wc_version: 3.4.0
