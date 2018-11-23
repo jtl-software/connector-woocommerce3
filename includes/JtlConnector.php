@@ -28,14 +28,14 @@ final class JtlConnector
                 self::unslash_gpc();
             }
             try {
-                if (file_exists(CONNECTOR_DIR . '/connector.phar')) {
+                if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
                     if (is_writable(sys_get_temp_dir())) {
-	                    require('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
+	                    require('phar://' . JTLWCC_CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
                     } else {
-                        _e(sprintf('Directory %s has no write access.', sys_get_temp_dir()), TEXT_DOMAIN);
+                        _e(sprintf('Directory %s has no write access.', sys_get_temp_dir()), JTLWCC_TEXT_DOMAIN);
                     }
                 } else {
-	                require( CONNECTOR_DIR . '/src/bootstrap.php' );
+	                require( JTLWCC_CONNECTOR_DIR . '/src/bootstrap.php' );
                 }
             } catch (\Exception $e) {
                 if (is_object($application)) {

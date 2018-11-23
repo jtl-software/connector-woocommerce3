@@ -88,6 +88,18 @@
         <phingcall target="clean"/>
     </target>
 
+    <target name="store" depends="build">
+        <copy todir="./dist/jtlconnector/">
+            <fileset dir="./">
+                <include name="src/"/>
+                <include name="vendor/"/>
+            </fileset>
+        </copy>
+        <delete file="./${zipname}${version}.zip"/>
+        <zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
+        <phingcall target="clean"/>
+    </target>
+
     <target name="clean">
         <delete dir="./build" quiet="true"/>
         <delete dir="./dist" quiet="true"/>

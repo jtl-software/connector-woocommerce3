@@ -46,14 +46,14 @@ final class JtlConnectorAdmin {
 	public static function plugin_activation() {
 		global $woocommerce;
 		$version = $woocommerce->version;
-		if ( woocommerce_deactivated() ) {
-			deactivate_plugins( __FILE__ );
-			add_action( 'admin_notices', 'woocommerce_not_activated' );
+		if ( jtlwcc_woocommerce_deactivated() ) {
+			jtlwcc_deactivate_plugins( __FILE__ );
+			add_action( 'admin_notices', 'jtlwcc_woocommerce_not_activated' );
 			
 		} elseif ( version_compare( $version,
-			trim( Yaml::parseFile( CONNECTOR_DIR . '/build-config.yaml' )['min_wc_version'] ), '<' ) ) {
-			deactivate_plugins( __FILE__ );
-			add_action( 'admin_notices', 'wrong_woocommerce_version' );
+			trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['min_wc_version'] ), '<' ) ) {
+			jtlwcc_deactivate_plugins( __FILE__ );
+			add_action( 'admin_notices', 'jtlwcc_wrong_woocommerce_version' );
 		}
 		
 		try {
@@ -67,10 +67,10 @@ final class JtlConnectorAdmin {
 			add_option( self::OPTIONS_PULL_ORDERS_SINCE, '' );
 			add_option( self::OPTIONS_VARIATION_NAME_FORMAT, '' );
 			add_option( self::OPTIONS_INSTALLED_VERSION,
-				trim( Yaml::parseFile( CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
+				trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
 		} catch ( \jtl\Connector\Core\Exception\MissingRequirementException $exc ) {
 			if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
-				deactivate_plugins( __FILE__ );
+				jtlwcc_deactivate_plugins( __FILE__ );
 				wp_die( $exc->getMessage() );
 			} else {
 				return;
@@ -80,7 +80,7 @@ final class JtlConnectorAdmin {
 	
 	private static function run_system_check() {
 		try {
-			if ( file_exists( CONNECTOR_DIR . '/connector.phar' ) ) {
+			if ( file_exists( JTLWCC_CONNECTOR_DIR . '/connector.phar' ) ) {
 				if ( is_writable( sys_get_temp_dir() ) ) {
 					self::run_phar_check();
 				} else {
@@ -253,7 +253,7 @@ final class JtlConnectorAdmin {
 		if ( strpos( $file, 'jtlconnector.php' ) !== false ) {
 			$url       = esc_url( 'http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce' );
 			$new_links = [
-				'<a target="_blank" href="' . $url . '">' . __( 'Documentation', TEXT_DOMAIN ) . '</a>',
+				'<a target="_blank" href="' . $url . '">' . __( 'Documentation', JTLWCC_TEXT_DOMAIN ) . '</a>',
 			];
 			$links     = array_merge( $links, $new_links );
 		}
@@ -263,14 +263,14 @@ final class JtlConnectorAdmin {
 	
 	// <editor-fold defaultstate="collapsed" desc="Settings">
 	public static function add_settings_tab( $tabs ) {
-		$tabs[ TEXT_DOMAIN ] = 'JTL-Connector';
+		$tabs[ JTLWCC_TEXT_DOMAIN ] = 'JTL-Connector';
 		
 		return $tabs;
 	}
 	
 	public static function settings_link( $links = [] ) {
 		$settings_link = '<a href="admin.php?page=wc-settings&tab=jtlconnector">' . __( 'Settings',
-				TEXT_DOMAIN ) . '</a>';
+				JTLWCC_TEXT_DOMAIN ) . '</a>';
 		
 		array_unshift( $links, $settings_link );
 		
@@ -284,13 +284,13 @@ final class JtlConnectorAdmin {
 	public static function get_settings() {
 		$settings = apply_filters( 'woocommerce_settings_jtlconnector', [
 			[
-				'title' => __( 'Information', TEXT_DOMAIN ),
+				'title' => __( 'Information', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'title',
 				'desc'  => __( 'Basic information and credentials of the installed connector. It is needed to configure the connector in the customer center and JTL-Wawi.',
-					TEXT_DOMAIN ),
+					JTLWCC_TEXT_DOMAIN ),
 			],
 			[
-				'title' => __( 'Incompatible with these plugins:', TEXT_DOMAIN ),
+				'title' => __( 'Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'title',
 				'desc'  => 'Wordfence, Anti Spam Bee, WP Cerber Anti-Spam, WP Fastest Cache',
 			],
@@ -301,7 +301,7 @@ final class JtlConnectorAdmin {
 				'value' => get_bloginfo( 'url' ) . '/index.php/jtlconnector/',
 			],
 			[
-				'title' => __( 'Connector Password', TEXT_DOMAIN ),
+				'title' => __( 'Connector Password', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'connector_password',
 				'id'    => 'connector_password',
 				'value' => get_option( JtlConnectorAdmin::OPTIONS_TOKEN ),
@@ -309,43 +309,43 @@ final class JtlConnectorAdmin {
 			[
 				'title' => 'Connector Version',
 				'type'  => 'paragraph',
-				'desc'  => trim( Yaml::parseFile( CONNECTOR_DIR . '/build-config.yaml' )['version'] ),
+				'desc'  => trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['version'] ),
 			],
 			[
 				'type' => 'sectionend',
 			],
 			[
-				'title' => __( 'Settings', TEXT_DOMAIN ),
+				'title' => __( 'Settings', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'title',
 				'desc'  => __( 'Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
-					TEXT_DOMAIN ),
+					JTLWCC_TEXT_DOMAIN ),
 			],
 			[
-				'title' => __( 'Pull completed orders', TEXT_DOMAIN ),
+				'title' => __( 'Pull completed orders', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'checkbox',
 				'desc'  => __( 'Do not choose when having a large amount of data and low server specifications.',
-					TEXT_DOMAIN ),
+					JTLWCC_TEXT_DOMAIN ),
 				'id'    => self::OPTIONS_COMPLETED_ORDERS,
 			],
 			[
-				'title'    => __( 'Pull orders since', TEXT_DOMAIN ),
+				'title'    => __( 'Pull orders since', JTLWCC_TEXT_DOMAIN ),
 				'type'     => 'date',
-				'desc_tip' => __( 'Define a start date for pulling of orders.', TEXT_DOMAIN ),
+				'desc_tip' => __( 'Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN ),
 				'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
 			],
 			[
-				'title'    => __( 'Variation name format', TEXT_DOMAIN ),
+				'title'    => __( 'Variation name format', JTLWCC_TEXT_DOMAIN ),
 				'type'     => 'select',
 				'class'    => 'wc-enhanced-select',
 				'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
 				'options'  => [
-					''                => __( 'Variation #22 of Product name', TEXT_DOMAIN ),
-					'space'           => __( 'Variation #22 of Product name Color: black, Size: S', TEXT_DOMAIN ),
-					'brackets'        => __( 'Variation #22 of Product name (Color: black, Size: S)', TEXT_DOMAIN ),
-					'space_parent'    => __( 'Product name Color: black, Size: S', TEXT_DOMAIN ),
-					'brackets_parent' => __( 'Product name (Color: black, Size: S)', TEXT_DOMAIN ),
+					''                => __( 'Variation #22 of Product name', JTLWCC_TEXT_DOMAIN ),
+					'space'           => __( 'Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN ),
+					'brackets'        => __( 'Variation #22 of Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN ),
+					'space_parent'    => __( 'Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN ),
+					'brackets_parent' => __( 'Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN ),
 				],
-				'desc_tip' => __( 'Define how the child product name is formatted.', TEXT_DOMAIN ),
+				'desc_tip' => __( 'Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN ),
 			],
 			[
 				'type' => 'sectionend',
@@ -512,7 +512,7 @@ final class JtlConnectorAdmin {
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,
-			trim( Yaml::parseFile( CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
+			trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
 	}
 	
 	// <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
@@ -744,24 +744,24 @@ final class JtlConnectorAdmin {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Error messages">
 	function update_failed() {
-		self::show_wordpress_error( __( 'The linking table migration was not successful. Please use the forum for help.',
-			TEXT_DOMAIN ) );
+		self::jtlwcc_show_wordpress_error( __( 'The linking table migration was not successful. Please use the forum for help.',
+			JTLWCC_TEXT_DOMAIN ) );
 	}
 	
 	function directory_no_write_access() {
-		self::show_wordpress_error( sprintf( __( 'Directory %s has no write access.', sys_get_temp_dir() ),
-			TEXT_DOMAIN ) );
+		self::jtlwcc_show_wordpress_error( sprintf( __( 'Directory %s has no write access.', sys_get_temp_dir() ),
+			JTLWCC_TEXT_DOMAIN ) );
 	}
 	
 	function phar_extension() {
-		self::show_wordpress_error( __( 'PHP extension "phar" could not be found.', TEXT_DOMAIN ) );
+		self::jtlwcc_show_wordpress_error( __( 'PHP extension "phar" could not be found.', JTLWCC_TEXT_DOMAIN ) );
 	}
 	
 	function suhosin_whitelist() {
-		self::show_wordpress_error( __( 'PHP extension "phar" is not on the suhosin whitelist.', TEXT_DOMAIN ) );
+		self::jtlwcc_show_wordpress_error( __( 'PHP extension "phar" is not on the suhosin whitelist.', JTLWCC_TEXT_DOMAIN ) );
 	}
 	
-	private function show_wordpress_error( $message ) {
+	private function jtlwcc_show_wordpress_error( $message ) {
 		echo '<div class="error"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
 	}
 	// </editor-fold>

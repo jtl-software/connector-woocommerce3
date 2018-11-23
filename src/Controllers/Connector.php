@@ -48,7 +48,7 @@ class Connector extends Controller
         $identification = new ConnectorIdentification();
         $identification->setPlatformName('WooCommerce')
             ->setPlatformVersion(\WC()->version)
-            ->setEndpointVersion(trim(Yaml::parseFile( CONNECTOR_DIR . '/build-config.yaml')['version']))
+            ->setEndpointVersion(trim(Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']))
             ->setProtocolVersion(Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 
