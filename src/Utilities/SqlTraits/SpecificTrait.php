@@ -111,7 +111,7 @@ trait SpecificTrait
         
         $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
         
-        return "DELETE FROM {$jcls} WHERE 'endpoint_id' = {$id};";
+        return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
     }
     
     public static function removeSpecificValueLinking($id)
@@ -120,7 +120,7 @@ trait SpecificTrait
         
         $jcls = $wpdb->prefix . 'jtl_connector_link_specific_value';
         
-        return "DELETE FROM {$jcls} WHERE 'endpoint_id' = {$id};";
+        return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
     }
     /*SELECT t.term_id, t.name, tt.taxonomy, t.slug
     FROM wp_terms t

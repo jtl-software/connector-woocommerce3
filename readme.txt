@@ -1,6 +1,6 @@
 === WooCommerce JTL-Connector ===
 Contributors: ntbyk
-Tags: warenwirtschaft, jtl, connector, wms, erp
+Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 3.0.1
 Tested up to: 4.9.8
 Requires PHP: 5.6.4
@@ -9,40 +9,38 @@ WC tested up to: 3.5.1
 Stable tag: 1.6.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
- 
+
 Durch die Schnittstelle können Sie den Funktionsumfang Ihrer Shop-Software um die Vorzüge einer leistungsstarken ERP-Software erweitern.
- 
- 
+
+
 == Description ==
- 
-Mit diesem JTL-Connector binden Sie WooCommerce an JTL-Wawi an und synchronisieren z.B. Artikel, Bestände und Aufträge. 
+
+Mit diesem JTL-Connector binden Sie WooCommerce an JTL-Wawi an und synchronisieren z.B. Artikel, Bestände und Aufträge.
 Sie können den Connector auch nutzen, um Daten aus einen WooCommerce-Shop nach JTL-Wawi zu transferieren, um dann einen weiteren Onlineshop einzusetzen.
- 
-Sie arbeiten mit einem WooCommerce-Shop und haben dort bereits einen Datenbestand aufgebaut. 
-Jetzt möchten Sie ein Warenwirtschaftssystem an Ihren WooCommerce-Shop anschließen. 
-Dazu setzen Sie eine leere JTL-Wawi auf und verbinden diese Wawi über den JTL-Connector mit Ihrem WooCommerce-Shop. 
+
+Sie arbeiten mit einem WooCommerce-Shop und haben dort bereits einen Datenbestand aufgebaut.
+Jetzt möchten Sie ein Warenwirtschaftssystem an Ihren WooCommerce-Shop anschließen.
+Dazu setzen Sie eine leere JTL-Wawi auf und verbinden diese Wawi über den JTL-Connector mit Ihrem WooCommerce-Shop.
 Im Anschluss möchten Sie den gesamten Datenbestand Ihres WooCommerce-Shops automatisiert in Ihre JTL-Wawi übertragen.
- 
- 
+
 == Installation ==
- 
+
 This section describes how to install the plugin and get it working.
- 
+
 1. Sichern Sie die Datenbank Ihres aktiven WooCommerce-Shops, bevor Sie mit den folgenden Schritten fortfahren.
 1. Laden Sie sich einen aktuellen JTL-Connector für WooCommerce herunter und besorgen Sie sich eine gültigen Lizenzschlüssel für Ihre Shop-Domain.
 1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
- 
- 
+
 == Changelog ==
- 
- = 1.6.1 = 
+
+= 1.6.1 =
 * CO-302 - Plugin Update optimieren
-* CO-365 - WCC in den Wordpress Store bekommen
+* CO-365 - WCC in den WordPress Store bekommen
 * CO-369 - Variantenabgleich muss angepasst werden
- 
-= 1.6.0 = 
+
+= 1.6.0 =
 * CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
-* Refactor main plugin files 
+* Refactor main plugin files
 * Added copy connector url btn
 * New build procedure
 * CO-336 - Alternativtext wird nicht gesetzt
@@ -59,7 +57,7 @@ This section describes how to install the plugin and get it working.
 * CO-271 fix_product_attribute_push
 * Fixed CO-284 - VAT is not set correctly on CustomerOrderItem
 * Fixed CO-271 - Artikelattribute werden nicht entfernt
-* removed integrity check 
+* removed integrity check
 
 = 1.5.5 =
 * use dynamic table prefix in all sql queries.
@@ -139,7 +137,7 @@ This section describes how to install the plugin and get it working.
 = 1.4.2 =
 * Update product by matching SKU
 * Fix linking table creation SQL
-* Fix setting updated as timestamp 
+* Fix setting updated as timestamp
 * Fallback alt text for image
 * Update translation
 
@@ -155,11 +153,10 @@ This section describes how to install the plugin and get it working.
 * Remove minimum oder and packaging quantity validation on push
 * Fix primary key mapper for unsupported types
 
-
 == Upgrade Notice ==
- 
- = 1.6.1 = 
+
+ = 1.6.1 =
 * CO-302 - Plugin Update optimieren
-* CO-365 - WCC in den Wordpress Store bekommen
+* CO-365 - WCC in den WordPress Store bekommen
 * CO-369 - Variantenabgleich muss angepasst werden
  
