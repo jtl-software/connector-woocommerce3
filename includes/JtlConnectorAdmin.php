@@ -250,7 +250,7 @@ final class JtlConnectorAdmin {
 	}
 	
 	public static function jtlconnector_plugin_row_meta( $links, $file ) {
-		if ( strpos( $file, 'jtlconnector.php' ) !== false ) {
+		if ( strpos( $file, 'woo-jtl-connector.php' ) !== false ) {
 			$url       = esc_url( 'http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce' );
 			$new_links = [
 				'<a target="_blank" href="' . $url . '">' . __( 'Documentation', JTLWCC_TEXT_DOMAIN ) . '</a>',

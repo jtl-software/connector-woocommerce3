@@ -103,7 +103,7 @@ function jtlwcc_woocommerce_deactivated() {
  * @return bool
  */
 function jtlwcc_connector_activated() {
-	return in_array( 'woo-jtl-connector/jtlconnector.php',
+	return in_array( 'woo-jtl-connector/woo-jtl-connector.php',
 		apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
 }
 
