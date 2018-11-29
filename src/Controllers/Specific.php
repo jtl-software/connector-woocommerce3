@@ -217,6 +217,8 @@ class Specific extends BaseController
     {
         $specificId = (int)$specific->getId()->getEndpoint();
         
+        unset(self::$idCache[$specific->getId()->getHost()]);
+        
         if ( ! empty($specificId)) {
             $taxonomy = wc_attribute_taxonomy_name_by_id($specificId);
             /** @var \WC_Product_Attribute $specific */
@@ -269,7 +271,6 @@ class Specific extends BaseController
                 wc_delete_attribute($specificId);
                 
             }
-            unset(self::$idCache[$specific->getId()->getHost()]);
         }
         
         return $specific;
