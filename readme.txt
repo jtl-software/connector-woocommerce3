@@ -15,13 +15,10 @@ Durch die Schnittstelle können Sie den Funktionsumfang Ihrer Shop-Software um d
 
 == Description ==
 
-Mit diesem JTL-Connector binden Sie WooCommerce an JTL-Wawi an und synchronisieren z.B. Artikel, Bestände und Aufträge.
-Sie können den Connector auch nutzen, um Daten aus einen WooCommerce-Shop nach JTL-Wawi zu transferieren, um dann einen weiteren Onlineshop einzusetzen.
+Sie arbeiten mit einem WooCommerce-Shop und haben dort bereits einen Datenbestand aufgebaut.? Jetzt möchten Sie ein Warenwirtschaftssystem an Ihren WooCommerce-Shop anschließen.
 
-Sie arbeiten mit einem WooCommerce-Shop und haben dort bereits einen Datenbestand aufgebaut.
-Jetzt möchten Sie ein Warenwirtschaftssystem an Ihren WooCommerce-Shop anschließen.
-Dazu setzen Sie eine leere JTL-Wawi auf und verbinden diese Wawi über den JTL-Connector mit Ihrem WooCommerce-Shop.
-Im Anschluss möchten Sie den gesamten Datenbestand Ihres WooCommerce-Shops automatisiert in Ihre JTL-Wawi übertragen.
+Mit diesem JTL-Connector binden Sie WooCommerce an die kostenlose Warenwirtschaft JTL-Wawi an und synchronisieren z.B. Artikel, Bestände und Aufträge.
+Sie können den Connector auch nutzen, um Daten aus einen WooCommerce-Shop zu JTL-Wawi zu transferieren, um diese dann in einem weiteren Onlineshop einzusetzen.
 
 == Installation ==
 

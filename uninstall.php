@@ -21,7 +21,7 @@ $tables = [
 ];
 
 foreach ( $tables as $table ) {
-	$wpdb->query( sprintf( 'DROP TABLE IF EXISTS %s%s', $wpdb->prefix . $table );
+	$wpdb->query( sprintf( 'DROP TABLE IF EXISTS %s%s', $wpdb->prefix . $table ));
 }
 
 

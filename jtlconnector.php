@@ -9,12 +9,12 @@
  * License: GPL3
  * License URI: http://www.gnu.org/licenses/lgpl-3.0.html
  * Requires at least WooCommerce: 3.4.0
- * Text Domain: jtlconnector
+ * Text Domain: woo-jtl-connector
  * Domain Path: languages/
  *
  * @author Jan Weskamp <jan.weskamp@jtl-software.com>
  */
-define( 'JTLWCC_TEXT_DOMAIN', 'jtlconnector' );
+define( 'JTLWCC_TEXT_DOMAIN', 'woo-jtl-connector' );
 define( 'JTLWCC_WOOCOMMERCE_PLUGIN_FILE', 'woocommerce/woocommerce.php' );
 define( 'JTLWCC_DS', DIRECTORY_SEPARATOR );
 define( 'JTLWCC_CONNECTOR_DIR', __DIR__ );
@@ -103,7 +103,7 @@ function jtlwcc_woocommerce_deactivated() {
  * @return bool
  */
 function jtlwcc_connector_activated() {
-	return in_array( 'jtlconnector/jtlconnector.php',
+	return in_array( 'woo-jtl-connector/jtlconnector.php',
 		apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
 }
 

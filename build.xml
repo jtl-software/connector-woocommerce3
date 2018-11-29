@@ -2,15 +2,15 @@
 <project name="JTL-Connector-WooCommerce-Endpoint" default="release">
     <property file="./build-config.yaml"/>
     <target name="build" depends="clean">
-        <mkdir dir="./dist/jtlconnector/includes/"/>
-        <mkdir dir="./dist/jtlconnector/config"/>
-        <mkdir dir="./dist/jtlconnector/db"/>
-        <mkdir dir="./dist/jtlconnector/languages"/>
-        <mkdir dir="./dist/jtlconnector/logs"/>
-        <mkdir dir="./dist/jtlconnector/plugins"/>
-        <mkdir dir="./dist/jtlconnector/tmp"/>
+        <mkdir dir="./dist/woo-jtl-connector/includes/"/>
+        <mkdir dir="./dist/woo-jtl-connector/config"/>
+        <mkdir dir="./dist/woo-jtl-connector/db"/>
+        <mkdir dir="./dist/woo-jtl-connector/languages"/>
+        <mkdir dir="./dist/woo-jtl-connector/logs"/>
+        <mkdir dir="./dist/woo-jtl-connector/plugins"/>
+        <mkdir dir="./dist/woo-jtl-connector/tmp"/>
 
-        <copy todir="./dist/jtlconnector/config">
+        <copy todir="./dist/woo-jtl-connector/config">
             <fileset dir="./config">
                 <include name="config.json"/>
                 <include name="features.json"/>
@@ -18,28 +18,28 @@
             </fileset>
         </copy>
 
-        <copy todir="./dist/jtlconnector/db">
+        <copy todir="./dist/woo-jtl-connector/db">
             <fileset dir="./db">
                 <include name=".htaccess"/>
             </fileset>
         </copy>
 
         <phingcall target="translate"/>
-        <copy todir="./dist/jtlconnector/languages">
+        <copy todir="./dist/woo-jtl-connector/languages">
             <fileset dir="./languages">
                 <include name="**.mo"/>
             </fileset>
         </copy>
 
-        <copy todir="./dist/jtlconnector/logs">
+        <copy todir="./dist/woo-jtl-connector/logs">
             <fileset dir="./logs">
                 <include name=".htaccess"/>
             </fileset>
         </copy>
-        <copy todir="./dist/jtlconnector/">
+        <copy todir="./dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="index.php"/>
-                <include name="jtlconnector.php"/>
+                <include name="woo-jtl-connector.php"/>
                 <include name="uninstall.php"/>
                 <include name="LICENSE"/>
                 <include name="CHANGELOG.md"/>
@@ -47,7 +47,7 @@
                 <include name="build-config.yaml"/>
             </fileset>
         </copy>
-        <copy todir="./dist/jtlconnector/includes">
+        <copy todir="./dist/woo-jtl-connector/includes">
             <fileset dir="./includes">
                 <include name="**.php"/>
             </fileset>
@@ -63,7 +63,7 @@
 
     <target name="package" depends="build">
         <pharpackage
-                destfile="./dist/jtlconnector/connector.phar"
+                destfile="./dist/woo-jtl-connector/connector.phar"
                 basedir="./build"
                 compression="gzip"
                 stub="./stub.php"
@@ -89,7 +89,7 @@
     </target>
 
     <target name="store" depends="build">
-        <copy todir="./dist/jtlconnector/">
+        <copy todir="./dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="src/"/>
                 <include name="vendor/"/>
