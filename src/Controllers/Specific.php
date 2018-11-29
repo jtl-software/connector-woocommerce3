@@ -217,12 +217,14 @@ class Specific extends BaseController
     {
         $specificId = (int)$specific->getId()->getEndpoint();
         
-        unset(self::$idCache[$specific->getId()->getHost()]);
-        
         if ( ! empty($specificId)) {
+    
+            unset(self::$idCache[$specific->getId()->getHost()]);
+    
+            $this->database->query(SqlHelper::removeSpecificLinking($specificId));
             $taxonomy = wc_attribute_taxonomy_name_by_id($specificId);
             /** @var \WC_Product_Attribute $specific */
-            $specific = wc_get_attribute($specificId);
+            //$specific = wc_get_attribute($specificId);
             
             $specificValueData = $this->database->query(
                 SqlHelper::forceSpecificValuePull($taxonomy)
@@ -231,6 +233,8 @@ class Specific extends BaseController
             $terms             = [];
             foreach ($specificValueData as $specificValue) {
                 $terms[] = $specificValue['slug'];
+    
+                $this->database->query(SqlHelper::removeSpecificValueLinking($specificValue['term_id']));
             }
             
             $products    = new WP_Query([
