@@ -238,8 +238,8 @@ final class JtlConnectorAdmin {
 		add_filter( 'plugin_row_meta', [ 'JtlConnectorAdmin', 'jtlconnector_plugin_row_meta' ], 10, 2 );
 		
 		add_action( 'woocommerce_settings_tabs_array', [ 'JtlConnectorAdmin', 'add_settings_tab' ], 50 );
-		add_action( 'woocommerce_settings_tabs_jtlconnector', [ 'JtlConnectorAdmin', 'display_page' ], 1 );
-		add_action( 'woocommerce_settings_save_jtlconnector', [ 'JtlConnectorAdmin', 'save' ] );
+		add_action( 'woocommerce_settings_tabs_woo-jtl-connector', [ 'JtlConnectorAdmin', 'display_page' ], 1 );
+		add_action( 'woocommerce_settings_save_woo-jtl-connector', [ 'JtlConnectorAdmin', 'save' ] );
 		
 		add_action( 'woocommerce_admin_field_date', [ 'JtlConnectorAdmin', 'date_field' ] );
 		add_action( 'woocommerce_admin_field_paragraph', [ 'JtlConnectorAdmin', 'paragraph_field' ] );
@@ -269,7 +269,7 @@ final class JtlConnectorAdmin {
 	}
 	
 	public static function settings_link( $links = [] ) {
-		$settings_link = '<a href="admin.php?page=wc-settings&tab=jtlconnector">' . __( 'Settings',
+		$settings_link = '<a href="admin.php?page=wc-settings&tab=woo-jtl-connector">' . __( 'Settings',
 				JTLWCC_TEXT_DOMAIN ) . '</a>';
 		
 		array_unshift( $links, $settings_link );
