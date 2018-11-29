@@ -1,5 +1,8 @@
-1.6.1-dev
+1.6.1
 -----
+- CO-302 - Plugin Update optimieren
+- CO-365 - WCC in den Wordpress Store bekommen
+- CO-369 - Variantenabgleich muss angepasst werden
 
 1.6.0
 -----

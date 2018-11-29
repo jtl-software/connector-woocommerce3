@@ -292,8 +292,7 @@ final class JtlConnectorAdmin {
 			[
 				'title' => __( 'Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN ),
 				'type'  => 'title',
-				'desc'  => 'Wordfence, Anti Spam Bee, WP Cerber Anti-Spam, WP Fastest Cache',
-			],
+				'desc'  => 'Anti Spam Bee, Smush, Wordfence, WP Cerber Anti-Spam, WP Fastest Cache',			],
 			[
 				'title' => 'Connector URL',
 				'type'  => 'connector_url',
@@ -470,7 +469,7 @@ final class JtlConnectorAdmin {
 	}
 	
 	// </editor-fold>
-	
+	// <editor-fold defaultstate="collapsed" desc="Update">
 	private static function update() {
 		$installed_version = \get_option( self::OPTIONS_INSTALLED_VERSION, '' );
 		$installed_version = version_compare( $installed_version, '1.3.0', '<' ) ? '1.0' : $installed_version;
@@ -509,12 +508,14 @@ final class JtlConnectorAdmin {
 			case '1.5.7':
 			case '1.6.0':
 				self::set_linking_table_name_prefix_correctly();
+			case '1.6.1':
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,
 			trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
 	}
-	
+	// </editor-fold>
+ 
 	// <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
 	private static function update_to_multi_linking() {
 		global $wpdb;

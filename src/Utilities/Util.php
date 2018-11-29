@@ -240,19 +240,19 @@ final class Util extends Singleton {
 			"ü" => "ue",
 		] );
 	}
-	
-	public static function sendCustomPropertiesEnabled() {
-		/** @var AbstractConfig $appConfig */
-		$appConfig = Application::getInstance()->getConfig();
-		if ( $appConfig->has( 'send_custom_properties' ) ) {
-			$result = (boolean) $appConfig->get( 'send_custom_properties' );
-		} else {
-			$appConfig->set( 'send_custom_properties', true );
-			$result = true;
-		}
-		
-		return $result;
-	}
+    
+    public static function sendCustomPropertiesEnabled() {
+        /** @var AbstractConfig $appConfig */
+        $appConfig = Application::getInstance()->getConfig();
+        if ( $appConfig->has( 'send_custom_properties' ) ) {
+            $result = (boolean) $appConfig->get( 'send_custom_properties' );
+        } else {
+            $appConfig->set( 'send_custom_properties', true );
+            $result = true;
+        }
+        
+        return $result;
+    }
 	
 	/**
 	 * @return $this

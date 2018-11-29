@@ -43,7 +43,7 @@
                 <include name="uninstall.php"/>
                 <include name="LICENSE"/>
                 <include name="CHANGELOG.md"/>
-                <include name="readme.md"/>
+                <include name="readme.txt"/>
                 <include name="build-config.yaml"/>
             </fileset>
         </copy>
