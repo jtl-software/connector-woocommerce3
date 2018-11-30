@@ -1,3 +1,14 @@
+1.6.2
+-----
+* CO-374 - Varianten Attribute ausblenden
+* CO-373 - Plugin Update führt dazu das Connector deaktiviert wird
+
+1.6.1
+-----
+- CO-302 - Plugin Update optimieren
+- CO-365 - WCC in den Wordpress Store bekommen
+- CO-369 - Variantenabgleich muss angepasst werden
+
 1.6.0
 -----
 - CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen

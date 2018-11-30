@@ -17,7 +17,7 @@ class TokenLoader implements ITokenLoader
         $token = \get_option(JtlConnectorAdmin::OPTIONS_TOKEN, false);
 
         if ($token === false) {
-            throw new ConnectorException(__('There was no token found.', TEXT_DOMAIN));
+            throw new ConnectorException(__('There was no token found.', JTLWCC_TEXT_DOMAIN));
         }
 
         return $token;

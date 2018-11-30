@@ -19,6 +19,7 @@ use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 use WP_Error;
+use WP_Query;
 
 class Specific extends BaseController
 {
@@ -88,7 +89,7 @@ class Specific extends BaseController
         $attrName = wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
         
         //STOP here if already exists
-        $exId = Util::getAttributeTaxonomyIdByName($attrName);
+        $exId  = Util::getAttributeTaxonomyIdByName($attrName);
         $endId = (int)$specific->getId()->getEndpoint();
         
         if ($exId !== 0) {
@@ -216,20 +217,64 @@ class Specific extends BaseController
     {
         $specificId = (int)$specific->getId()->getEndpoint();
         
-        if (!empty($specificId)) {
+        if ( ! empty($specificId)) {
+    
+            unset(self::$idCache[$specific->getId()->getHost()]);
+    
+            $this->database->query(SqlHelper::removeSpecificLinking($specificId));
             $taxonomy = wc_attribute_taxonomy_name_by_id($specificId);
+            /** @var \WC_Product_Attribute $specific */
+            //$specific = wc_get_attribute($specificId);
             
             $specificValueData = $this->database->query(
                 SqlHelper::forceSpecificValuePull($taxonomy)
             );
             
-            foreach ($specificValueData as $value) {
-                \wp_delete_term($value['term_id'], $taxonomy);
+            $terms             = [];
+            foreach ($specificValueData as $specificValue) {
+                $terms[] = $specificValue['slug'];
+    
+                $this->database->query(SqlHelper::removeSpecificValueLinking($specificValue['term_id']));
             }
             
-            wc_delete_attribute($specificId);
+            $products    = new WP_Query([
+                'post_type'      => ['product'],
+                'posts_per_page' => -1,
+                'tax_query'      => [
+                    [
+                        'taxonomy' => $taxonomy,
+                        'field'    => 'slug',
+                        'terms'    => $terms,
+                        'operator' => 'IN',
+                    ],
+                ],
+            ]);
             
-            unset(self::$idCache[$specific->getId()->getHost()]);
+            $isVariation = false;
+            
+            $posts = $products->get_posts();
+            
+            /** @var \WP_Post $post */
+            foreach ($posts as $post) {
+                $wcProduct        = \wc_get_product($post->ID);
+                $productSpecifics = $wcProduct->get_attributes();
+                /** @var \WC_Product_Attribute $productSpecific */
+                foreach ($productSpecifics as $productSpecific) {
+                    if ($productSpecific->get_variation()) {
+                        $isVariation = true;
+                    }
+                }
+            }
+     
+            if (! $isVariation) {
+                
+                foreach ($specificValueData as $value) {
+                    \wp_delete_term($value['term_id'], $taxonomy);
+                }
+                
+                wc_delete_attribute($specificId);
+                
+            }
         }
         
         return $specific;

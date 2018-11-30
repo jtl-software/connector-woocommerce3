@@ -191,12 +191,16 @@ class Product extends BaseController
         
         $this->updateProductRelations($product);
         
-        if ($this->getType($product) === 'product_variation') {
-            $this->updateVariationCombinationChild($product, $wcProduct, $meta);
-        } else {
-            $this->updateProduct($product);
-            \wc_delete_product_transients($product->getId()->getEndpoint());
+        if ($this->getType($product) !== 'product_variation') {
+	        $this->updateProduct($product);
+	        \wc_delete_product_transients($product->getId()->getEndpoint());
         }
+	
+        //variations
+	    (new ProductVariation)->pushData($product);
+	    if ($this->getType($product) === 'product_variation') {
+		    $this->updateVariationCombinationChild($product, $wcProduct, $meta);
+	    }
     }
     
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
@@ -252,9 +256,6 @@ class Product extends BaseController
         
         $productSpecialPrice = new ProductSpecialPrice();
         $productSpecialPrice->pushData($product);
-        
-        $productVariation = new ProductVariation();
-        $productVariation->pushData($product);
     }
     
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
