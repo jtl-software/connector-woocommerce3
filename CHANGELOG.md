@@ -1,3 +1,7 @@
+1.6.3-dev
+-----
+* --
+
 1.6.2
 -----
 * CO-374 - Varianten Attribute ausblenden
