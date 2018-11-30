@@ -5,10 +5,10 @@ Requires at least: 4.7
 Tested up to: 4.9.8
 Requires PHP: 5.6.4
 WC requires at least: 3.4
-WC tested up to: 3.5.1
-Stable tag: 1.6.1
-License: GPLv2
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+WC tested up to: 3.5.2
+Stable tag: 1.6.2
+License: GPLv3
+License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
 Durch die Schnittstelle können Sie den Funktionsumfang Ihrer Shop-Software um die Vorzüge einer leistungsstarken ERP-Software erweitern.
 
@@ -29,6 +29,10 @@ This section describes how to install the plugin and get it working.
 1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
 
 == Changelog ==
+
+= 1.6.2 =
+* CO-374 - Varianten Attribute ausblenden
+* CO-373 - Plugin Update führt dazu das Connector deaktiviert wird
 
 = 1.6.1 =
 * CO-302 - Plugin Update optimieren
@@ -152,8 +156,5 @@ This section describes how to install the plugin and get it working.
 
 == Upgrade Notice ==
 
- = 1.6.1 =
-* CO-302 - Plugin Update optimieren
-* CO-365 - WCC in den WordPress Store bekommen
-* CO-369 - Variantenabgleich muss angepasst werden
+Upgraden Sie zu der neusten Version um ein Fehlverhalten auszuschließen.
  

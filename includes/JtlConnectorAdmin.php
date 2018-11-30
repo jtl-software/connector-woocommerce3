@@ -508,7 +508,8 @@ final class JtlConnectorAdmin {
 			case '1.5.7':
 			case '1.6.0':
 				self::set_linking_table_name_prefix_correctly();
-			case '1.6.1':
+            case '1.6.1':
+            case '1.6.2':
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,

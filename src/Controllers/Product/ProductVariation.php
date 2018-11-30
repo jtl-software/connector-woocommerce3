@@ -322,7 +322,7 @@ class ProductVariation extends BaseController
                                 $options
                             ),
                             'position'     => 0,
-                            'is_visible'   => true,
+                            'is_visible'   => Util::showVariationSpecificsOnProductPageEnabled(),
                             'is_variation' => true,
                             'is_taxonomy'  => $taxonomy,
                         ];
@@ -429,7 +429,7 @@ class ProductVariation extends BaseController
                         $options
                     ),
                     'position'     => 0,
-                    'is_visible'   => true,
+                    'is_visible'   => Util::showVariationSpecificsOnProductPageEnabled(),
                     'is_variation' => true,
                     'is_taxonomy'  => $taxonomy,
                 ];

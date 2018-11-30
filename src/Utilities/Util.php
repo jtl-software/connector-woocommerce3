@@ -253,6 +253,19 @@ final class Util extends Singleton {
         
         return $result;
     }
+    
+    public static function showVariationSpecificsOnProductPageEnabled() {
+        /** @var AbstractConfig $appConfig */
+        $appConfig = Application::getInstance()->getConfig();
+        if ( $appConfig->has( 'show_variation_specifcs_on_product_page' ) ) {
+            $result = (boolean) $appConfig->get( 'show_variation_specifcs_on_product_page' );
+        } else {
+            $appConfig->set( 'show_variation_specifcs_on_product_page', true );
+            $result = true;
+        }
+        
+        return $result;
+    }
 	
 	/**
 	 * @return $this

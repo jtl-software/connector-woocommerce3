@@ -1,5 +1,5 @@
-
 {
   "developer_logging": true,
-  "send_custom_properties": true
+  "send_custom_properties": true,
+  "show_variation_specifcs_on_product_page": true
 }

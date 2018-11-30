@@ -1,3 +1,8 @@
+1.6.2
+-----
+* CO-374 - Varianten Attribute ausblenden
+* CO-373 - Plugin Update führt dazu das Connector deaktiviert wird
+
 1.6.1
 -----
 - CO-302 - Plugin Update optimieren
