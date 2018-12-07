@@ -2,7 +2,7 @@
 Contributors: ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 4.9.8
+Tested up to: 5.0
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.5.2
@@ -29,6 +29,10 @@ This section describes how to install the plugin and get it working.
 1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
 
 == Changelog ==
+
+= 1.6.3 =
+* CO-397 - Kompatiblität zu Wordpress 5.0
+* CO-398 - jtlwcc_deactivate_plugin not found
 
 = 1.6.2 =
 * CO-374 - Varianten Attribute ausblenden

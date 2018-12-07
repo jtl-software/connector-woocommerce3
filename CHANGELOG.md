@@ -1,6 +1,7 @@
-1.6.3-dev
+1.6.3
 -----
-* --
+* CO-397 - Kompatiblität zu Wordpress 5.0
+* CO-398 - jtlwcc_deactivate_plugin not found
 
 1.6.2
 -----

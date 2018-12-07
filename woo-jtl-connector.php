@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Verbinden Sie Ihren Shop mit JTL-Wawi, der kostenlosen Multichannel-Warenwirtschaft für den Versandhandel.
- * Version: 1.6.3-dev
+ * Version: 1.6.3
  * WC tested up to: 3.5.2
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
@@ -85,7 +85,7 @@ function jtlwcc_validate_plugins() {
  * Deactivate the connector.
  */
 function jtlwcc_deactivate_plugin() {
-	jtlwcc_deactivate_plugins( __FILE__ );
+	deactivate_plugins( __FILE__ );
 }
 
 /**
