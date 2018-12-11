@@ -21,6 +21,7 @@ define( 'JTLWCC_CONNECTOR_DIR', __DIR__ );
 define( 'CONNECTOR_DIR', __DIR__ ); // NEED CONNECTOR CORE CHANGES
 define( 'JTLWCC_INCLUDES_DIR', plugin_dir_path( __FILE__ ) . 'includes' . JTLWCC_DS );
 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
