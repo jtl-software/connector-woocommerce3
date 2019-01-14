@@ -30,7 +30,7 @@ trait ChecksumTrait
     {
         global $wpdb;
         
-        return sprintf("INSERT IGNORE INTO %s%s VALUES(%s,%s,%s)",
+        return sprintf("INSERT IGNORE INTO %s%s VALUES(%s,%s,'%s')",
             $wpdb->prefix,
             'jtl_connector_product_checksum',
             $endpointId,
@@ -44,8 +44,12 @@ trait ChecksumTrait
         global $wpdb;
         $jcpc = $wpdb->prefix . 'jtl_connector_product_checksum';
         
-        return "DELETE FROM {$jcpc}
-                WHERE `product_id` = {$endpointId}
-                AND `type` = {$type}";
+        return sprintf("DELETE FROM %s
+                WHERE `product_id` = %s
+                AND `type` = %s",
+            $jcpc,
+            $endpointId,
+            $type
+        );
     }
 }

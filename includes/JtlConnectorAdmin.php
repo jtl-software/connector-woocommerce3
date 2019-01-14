@@ -511,6 +511,7 @@ final class JtlConnectorAdmin {
             case '1.6.1':
             case '1.6.2':
             case '1.6.3':
+            case '1.6.3.1':
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,

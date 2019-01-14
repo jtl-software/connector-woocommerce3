@@ -1,5 +1,11 @@
 #Changelog
 
+## 1.6.3.3
+* Fix - Prevent errors in checksum sql statement
+
+## 1.6.3.1
+* Fix - Checksum sql statement
+
 ## 1.6.3
 * Enhancement - CO-397 - Compatibility with wordpress 5.0
 * Fix - CO-398 - jtlwcc_deactivate_plugin not found
