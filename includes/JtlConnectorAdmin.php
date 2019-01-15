@@ -47,12 +47,12 @@ final class JtlConnectorAdmin {
 		global $woocommerce;
 		$version = $woocommerce->version;
 		if ( jtlwcc_woocommerce_deactivated() ) {
-			jtlwcc_deactivate_plugins( __FILE__ );
+			jtlwcc_deactivate_plugin();
 			add_action( 'admin_notices', 'jtlwcc_woocommerce_not_activated' );
 			
 		} elseif ( version_compare( $version,
 			trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['min_wc_version'] ), '<' ) ) {
-			jtlwcc_deactivate_plugins( __FILE__ );
+			jtlwcc_deactivate_plugin();
 			add_action( 'admin_notices', 'jtlwcc_wrong_woocommerce_version' );
 		}
 		
@@ -70,7 +70,7 @@ final class JtlConnectorAdmin {
 				trim( Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml' )['version'] ) );
 		} catch ( \jtl\Connector\Core\Exception\MissingRequirementException $exc ) {
 			if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
-				jtlwcc_deactivate_plugins( __FILE__ );
+				jtlwcc_deactivate_plugin();
 				wp_die( $exc->getMessage() );
 			} else {
 				return;
@@ -510,6 +510,8 @@ final class JtlConnectorAdmin {
 				self::set_linking_table_name_prefix_correctly();
             case '1.6.1':
             case '1.6.2':
+            case '1.6.3':
+            case '1.6.3.1':
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,

@@ -536,8 +536,7 @@ class ProductVariation extends BaseController
         return false;
     }
     
-    private
-    function getSpecificValueId(
+    private function getSpecificValueId(
         $slug,
         $value
     ) {

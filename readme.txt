@@ -2,159 +2,285 @@
 Contributors: ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 4.9.8
+Tested up to: 5.0
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.5.2
-Stable tag: 1.6.2
+Stable tag: 1.6.3.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
-Durch die Schnittstelle können Sie den Funktionsumfang Ihrer Shop-Software um die Vorzüge einer leistungsstarken ERP-Software erweitern.
-
+Extend your shop software, trough this connector, with an full ERP with many features for marketplaces etc.
 
 == Description ==
 
-Sie arbeiten mit einem WooCommerce-Shop und haben dort bereits einen Datenbestand aufgebaut.? Jetzt möchten Sie ein Warenwirtschaftssystem an Ihren WooCommerce-Shop anschließen.
+https://www.youtube.com/watch?v=8DEX2xHoqtM&index=11
 
-Mit diesem JTL-Connector binden Sie WooCommerce an die kostenlose Warenwirtschaft JTL-Wawi an und synchronisieren z.B. Artikel, Bestände und Aufträge.
-Sie können den Connector auch nutzen, um Daten aus einen WooCommerce-Shop zu JTL-Wawi zu transferieren, um diese dann in einem weiteren Onlineshop einzusetzen.
+With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the
+free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product
+family are perfectly suited to the requirements of e-commerce and mail order businesses.
+They help you to process more orders in a shorter time and offer a range of exciting functionalities.
+
+With JTL-Connector, you have access to the complete JTL product family. Use JTL-Connector to transfer
+the data from your existing WooCommerce shop to our ERP system. From now on, you can manage your online
+shop and your entre business with JTL-Wawi and profit from an efficient process chain that comprises
+everything from purchase to shipping and returns.
+
+JTL-Wawi and JTL-Connector are out-of-the-box solutions that use a lot of the functions that your
+WooCommerce shops use, too. Further functions can be individually programmed and added using JTL-Connector.
+
+[Further information on JTL-Connector, a connector for third party shops](https://www.jtl-software.de/anbindung-shopsysteme)
+
+
+== Why use an ERP system? ==
+
+The free JTL-Wawi ERP system allows you to manage your business centrally with a single software.
+Transfer data from existing applications quickly and connect with a variety of online shop systems.
+
+Synchronise item data, orders and stocks in a centralised ERP software. System discontinuities, which
+are common with other solutions, can be significantly reduced with a leading ERP system such as JTL-Wawi.
+The software allows you to easily keep track of all your sales channels. You can also automate your
+processes and deal with complex tax issues.
+
+[Further information on the ERP system JTL-Wawi](https://www.jtl-software.de/warenwirtschaft)
+
+[Download JTL-Wawi for free](https://www.jtl-software.de/jtl-wawi-download)
+
+
+== PROFIT FROM THE ENTIRE JTL PRODUCT FAMILY ==
+
+If you wish to optimise other aspects of your work, you can always choose more products from our
+extensive portfolio—no matter whether you want to enhance efficiency in sales, in the warehouse or in shipping.
+
+* Control your online shop with JTL-Wawi
+* Multichannel distribution: sell on Amazon and eBay with JTL-eazyAuction
+* Efficiently handle shipments and returns with the free JTL-Packing Bench+
+* Print shipping labels for your logistics providers with JTL-Shipping
+
+[Overview of the JTL product family](https://www.jtl-software.de/e-commerce-loesungen)
+
+Many sellers also use JTL-Connector to transfer their data to JTL-Wawi and test our
+proprietary online shop system [JTL-Shop](https://www.jtl-software.de/online-shopsystem).
+
+
+== STARTING EASY WITH STANDARD VERSIONS ==
+
+Sellers often use standard shop systems without personalised features, plug-ins and added functions.
+Out-of-the-box shops like these can be connected to JTL-Wawi with a few simple steps using JTL-Connector.
+
+
+== CONNECTING INDIVIDUAL PLUG-INS ==
+
+You have made individual adjustments to your shop, e.g. the installation of plug-ins? In this case,
+JTL-Connector needs an individual configuration for each of the plug-ins. To facilitate this, JTL-Connector
+features an integrated [plug-in interface](https://www.jtl-software.de/anbindung-shopsysteme#plugin-system-fuer-individualisierte-onlineshops),
+enabling the transfer of personalised data and functions to JTL-Wawi.
+
+
+== HOW IT WORKS ==
+
+* Initial data synchronisation
+
+In the course of the initial synchronisation, data such as items, categories, images and customer and
+order information is transferred from your shop to JTL-Wawi. If you want to use JTL-Wawi as the leading
+system, you can directly and exclusively manage your products and process your online shop orders in
+JTL-Wawi right after the initial synchronisation.
+
+* Individual data maintenance
+
+Many of the performance features that JTL-Wawi offers can also be used in your online shop via the
+JTL-Connector, provided your shop system also offers these functionalities. Some functionalities of
+your online shops are not transferred by JTL-Connector by default. Those can be added individually via
+plug-ins or additional programming.
+
+* Continuous synchronisation
+
+The data created or changed by you in JTL-Wawi is transferred to your shop via the
+online shop synchronisation. Orders placed in your shop are directly forwarded to JTL-Wawi.
+You can process all orders, including shipping and returns, in JTL-Wawi. The current order
+status is transferred to your shop via JTL-Connector. In this way, your customers are always
+informed about the status of their orders.
+
+* Combined operation
+
+You can also operate JTL-Connector and your shop in a combined mode. In this case, you define what
+data is to be imported into JTL-Wawi or transferred to your online shop. You can specify, for example,
+that JTL-Wawi only updates stocks for the shop and only imports orders. This means that you still maintain
+your products in the back end of your online shop.
+
+
+== FUTURE-PROOF DEVELOPMENT ==
+
+JTL-Software holds all the knowledge to ensure the future-proof development of the JTL connectors.
+This know-how enables us to react quickly to changing requirements and to adapt JTL-Connector to
+evolving connected shop systems. This ensures trouble-free compatibility with future versions.
+
+
+== COMPLEMENTARY SOLUTIONS FROM THE JTL PRODUCT FAMILY ==
+
+* Management of several online shops with [MultiShop](https://www.jtl-software.de/warenwirtschaft/funktionen/onlineshop-anbindung#mehrere-onlineshops-gleichzeitig-anbinden-via-multishop-modul)
+* Shipping and returns with JTL-Packing [Bench+](https://www.jtl-software.de/warenwirtschaft/packprozess-vereinfachen)
+* Automated processes with [JTL-Workflows](https://www.jtl-software.de/warenwirtschaft/prozessoptimierung)
+* Import and export with [JTL-Ameise](https://www.jtl-software.de/warenwirtschaft/import-export)
+* Connection to Amazon and eBay with [JTL-eazyAuction](https://www.jtl-software.de/marktplatz-schnittstelle)
+* Printing shipping labels with [JTL-Shipping](https://www.jtl-software.de/versand-schnittstelle)
+* Warehouse management with [JTL-WMS](https://www.jtl-software.de/lagerverwaltung)
+
+
+== TECHNICAL INSTRUCTIONS AND VIDEO TUTORIALS ==
+
+* [Documentation regarding JTL-Connector for WooCommerce](https://guide.jtl-software.de/Kategorie:JTL-Connector:WooCommerce)
+* [Video tutorials on the JTL connectors](https://www.youtube.com/watch?v=8DEX2xHoqtM&index=11&list=PL44cp2iiTsTXfN18-sZgAKIiaD2wSI4xl)
+
 
 == Installation ==
 
 This section describes how to install the plugin and get it working.
 
-1. Sichern Sie die Datenbank Ihres aktiven WooCommerce-Shops, bevor Sie mit den folgenden Schritten fortfahren.
-1. Laden Sie sich einen aktuellen JTL-Connector für WooCommerce herunter und besorgen Sie sich eine gültigen Lizenzschlüssel für Ihre Shop-Domain.
-1. Bei erfolgreicher Installation des Connectors wird Ihnen jetzt der Connector innerhalb des Plugins WooCommerce aufgelistet.
+1. Do a backup of your shop-database, before you do the following steps.
+1. Install the JTL-Connector for WooCommerce and register for an free domain bound licence-key.
+1. If the installation was successful the JTL-Connector will be shown in the woocommerce settings.
+
+== Screenshots ==
+
+1. The WooCommerce JTL-Connector settings panel.
 
 == Changelog ==
 
+= 1.6.3.3 =
+* Fix - Prevent errors in checksum sql statement
+
+= 1.6.3.1 =
+* Fix - Checksum sql statement
+
+= 1.6.3 =
+* Enhancement - CO-397 - Compatibility with wordpress 5.0
+* Fix - CO-398 - jtlwcc_deactivate_plugin not found
+
 = 1.6.2 =
-* CO-374 - Varianten Attribute ausblenden
-* CO-373 - Plugin Update führt dazu das Connector deaktiviert wird
+* Enhancement -CO-374 - Hide variants attributes
+* Fix - CO-373 - Update deactivates plugin
 
 = 1.6.1 =
-* CO-302 - Plugin Update optimieren
-* CO-365 - WCC in den WordPress Store bekommen
-* CO-369 - Variantenabgleich muss angepasst werden
+* Enhancement - CO-302 - optimize plugin update
+* Enhancement - CO-365 - submit wcc in wordpress.org plugin store
+* Enhancement - CO-369 - improve sync of variants
 
 = 1.6.0 =
-* CO-345 - Connector mit WooCommerce 3.5.x kompatibel machen
-* Refactor main plugin files
-* Added copy connector url btn
-* New build procedure
-* CO-336 - Alternativtext wird nicht gesetzt
-* CO-319 - Artikel als virtuell markieren
-* CO-302 - Plugin Update optimieren
+* Enhancement - CO-345 - Compatibility with woocommerce 3.5.x
+* Enhancement - Refactor main plugin files
+* Enhancement - Added copy connector url btn
+* Enhancement - New build procedure
+* Fix - CO-336 - Alt text is not set correctly
+* Enhancement - CO-319 - mark article as virtual/downloadable
+* Enhancement - CO-302 - optimize plugin update
 
 = 1.5.7 =
-* Fixed CO-290 - "Probleme bei der gleichzeitigen Übernahme von Aufträgen mit unterschiedlichem MwSt-Satz"
-* Fixed Specific mapping issue
-* Fixed missing shipping order item vat
-* Fixed shipping class product mapping
+*  Fix - CO-290 - problem with multiple vat in customer orders
+*  Fix - Specific mapping issue
+*  Fix - missing shipping order item vat
+*  Enhancement - shipping class product mapping
 
 = 1.5.6 =
-* CO-271 fix_product_attribute_push
-* Fixed CO-284 - VAT is not set correctly on CustomerOrderItem
-* Fixed CO-271 - Artikelattribute werden nicht entfernt
-* removed integrity check
+* Fix - CO-271 fix_product_attribute_push
+* Fix - CO-284 - VAT is not set correctly on CustomerOrderItem
+* Fix - CO-271 - article attributes removal
+* Enhancement - removed integrity check
 
 = 1.5.5 =
-* use dynamic table prefix in all sql queries.
-* version file included into connector build.
+* Enhancement - use dynamic table prefix in all sql queries.
+* Enhancement - version file included into connector build.
 
 = 1.5.4 =
-* fix cast bug on Customer
-* ShippingClass will now be pushed
+* Fix - cast bug on Customer
+* Enhancement - ShippingClass will now be pushed
 
 = 1.5.3 =
-* remove image pull bug
-* remove one integrity check test
+* Fix - remove image pull bug
+* Fix - remove one integrity check test
 
 = 1.5.2 =
-* Specific value error bug
+* Fix - Specific value error bug
 
 = 1.5.1 =
-* Specific value language bug
+* Fix - Specific value language bug
 
 = 1.5.0 =
-* Add specific support(Beta)
-* Add new attribute handling(Beta)
-* IntegrityCheck in install routine
+* Enhancement - Add specific support(Beta)
+* Enhancement - Add new attribute handling(Beta)
+* Enhancement - IntegrityCheck in install routine
 
 = 1.4.12 =
-* Fixed wrong vat on shipping items
+* Fix - wrong vat on shipping items
 
 = 1.4.11 =
-* Fixed wrong status on product pull
-* Fixed push didn't update product_variation information
+* Fix - wrong status on product pull
+* Fix - push didn't update product_variation information
 
 = 1.4.10 =
-* CO-170 Added an incompatible list on settings page
-* CO-171 Added copy password field on settings page
-* CO-164 Fixed setting new name in category push.
-* CO-170 Extend some language file entries
-* Fixed double subtraction of coupons
+* Enhancement - CO-170 Added an incompatible list on settings page
+* Enhancement - CO-171 Added copy password field on settings page
+* Fix - CO-164 setting new name in category push.
+* Fix - CO-170 Extend some language file entries
+* Fix - double subtraction of coupons
 
 = 1.4.9 =
-* CO-152 Changed method because discount wasn't set correctly on pull.
-* Implement fallback for no creation date.
-* Remove unclear push method calls
-* CO-136 Fixed wrong count of images in stats
+* Fix - CO-152 Changed method because discount wasn't set correctly on pull.
+* Enhancement - Implement fallback for no creation date.
+* Enhancement - Remove unclear push method calls
+* Fix - CO-136 wrong count of images in stats
 
 = 1.4.8 =
-* CO-135 Fix reduced tax rate not saved
-* Fix categories are duplicated on push
-* Fix German translations
-* Refactor plugin settings part
+* Fix - CO-135 Fix reduced tax rate not saved
+* Fix - Fix categories are duplicated on push
+* Fix - Fix German translations
+* Enhancement - Refactor plugin settings part
 
 = 1.4.7 =
-* Support WC 3.2
-* Add customer note field
-* Fix product modified date null pointer
-* Delete all options and tables on uninstall
-* Fix php backwards compatibility to 5.4
+* Enhancement - Support WC 3.2
+* Enhancement - Add customer note field
+* Fix - product modified date null pointer
+* Fix - Delete all options and tables on uninstall
+* Fix - php backwards compatibility to 5.4
 
 = 1.4.6 =
-* CO-112 Fix product id instead of variation id linked in order items
-* CO-113 Fix product creation date updated
-* CO-109 Fix product feedback is deactivated on update
+* Fix - CO-112 product id instead of variation id linked in order items
+* Fix - CO-113 product creation date updated
+* Fix - CO-109 product feedback is deactivated on update
 
 = 1.4.5 =
-* CO-108 Take the 'woocommerce_tax_based_on' option to calculate the order item VAT
+* Enhancement - CO-108 Take the 'woocommerce_tax_based_on' option to calculate the order item VAT
 
 = 1.4.4 =
-* Fix build on PHP7 error
-* Fix string to boolean parse error
-* Fix constraint creation on installation
+* Fix - build on PHP7 error
+* Fix - string to boolean parse error
+* Fix - constraint creation on installation
 
 = 1.4.3 =
-* Fix product variations not pushed
-* Fix not detected locale
-* Fix category sort table not filled
-* Fix for getting the product of an order item returns a product even it does not exists
+* Fix - product variations not pushed
+* Fix - not detected locale
+* Fix - category sort table not filled
+* Fix - for getting the product of an order item returns a product even it does not exists
 
 = 1.4.2 =
-* Update product by matching SKU
-* Fix linking table creation SQL
-* Fix setting updated as timestamp
-* Fallback alt text for image
-* Update translation
+* Enhancement - Update product by matching SKU
+* Fix - linking table creation SQL
+* Fix - setting updated as timestamp
+* Enhancement - Fallback alt text for image
+* Enhancement - Update translation
 
 = 1.4.1 =
-* Fix free shipping
-* Strip HTML tags from keywords
+* Fix - free shipping
+* Enhancement - Strip HTML tags from keywords
 
 = 1.4.0 =
-* Support of WooCommerce 3
-* Only pull double product image once
-* Refactoring order item taxes for accurate tax calculation
-* Refactor Germanized integration
-* Remove minimum oder and packaging quantity validation on push
-* Fix primary key mapper for unsupported types
+* Enhancement - Support of WooCommerce 3
+* Enhancement - Only pull double product image once
+* Enhancement - Refactoring order item taxes for accurate tax calculation
+* Enhancement - Refactor Germanized integration
+* Enhancement - Remove minimum oder and packaging quantity validation on push
+* Fix - primary key mapper for unsupported types
 
 == Upgrade Notice ==
 
-Upgraden Sie zu der neusten Version um ein Fehlverhalten auszuschließen.
- 
+Upgrade to the latest version to prevent unwanted behavior.
