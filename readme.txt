@@ -6,7 +6,7 @@ Tested up to: 5.0
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.5.2
-Stable tag: 1.6.3.3
+Stable tag: 1.6.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -147,10 +147,9 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
-= 1.6.3.3 =
+= 1.6.4 =
+* Fix - Datetime bug on product push
 * Fix - Prevent errors in checksum sql statement
-
-= 1.6.3.1 =
 * Fix - Checksum sql statement
 
 = 1.6.3 =

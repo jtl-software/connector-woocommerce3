@@ -1,9 +1,8 @@
 #Changelog
 
-## 1.6.3.3
+## 1.6.4
+* Fix - Datetime bug on product push
 * Fix - Prevent errors in checksum sql statement
-
-## 1.6.3.1
 * Fix - Checksum sql statement
 
 ## 1.6.3
