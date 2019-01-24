@@ -749,6 +749,7 @@ final class JtlConnectorAdmin {
 		
 	}
 	// </editor-fold>
+ 
 	// <editor-fold defaultstate="collapsed" desc="Error messages">
 	function update_failed() {
 		self::jtlwcc_show_wordpress_error( __( 'The linking table migration was not successful. Please use the forum for help.',
