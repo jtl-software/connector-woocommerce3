@@ -1,10 +1,11 @@
 #Changelog
 
-## 1.6.3.3
+## 1.6.4
+* Fix - Datetime bug on product push
 * Fix - Prevent errors in checksum sql statement
-
-## 1.6.3.1
 * Fix - Checksum sql statement
+* Fix - CO-421 - variant specifics will be deleted after next sync
+* Fix - CO-413 - special prices will not be removed
 
 ## 1.6.3
 * Enhancement - CO-397 - Compatibility with wordpress 5.0

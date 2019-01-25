@@ -512,6 +512,9 @@ final class JtlConnectorAdmin {
             case '1.6.2':
             case '1.6.3':
             case '1.6.3.1':
+            case '1.6.3.2':
+            case '1.6.3.3':
+            case '1.6.4':
 		}
 		
 		\update_option( self::OPTIONS_INSTALLED_VERSION,
@@ -746,6 +749,7 @@ final class JtlConnectorAdmin {
 		
 	}
 	// </editor-fold>
+ 
 	// <editor-fold defaultstate="collapsed" desc="Error messages">
 	function update_failed() {
 		self::jtlwcc_show_wordpress_error( __( 'The linking table migration was not successful. Please use the forum for help.',

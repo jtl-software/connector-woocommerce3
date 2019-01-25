@@ -6,6 +6,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
@@ -115,8 +116,11 @@ class Product extends BaseController
         }
         
         $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
-        $creationDate = is_null($creationDate) ? date('now') : $creationDate;
-        
+    
+        if (!$creationDate instanceof DateTime) {
+          $creationDate = new DateTime();
+        }
+    
         $isMasterProduct = empty($masterProductId);
         
         $endpoint = [
@@ -414,7 +418,7 @@ class Product extends BaseController
         return 'simple';
     }
     
-    private function getCreationDate(\DateTime $creationDate, $gmt = false)
+    private function getCreationDate(DateTime $creationDate, $gmt = false)
     {
         if (is_null($creationDate)) {
             return null;
