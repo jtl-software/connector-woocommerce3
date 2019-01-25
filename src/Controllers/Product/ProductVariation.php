@@ -180,9 +180,7 @@ class ProductVariation extends BaseController
     public function pushData(ProductModel $product)
     {
         if ($product->getIsMasterProduct()) {
-            if ($this->hasVariationChanges($product)) {
-                $this->pushDataParent($product);
-            }
+            $this->pushDataParent($product);
         } else {
             $this->pushDataChild($product);
         }
@@ -511,29 +509,6 @@ class ProductVariation extends BaseController
         }
         
         return ($a->getSort() < $b->getSort()) ? -1 : 1;
-    }
-    
-    private
-    function hasVariationChanges(
-        ProductModel $product
-    ) {
-        if (count($product->getVariations()) > 0) {
-            $productId = $product->getId()->getEndpoint();
-            
-            if ( ! empty($productId)) {
-                $checksum = ChecksumLinker::find($product, ProductChecksum::TYPE_VARIATION);
-                
-                if ($checksum === null) {
-                    return false;
-                }
-                
-                return $checksum->hasChanged();
-            } else {
-                return true;
-            }
-        }
-        
-        return false;
     }
     
     private function getSpecificValueId(
