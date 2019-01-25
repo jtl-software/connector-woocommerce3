@@ -151,6 +151,8 @@ This section describes how to install the plugin and get it working.
 * Fix - Datetime bug on product push
 * Fix - Prevent errors in checksum sql statement
 * Fix - Checksum sql statement
+* Fix - CO-421 - variant specifics will be deleted after next sync
+* Fix - CO-413 - special prices will not be removed
 
 = 1.6.3 =
 * Enhancement - CO-397 - Compatibility with wordpress 5.0
