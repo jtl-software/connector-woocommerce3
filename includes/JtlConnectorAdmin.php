@@ -1,7 +1,9 @@
 <?php
 
 use jtl\Connector\Core\Exception\MissingRequirementException;
+use jtl\Connector\Application\Application;
 use jtl\Connector\Core\System\Check;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use Symfony\Component\Yaml\Yaml;
 use \WC_Admin_Settings as WC_Admin_Settings;
@@ -40,6 +42,8 @@ final class JtlConnectorAdmin
      * The update to a new connector version failed.
      */
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
+    
+    const OPTIONS_DEVELOPER_LOGGING = 'developer_logging';
     
     private static $initiated = false;
     
@@ -256,6 +260,8 @@ final class JtlConnectorAdmin
         add_action('woocommerce_admin_field_paragraph', ['JtlConnectorAdmin', 'paragraph_field']);
         add_action('woocommerce_admin_field_connector_url', ['JtlConnectorAdmin', 'connector_url_field']);
         add_action('woocommerce_admin_field_connector_password', ['JtlConnectorAdmin', 'connector_password_field']);
+        add_action('woocommerce_admin_field_active_true_false_radio',
+            ['JtlConnectorAdmin', 'active_true_false_radio_btn']);
         
         self::update();
     }
@@ -298,6 +304,36 @@ final class JtlConnectorAdmin
     
     public static function get_settings()
     {
+        //UPADTE config.json with Plugin options
+        if ( ! Config::has('connector_password')
+             || Config::has('connector_password')
+                && Config::__get('connector_password') !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+        ) {
+            Config::__set(
+                'connector_password',
+                get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+            );
+        }
+        
+        if ( ! Config::has('connector_version') || Config::has('connector_version') && version_compare(
+                Config::__get('connector_version'),
+                trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']),
+                '!='
+            )
+        ) {
+            Config::__set(
+                'connector_version',
+                Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']
+            );
+        }
+        
+        if ( ! Config::has('developer_logging')) {
+            Config::__set(
+                'developer_logging',
+                false
+            );
+        }
+        
         $settings = apply_filters('woocommerce_settings_jtlconnector', [
             [
                 'title' => __('Information', JTLWCC_TEXT_DOMAIN),
@@ -335,6 +371,13 @@ final class JtlConnectorAdmin
                 'type'  => 'title',
                 'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
                     JTLWCC_TEXT_DOMAIN),
+            ],
+            [
+                'title' => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('This is an test.', JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_DEVELOPER_LOGGING,
+                'value' => Config::__get('developer_logging'),
             ],
             [
                 'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
@@ -485,9 +528,63 @@ final class JtlConnectorAdmin
         <?php
     }
     
+    public static function active_true_false_radio_btn(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td class="true_false_radio">
+                <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
+                    true); ?>>Active
+                <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
+                    true); ?>>Not Active
+            </td>
+        </tr>
+        <?php
+    }
+    
     public static function save()
     {
-        $settings = self::get_settings();
+        $settings     = self::get_settings();
+        $configValues = [
+            'developer_logging' => 'bool',
+            //show_variation_specifcs_on_product_page
+            //send_custom_properties
+        ];
+        
+        foreach ($configValues as $configValue => $type) {
+            foreach ($settings as $key => $setting) {
+                if (isset($setting['id']) && $setting['id'] === $configValue) {
+                    unset($settings[$key]);
+                }
+            }
+        }
+        foreach ($_POST as $key => $item) {
+            if (array_key_exists($key, $configValues)) {
+                $cast = $configValues[$key];
+                
+                switch ($cast) {
+                    case 'bool':
+                        $value = 'true' === $item;
+                        break;
+                    case 'int':
+                        $value = (int)$item;
+                        break;
+                    case 'float':
+                        $value = (float)$item;
+                        break;
+                    default:
+                        $value = $item;
+                        break;
+                }
+                
+                Config::__set($key, $value);
+                unset($_POST[$key]);
+            }
+        }
+        
         WC_Admin_Settings::save_fields($settings);
     }
     

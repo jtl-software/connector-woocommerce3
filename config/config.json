@@ -1,5 +1,1 @@
-{
-  "developer_logging": true,
-  "send_custom_properties": true,
-  "show_variation_specifcs_on_product_page": true
-}
+{"developer_logging":false,"send_custom_properties":true,"show_variation_specifcs_on_product_page":true,"connector_version":"1.7.0-dev","connector_password":"BAB70B87-4359-46F8-889B-06AE9BC9DB28"}
