@@ -94,17 +94,6 @@ trait SpecificTrait
         ";
     }
     
-    public static function insertSpecificValue($term, $slug, $taxonomy)
-    {
-        global $wpdb;
-        
-        return "INSERT INTO {$wpdb->terms} t VALUES ('name'={$term}, 'slug'{$slug});" .
-               "INSERT INTO {$wpdb->term_taxonomy} t" .
-               "VALUES ('term_id' = (SELECT term_id FROM {$wpdb->terms} " .
-               "WHERE name = {$term} AND slug = {$slug}),taxonomy = {$taxonomy}, description='');";
-        
-    }
-    
     public static function removeSpecificLinking($id)
     {
         global $wpdb;

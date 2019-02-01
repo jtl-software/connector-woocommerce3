@@ -6,7 +6,7 @@ Tested up to: 5.0
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.5.2
-Stable tag: 1.6.5
+Stable tag: 1.7.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -146,6 +146,12 @@ This section describes how to install the plugin and get it working.
 1. The WooCommerce JTL-Connector settings panel.
 
 == Changelog ==
+
+= 1.7.0 =
+* Enhancement - CO-385 - Add Developer Logging on connector configuration tab
+* Enhancement - CO-385 - New connector configuration
+* Enhancement - CO-424 - delivery time support(BETA)
+* Enhancement - CO-429 - ean support(BETA)
 
 = 1.6.4 =
 * Fix - Datetime bug on product push

@@ -1,6 +1,10 @@
 #Changelog
 
-## 1.6.5
+## 1.7.0
+* Enhancement - CO-385 - Add Developer Logging on connector configuration tab
+* Enhancement - CO-385 - New connector configuration
+* Enhancement - CO-424 - delivery time support(BETA)
+* Enhancement - CO-429 - ean support(BETA)
 
 ## 1.6.4
 * Fix - Datetime bug on product push

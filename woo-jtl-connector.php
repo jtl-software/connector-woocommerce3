@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.7.0-dev
+ * Version: 1.7.0
  * WC tested up to: 3.5.2
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
@@ -61,7 +61,154 @@ if (jtlwcc_rewriting_disabled()) {
     if (is_admin()) {
         add_action('init', ['JtlConnectorAdmin', 'init']);
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), ['JtlConnectorAdmin', 'settings_link']);
+        add_action('admin_footer', 'woo_jtl_connector_settings_javascript', PHP_INT_MAX);
+        add_action('wp_ajax_downloadJTLLogs', 'downloadJTLLogs', PHP_INT_MAX);
+        add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
     }
+}
+function woo_jtl_connector_settings_javascript()
+{
+    ?>
+    <script type="text/javascript">
+        jQuery(document).ready(($) => {
+            //console.log('Script Loaded ');
+            $("#downloadLogBtn").click(
+                () => {
+                    let data = {
+                        'action': 'downloadJTLLogs',
+                    };
+
+                    jQuery.ajax(
+                        {
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: data,
+                            success: (response) => {
+                                console.log(response);
+                                window.location.href = response;
+                            },
+                            error: (response) => {
+                                response = JSON.parse(response.responseText);
+                                alert(response.message);
+                            }
+                        }
+                    );
+                }
+            );
+
+            $("#clearLogBtn").click(
+                () => {
+                    let result = confirm("Are you sure you want a reset?");
+                    if (result) {
+
+                        let data = {
+                            'action': 'clearJTLLogs',
+                        };
+
+                        jQuery.ajax(
+                            {
+                                url: ajaxurl,
+                                type: 'POST',
+                                data: data,
+                                success: (response) => {
+                                    //console.log(response);
+                                },
+                            }
+                        );
+                    }
+                }
+            );
+        });
+    </script>
+    <?php
+}
+
+function downloadJTLLogs()
+{
+    $logDir   = CONNECTOR_DIR . '/logs';
+    $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
+    $url = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
+    
+    // Get real path for our folder
+    $rootPath = $logDir;
+    
+    // Initialize archive object
+    $zip = new ZipArchive();
+    $zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    
+    // Create recursive directory iterator
+    /** @var SplFileInfo[] $files */
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($rootPath),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
+    $filesCounter = 0;
+    foreach ($files as $name => $file) {
+        
+        if ($file->getFilename() === '.gitkeep') {
+            continue;
+        }
+        
+        // Skip directories (they would be added automatically)
+        if ( ! $file->isDir()) {
+            // Get real and relative path for current file
+            $filePath     = $file->getRealPath();
+            $relativePath = substr($filePath, strlen($rootPath) + 1);
+            
+            // Add current file to archive
+            $zip->addFile($filePath, $relativePath);
+            $filesCounter++;
+        }
+    }
+    
+    // Zip archive will be created only after closing object
+    $zip->close();
+    
+    header('Content-Type: application/json; charset=UTF-8');
+    
+    if($filesCounter > 0){
+        print json_encode($url);
+    }else{
+        header('HTTP/1.1 451 Internal Server Booboo');
+        die(json_encode(array('message' => 'Keine Logs Vorhanden!', 'code' => 451)));
+    }
+    
+    wp_die();
+    //self::display_page();
+}
+
+function clearJTLLogs()
+{
+    $logDir   = CONNECTOR_DIR . '/logs';
+    $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
+    
+    if (file_exists($zip_file)) {
+        unlink($zip_file);
+    }
+    
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($logDir),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
+    
+    foreach ($files as $name => $file) {
+        
+        if ($file->getFilename() === '.gitkeep') {
+            continue;
+        }
+        
+        if ( ! $file->isDir()) {
+            $filePath = $file->getRealPath();
+            
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+    }
+    
+    echo 'success';
+    
+    wp_die();
 }
 
 /**

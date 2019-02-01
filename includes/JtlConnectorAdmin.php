@@ -45,6 +45,17 @@ final class JtlConnectorAdmin
     
     const OPTIONS_DEVELOPER_LOGGING = 'developer_logging';
     
+    const OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'show_variation_specifics_on_product_page';
+    
+    const OPTIONS_SEND_CUSTOM_PROPERTIES = 'send_custom_properties';
+    
+    const OPTIONS_USE_GTIN_FOR_EAN = 'use_gtin_for_ean';
+    
+    const OPTIONS_USE_DELIVERYTIME_CALC = 'use_deliverytime_calc';
+    const OPTIONS_DISABLED_ZERO_DELIVERY_TIME = 'disabled_zero_delivery_time';
+    const OPTIONS_PRAEFIX_DELIVERYTIME = 'praefix_deliverytime';
+    const OPTIONS_SUFFIX_DELIVERYTIME = 'suffix_deliverytime';
+    
     private static $initiated = false;
     
     // <editor-fold defaultstate="collapsed" desc="Activation">
@@ -262,6 +273,8 @@ final class JtlConnectorAdmin
         add_action('woocommerce_admin_field_connector_password', ['JtlConnectorAdmin', 'connector_password_field']);
         add_action('woocommerce_admin_field_active_true_false_radio',
             ['JtlConnectorAdmin', 'active_true_false_radio_btn']);
+        add_action('woocommerce_admin_field_dev_log_btn', ['JtlConnectorAdmin', 'dev_log_btn']);
+        add_action('woocommerce_admin_field_jtl_text_input', ['JtlConnectorAdmin', 'jtl_text_input']);
         
         self::update();
     }
@@ -327,12 +340,48 @@ final class JtlConnectorAdmin
             );
         }
         
-        if ( ! Config::has('developer_logging')) {
+        if ( ! Config::has(self::OPTIONS_DEVELOPER_LOGGING)) {
             Config::__set(
-                'developer_logging',
+                self::OPTIONS_DEVELOPER_LOGGING,
                 false
             );
         }
+        
+        if ( ! Config::has(self::OPTIONS_USE_GTIN_FOR_EAN)) {
+            Config::__set(
+                self::OPTIONS_USE_GTIN_FOR_EAN,
+                true
+            );
+        }
+        
+        if ( ! Config::has(self::OPTIONS_USE_DELIVERYTIME_CALC)) {
+            Config::__set(
+                self::OPTIONS_USE_DELIVERYTIME_CALC,
+                true
+            );
+        }
+        
+        if ( ! Config::has(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
+            Config::__set(
+                self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+                true
+            );
+        }
+        
+        if ( ! Config::has(self::OPTIONS_PRAEFIX_DELIVERYTIME)) {
+            Config::__set(
+                self::OPTIONS_PRAEFIX_DELIVERYTIME,
+                'ca.'
+            );
+        }
+        
+        if ( ! Config::has(self::OPTIONS_SUFFIX_DELIVERYTIME)) {
+            Config::__set(
+                self::OPTIONS_SUFFIX_DELIVERYTIME,
+                'Werktage'
+            );
+        }
+        
         
         $settings = apply_filters('woocommerce_settings_jtlconnector', [
             [
@@ -361,7 +410,7 @@ final class JtlConnectorAdmin
             [
                 'title' => 'Connector Version',
                 'type'  => 'paragraph',
-                'desc'  => trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']),
+                'desc'  => Config::__get('connector_version'),
             ],
             [
                 'type' => 'sectionend',
@@ -373,11 +422,56 @@ final class JtlConnectorAdmin
                     JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+                'title' => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
                 'type'  => 'active_true_false_radio',
-                'desc'  => __('This is an test.', JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_DEVELOPER_LOGGING,
-                'value' => Config::__get('developer_logging'),
+                'desc'  => __('Enable if you want to use delivery time calculation. (Default : Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_USE_DELIVERYTIME_CALC,
+                'value' => Config::__get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+            ],
+            [
+                'title' => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('Enable if you dont want to use zero values for delivery time. (Default : Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+                'value' => Config::__get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+            ],
+            [
+                'title' => 'Prefix for delivery time',
+                'type'  => 'jtl_text_input',
+                'id'    => self::OPTIONS_PRAEFIX_DELIVERYTIME,
+                'value' => Config::__get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+            ],
+            [
+                'title' => 'Suffix for delivery time',
+                'type'  => 'jtl_text_input',
+                'id'    => self::OPTIONS_SUFFIX_DELIVERYTIME,
+                'value' => Config::__get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+            ],
+            [
+                'title' => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('Enable if you want to show your customers the variation as specific (Default : Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
+                'value' => Config::__get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+            ],
+            [
+                'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('Enable if you want to show your customers the custom properties as attribute (Default : Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
+                'value' => Config::__get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+            ],
+            [
+                'title' => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('Enable if you want to use the GTIN field for ean. (Default : Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_USE_GTIN_FOR_EAN,
+                'value' => Config::__get(self::OPTIONS_USE_GTIN_FOR_EAN),
             ],
             [
                 'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
@@ -406,6 +500,17 @@ final class JtlConnectorAdmin
                     'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
                 ],
                 'desc_tip' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
+            ],
+            [
+                'title' => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'active_true_false_radio',
+                'desc'  => __('Enable JTL-Connector dev-logs for debugging (Default : Not Active).',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'    => self::OPTIONS_DEVELOPER_LOGGING,
+                'value' => Config::__get(self::OPTIONS_DEVELOPER_LOGGING),
+            ],
+            [
+                'type' => 'dev_log_btn',
             ],
             [
                 'type' => 'sectionend',
@@ -528,6 +633,9 @@ final class JtlConnectorAdmin
         <?php
     }
     
+    /**
+     * @param array $field
+     */
     public static function active_true_false_radio_btn(array $field)
     {
         ?>
@@ -535,11 +643,60 @@ final class JtlConnectorAdmin
             <th scope="row" class="titledesc">
                 <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
             </th>
+            <td>
+                <p style="margin-top:0"><?= $field['desc'] ?></p>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+
+            </th>
             <td class="true_false_radio">
                 <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
                     true); ?>>Active
                 <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
                     true); ?>>Not Active
+            </td>
+
+        </tr>
+        
+        <?php
+    }
+    
+    /**
+     * @param array $field
+     */
+    public static function dev_log_btn(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+
+            </th>
+            <td>
+                <div class="btn-group" style="margin-top: 0px;">
+                    <button type="button" id="downloadLogBtn" class="btn btn-primary">Download</button>
+                    <button type="button" id="clearLogBtn" class="btn btn-primary">Clear Logs</button>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    public static function jtl_text_input(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td>
+                <input class="form-control"
+                       type="text"
+                       name="<?= $field['id'] ?>"
+                       id="<?= $field['id'] ?>"
+                       value="<?= $field['value'] ?>"
+                >
             </td>
         </tr>
         <?php
@@ -549,9 +706,14 @@ final class JtlConnectorAdmin
     {
         $settings     = self::get_settings();
         $configValues = [
-            'developer_logging' => 'bool',
-            //show_variation_specifcs_on_product_page
-            //send_custom_properties
+            self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
+            self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
+            self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
+            self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
+            self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
+            self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
+            self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
+            self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
         ];
         
         foreach ($configValues as $configValue => $type) {
@@ -576,7 +738,7 @@ final class JtlConnectorAdmin
                         $value = (float)$item;
                         break;
                     default:
-                        $value = $item;
+                        $value = trim($item);
                         break;
                 }
                 
@@ -588,7 +750,9 @@ final class JtlConnectorAdmin
         WC_Admin_Settings::save_fields($settings);
     }
     
+    
     // </editor-fold>
+    
     // <editor-fold defaultstate="collapsed" desc="Update">
     private static function update()
     {
@@ -636,7 +800,7 @@ final class JtlConnectorAdmin
             case '1.6.3.2':
             case '1.6.3.3':
             case '1.6.4':
-            case '1.6.5':
+            case '1.7.0':
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,
