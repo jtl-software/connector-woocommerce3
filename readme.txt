@@ -143,7 +143,8 @@ This section describes how to install the plugin and get it working.
 
 == Screenshots ==
 
-1. The WooCommerce JTL-Connector settings panel.
+1. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
+2. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
 
 == Changelog ==
 

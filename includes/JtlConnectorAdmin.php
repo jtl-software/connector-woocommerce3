@@ -320,63 +320,63 @@ final class JtlConnectorAdmin
         //UPADTE config.json with Plugin options
         if ( ! Config::has('connector_password')
              || Config::has('connector_password')
-                && Config::__get('connector_password') !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+                && Config::get('connector_password') !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
         ) {
-            Config::__set(
+            Config::set(
                 'connector_password',
                 get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
             );
         }
         
         if ( ! Config::has('connector_version') || Config::has('connector_version') && version_compare(
-                Config::__get('connector_version'),
+                Config::get('connector_version'),
                 trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']),
                 '!='
             )
         ) {
-            Config::__set(
+            Config::set(
                 'connector_version',
                 Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']
             );
         }
         
         if ( ! Config::has(self::OPTIONS_DEVELOPER_LOGGING)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_DEVELOPER_LOGGING,
                 false
             );
         }
         
         if ( ! Config::has(self::OPTIONS_USE_GTIN_FOR_EAN)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_USE_GTIN_FOR_EAN,
                 true
             );
         }
         
         if ( ! Config::has(self::OPTIONS_USE_DELIVERYTIME_CALC)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_USE_DELIVERYTIME_CALC,
                 true
             );
         }
         
         if ( ! Config::has(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
                 true
             );
         }
         
         if ( ! Config::has(self::OPTIONS_PRAEFIX_DELIVERYTIME)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_PRAEFIX_DELIVERYTIME,
                 'ca.'
             );
         }
         
         if ( ! Config::has(self::OPTIONS_SUFFIX_DELIVERYTIME)) {
-            Config::__set(
+            Config::set(
                 self::OPTIONS_SUFFIX_DELIVERYTIME,
                 'Werktage'
             );
@@ -410,7 +410,7 @@ final class JtlConnectorAdmin
             [
                 'title' => 'Connector Version',
                 'type'  => 'paragraph',
-                'desc'  => Config::__get('connector_version'),
+                'desc'  => Config::get('connector_version'),
             ],
             [
                 'type' => 'sectionend',
@@ -427,7 +427,7 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable if you want to use delivery time calculation. (Default : Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_USE_DELIVERYTIME_CALC,
-                'value' => Config::__get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+                'value' => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
             ],
             [
                 'title' => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
@@ -435,19 +435,19 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable if you dont want to use zero values for delivery time. (Default : Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-                'value' => Config::__get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+                'value' => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
             ],
             [
                 'title' => 'Prefix for delivery time',
                 'type'  => 'jtl_text_input',
                 'id'    => self::OPTIONS_PRAEFIX_DELIVERYTIME,
-                'value' => Config::__get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+                'value' => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
             ],
             [
                 'title' => 'Suffix for delivery time',
                 'type'  => 'jtl_text_input',
                 'id'    => self::OPTIONS_SUFFIX_DELIVERYTIME,
-                'value' => Config::__get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+                'value' => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
             ],
             [
                 'title' => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
@@ -455,7 +455,7 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable if you want to show your customers the variation as specific (Default : Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
-                'value' => Config::__get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+                'value' => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
             ],
             [
                 'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
@@ -463,7 +463,7 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable if you want to show your customers the custom properties as attribute (Default : Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
-                'value' => Config::__get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+                'value' => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
             ],
             [
                 'title' => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
@@ -471,7 +471,7 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable if you want to use the GTIN field for ean. (Default : Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_USE_GTIN_FOR_EAN,
-                'value' => Config::__get(self::OPTIONS_USE_GTIN_FOR_EAN),
+                'value' => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
             ],
             [
                 'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
@@ -507,7 +507,7 @@ final class JtlConnectorAdmin
                 'desc'  => __('Enable JTL-Connector dev-logs for debugging (Default : Not Active).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_DEVELOPER_LOGGING,
-                'value' => Config::__get(self::OPTIONS_DEVELOPER_LOGGING),
+                'value' => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
             ],
             [
                 'type' => 'dev_log_btn',
@@ -742,7 +742,7 @@ final class JtlConnectorAdmin
                         break;
                 }
                 
-                Config::__set($key, $value);
+                Config::set($key, $value);
                 unset($_POST[$key]);
             }
         }

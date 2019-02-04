@@ -25,12 +25,12 @@ class ProductDeliveryTime extends BaseController
         $productId = $product->getId()->getEndpoint();
         $time      = $product->getSupplierDeliveryTime();
         
-        if($time === 0 && Config::__get(\JtlConnectorAdmin::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)){
+        if($time === 0 && Config::get(\JtlConnectorAdmin::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)){
             $this->removeDeliveryTimeTerm($productId);
             return;
         }
         
-        if (Config::__get(\JtlConnectorAdmin::OPTIONS_USE_DELIVERYTIME_CALC)) {
+        if (Config::get(\JtlConnectorAdmin::OPTIONS_USE_DELIVERYTIME_CALC)) {
             //FUNCTION ATTRIBUTE BY JTL
             $offset           = 0;
             $pushedAttributes = $product->getAttributes();
@@ -61,9 +61,9 @@ class ProductDeliveryTime extends BaseController
             $deliveryTimeString = trim(
                 sprintf(
                     '%s %s %s',
-                    Config::__get(\JtlConnectorAdmin::OPTIONS_PRAEFIX_DELIVERYTIME),
+                    Config::get(\JtlConnectorAdmin::OPTIONS_PRAEFIX_DELIVERYTIME),
                     $time,
-                    Config::__get(\JtlConnectorAdmin::OPTIONS_SUFFIX_DELIVERYTIME)
+                    Config::get(\JtlConnectorAdmin::OPTIONS_SUFFIX_DELIVERYTIME)
                 )
             );
             
@@ -102,10 +102,13 @@ class ProductDeliveryTime extends BaseController
     private function removeDeliveryTimeTerm(string $productId) : void
     {
         $terms = wp_get_object_terms($productId, 'product_delivery_time');
+        if(count($terms) > 0){
         
+       
         /** @var \WP_Term $value */
         foreach ($terms as $key => $value) {
             wp_remove_object_terms($productId, $value->term_id, 'product_delivery_time');
+        }
         }
     }
 }
