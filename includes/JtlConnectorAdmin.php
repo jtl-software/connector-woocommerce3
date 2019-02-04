@@ -468,7 +468,7 @@ final class JtlConnectorAdmin
             [
                 'title' => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
                 'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you want to use the GTIN field for ean. (Default : Active).',
+                'desc'  => __('Enable if you want to use the GTIN field for ean. (Default : Active / Required plugin: WooCommerce Germanized).',
                     JTLWCC_TEXT_DOMAIN),
                 'id'    => self::OPTIONS_USE_GTIN_FOR_EAN,
                 'value' => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
