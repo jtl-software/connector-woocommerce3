@@ -25,8 +25,9 @@ class ProductDeliveryTime extends BaseController
         $productId = $product->getId()->getEndpoint();
         $time      = $product->getSupplierDeliveryTime();
         
-        if($time === 0 && Config::get(\JtlConnectorAdmin::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)){
+        if ($time === 0 && Config::get(\JtlConnectorAdmin::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
             $this->removeDeliveryTimeTerm($productId);
+            
             return;
         }
         
@@ -82,10 +83,12 @@ class ProductDeliveryTime extends BaseController
                 if ($newTerm instanceof WP_Error) {
                     //  var_dump($newTerm);
                     // die();
+                    $error = new WP_Error('invalid_taxonomy', 'Could not create delivery time.');
+                    WpErrorLogger::getInstance()->logError($error);
                     WpErrorLogger::getInstance()->logError($newTerm);
-                }else{
+                } else {
                     $termId = $newTerm['term_id'];
-    
+                    
                     wp_set_object_terms($productId, $termId, 'product_delivery_time', true);
                 }
             } else {
@@ -93,22 +96,21 @@ class ProductDeliveryTime extends BaseController
             }
         } else {
             $this->removeDeliveryTimeTerm($productId);
+            return;
         }
     }
     
     /**
      * @param string $productId
      */
-    private function removeDeliveryTimeTerm(string $productId) : void
+    private function removeDeliveryTimeTerm(string $productId)
     {
         $terms = wp_get_object_terms($productId, 'product_delivery_time');
-        if(count($terms) > 0){
-        
-       
-        /** @var \WP_Term $value */
-        foreach ($terms as $key => $value) {
-            wp_remove_object_terms($productId, $value->term_id, 'product_delivery_time');
-        }
+        if (count($terms) > 0) {
+            /** @var \WP_Term $value */
+            foreach ($terms as $key => $value) {
+                wp_remove_object_terms($productId, $value->term_id, 'product_delivery_time');
+            }
         }
     }
 }
