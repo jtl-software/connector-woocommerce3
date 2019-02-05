@@ -83,11 +83,11 @@ class ProductDeliveryTime extends BaseController
                     //  var_dump($newTerm);
                     // die();
                     WpErrorLogger::getInstance()->logError($newTerm);
+                }else{
+                    $termId = $newTerm['term_id'];
+    
+                    wp_set_object_terms($productId, $termId, 'product_delivery_time', true);
                 }
-                
-                $termId = $newTerm['term_id'];
-                
-                wp_set_object_terms($productId, $termId, 'product_delivery_time', true);
             } else {
                 wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
             }
