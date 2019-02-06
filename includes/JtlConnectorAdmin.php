@@ -387,7 +387,7 @@ final class JtlConnectorAdmin
             [
                 'title' => __('Information', JTLWCC_TEXT_DOMAIN),
                 'type'  => 'title',
-                'desc'  => __('Basic information and credentials of the installed connector. It is needed to configure the connector in the customer center and JTL-Wawi.',
+                'desc'  => __('Basic information and credentials of the installed JTL-Connectors. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
                     JTLWCC_TEXT_DOMAIN),
             ],
             [
@@ -422,56 +422,68 @@ final class JtlConnectorAdmin
                     JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you want to use delivery time calculation. (Default : Active).',
+                'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_USE_DELIVERYTIME_CALC,
-                'value' => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+                'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
+                'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you dont want to use zero values for delivery time. (Default : Active).',
+                'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-                'value' => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+                'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+                'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => 'Prefix for delivery time',
-                'type'  => 'jtl_text_input',
-                'id'    => self::OPTIONS_PRAEFIX_DELIVERYTIME,
-                'value' => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+                'title'    => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
+                'type'     => 'jtl_text_input',
+                'id'       => self::OPTIONS_PRAEFIX_DELIVERYTIME,
+                'value'    => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+                'desc_tip' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => 'Suffix for delivery time',
-                'type'  => 'jtl_text_input',
-                'id'    => self::OPTIONS_SUFFIX_DELIVERYTIME,
-                'value' => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+                'title'    => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
+                'type'     => 'jtl_text_input',
+                'id'       => self::OPTIONS_SUFFIX_DELIVERYTIME,
+                'value'    => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+                'desc_tip' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you want to show your customers the variation as specific (Default : Active).',
+                'title'     => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable if you want to show your customers the variation as specific (Default : Enabled).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
-                'value' => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+                'id'        => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
+                'value'     => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you want to show your customers the custom properties as attribute (Default : Active).',
+                'title'     => __('Custom properties', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
-                'value' => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+                'id'        => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
+                'value'     => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable if you want to use the GTIN field for ean. (Default : Active / Required plugin: WooCommerce Germanized).',
+                'title'     => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable if you want to use the GTIN field for ean. (Default : Enabled / Required plugin: WooCommerce Germanized).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_USE_GTIN_FOR_EAN,
-                'value' => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
+                'id'        => self::OPTIONS_USE_GTIN_FOR_EAN,
+                'value'     => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
                 'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
@@ -502,15 +514,19 @@ final class JtlConnectorAdmin
                 'desc_tip' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'title' => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'active_true_false_radio',
-                'desc'  => __('Enable JTL-Connector dev-logs for debugging (Default : Not Active).',
+                'title'     => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
                     JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_DEVELOPER_LOGGING,
-                'value' => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
+                'id'        => self::OPTIONS_DEVELOPER_LOGGING,
+                'value'     => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ],
             [
-                'type' => 'dev_log_btn',
+                'type'          => 'dev_log_btn',
+                'downloadText'  => __('Download', JTLWCC_TEXT_DOMAIN),
+                'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
             ],
             [
                 'type' => 'sectionend',
@@ -653,9 +669,9 @@ final class JtlConnectorAdmin
             </th>
             <td class="true_false_radio">
                 <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
-                    true); ?>>Active
+                    true); ?>><?= $field['trueText'] ?>
                 <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
-                    true); ?>>Not Active
+                    true); ?>><?= $field['falseText'] ?>
             </td>
 
         </tr>
@@ -675,8 +691,10 @@ final class JtlConnectorAdmin
             </th>
             <td>
                 <div class="btn-group" style="margin-top: 0px;">
-                    <button type="button" id="downloadLogBtn" class="btn btn-primary">Download</button>
-                    <button type="button" id="clearLogBtn" class="btn btn-primary">Clear Logs</button>
+                    <button type="button" id="downloadLogBtn"
+                            class="btn btn-primary"><?= $field['downloadText'] ?></button>
+                    <button type="button" id="clearLogBtn"
+                            class="btn btn-primary"><?= $field['clearLogsText'] ?></button>
                 </div>
             </td>
         </tr>
@@ -689,6 +707,7 @@ final class JtlConnectorAdmin
         <tr valign="top">
             <th scope="row" class="titledesc">
                 <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
             </th>
             <td>
                 <input class="form-control"

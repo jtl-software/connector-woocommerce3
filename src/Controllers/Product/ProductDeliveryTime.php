@@ -96,6 +96,7 @@ class ProductDeliveryTime extends BaseController
             }
         } else {
             $this->removeDeliveryTimeTerm($productId);
+            
             return;
         }
     }
@@ -107,9 +108,11 @@ class ProductDeliveryTime extends BaseController
     {
         $terms = wp_get_object_terms($productId, 'product_delivery_time');
         if (count($terms) > 0) {
-            /** @var \WP_Term $value */
-            foreach ($terms as $key => $value) {
-                wp_remove_object_terms($productId, $value->term_id, 'product_delivery_time');
+            /** @var \WP_Term $term */
+            foreach ($terms as $key => $term) {
+                if ($term instanceof \WP_Term) {
+                    wp_remove_object_terms($productId, $term->term_id, 'product_delivery_time');
+                }
             }
         }
     }
