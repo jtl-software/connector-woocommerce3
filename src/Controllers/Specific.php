@@ -93,11 +93,11 @@ class Specific extends BaseController
             }
         }
         
-        //Fallback if incorrect language code was given
+        //Fallback 'ger' if incorrect language code was given
         if ($meta === null && $defaultAvailable) {
             foreach ($specific->getI18ns() as $i18n) {
                 if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                    $meta->$i18n;
+                    $meta = $i18n;
                 }
             }
         }
@@ -159,12 +159,28 @@ class Specific extends BaseController
             foreach ($specific->getValues() as $key => $value) {
                 $value->getSpecificId()->setEndpoint($attributeId);
                 $metaValue = null;
-                
+                $defaultValueAvailable = false;
+               
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-                    if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $languageValueSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
+    
+                    if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                        $defaultValueAvailable = true;
+                    }
+                    
+                    if ($languageValueSet) {
                         $metaValue = $i18n;
                         break;
+                    }
+                }
+    
+                //Fallback 'ger' if incorrect language code was given
+                if ($meta === null && $defaultValueAvailable) {
+                    foreach ($value->getI18ns() as $i18n) {
+                        if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                            $metaValue = $i18n;
+                        }
                     }
                 }
                 
