@@ -5,6 +5,7 @@ use jtl\Connector\Application\Application;
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
 use \WC_Admin_Settings as WC_Admin_Settings;
 
@@ -317,6 +318,493 @@ final class JtlConnectorAdmin
     
     public static function get_settings()
     {
+        self::validateAndPrepareConfig();
+        
+        $settings = apply_filters('woocommerce_settings_jtlconnector', self::getConfigFields());
+        
+        return apply_filters('woocommerce_get_settings_jtlconnector', $settings);
+    }
+    
+    // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
+    
+    /**
+     * @return array
+     */
+    
+    private static function getConfigFields()
+    {
+        $fields = [];
+        
+        //Add Information field
+        $fields[] = [
+            'title' => __('Information', JTLWCC_TEXT_DOMAIN),
+            'type'  => 'title',
+            'desc'  => __('Basic information and credentials of the installed JTL-Connectors. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
+                JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add connector url field
+        $fields[] = [
+            'title' => 'Connector URL',
+            'type'  => 'connector_url',
+            'id'    => 'connector_url',
+            'value' => get_bloginfo('url') . '/index.php/jtlconnector/',
+        ];
+        
+        //Add connector password field
+        $fields[] = [
+            'title' => __('Connector Password', JTLWCC_TEXT_DOMAIN),
+            'type'  => 'connector_password',
+            'id'    => 'connector_password',
+            'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
+        ];
+        
+        //Add connector version field
+        $fields[] = [
+            'title' => 'Connector Version',
+            'type'  => 'paragraph',
+            'desc'  => Config::get('connector_version'),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        //Add Incompatible plugin informations
+        $fields[] = [
+            'title' => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
+            'type'  => 'title',
+            'desc'  => SupportedPlugins::getNotSupportedButActive(true, true),
+        ];
+        
+        //Show error if unsupported plugins are in use
+        if (count(SupportedPlugins::getNotSupportedButActive()) > 0) {
+            self::jtlwcc_show_wordpress_error(
+                sprintf(
+                    __('The listed plugins can cause problems when using the connector: %s', JTLWCC_TEXT_DOMAIN),
+                    SupportedPlugins::getNotSupportedButActive(true)
+                )
+            );
+        }
+        
+        //Add extend plugin informations
+        if (count(SupportedPlugins::getSupported()) > 0) {
+            
+            $fields[] = [
+                'title' => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
+                'type'  => 'title',
+                'desc'  => SupportedPlugins::getSupported(true),
+            ];
+        }
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        //Add Settings information field
+        $fields[] = [
+            'title' => __('Settings', JTLWCC_TEXT_DOMAIN),
+            'type'  => 'title',
+            'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+                JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add delivery time calculation radio field
+        $fields[] = [
+            'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
+            'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add dont use zero values radio field
+        $fields[] = [
+            'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+            'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add prefix for delivery time textinput field
+        $fields[] = [
+            'title'    => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'     => 'jtl_text_input',
+            'id'       => self::OPTIONS_PRAEFIX_DELIVERYTIME,
+            'value'    => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+            'desc_tip' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add suffix for delivery time textinput field
+        $fields[] = [
+            'title'    => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'     => 'jtl_text_input',
+            'id'       => self::OPTIONS_SUFFIX_DELIVERYTIME,
+            'value'    => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+            'desc_tip' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add variation specific radio field
+        $fields[] = [
+            'title'     => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you want to show your customers the variation as specific (Default : Enabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
+            'value'     => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add custom properties radio field
+        $fields[] = [
+            'title'     => __('Custom properties', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
+            'value'     => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add gtin/ean radio field
+        $fields[] = [
+            'title'     => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you want to use the GTIN field for ean. (Default : Enabled / Required plugin: WooCommerce Germanized).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_USE_GTIN_FOR_EAN,
+            'value'     => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add pull completed order checkbox field
+        $fields[] = [
+            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
+            'type'  => 'checkbox',
+            'desc'  => __('Do not choose when having a large amount of data and low server specifications.',
+                JTLWCC_TEXT_DOMAIN),
+            'id'    => self::OPTIONS_COMPLETED_ORDERS,
+        ];
+        
+        //Add pull order since date field
+        $fields[] = [
+            'title'    => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
+            'type'     => 'date',
+            'desc_tip' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
+            'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
+        ];
+        
+        //Add variation select field
+        $fields[] = [
+            'title'    => __('Variation name format', JTLWCC_TEXT_DOMAIN),
+            'type'     => 'select',
+            'class'    => 'wc-enhanced-select',
+            'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
+            'options'  => [
+                ''                => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
+                'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)',
+                    JTLWCC_TEXT_DOMAIN),
+                'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
+            ],
+            'desc_tip' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add dev log radio field
+        $fields[] = [
+            'title'     => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_DEVELOPER_LOGGING,
+            'value'     => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add dev log buttons
+        $fields[] = [
+            'type'          => 'dev_log_btn',
+            'downloadText'  => __('Download', JTLWCC_TEXT_DOMAIN),
+            'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        
+        return $fields;
+    }
+    
+    /**
+     * @param array $field
+     */
+    public static function date_field(array $field)
+    {
+        $option_value = get_option($field['id'], $field['default']);
+        
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
+            </th>
+            <td class="forminp forminp-select">
+                <input id="<?= $field['id'] ?>" name="<?= $field['id'] ?>" value="<?= $option_value ?>"
+                       style="width:400px;margin:0;padding:6px;box-sizing:border-box" type="date">
+                <span class="description"><?= $field['desc'] ?></span>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * Output a field with non editable content. With an copy btn
+     *
+     * @param array $field
+     */
+    public static function connector_password_field(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td class="connector-password">
+
+                <div class="input-group">
+                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
+                           readonly="readonly">
+                    <span class="input-group-btn">
+                        <button type="button"
+                                class="clip-btn btn btn-default button"
+                                title="Copy"
+                                onclick="
+                                var text = document.getElementById('connector_password').value;
+                                var dummy = document.createElement('textarea');
+                                document.body.appendChild(dummy);
+                                dummy.value = text;
+                                dummy.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(dummy);
+                        ">Copy
+                        </button>
+                        </span>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * Output a field with non editable content. With an copy btn
+     *
+     * @param array $field
+     */
+    public static function connector_url_field(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td class="connector-password">
+
+                <div class="input-group">
+                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
+                           readonly="readonly">
+                    <span class="input-group-btn">
+                        <button type="button"
+                                class="clip-btn btn btn-default button"
+                                title="Copy"
+                                onclick="
+                                var text = document.getElementById('connector_url').value;
+                                var dummy = document.createElement('textarea');
+                                document.body.appendChild(dummy);
+                                dummy.value = text;
+                                dummy.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(dummy);
+                        ">Copy
+                        </button>
+                        </span>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * Output a paragraph with non editable content.
+     *
+     * @param array $field The field information.
+     */
+    public static function paragraph_field(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label><?= $field['title'] ?></label>
+            </th>
+            <td>
+                <p style="margin-top:0"><?= $field['desc'] ?></p>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * Output a radio btn for true false content.
+     *
+     * @param array $field
+     */
+    public static function active_true_false_radio_btn(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            </th>
+            <td>
+                <p style="margin-top:0"><?= $field['desc'] ?></p>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+
+            </th>
+            <td class="true_false_radio">
+                <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
+                    true); ?>><?= $field['trueText'] ?>
+                <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
+                    true); ?>><?= $field['falseText'] ?>
+            </td>
+
+        </tr>
+        
+        <?php
+    }
+    
+    
+    /**
+     * Output Developer Log Buttons
+     *
+     * @param array $field
+     */
+    public static function dev_log_btn(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+
+            </th>
+            <td>
+                <div class="btn-group" style="margin-top: 0px;">
+                    <button type="button" id="downloadLogBtn"
+                            class="btn btn-primary button"><?= $field['downloadText'] ?></button>
+                    <button type="button" id="clearLogBtn"
+                            class="btn btn-primary button"><?= $field['clearLogsText'] ?></button>
+                </div>
+            </td>
+        </tr>
+        <?php
+    }
+    
+    /**
+     * @param array $field
+     */
+    public static function jtl_text_input(array $field)
+    {
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
+            </th>
+            <td>
+                <input class="form-control"
+                       type="text"
+                       name="<?= $field['id'] ?>"
+                       id="<?= $field['id'] ?>"
+                       value="<?= $field['value'] ?>"
+                >
+            </td>
+        </tr>
+        <?php
+    }
+    // </editor-fold>
+    
+    /**
+     * Save Settings
+     */
+    public static function save()
+    {
+        $settings     = self::get_settings();
+        $configValues = [
+            self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
+            self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
+            self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
+            self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
+            self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
+            self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
+            self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
+            self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
+        ];
+        
+        foreach ($configValues as $configValue => $type) {
+            foreach ($settings as $key => $setting) {
+                if (isset($setting['id']) && $setting['id'] === $configValue) {
+                    unset($settings[$key]);
+                }
+            }
+        }
+        foreach ($_POST as $key => $item) {
+            if (array_key_exists($key, $configValues)) {
+                $cast = $configValues[$key];
+                
+                switch ($cast) {
+                    case 'bool':
+                        $value = 'true' === $item;
+                        break;
+                    case 'int':
+                        $value = (int)$item;
+                        break;
+                    case 'float':
+                        $value = (float)$item;
+                        break;
+                    default:
+                        $value = trim($item);
+                        break;
+                }
+                
+                Config::set($key, $value);
+                unset($_POST[$key]);
+            }
+        }
+        
+        WC_Admin_Settings::save_fields($settings);
+    }
+    
+    /**
+     * Validate and prepare config.json
+     */
+    private static function validateAndPrepareConfig()
+    {
         //UPADTE config.json with Plugin options
         if ( ! Config::has('connector_password')
              || Config::has('connector_password')
@@ -381,395 +869,7 @@ final class JtlConnectorAdmin
                 'Werktage'
             );
         }
-        
-        
-        $settings = apply_filters('woocommerce_settings_jtlconnector', [
-            [
-                'title' => __('Information', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'title',
-                'desc'  => __('Basic information and credentials of the installed JTL-Connectors. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
-                    JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title' => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'title',
-                'desc'  => 'Anti Spam Bee, Smush, Wordfence, WP Cerber Anti-Spam, WP Fastest Cache',
-            ],
-            [
-                'title' => 'Connector URL',
-                'type'  => 'connector_url',
-                'id'    => 'connector_url',
-                'value' => get_bloginfo('url') . '/index.php/jtlconnector/',
-            ],
-            [
-                'title' => __('Connector Password', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'connector_password',
-                'id'    => 'connector_password',
-                'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
-            ],
-            [
-                'title' => 'Connector Version',
-                'type'  => 'paragraph',
-                'desc'  => Config::get('connector_version'),
-            ],
-            [
-                'type' => 'sectionend',
-            ],
-            [
-                'title' => __('Settings', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'title',
-                'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
-                    JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
-                'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-                'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'    => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
-                'type'     => 'jtl_text_input',
-                'id'       => self::OPTIONS_PRAEFIX_DELIVERYTIME,
-                'value'    => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
-                'desc_tip' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'    => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
-                'type'     => 'jtl_text_input',
-                'id'       => self::OPTIONS_SUFFIX_DELIVERYTIME,
-                'value'    => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
-                'desc_tip' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable if you want to show your customers the variation as specific (Default : Enabled).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
-                'value'     => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('Custom properties', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
-                'value'     => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable if you want to use the GTIN field for ean. (Default : Enabled / Required plugin: WooCommerce Germanized).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_USE_GTIN_FOR_EAN,
-                'value'     => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'checkbox',
-                'desc'  => __('Do not choose when having a large amount of data and low server specifications.',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'    => self::OPTIONS_COMPLETED_ORDERS,
-            ],
-            [
-                'title'    => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
-                'type'     => 'date',
-                'desc_tip' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
-                'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
-            ],
-            [
-                'title'    => __('Variation name format', JTLWCC_TEXT_DOMAIN),
-                'type'     => 'select',
-                'class'    => 'wc-enhanced-select',
-                'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
-                'options'  => [
-                    ''                => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
-                    'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                    'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)',
-                        JTLWCC_TEXT_DOMAIN),
-                    'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                    'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
-                ],
-                'desc_tip' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'title'     => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
-                    JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_DEVELOPER_LOGGING,
-                'value'     => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'type'          => 'dev_log_btn',
-                'downloadText'  => __('Download', JTLWCC_TEXT_DOMAIN),
-                'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
-            ],
-            [
-                'type' => 'sectionend',
-            ],
-        ]);
-        
-        return apply_filters('woocommerce_get_settings_jtlconnector', $settings);
     }
-    
-    /**
-     * @param array $field
-     */
-    public static function date_field(array $field)
-    {
-        $option_value = get_option($field['id'], $field['default']);
-        
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
-            </th>
-            <td class="forminp forminp-select">
-                <input id="<?= $field['id'] ?>" name="<?= $field['id'] ?>" value="<?= $option_value ?>"
-                       style="width:400px;margin:0;padding:6px;box-sizing:border-box" type="date">
-                <span class="description"><?= $field['desc'] ?></span>
-            </td>
-        </tr>
-        <?php
-    }
-    
-    /**
-     * @param array $field
-     */
-    public static function connector_password_field(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td class="connector-password">
-
-                <div class="input-group">
-                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
-                           readonly="readonly">
-                    <span class="input-group-btn">
-                        <button type="button"
-                                class="clip-btn btn btn-default"
-                                title="Copy"
-                                onclick="
-                                var text = document.getElementById('connector_password').value;
-                                var dummy = document.createElement('textarea');
-                                document.body.appendChild(dummy);
-                                dummy.value = text;
-                                dummy.select();
-                                document.execCommand('copy');
-                                document.body.removeChild(dummy);
-                        ">Copy
-                        </button>
-                        </span>
-                </div>
-            </td>
-        </tr>
-        <?php
-    }
-    
-    /**
-     * @param array $field
-     */
-    public static function connector_url_field(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td class="connector-password">
-
-                <div class="input-group">
-                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
-                           readonly="readonly">
-                    <span class="input-group-btn">
-                        <button type="button"
-                                class="clip-btn btn btn-default"
-                                title="Copy"
-                                onclick="
-                                var text = document.getElementById('connector_url').value;
-                                var dummy = document.createElement('textarea');
-                                document.body.appendChild(dummy);
-                                dummy.value = text;
-                                dummy.select();
-                                document.execCommand('copy');
-                                document.body.removeChild(dummy);
-                        ">Copy
-                        </button>
-                        </span>
-                </div>
-            </td>
-        </tr>
-        <?php
-    }
-    
-    /**
-     * Output a paragraph with non editable content.
-     *
-     * @param array $field The field information.
-     */
-    public static function paragraph_field(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label><?= $field['title'] ?></label>
-            </th>
-            <td>
-                <p style="margin-top:0"><?= $field['desc'] ?></p>
-            </td>
-        </tr>
-        <?php
-    }
-    
-    /**
-     * @param array $field
-     */
-    public static function active_true_false_radio_btn(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td>
-                <p style="margin-top:0"><?= $field['desc'] ?></p>
-            </td>
-        </tr>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-
-            </th>
-            <td class="true_false_radio">
-                <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
-                    true); ?>><?= $field['trueText'] ?>
-                <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
-                    true); ?>><?= $field['falseText'] ?>
-            </td>
-
-        </tr>
-        
-        <?php
-    }
-    
-    /**
-     * @param array $field
-     */
-    public static function dev_log_btn(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-
-            </th>
-            <td>
-                <div class="btn-group" style="margin-top: 0px;">
-                    <button type="button" id="downloadLogBtn"
-                            class="btn btn-primary"><?= $field['downloadText'] ?></button>
-                    <button type="button" id="clearLogBtn"
-                            class="btn btn-primary"><?= $field['clearLogsText'] ?></button>
-                </div>
-            </td>
-        </tr>
-        <?php
-    }
-    
-    public static function jtl_text_input(array $field)
-    {
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
-            </th>
-            <td>
-                <input class="form-control"
-                       type="text"
-                       name="<?= $field['id'] ?>"
-                       id="<?= $field['id'] ?>"
-                       value="<?= $field['value'] ?>"
-                >
-            </td>
-        </tr>
-        <?php
-    }
-    
-    public static function save()
-    {
-        $settings     = self::get_settings();
-        $configValues = [
-            self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
-            self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
-            self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
-            self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
-            self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
-            self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
-            self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
-            self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
-        ];
-        
-        foreach ($configValues as $configValue => $type) {
-            foreach ($settings as $key => $setting) {
-                if (isset($setting['id']) && $setting['id'] === $configValue) {
-                    unset($settings[$key]);
-                }
-            }
-        }
-        foreach ($_POST as $key => $item) {
-            if (array_key_exists($key, $configValues)) {
-                $cast = $configValues[$key];
-                
-                switch ($cast) {
-                    case 'bool':
-                        $value = 'true' === $item;
-                        break;
-                    case 'int':
-                        $value = (int)$item;
-                        break;
-                    case 'float':
-                        $value = (float)$item;
-                        break;
-                    default:
-                        $value = trim($item);
-                        break;
-                }
-                
-                Config::set($key, $value);
-                unset($_POST[$key]);
-            }
-        }
-        
-        WC_Admin_Settings::save_fields($settings);
-    }
-    
-    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Update">
@@ -1085,7 +1185,7 @@ final class JtlConnectorAdmin
             JTLWCC_TEXT_DOMAIN));
     }
     
-    private function jtlwcc_show_wordpress_error($message)
+    public static function jtlwcc_show_wordpress_error($message)
     {
         echo '<div class="error"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
     }
