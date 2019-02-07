@@ -12,6 +12,7 @@ final class SupportedPlugins
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
+    const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
     const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
@@ -24,6 +25,7 @@ final class SupportedPlugins
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
+        self::PLUGIN_PERFECT_WOO_BRANDS,
     ];
     
     const INCOMPATIBLE_PLUGINS = [

@@ -17,6 +17,7 @@ use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Product extends BaseController
@@ -92,6 +93,10 @@ class Product extends BaseController
             
             if (Germanized::getInstance()->isActive()) {
                 $this->setGermanizedAttributes($result, $product);
+            }
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+                $result->setManufacturerId(ProductManufacturer::getInstance()->pullData($product, $result));
             }
             
             $products[] = $result;
@@ -262,18 +267,14 @@ class Product extends BaseController
         }
         //DELIVERYTIME
         (new ProductDeliveryTime())->pushData($product, $wcProduct);
+        (new ProductManufacturer())->pushData($product, $wcProduct);
     }
     
     private function updateProductRelations(ProductModel $product)
     {
-        $product2Category = new Product2Category();
-        $product2Category->pushData($product);
-        
-        $productPrice = new ProductPrice();
-        $productPrice->pushData($product);
-        
-        $productSpecialPrice = new ProductSpecialPrice();
-        $productSpecialPrice->pushData($product);
+        (new Product2Category)->pushData($product);
+        (new ProductPrice)->pushData($product);
+        (new ProductSpecialPrice)->pushData($product);
     }
     
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)

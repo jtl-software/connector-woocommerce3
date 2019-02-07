@@ -186,13 +186,13 @@
       "delete": false
     },
     "Manufacturer": {
-      "pull": false,
-      "push": false,
-      "delete": false
+      "pull": true,
+      "push": true,
+      "delete": true
     },
     "ManufacturerI18n": {
-      "pull": false,
-      "push": false,
+      "pull": true,
+      "push": true,
       "delete": false
     },
     "MeasurementUnit": {
@@ -453,7 +453,7 @@
     "config_group_images_supported": false,
     "customer_order_partially_payable": false,
     "free_field_supported": false,
-    "manufacturer_images_supported": false,
+    "manufacturer_images_supported": true,
     "needs_finish_call": true,
     "product_images_supported": true,
     "product_variation_value_images_supported": false,
