@@ -57,7 +57,7 @@ class ProductManufacturer extends BaseController
     public function pullData(\WC_Product $product, ProductModel $model)
     {
         $productId      = $model->getId()->getEndpoint();
-        $manufacturerId = [];
+        $manufacturerId = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
             $terms = wp_get_object_terms($productId, 'pwb-brand');
             

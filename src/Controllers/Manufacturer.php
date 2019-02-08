@@ -114,12 +114,13 @@ class Manufacturer extends BaseController
                     ]);
                 }
                 
-                $manufacturer->getId()->setEndpoint($term->term_id);
-                foreach ($manufacturer->getI18ns() as $i18n) {
-                    /** @var ManufacturerI18nModel $i18n */
-                    $i18n->getManufacturerId()->setEndpoint($term->term_id);
+                if ($term instanceof \WP_Term) {
+                    $manufacturer->getId()->setEndpoint($term->term_id);
+                    foreach ($manufacturer->getI18ns() as $i18n) {
+                        /** @var ManufacturerI18nModel $i18n */
+                        $i18n->getManufacturerId()->setEndpoint($term->term_id);
+                    }
                 }
-                
             }
         }
         
@@ -144,9 +145,9 @@ class Manufacturer extends BaseController
     
     protected function getStats()
     {
-        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
             return $this->database->queryOne(SqlHelper::manufacturerStats());
-        }else{
+        } else {
             return 0;
         }
     }

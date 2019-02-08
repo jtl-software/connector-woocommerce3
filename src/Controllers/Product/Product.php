@@ -66,6 +66,11 @@ class Product extends BaseController
             //EAN / GTIN
             if (Util::useGtinAsEanEnabled()) {
                 $ean = get_post_meta($product->get_id(), '_ts_gtin');
+                
+                if(is_array($ean) && array_key_exists(0,$ean)){
+                    $ean = $ean[0];
+                }
+                
                 $result->setEan((string)$ean);
             }
             
@@ -96,7 +101,10 @@ class Product extends BaseController
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
-                $result->setManufacturerId(ProductManufacturer::getInstance()->pullData($product, $result));
+                $tmpManId = ProductManufacturer::getInstance()->pullData($product, $result);
+                if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
+                    $result->setManufacturerId($tmpManId);
+                }
             }
             
             $products[] = $result;

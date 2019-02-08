@@ -9,32 +9,35 @@ namespace JtlWooCommerceConnector\Utilities;
 final class SupportedPlugins
 {
     //Compatible
+    const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
-    const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
+    const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
+    
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
+    const PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan';
+    const PLUGIN_GERMAN_MARKET = 'German Market';
     const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
     const PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan';
-    const PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
-    const PLUGIN_GERMAN_MARKET = 'German Market';
     //arrays
     const SUPPORTED_PLUGINS = [
+        self::PLUGIN_PERFECT_WOO_BRANDS,
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
-        self::PLUGIN_PERFECT_WOO_BRANDS,
+        self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
     ];
     
     const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
+        self::PLUGIN_CERBER_SECURITY,
+        self::PLUGIN_GERMAN_MARKET,
         self::PLUGIN_SMUSH,
         self::PLUGIN_WORDFENCE,
-        self::PLUGIN_CERBER_SECURITY,
         self::PLUGIN_WP_FASTEST_CACHE,
-        self::PLUGIN_GERMAN_MARKET,
     ];
     
     /**

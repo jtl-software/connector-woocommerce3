@@ -104,7 +104,7 @@ class ProductDeliveryTime extends BaseController
     /**
      * @param string $productId
      */
-    private function removeDeliveryTimeTerm(string $productId)
+    private function removeDeliveryTimeTerm($productId)
     {
         $terms = wp_get_object_terms($productId, 'product_delivery_time');
         if (count($terms) > 0) {
