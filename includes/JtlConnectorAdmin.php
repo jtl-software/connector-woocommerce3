@@ -1189,7 +1189,7 @@ final class JtlConnectorAdmin
         
         if ($engine === 'InnoDB') {
             $wpdb->query("
-              ALTER TABLE `jtl_connector_link_manufacturer`
+              ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`
                 ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
         }

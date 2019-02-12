@@ -10,6 +10,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductI18n extends BaseController
@@ -27,7 +28,22 @@ class ProductI18n extends BaseController
         if (Germanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
-
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+            $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
+            if (!is_null($tmpMeta) && count($tmpMeta) > 0) {
+             /*   'title'
+                'metaDesc'
+                'keywords'
+                'permlink'
+             */
+                $i18n->setMetaDescription($tmpMeta['metaDesc'])
+                     ->setMetaKeywords($tmpMeta['keywords'])
+                     ->setTitleTag($tmpMeta['titleTag'])
+                     ->setUrlPath($tmpMeta['permlink']);
+            }
+        }
+        
         return $i18n;
     }
 

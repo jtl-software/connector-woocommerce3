@@ -14,6 +14,7 @@ final class SupportedPlugins
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
     const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
+    const PLUGIN_YOAST_SEO = 'Yoast SEO';
     
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -29,6 +30,7 @@ final class SupportedPlugins
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
+        self::PLUGIN_YOAST_SEO,
     ];
     
     const INCOMPATIBLE_PLUGINS = [

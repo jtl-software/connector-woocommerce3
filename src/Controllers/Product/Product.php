@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
@@ -99,7 +100,7 @@ class Product extends BaseController
             if (Germanized::getInstance()->isActive()) {
                 $this->setGermanizedAttributes($result, $product);
             }
-            
+    
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
                 $tmpManId = ProductManufacturer::getInstance()->pullData($product, $result);
                 if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
@@ -115,7 +116,7 @@ class Product extends BaseController
     
     protected function pushData(ProductModel $product)
     {
-        $meta            = null;
+        $tmpI18n            = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
         
         if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
@@ -125,12 +126,12 @@ class Product extends BaseController
         
         foreach ($product->getI18ns() as $i18n) {
             if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $meta = $i18n;
+                $tmpI18n = $i18n;
                 break;
             }
         }
         
-        if (is_null($meta)) {
+        if (is_null($tmpI18n)) {
             return $product;
         }
         
@@ -141,14 +142,15 @@ class Product extends BaseController
         }
         
         $isMasterProduct = empty($masterProductId);
-        
+    
+        /** @var ProductI18nModel $tmpI18n */
         $endpoint = [
             'ID'           => (int)$product->getId()->getEndpoint(),
             'post_type'    => $isMasterProduct ? 'product' : 'product_variation',
-            'post_title'   => $meta->getName(),
-            'post_name'    => $meta->getUrlPath(),
-            'post_content' => $meta->getDescription(),
-            'post_excerpt' => $meta->getShortDescription(),
+            'post_title'   => $tmpI18n->getName(),
+            'post_name'    => $tmpI18n->getUrlPath(),
+            'post_content' => $tmpI18n->getDescription(),
+            'post_excerpt' => $tmpI18n->getShortDescription(),
             'post_date'    => $this->getCreationDate($creationDate),
             //'post_date_gmt' => $this->getCreationDate($creationDate, true),
             'post_status'  => is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future',
@@ -166,20 +168,24 @@ class Product extends BaseController
             }
         }
         
-        $result = \wp_insert_post($endpoint, true);
+        $newPostId = \wp_insert_post($endpoint, true);
         
-        if ($result instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($result);
+        if ($newPostId instanceof \WP_Error) {
+            WpErrorLogger::getInstance()->logError($newPostId);
             
             return $product;
         }
         
-        $product->getId()->setEndpoint($result);
+        $product->getId()->setEndpoint($newPostId);
         
-        $this->onProductInserted($product, $meta);
+        $this->onProductInserted($product, $tmpI18n);
         
         if (Germanized::getInstance()->isActive()) {
             $this->updateGermanizedAttributes($product);
+        }
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+            ProductMetaSeo::getInstance()->pushData($product, $newPostId, $tmpI18n);
         }
         
         return $product;
