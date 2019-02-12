@@ -89,13 +89,13 @@ class ProductAttr extends BaseController
             
             if ( ! $isPurchasable) {
                 $attrI18n = (new ProductAttrI18nModel())
-                    ->setProductAttrId(new Identity(self::PAYABLE))
+                    ->setProductAttrId(new Identity(self::PAYABLE_ATTR))
                     ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                    ->setName(self::PAYABLE)
+                    ->setName(self::PAYABLE_ATTR)
                     ->setValue('false');
                 
                 $productAttributes[] = (new ProductAttrModel())
-                    ->setId(new Identity(self::PAYABLE))
+                    ->setId(new Identity(self::PAYABLE_ATTR))
                     ->setIsCustomProperty(true)
                     ->addI18n($attrI18n);
             }

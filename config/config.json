@@ -1,12 +1,1 @@
-{
-  "connector_password": "BAB70B87-4359-46F8-889B-06AE9BC9DB28",
-  "connector_version": "1.7.0.7",
-  "developer_logging": false,
-  "use_gtin_for_ean": true,
-  "use_deliverytime_calc": true,
-  "disabled_zero_delivery_time": true,
-  "praefix_deliverytime": "ca.",
-  "suffix_deliverytime": "Werktage",
-  "show_variation_specifics_on_product_page": true,
-  "send_custom_properties": true
-}
+{"connector_password":"BAB70B87-4359-46F8-889B-06AE9BC9DB28","connector_version":"1.7.1","developer_logging":true,"use_gtin_for_ean":true,"use_deliverytime_calc":true,"disabled_zero_delivery_time":true,"praefix_deliverytime":"ca.","suffix_deliverytime":"Werktage","show_variation_specifics_on_product_page":true,"send_custom_properties":true}

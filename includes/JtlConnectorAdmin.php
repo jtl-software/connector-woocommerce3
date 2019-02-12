@@ -80,6 +80,7 @@ final class JtlConnectorAdmin
             self::activate_checksum();
             self::activate_category_tree();
             self::set_linking_table_name_prefix_correctly();
+            self::add_manufacturer_linking_tables();
             add_option(self::OPTIONS_TOKEN, self::create_password());
             add_option(self::OPTIONS_COMPLETED_ORDERS, 'yes');
             add_option(self::OPTIONS_PULL_ORDERS_SINCE, '');
@@ -177,6 +178,7 @@ final class JtlConnectorAdmin
         
         self::add_constraints_for_multi_linking_tables();
         self::set_linking_table_name_prefix_correctly();
+        self::add_manufacturer_linking_tables();
     }
     
     private static function activate_checksum()
@@ -920,6 +922,8 @@ final class JtlConnectorAdmin
             case '1.6.3.3':
             case '1.6.4':
             case '1.7.0':
+            case '1.7.1':
+                self::add_manufacturer_linking_tables();
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,
@@ -1158,6 +1162,37 @@ final class JtlConnectorAdmin
             $wpdb->query($sql);
         }
         
+    }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
+    private static function add_manufacturer_linking_tables()
+    {
+        global $wpdb;
+        
+        $query = '
+            CREATE TABLE IF NOT EXISTS `%s` (
+                `endpoint_id` BIGINT(20) unsigned NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+        
+        $wpdb->query(sprintf($query, $wpdb->prefix . 'jtl_connector_link_manufacturer'));
+        
+        $engine = $wpdb->get_var(sprintf("
+            SELECT ENGINE
+            FROM information_schema.TABLES
+            WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
+            DB_NAME
+        ));
+        
+        if ($engine === 'InnoDB') {
+            $wpdb->query("
+              ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`
+                ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+            );
+        }
     }
     // </editor-fold>
     

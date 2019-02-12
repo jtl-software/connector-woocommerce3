@@ -1,5 +1,16 @@
 #Changelog
 
+## 1.7.1
+* Enhancement - CO-431 - Support of product brand (Required plugin: Perfect WooCommerce Brands)
+* Enhancement - Update UI texts
+* Enhancement - New supported plugin validation
+* Enhancement - New information on settings tab
+* Enhancement - New functional attributes added
+* Enhancement - Add fallback for i18n on specific & specific value pull
+* Fix - nosearch && payable attribute bug
+* Fix - Delivery time creation bug
+* Fix - Return void mismatch bug
+
 ## 1.7.0
 * Enhancement - CO-385 - Add Developer Logging on connector configuration tab
 * Enhancement - CO-385 - New connector configuration
