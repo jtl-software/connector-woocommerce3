@@ -23,6 +23,8 @@ final class SupportedPlugins
     const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
     const PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
+    const PLUGIN_WP_MULTILANG = 'WP Multilang';
+    
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
@@ -40,6 +42,7 @@ final class SupportedPlugins
         self::PLUGIN_SMUSH,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
+        self::PLUGIN_WP_MULTILANG,
     ];
     
     /**

@@ -149,7 +149,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.7.1 =
-* Enhancement - CO-431 - Support of seo for products (Required plugin: Yoast SEO / !!! BETA !!!)
+* Enhancement - CO-436 - Support of seo for products (Required plugin: Yoast SEO / !!! BETA !!!)
 * Enhancement - CO-431 - Support of product brand (Required plugin: Perfect WooCommerce Brands)
 * Enhancement - CO-424 - delivery time support(RC)
 * Enhancement - CO-429 - ean support(RC)
