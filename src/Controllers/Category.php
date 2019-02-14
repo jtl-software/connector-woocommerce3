@@ -37,17 +37,19 @@ class Category extends BaseController
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
             
-            if (!empty($categoryDataSet['parent'])) {
+            if ( ! empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
             
-            $categories[] = $category->addI18n((new CategoryI18nModel)
+            $i18n = (new CategoryI18nModel)
                 ->setCategoryId($category->getId())
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                 ->setName($categoryDataSet['name'])
                 ->setDescription($categoryDataSet['description'])
                 ->setUrlPath($categoryDataSet['slug'])
-                ->setTitleTag($categoryDataSet['name']));
+                ->setTitleTag($categoryDataSet['name']);
+            
+            $categories[] = $category->addI18n($i18n);
         }
         
         return $categories;
@@ -55,7 +57,7 @@ class Category extends BaseController
     
     protected function pushData(CategoryModel $category)
     {
-        if (!$category->getIsActive()) {
+        if ( ! $category->getIsActive()) {
             return $category;
         }
         
@@ -67,7 +69,7 @@ class Category extends BaseController
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
         
-        $meta = null;
+        $meta       = null;
         $categoryId = $category->getId()->getEndpoint();
         
         foreach ($category->getI18ns() as $i18n) {
@@ -89,7 +91,7 @@ class Category extends BaseController
         
         $urlPath = $meta->getUrlPath();
         
-        if (!empty($urlPath)) {
+        if ( ! empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
         }
         
@@ -109,7 +111,7 @@ class Category extends BaseController
             
             return $category;
         }
-    
+        
         $category->getId()->setEndpoint($result['term_id']);
         self::$idCache[$category->getId()->getHost()] = $result['term_id'];
         
@@ -122,7 +124,7 @@ class Category extends BaseController
     {
         $categoryId = $specific->getId()->getEndpoint();
         
-        if (!empty($categoryId)) {
+        if ( ! empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
             
             $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);

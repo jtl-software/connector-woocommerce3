@@ -53,7 +53,7 @@ class Config
         return self::$instance;
     }
     
-    public static function get(){
+    public static function getData(){
         self::getInstance();
         
         return self::$data;
@@ -63,7 +63,7 @@ class Config
      * @param $name
      * @param $value
      */
-    public static function __set($name, $value)
+    public static function set($name, $value)
     {
         self::getInstance();
         self::$data->$name = $value;
@@ -87,7 +87,7 @@ class Config
      *
      * @return mixed
      */
-    public static function __get($name)
+    public static function get($name)
     {
         self::getInstance();
         

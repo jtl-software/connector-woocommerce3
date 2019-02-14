@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerOrderTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\GermanizedDataTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\GlobalDataTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\ImageTrait;
+use JtlWooCommerceConnector\Utilities\SqlTraits\ManufacturerTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\PaymentTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\PrimaryKeyMappingTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\ProductTrait;
@@ -30,6 +31,7 @@ final class SqlHelper {
 		GermanizedDataTrait,
 		GlobalDataTrait,
 		ImageTrait,
+        ManufacturerTrait,
 		PaymentTrait,
 		PrimaryKeyMappingTrait,
 		ProductTrait,

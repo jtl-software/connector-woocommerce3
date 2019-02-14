@@ -13,15 +13,17 @@ use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
 use JtlWooCommerceConnector\Utilities\Id;
 
-trait ImageTrait {
-	public static function imageCategoryPull( $limit = null ) {
-		global $wpdb;
-		
-		$limitQuery = is_null( $limit ) ? '' : 'LIMIT ' . $limit;
-		list( $table, $column ) = CategoryUtil::getTermMetaData();
-		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
-		
-		return sprintf( "
+trait ImageTrait
+{
+    public static function imageCategoryPull($limit = null)
+    {
+        global $wpdb;
+        
+        $limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
+        list($table, $column) = CategoryUtil::getTermMetaData();
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        
+        return sprintf("
             SELECT CONCAT_WS('%s', '%s', p.ID) as id, p.ID as ID, tt.term_id as parent, p.guid
             FROM {$wpdb->term_taxonomy} tt
             RIGHT JOIN {$table} tm
@@ -36,19 +38,51 @@ trait ImageTrait {
             AND tm.meta_key = '%s'
             AND tm.meta_value != 0
             {$limitQuery}",
-			Id::SEPARATOR,
-			Id::CATEGORY_PREFIX,
-			IdentityLinker::TYPE_CATEGORY,
-			CategoryUtil::TERM_TAXONOMY,
-			ImageCtrl::CATEGORY_THUMBNAIL
-		);
-	}
-	
-	public static function imageProductThumbnail() {
-		global $wpdb;
-		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
-		
-		return sprintf( "
+            Id::SEPARATOR,
+            Id::CATEGORY_PREFIX,
+            IdentityLinker::TYPE_CATEGORY,
+            CategoryUtil::TERM_TAXONOMY,
+            ImageCtrl::CATEGORY_THUMBNAIL
+        );
+    }
+    
+    public static function imageManufacturerPull($limit = null)
+    {
+        global $wpdb;
+        
+        $limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
+        $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
+        $sql        = sprintf("
+            SELECT CONCAT_WS('%s', '%s', p.ID) as id, p.ID as ID, tt.term_id as parent, p.guid
+            FROM {$wpdb->term_taxonomy} tt
+            RIGHT JOIN {$wpdb->termmeta} tm
+            ON tt.term_id = tm.term_id
+            LEFT JOIN {$wpdb->posts} p
+            ON p.ID = tm.meta_value
+            LEFT JOIN {$jcli} l
+            ON l.endpoint_id = p.ID
+            AND type = %d
+            WHERE l.host_id IS NULL
+            AND tt.taxonomy = '%s'
+            AND tm.meta_key = '%s'
+            AND tm.meta_value != 0
+            {$limitQuery}",
+            Id::SEPARATOR,
+            Id::MANUFACTURER_PREFIX,
+            IdentityLinker::TYPE_MANUFACTURER,
+            'pwb-brand',
+            ImageCtrl::MANUFACTURER_KEY
+        );
+        
+        return $sql;
+    }
+    
+    public static function imageProductThumbnail()
+    {
+        global $wpdb;
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        
+        return sprintf("
             SELECT p.ID, pm.meta_value
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
@@ -61,16 +95,17 @@ trait ImageTrait {
             AND pm.meta_value != 0
             AND l.host_id IS NULL
             GROUP BY p.ID, pm.meta_value",
-			Id::SEPARATOR,
-			IdentityLinker::TYPE_PRODUCT,
-			ImageCtrl::PRODUCT_THUMBNAIL
-		);
-	}
-	
-	public static function imageProductGalleryStats() {
-		global $wpdb;
-		
-		return sprintf( "
+            Id::SEPARATOR,
+            IdentityLinker::TYPE_PRODUCT,
+            ImageCtrl::PRODUCT_THUMBNAIL
+        );
+    }
+    
+    public static function imageProductGalleryStats()
+    {
+        global $wpdb;
+        
+        return sprintf("
             SELECT p.ID, pm.meta_value
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
@@ -78,29 +113,31 @@ trait ImageTrait {
             WHERE p.post_type = 'product'
             AND p.post_status IN ('future', 'publish', 'inherit', 'private')
             AND pm.meta_key = '%s' AND pm.meta_value != 0",
-			ImageCtrl::GALLERY_KEY
-		);
-	}
-	
-	public static function linkedProductImages() {
-		global $wpdb;
-		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
-		
-		return sprintf( "
+            ImageCtrl::GALLERY_KEY
+        );
+    }
+    
+    public static function linkedProductImages()
+    {
+        global $wpdb;
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        
+        return sprintf("
 			SELECT endpoint_id
 			FROM {$jcli}
 			WHERE `type` = '%d'",
-			IdentityLinker::TYPE_PRODUCT
-		);
-	}
-	
-	public static function imageVariationCombinationPull( $limit = null ) {
-		global $wpdb;
-		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
-		
-		$limitQuery = is_null( $limit ) ? '' : 'LIMIT ' . $limit;
-		
-		return sprintf( "
+            IdentityLinker::TYPE_PRODUCT
+        );
+    }
+    
+    public static function imageVariationCombinationPull($limit = null)
+    {
+        global $wpdb;
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        
+        $limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
+        
+        return sprintf("
             SELECT pm.post_id
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
@@ -116,47 +153,62 @@ trait ImageTrait {
             AND p.post_parent IN (SELECT p2.ID
             FROM {$wpdb->posts} p2)
             {$limitQuery}",
-			Id::SEPARATOR,
-			IdentityLinker::TYPE_PRODUCT,
-			ImageCtrl::PRODUCT_THUMBNAIL
-		);
-	}
-	
-	public static function imageCategoryDelete( $id ) {
-		list( $table, $column ) = CategoryUtil::getTermMetaData();
-		
-		return sprintf( "
+            Id::SEPARATOR,
+            IdentityLinker::TYPE_PRODUCT,
+            ImageCtrl::PRODUCT_THUMBNAIL
+        );
+    }
+    
+    public static function imageCategoryDelete($id)
+    {
+        list($table, $column) = CategoryUtil::getTermMetaData();
+        
+        return sprintf("
             SELECT COUNT({$column})
             FROM {$table}
             WHERE meta_key = '%s' AND meta_value = {$id}",
-			ImageCtrl::CATEGORY_THUMBNAIL
-		);
-	}
-	
-	public static function imageProductDelete( $id ) {
-		global $wpdb;
-		
-		return sprintf( "
+            ImageCtrl::CATEGORY_THUMBNAIL
+        );
+    }
+    
+    public static function imageManufacturerDelete($id)
+    {
+        global $wpdb;
+        
+        return sprintf("
+            SELECT COUNT({'term_id'})
+            FROM {$wpdb->termmeta}
+            WHERE meta_key = '%s' AND meta_value = {$id}",
+            ImageCtrl::MANUFACTURER_KEY
+        );
+    }
+    
+    public static function imageProductDelete($id)
+    {
+        global $wpdb;
+        
+        return sprintf("
             SELECT COUNT(meta_id)
             FROM {$wpdb->postmeta}
             WHERE (meta_key = '%s'
             AND meta_value = {$id})
             OR (meta_key = '%s'
             AND FIND_IN_SET({$id}, meta_value) > 0)",
-			ImageCtrl::PRODUCT_THUMBNAIL, ImageCtrl::GALLERY_KEY
-		);
-	}
-	
-	public static function imageDeleteLinks( $productId ) {
-		global $wpdb;
-		$jcli = $wpdb->prefix . 'jtl_connector_link_image';
-		
-		return sprintf( "
+            ImageCtrl::PRODUCT_THUMBNAIL, ImageCtrl::GALLERY_KEY
+        );
+    }
+    
+    public static function imageDeleteLinks($productId)
+    {
+        global $wpdb;
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        
+        return sprintf("
             DELETE FROM {$jcli}
             WHERE `type` = %d
             AND endpoint_id
             LIKE '%%%s{$productId}'",
-			IdentityLinker::TYPE_PRODUCT, Id::SEPARATOR
-		);
-	}
+            IdentityLinker::TYPE_PRODUCT, Id::SEPARATOR
+        );
+    }
 }

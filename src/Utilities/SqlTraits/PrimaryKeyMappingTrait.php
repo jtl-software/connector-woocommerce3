@@ -99,6 +99,7 @@ trait PrimaryKeyMappingTrait {
 			"jtl_connector_link_shipping_class",
 			"jtl_connector_link_specific",
 			"jtl_connector_link_specific_value",
+            "jtl_connector_link_manufacturer"
 		];
 		$arr    = [];
 		

@@ -157,6 +157,7 @@ class ProductSpecific extends BaseController {
 				'is_taxonomy'  => $slug,
 			];
 			$values           = [];
+			
 			if ( isset( $specific ) && count( $specific['options'] ) > 0 ) {
 				foreach ( $specific['options'] as $valId ) {
 					$term = get_term_by( 'id', $valId, $slug );
@@ -165,12 +166,11 @@ class ProductSpecific extends BaseController {
 					}
 				}
 			}
+			
 			wp_set_object_terms( $wcProduct->get_id(), $values, $slug, true );
 		}
 		
-		
 		\update_post_meta( $wcProduct->get_id(), '_product_attributes', $current );
-		
 	}
 	// </editor-fold>
 }

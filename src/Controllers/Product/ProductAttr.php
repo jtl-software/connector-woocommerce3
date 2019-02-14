@@ -16,8 +16,12 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductAttr extends BaseController
 {
-    const PAYABLE = 'payable';
-    const NOSEARCH = 'nosearch';
+    const PAYABLE_ATTR = 'wc_payable';
+    const NOSEARCH_ATTR = 'wc_nosearch';
+    const DOWNLOADABLE_ATTR = 'wc_downloadable';
+    const VIRTUAL_ATTR = 'wc_virtual';
+    const DELIVERY_TIME_ATTR = 'wc_dt_offset';
+    
     
     // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(\WC_Product $product)
@@ -85,13 +89,13 @@ class ProductAttr extends BaseController
             
             if ( ! $isPurchasable) {
                 $attrI18n = (new ProductAttrI18nModel())
-                    ->setProductAttrId(new Identity(self::PAYABLE))
+                    ->setProductAttrId(new Identity(self::PAYABLE_ATTR))
                     ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                    ->setName(self::PAYABLE)
+                    ->setName(self::PAYABLE_ATTR)
                     ->setValue('false');
                 
                 $productAttributes[] = (new ProductAttrModel())
-                    ->setId(new Identity(self::PAYABLE))
+                    ->setId(new Identity(self::PAYABLE_ATTR))
                     ->setIsCustomProperty(true)
                     ->addI18n($attrI18n);
             }
@@ -100,11 +104,12 @@ class ProductAttr extends BaseController
     
     private function setProductFunctionAttributes(\WC_Product $product, $productAttributes)
     {
-        
         $functionAttributes = [
             $this->getVirtualFunctionAttribute($product),
             $this->getDownloadableFunctionAttribute($product),
             $this->getDeliveryTimeFunctionAttribute($product),
+            $this->getPayableFunctionAttribute($product),
+            $this->getNoSearchFunctionAttribute($product),
         ];
         
         foreach ($functionAttributes as $functionAttribute) {
@@ -131,10 +136,10 @@ class ProductAttr extends BaseController
         
         return $attribute;
     }
-
-    private function  getDeliveryTimeFunctionAttribute(\WC_Product $product)
+    
+    private function getDeliveryTimeFunctionAttribute(\WC_Product $product)
     {
-        $i18n  = (new ProductAttrI18nModel())
+        $i18n = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_wc_dt_offset'))
             ->setName('wc_dt_offset')
             ->setValue((string)0)
@@ -155,6 +160,50 @@ class ProductAttr extends BaseController
         $i18n  = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_wc_downloadable'))
             ->setName('wc_downloadable')
+            ->setValue((string)$value)
+            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+        
+        $attribute = (new ProductAttrModel())
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getPayableFunctionAttribute(\WC_Product $product)
+    {
+        $value = strcmp(get_post_status($product->get_id()), 'publish') ? 'true' : 'false';
+        
+        $i18n = (new ProductAttrI18nModel())
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
+            ->setName(self::PAYABLE_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+        
+        $attribute = (new ProductAttrModel())
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getNoSearchFunctionAttribute(\WC_Product $product)
+    {
+        $visibility = get_post_meta($product->get_id(), '_visibility');
+       
+        if (count($visibility) > 0 && strcmp($visibility[0], 'catalog') === 0) {
+            $value = 'true';
+        } else {
+            $value = 'false';
+        }
+        
+        $i18n = (new ProductAttrI18nModel())
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::NOSEARCH_ATTR))
+            ->setName(self::NOSEARCH_ATTR)
             ->setValue((string)$value)
             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
         
@@ -187,6 +236,10 @@ class ProductAttr extends BaseController
         //FUNCTION ATTRIBUTES BY JTL
         $virtual      = false;
         $downloadable = false;
+        $payable      = false;
+        $nosearch     = false;
+        
+        $productId = $product->getId()->getEndpoint();
         
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
@@ -194,17 +247,21 @@ class ProductAttr extends BaseController
                     continue;
                 }
                 
-                if (preg_match('/^(wc_)[a-zA-Z\_]+$/', trim($i18n->getName()))) {
+                $attrName = strtolower(trim($i18n->getName()));
+                
+                if (preg_match('/^(wc_)[a-zA-Z\_]+$/', $attrName)
+                    || in_array($attrName, ['nosearch', 'payable'])
+                ) {
                     
-                    if (strcmp(trim($i18n->getName()), 'wc_virtual') === 0
-                        || strcmp(trim($i18n->getName()), 'wc_downloadable') === 0
+                    if (strcmp($attrName, self::VIRTUAL_ATTR) === 0
+                        || strcmp($attrName, self::DOWNLOADABLE_ATTR) === 0
                     ) {
                         
-                        if (strcmp(trim($i18n->getName()), 'wc_virtual') === 0) {
+                        if (strcmp($attrName, self::VIRTUAL_ATTR) === 0) {
                             $virtual = true;
                         }
                         
-                        if (strcmp(trim($i18n->getName()), 'wc_downloadable') === 0) {
+                        if (strcmp($attrName, self::DOWNLOADABLE_ATTR) === 0) {
                             $downloadable = true;
                         }
                         
@@ -212,16 +269,38 @@ class ProductAttr extends BaseController
                         $value = $value ? 'yes' : 'no';
                         
                         if ( ! add_post_meta(
-                            $product->getId()->getEndpoint(),
-                            substr(trim($i18n->getName()), 2),
+                            $productId,
+                            substr($attrName, 2),
                             $value,
                             true
                         )) {
                             update_post_meta(
-                                $product->getId()->getEndpoint(),
-                                substr(trim($i18n->getName()), 2),
+                                $productId,
+                                substr($attrName, 2),
                                 $value
                             );
+                        }
+                    }
+                    
+                    if ($attrName === self::PAYABLE_ATTR || $attrName === 'payable') {
+                        if (strcmp(trim($i18n->getValue()), 'false') === 0) {
+                            \wp_update_post(['ID' => $productId, 'post_status' => 'private']);
+                            $payable = true;
+                        }
+                    }
+                    
+                    if ($attrName === self::NOSEARCH_ATTR || $attrName === 'nosearch') {
+                        if (strcmp(trim($i18n->getValue()), 'true') === 0) {
+                            \update_post_meta($productId, '_visibility', 'catalog');
+                            
+                            /*
+                            "   exclude-from-catalog"
+                            "   exclude-from-search"
+                            "   featured"
+                            "   outofstock"
+                            */
+                            wp_set_object_terms($productId, ['exclude-from-search'], 'product_visibility', true);
+                            $nosearch = true;
                         }
                     }
                     
@@ -230,9 +309,10 @@ class ProductAttr extends BaseController
             }
         }
         
+        //Revert
         if ( ! $virtual) {
             if ( ! add_post_meta(
-                $product->getId()->getEndpoint(),
+                $productId,
                 '_virtual',
                 'no',
                 true
@@ -247,7 +327,7 @@ class ProductAttr extends BaseController
         
         if ( ! $downloadable) {
             if ( ! add_post_meta(
-                $product->getId()->getEndpoint(),
+                $productId,
                 '_downloadable',
                 'no',
                 true
@@ -258,6 +338,27 @@ class ProductAttr extends BaseController
                     'no'
                 );
             }
+        }
+        
+        if ( ! $nosearch) {
+            
+            if ( ! add_post_meta(
+                $productId,
+                '_visibility',
+                'visible',
+                true
+            )) {
+                update_post_meta(
+                    $productId,
+                    '_visibility',
+                    'visible'
+                );
+            }
+            wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
+        }
+        
+        if ( ! $payable) {
+            \wp_update_post(['ID' => $productId, 'post_status' => 'publish']);
         }
         
         foreach ($attributes as $key => $attr) {
@@ -287,14 +388,14 @@ class ProductAttr extends BaseController
                     continue;
                 }
                 
-                $this->saveAttribute($attribute, $i18n, $wcProduct->get_id(), $attributes);
+                $this->saveAttribute($attribute, $i18n, $attributes);
                 break;
             }
         }
         
         
         if ( ! empty($attributes)) {
-            \update_post_meta($wcProduct->get_id(), '_product_attributes', $attributes);
+            \update_post_meta($productId, '_product_attributes', $attributes);
         }
     }
     
@@ -348,25 +449,13 @@ class ProductAttr extends BaseController
      *
      * @param ProductAttrModel     $attribute The attribute.
      * @param ProductAttrI18nModel $i18n The used language attribute.
-     * @param string               $productId The product id.
      * @param array                $attributes The product attributes.
      */
     private function saveAttribute(
         ProductAttrModel $attribute,
         ProductAttrI18nModel $i18n,
-        $productId,
         array &$attributes
     ) {
-        if (strtolower($i18n->getName()) === strtolower(self::PAYABLE)) {
-            \wp_update_post(['ID' => $productId, 'post_status' => 'private']);
-            
-            return;
-        } elseif (strtolower($i18n->getName()) === strtolower(self::NOSEARCH)) {
-            \update_post_meta($productId, '_visibility', 'catalog');
-            
-            return;
-        }
-        
         $this->addNewAttributeOrEditExisting($i18n, [
             'name'             => \wc_clean($i18n->getName()),
             'value'            => \wc_clean($i18n->getValue()),

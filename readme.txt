@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.0
 Requires PHP: 5.6.4
 WC requires at least: 3.4
-WC tested up to: 3.5.2
-Stable tag: 1.7.0
+WC tested up to: 3.5.4
+Stable tag: 1.7.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -143,9 +143,24 @@ This section describes how to install the plugin and get it working.
 
 == Screenshots ==
 
-1. The WooCommerce JTL-Connector settings panel.
+1. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
+2. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
 
 == Changelog ==
+
+= 1.7.1 =
+* Enhancement - CO-436 - Support of seo for products (Required plugin: Yoast SEO / !!! BETA !!!)
+* Enhancement - CO-431 - Support of product brand (Required plugin: Perfect WooCommerce Brands)
+* Enhancement - CO-424 - delivery time support(RC)
+* Enhancement - CO-429 - ean support(RC)
+* Enhancement - Update UI texts
+* Enhancement - New supported plugin validation
+* Enhancement - New information on settings tab
+* Enhancement - New functional attributes added
+* Enhancement - Add fallback for i18n on specific & specific value pull
+* Fix - nosearch && payable attribute bug
+* Fix - Delivery time creation bug
+* Fix - Return void mismatch bug
 
 = 1.7.0 =
 * Enhancement - CO-385 - Add Developer Logging on connector configuration tab
