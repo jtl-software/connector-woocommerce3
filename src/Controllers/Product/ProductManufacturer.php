@@ -44,7 +44,8 @@ class ProductManufacturer extends BaseController
     private function removeManufacturerTerm(string $productId)
     {
         $terms = wp_get_object_terms($productId, 'pwb-brand');
-        if (count($terms) > 0) {
+      
+        if (is_array($terms) && count($terms) > 0) {
             /** @var \WP_Term $term */
             foreach ($terms as $key => $term) {
                 if ($term instanceof \WP_Term) {

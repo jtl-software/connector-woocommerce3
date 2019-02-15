@@ -37,10 +37,10 @@ class ProductI18n extends BaseController
                 'keywords'
                 'permlink'
              */
-                $i18n->setMetaDescription($tmpMeta['metaDesc'])
-                     ->setMetaKeywords($tmpMeta['keywords'])
-                     ->setTitleTag($tmpMeta['titleTag'])
-                     ->setUrlPath($tmpMeta['permlink']);
+                $i18n->setMetaDescription((string)$tmpMeta['metaDesc'])
+                     ->setMetaKeywords((string)$tmpMeta['keywords'])
+                     ->setTitleTag((string)$tmpMeta['titleTag'])
+                     ->setUrlPath((string)$tmpMeta['permlink']);
             }
         }
         
