@@ -68,11 +68,13 @@ class Product extends BaseController
             if (Util::useGtinAsEanEnabled()) {
                 $ean = get_post_meta($product->get_id(), '_ts_gtin');
                 
-                if(is_array($ean) && array_key_exists(0,$ean)){
+                if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
                     $ean = $ean[0];
+                } else {
+                    $ean = '';
                 }
                 
-                $result->setEan((string)$ean);
+                $result->setEan($ean);
             }
             
             if ($product->get_parent_id() !== 0) {
@@ -100,10 +102,10 @@ class Product extends BaseController
             if (Germanized::getInstance()->isActive()) {
                 $this->setGermanizedAttributes($result, $product);
             }
-    
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
                 $tmpManId = ProductManufacturer::getInstance()->pullData($product, $result);
-                if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
+                if ( ! is_null($tmpManId) && $tmpManId instanceof Identity) {
                     $result->setManufacturerId($tmpManId);
                 }
             }
@@ -116,7 +118,7 @@ class Product extends BaseController
     
     protected function pushData(ProductModel $product)
     {
-        $tmpI18n            = null;
+        $tmpI18n         = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
         
         if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
@@ -142,7 +144,7 @@ class Product extends BaseController
         }
         
         $isMasterProduct = empty($masterProductId);
-    
+        
         /** @var ProductI18nModel $tmpI18n */
         $endpoint = [
             'ID'           => (int)$product->getId()->getEndpoint(),
@@ -183,7 +185,7 @@ class Product extends BaseController
         if (Germanized::getInstance()->isActive()) {
             $this->updateGermanizedAttributes($product);
         }
-    
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
             ProductMetaSeo::getInstance()->pushData($product, $newPostId, $tmpI18n);
         }
