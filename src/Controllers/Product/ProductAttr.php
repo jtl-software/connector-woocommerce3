@@ -11,17 +11,18 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductAttr extends BaseController
 {
+    const DELIVERY_TIME_ATTR = 'wc_dt_offset';
+    const DOWNLOADABLE_ATTR = 'wc_downloadable';
+    const FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility';
+    const FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status';
     const PAYABLE_ATTR = 'wc_payable';
     const NOSEARCH_ATTR = 'wc_nosearch';
-    const DOWNLOADABLE_ATTR = 'wc_downloadable';
     const VIRTUAL_ATTR = 'wc_virtual';
-    const DELIVERY_TIME_ATTR = 'wc_dt_offset';
-    
     
     // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(\WC_Product $product)
@@ -105,12 +106,17 @@ class ProductAttr extends BaseController
     private function setProductFunctionAttributes(\WC_Product $product, $productAttributes)
     {
         $functionAttributes = [
-            $this->getVirtualFunctionAttribute($product),
-            $this->getDownloadableFunctionAttribute($product),
             $this->getDeliveryTimeFunctionAttribute($product),
+            $this->getDownloadableFunctionAttribute($product),
             $this->getPayableFunctionAttribute($product),
             $this->getNoSearchFunctionAttribute($product),
+            $this->getVirtualFunctionAttribute($product),
         ];
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
+            /*  $functionAttributes[] = $this->getFacebookVisibilityFunctionAttribute($product);*/
+            $functionAttributes[] = $this->getFacebookSyncStatusFunctionAttribute($product);
+        }
         
         foreach ($functionAttributes as $functionAttribute) {
             array_push($productAttributes, $functionAttribute);
@@ -174,7 +180,7 @@ class ProductAttr extends BaseController
     
     private function getPayableFunctionAttribute(\WC_Product $product)
     {
-        $value = strcmp(get_post_status($product->get_id()), 'publish') ? 'true' : 'false';
+        $value = strcmp(get_post_status($product->get_id()), 'private') !== 0 ? 'true' : 'false';
         
         $i18n = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
@@ -194,7 +200,7 @@ class ProductAttr extends BaseController
     private function getNoSearchFunctionAttribute(\WC_Product $product)
     {
         $visibility = get_post_meta($product->get_id(), '_visibility');
-       
+        
         if (count($visibility) > 0 && strcmp($visibility[0], 'catalog') === 0) {
             $value = 'true';
         } else {
@@ -204,6 +210,54 @@ class ProductAttr extends BaseController
         $i18n = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::NOSEARCH_ATTR))
             ->setName(self::NOSEARCH_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+        
+        $attribute = (new ProductAttrModel())
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    /* private function getFacebookVisibilityFunctionAttribute(\WC_Product $product)
+     {
+         $value = 'false';
+         $visibility = get_post_meta($product->get_id(), 'fb_visibility');
+         
+         if (count($visibility) > 0 && strcmp($visibility[0], '1') === 0) {
+             $value = 'true';
+         }
+         
+         $i18n = (new ProductAttrI18nModel())
+             ->setProductAttrId(new Identity($product->get_id() . '_' . self::FACEBOOK_VISIBILITY_ATTR))
+             ->setName(self::FACEBOOK_VISIBILITY_ATTR)
+             ->setValue((string)$value)
+             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+         
+         $attribute = (new ProductAttrModel())
+             ->setId($i18n->getProductAttrId())
+             ->setProductId(new Identity($product->get_id()))
+             ->setIsCustomProperty(false)
+             ->addI18n($i18n);
+         
+         return $attribute;
+     }*/
+    
+    private function getFacebookSyncStatusFunctionAttribute(\WC_Product $product)
+    {
+        $value  = 'false';
+        $status = get_post_meta($product->get_id(), 'fb_sync_status');
+        
+        if (count($status) > 0 && strcmp($status[0], '1') === 0) {
+            $value = 'true';
+        }
+        
+        $i18n = (new ProductAttrI18nModel())
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::FACEBOOK_SYNC_STATUS_ATTR))
+            ->setName(self::FACEBOOK_SYNC_STATUS_ATTR)
             ->setValue((string)$value)
             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
         
@@ -238,6 +292,8 @@ class ProductAttr extends BaseController
         $downloadable = false;
         $payable      = false;
         $nosearch     = false;
+        $fbStatusCode = false;
+        /* $fbVisibility = false;*/
         
         $productId = $product->getId()->getEndpoint();
         
@@ -252,19 +308,47 @@ class ProductAttr extends BaseController
                 if (preg_match('/^(wc_)[a-zA-Z\_]+$/', $attrName)
                     || in_array($attrName, ['nosearch', 'payable'])
                 ) {
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
+                        if (strcmp($attrName, self::FACEBOOK_SYNC_STATUS_ATTR) === 0) {
+                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                            $value = $value ? '1' : '';
+                            
+                            if ( ! add_post_meta(
+                                $productId,
+                                substr($attrName, 3),
+                                $value,
+                                true
+                            )) {
+                                update_post_meta(
+                                    $productId,
+                                    substr($attrName, 3),
+                                    $value
+                                );
+                            }
+                            $fbStatusCode = true;
+                        }
+                        
+                        /* if (strcmp($attrName, self::FACEBOOK_VISIBILITY_ATTR) === 0) {
+                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                             $value = $value ? '1' : '0';
+                             
+                             if (!add_post_meta(
+                                 $productId,
+                                 substr($attrName, 3),
+                                 $value,
+                                 true
+                             )) {
+                                 update_post_meta(
+                                     $productId,
+                                     substr($attrName, 3),
+                                     $value
+                                 );
+                             }
+                             $fbVisibility = true;
+                         }*/
+                    }
                     
-                    if (strcmp($attrName, self::VIRTUAL_ATTR) === 0
-                        || strcmp($attrName, self::DOWNLOADABLE_ATTR) === 0
-                    ) {
-                        
-                        if (strcmp($attrName, self::VIRTUAL_ATTR) === 0) {
-                            $virtual = true;
-                        }
-                        
-                        if (strcmp($attrName, self::DOWNLOADABLE_ATTR) === 0) {
-                            $downloadable = true;
-                        }
-                        
+                    if (strcmp($attrName, self::DOWNLOADABLE_ATTR) === 0) {
                         $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                         $value = $value ? 'yes' : 'no';
                         
@@ -280,6 +364,27 @@ class ProductAttr extends BaseController
                                 $value
                             );
                         }
+                        $downloadable = true;
+                    }
+                    
+                    if (strcmp($attrName, self::VIRTUAL_ATTR) === 0) {
+                        $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                        $value = $value ? 'yes' : 'no';
+                        
+                        if ( ! add_post_meta(
+                            $productId,
+                            substr($attrName, 2),
+                            $value,
+                            true
+                        )) {
+                            update_post_meta(
+                                $productId,
+                                substr($attrName, 2),
+                                $value
+                            );
+                        }
+                        
+                        $virtual = true;
                     }
                     
                     if ($attrName === self::PAYABLE_ATTR || $attrName === 'payable') {
@@ -355,6 +460,38 @@ class ProductAttr extends BaseController
                 );
             }
             wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
+            if ( ! $fbStatusCode) {
+                if ( ! add_post_meta(
+                    $productId,
+                    substr(self::FACEBOOK_SYNC_STATUS_ATTR, 3),
+                    '',
+                    true
+                )) {
+                    update_post_meta(
+                        $productId,
+                        substr(self::FACEBOOK_SYNC_STATUS_ATTR, 3),
+                        ''
+                    );
+                }
+            }
+            
+            /*if (!$fbVisibility) {
+                if (!add_post_meta(
+                    $productId,
+                    substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
+                    '1',
+                    true
+                )) {
+                    update_post_meta(
+                        $productId,
+                        substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
+                        '1'
+                    );
+                }
+            }*/
         }
         
         if ( ! $payable) {

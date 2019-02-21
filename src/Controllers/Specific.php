@@ -77,7 +77,7 @@ class Specific extends BaseController
     {
         //WooFix
         $specific->setType('string');
-        $meta            = null;
+        $meta             = null;
         $defaultAvailable = false;
         
         foreach ($specific->getI18ns() as $i18n) {
@@ -158,13 +158,13 @@ class Specific extends BaseController
             /** @var SpecificValueModel $value */
             foreach ($specific->getValues() as $key => $value) {
                 $value->getSpecificId()->setEndpoint($attributeId);
-                $metaValue = null;
+                $metaValue             = null;
                 $defaultValueAvailable = false;
-               
+                
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
                     $languageValueSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
-    
+                    
                     if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                         $defaultValueAvailable = true;
                     }
@@ -174,7 +174,7 @@ class Specific extends BaseController
                         break;
                     }
                 }
-    
+                
                 //Fallback 'ger' if incorrect language code was given
                 if ($meta === null && $defaultValueAvailable) {
                     foreach ($value->getI18ns() as $i18n) {
@@ -239,6 +239,10 @@ class Specific extends BaseController
                     // die();
                     WpErrorLogger::getInstance()->logError($termId);
                     continue;
+                }
+                
+                if (is_array($termId)) {
+                    $termId = $termId['term_id'];
                 }
                 
                 $value->getId()->setEndpoint($termId);

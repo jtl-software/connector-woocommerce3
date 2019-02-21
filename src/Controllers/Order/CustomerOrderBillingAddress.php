@@ -42,12 +42,12 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setZipCode(get_option('woocommerce_store_postcode'));
         }
         
-        if (strcmp($address->getStreet(), '') === 0) {
-            $address->setStreet(get_option('woocommerce_store_address'));
+        if (strcmp($address->getStreet(), '') === 0 && strcmp($address->getExtraAddressLine(), '') === 0) {
+            $address->setExtraAddressLine(get_option('woocommerce_store_postcode'));
         }
         
-        if (strcmp($address->getExtraAddressLine(), '') === 0) {
-            $address->setExtraAddressLine(get_option('woocommerce_store_postcode'));
+        if (strcmp($address->getStreet(), '') === 0) {
+            $address->setStreet(get_option('woocommerce_store_address'));
         }
         
         if (strcmp($address->getCountryIso(), '') === 0) {

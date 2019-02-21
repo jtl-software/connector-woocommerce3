@@ -80,7 +80,7 @@ class Category extends BaseController
         }
         
         if (is_null($meta)) {
-            return $specific;
+            return $category;
         }
         
         $categoryData = [

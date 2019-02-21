@@ -8,8 +8,14 @@ namespace JtlWooCommerceConnector\Utilities;
 
 final class SupportedPlugins
 {
+    //THEMESPECIALS
+    const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
+    const THEME_WOODMART = 'woodmart';
+    const THEME_WOODMART_CHILD = 'woodmart-child';
+    
     //Compatible
     const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
+    const PLUGIN_FB_FOR_WOO = 'Facebook for WooCommerce';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
@@ -28,6 +34,7 @@ final class SupportedPlugins
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
+        self::PLUGIN_FB_FOR_WOO,
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
@@ -153,5 +160,22 @@ final class SupportedPlugins
         }
         
         return $active;
+    }
+    
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public static function themeIsInstalled($name = '')
+    {
+        $installed = false;
+        $themes    = wp_get_themes();
+        
+        if (is_array($themes)) {
+            $installed = array_key_exists((string)$name, $themes);
+        }
+        
+        return $installed;
     }
 }

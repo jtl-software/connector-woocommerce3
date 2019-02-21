@@ -516,11 +516,18 @@ class ProductVariation extends BaseController
         $value
     ) {
         $val    = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
-        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id']) && ! is_null($val[0]['endpoint_id']) && ! is_null($val[0]['host_id'])
-            ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-            : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+        
+        if(count($val) === 0){
+            $result = (new Identity);
+        }else {
+            $result = isset($val[0]['endpoint_id'])
+                      && isset($val[0]['host_id'])
+                      && !is_null($val[0]['endpoint_id'])
+                      && !is_null($val[0]['host_id'])
+                ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
+                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+        }
         
         return $result;
     }
-    
 }
