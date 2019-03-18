@@ -87,6 +87,7 @@ class Category extends BaseController
             'description' => $meta->getDescription(),
             'parent'      => $parentCategoryId->getEndpoint(),
             'name'        => $meta->getName(),
+            'taxonomy'    => \wc_sanitize_taxonomy_name($meta->getName()),
         ];
         
         $urlPath = $meta->getUrlPath();

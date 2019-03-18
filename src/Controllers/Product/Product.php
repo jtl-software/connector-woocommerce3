@@ -186,7 +186,8 @@ class Product extends BaseController
             $this->updateGermanizedAttributes($product);
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             ProductMetaSeo::getInstance()->pushData($product, $newPostId, $tmpI18n);
         }
         

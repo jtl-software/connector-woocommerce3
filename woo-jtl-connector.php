@@ -2,13 +2,13 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.7.1.4
- * WC tested up to: 3.5.2
+ * Version: 1.7.2
+ * WC tested up to: 3.5.6
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
  * License: GPL3
  * License URI: http://www.gnu.org/licenses/lgpl-3.0.html
- * Requires at least WooCommerce: 3.4.0
+ * Requires at least WooCommerce: 3.4.7
  * Text Domain: woo-jtl-connector
  * Domain Path: languages/
  *
@@ -48,33 +48,6 @@ add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
 add_action('admin_menu', 'register_woo_jtl_connector_menu_link');
 
-//WOODMART FIX
-if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_THEME_WOODMART_CORE)
-    && (
-        SupportedPlugins::themeIsInstalled(SupportedPlugins::THEME_WOODMART)
-        || SupportedPlugins::themeIsInstalled(SupportedPlugins::THEME_WOODMART_CHILD)
-    )
-) {
-    add_action('woocommerce_attribute_updated', 'woodmart_wc_attribute_update', 20, 3);
-    function woodmart_wc_attribute_update($attribute_id, $attribute, $old_attribute_name)
-    {
-        if (isset($attribute['attribute_name']) && isset($_POST['attribute_swatch_size'])) {
-            update_option('woodmart_pa_' . $attribute['attribute_name'] . '_swatch_size',
-                $_POST['attribute_swatch_size']);
-        }
-        
-        if (isset($attribute['attribute_name']) && isset($_POST['attribute_show_on_product'])) {
-            update_option('woodmart_pa_' . $attribute['attribute_name'] . '_show_on_product',
-                $_POST['attribute_show_on_product']);
-        }
-        
-        // Change value of selected option
-        if (function_exists('woodmart_admin_scripts_localize')) {
-            woodmart_admin_scripts_localize();
-        }
-    }
-}
-
 if (jtlwcc_rewriting_disabled()) {
     jtlwcc_deactivate_plugin();
     add_action('admin_notices', 'jtlwcc_rewriting_not_activated');
@@ -95,6 +68,7 @@ if (jtlwcc_rewriting_disabled()) {
         add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
     }
 }
+
 function woo_jtl_connector_settings_javascript()
 {
     ?>

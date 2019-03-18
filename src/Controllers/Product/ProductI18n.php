@@ -28,8 +28,9 @@ class ProductI18n extends BaseController
         if (Germanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
-        
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
             if ( ! is_null($tmpMeta) && count($tmpMeta) > 0) {
                 /*   'title'

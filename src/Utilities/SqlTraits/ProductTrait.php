@@ -32,11 +32,11 @@ trait ProductTrait {
                     p.post_type = 'product_variation' AND p.post_parent IN
                     (
                         SELECT p2.ID FROM {$wpdb->posts} p2
-                        WHERE p2.post_type = 'product' AND p2.post_status IN ('future', 'publish', 'inherit', 'private')
+                        WHERE p2.post_type = 'product' AND p2.post_status IN ('draft', 'future', 'publish', 'inherit', 'private')
                     )
                 )
             )
-            AND p.post_status IN ('future', 'publish', 'inherit', 'private')
+            AND p.post_status IN ('draft', 'future', 'publish', 'inherit', 'private')
             AND (tt.taxonomy IS NULL OR tt.taxonomy = 'product_type')
             ORDER BY p.post_type
             {$limitQuery}";

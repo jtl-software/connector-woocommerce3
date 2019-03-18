@@ -23,7 +23,8 @@ class ProductMetaSeo extends BaseController
      */
     public function pushData(ProductModel $product, $newPostId, ProductI18nModel $tmpMeta)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $productId = $product->getId()->getEndpoint();
             try {
                 $wcProduct = \wc_get_product($newPostId);
@@ -69,7 +70,8 @@ class ProductMetaSeo extends BaseController
     {
         $productId = $model->getId()->getEndpoint();
         $values    = null;
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $values = [
                 'titleTag' => get_post_meta($productId, '_yoast_wpseo_title'),
                 'metaDesc' => get_post_meta($productId, '_yoast_wpseo_metadesc'),

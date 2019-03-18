@@ -426,7 +426,7 @@ class ProductVariation extends BaseController
                         ' ' . WC_DELIMITER . ' ',
                         $options
                     ),
-                    'position'     => 0,
+                    'position'     => null,
                     'is_visible'   => Util::showVariationSpecificsOnProductPageEnabled(),
                     'is_variation' => true,
                     'is_taxonomy'  => $taxonomy,
@@ -440,8 +440,10 @@ class ProductVariation extends BaseController
                 );
             }
         }
+        $old = \get_post_meta($wcProduct->get_id(), '_product_attributes',true);
+        $debug =  \update_post_meta($wcProduct->get_id(), '_product_attributes', $currentWCProductAttributes, $old);
         
-        \update_post_meta($wcProduct->get_id(), '_product_attributes', $currentWCProductAttributes);
+        $debug = $debug;
     }
     
     private function pushDataChild(

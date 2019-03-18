@@ -21,6 +21,7 @@ final class SupportedPlugins
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
     const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
     const PLUGIN_YOAST_SEO = 'Yoast SEO';
+    const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
     
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -40,6 +41,7 @@ final class SupportedPlugins
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
         self::PLUGIN_YOAST_SEO,
+        self::PLUGIN_YOAST_SEO_PREMIUM,
     ];
     
     const INCOMPATIBLE_PLUGINS = [
