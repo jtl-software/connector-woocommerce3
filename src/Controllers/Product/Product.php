@@ -99,7 +99,7 @@ class Product extends BaseController
                 $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
             }
             
-            if (Germanized::getInstance()->isActive()) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
                 $this->setGermanizedAttributes($result, $product);
             }
             
