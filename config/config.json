@@ -1,6 +1,6 @@
 {
   "connector_password": "876EE828-DDC1-4EF1-AE3E-A277F7AAE365",
-  "connector_version": "1.7.2",
+  "connector_version": "1.7.2.1",
   "developer_logging": false,
   "use_gtin_for_ean": true,
   "use_deliverytime_calc": true,
