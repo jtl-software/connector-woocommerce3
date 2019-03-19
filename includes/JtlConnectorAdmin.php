@@ -917,13 +917,11 @@ final class JtlConnectorAdmin
             case '1.6.1':
             case '1.6.2':
             case '1.6.3':
-            case '1.6.3.1':
-            case '1.6.3.2':
-            case '1.6.3.3':
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
                 self::add_manufacturer_linking_tables();
+            case '1.7.2':
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,

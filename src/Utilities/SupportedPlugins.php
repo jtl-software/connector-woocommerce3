@@ -8,13 +8,20 @@ namespace JtlWooCommerceConnector\Utilities;
 
 final class SupportedPlugins
 {
+    //THEMESPECIALS
+    const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
+    const THEME_WOODMART = 'woodmart';
+    const THEME_WOODMART_CHILD = 'woodmart-child';
+    
     //Compatible
     const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
+    const PLUGIN_FB_FOR_WOO = 'Facebook for WooCommerce';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
     const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
     const PLUGIN_YOAST_SEO = 'Yoast SEO';
+    const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
     
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -28,11 +35,13 @@ final class SupportedPlugins
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
+        self::PLUGIN_FB_FOR_WOO,
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
         self::PLUGIN_YOAST_SEO,
+        self::PLUGIN_YOAST_SEO_PREMIUM,
     ];
     
     const INCOMPATIBLE_PLUGINS = [
@@ -153,5 +162,22 @@ final class SupportedPlugins
         }
         
         return $active;
+    }
+    
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public static function themeIsInstalled($name = '')
+    {
+        $installed = false;
+        $themes    = wp_get_themes();
+        
+        if (is_array($themes)) {
+            $installed = array_key_exists((string)$name, $themes);
+        }
+        
+        return $installed;
     }
 }

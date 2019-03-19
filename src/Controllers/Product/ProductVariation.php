@@ -426,7 +426,7 @@ class ProductVariation extends BaseController
                         ' ' . WC_DELIMITER . ' ',
                         $options
                     ),
-                    'position'     => 0,
+                    'position'     => null,
                     'is_visible'   => Util::showVariationSpecificsOnProductPageEnabled(),
                     'is_variation' => true,
                     'is_taxonomy'  => $taxonomy,
@@ -440,8 +440,10 @@ class ProductVariation extends BaseController
                 );
             }
         }
+        $old = \get_post_meta($wcProduct->get_id(), '_product_attributes',true);
+        $debug =  \update_post_meta($wcProduct->get_id(), '_product_attributes', $currentWCProductAttributes, $old);
         
-        \update_post_meta($wcProduct->get_id(), '_product_attributes', $currentWCProductAttributes);
+        $debug = $debug;
     }
     
     private function pushDataChild(
@@ -516,11 +518,18 @@ class ProductVariation extends BaseController
         $value
     ) {
         $val    = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
-        $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id']) && ! is_null($val[0]['endpoint_id']) && ! is_null($val[0]['host_id'])
-            ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-            : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+        
+        if(count($val) === 0){
+            $result = (new Identity);
+        }else {
+            $result = isset($val[0]['endpoint_id'])
+                      && isset($val[0]['host_id'])
+                      && !is_null($val[0]['endpoint_id'])
+                      && !is_null($val[0]['host_id'])
+                ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
+                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+        }
         
         return $result;
     }
-    
 }

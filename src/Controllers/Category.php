@@ -80,13 +80,14 @@ class Category extends BaseController
         }
         
         if (is_null($meta)) {
-            return $specific;
+            return $category;
         }
         
         $categoryData = [
             'description' => $meta->getDescription(),
             'parent'      => $parentCategoryId->getEndpoint(),
             'name'        => $meta->getName(),
+            'taxonomy'    => \wc_sanitize_taxonomy_name($meta->getName()),
         ];
         
         $urlPath = $meta->getUrlPath();

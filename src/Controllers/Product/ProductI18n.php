@@ -24,29 +24,30 @@ class ProductI18n extends BaseController
             ->setDescription($product->get_description())
             ->setShortDescription($product->get_short_description())
             ->setUrlPath($product->get_slug());
-
+        
         if (Germanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
     
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
-            if (!is_null($tmpMeta) && count($tmpMeta) > 0) {
-             /*   'title'
-                'metaDesc'
-                'keywords'
-                'permlink'
-             */
-                $i18n->setMetaDescription($tmpMeta['metaDesc'])
-                     ->setMetaKeywords($tmpMeta['keywords'])
-                     ->setTitleTag($tmpMeta['titleTag'])
-                     ->setUrlPath($tmpMeta['permlink']);
+            if ( ! is_null($tmpMeta) && count($tmpMeta) > 0) {
+                /*   'title'
+                   'metaDesc'
+                   'keywords'
+                   'permlink'
+                */
+                $i18n->setMetaDescription(is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
+                     ->setMetaKeywords(is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
+                     ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
+                     ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
             }
         }
         
         return $i18n;
     }
-
+    
     private function name(\WC_Product $product)
     {
         if ($product instanceof \WC_Product_Variation) {
@@ -57,15 +58,15 @@ class ProductI18n extends BaseController
                     return sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
                 case 'space_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-
+                    
                     return $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-
+                    
                     return sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
             }
         }
-
+        
         return $product->get_name();
     }
 }

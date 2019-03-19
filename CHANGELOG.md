@@ -1,5 +1,18 @@
 #Changelog
 
+## 1.7.2
+* Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)
+* Enhancement - CO-431 - Support of product brand (Required plugin: Perfect WooCommerce Brands / RC)
+* Fix - manufacturer push
+* Fix - manufacturer i18n meta pull
+* Fix - ean & ean i18n pull
+* Fix - customer order pull
+* Fix - Yoast Seo Premium Bug
+* Fix - missing billing information
+* Fix - specifc value not exist bug
+* Enhancement - some function attr
+* Enhancement - some germanized features
+
 ## 1.7.1
 * Enhancement - CO-436 - Support of seo for products (Required plugin: Yoast SEO / !!! BETA !!!)
 * Enhancement - CO-431 - Support of product brand (Required plugin: Perfect WooCommerce Brands)

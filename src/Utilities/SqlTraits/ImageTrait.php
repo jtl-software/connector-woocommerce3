@@ -90,7 +90,7 @@ trait ImageTrait
             LEFT JOIN {$jcli} l
             ON SUBSTRING_INDEX(l.endpoint_id, '%s', -1) = pm.post_id  AND l.type = %d
             WHERE p.post_type = 'product'
-            AND p.post_status IN ('future', 'publish', 'inherit', 'private')
+            AND p.post_status IN ('draft', 'future', 'publish', 'inherit', 'private')
             AND pm.meta_key = '%s'
             AND pm.meta_value != 0
             AND l.host_id IS NULL
@@ -111,7 +111,7 @@ trait ImageTrait
             LEFT JOIN {$wpdb->postmeta} pm
             ON p.ID = pm.post_id
             WHERE p.post_type = 'product'
-            AND p.post_status IN ('future', 'publish', 'inherit', 'private')
+            AND p.post_status IN ('future', 'draft', 'publish', 'inherit', 'private')
             AND pm.meta_key = '%s' AND pm.meta_value != 0",
             ImageCtrl::GALLERY_KEY
         );
@@ -146,7 +146,7 @@ trait ImageTrait
             ON SUBSTRING_INDEX(l.endpoint_id, '%s', -1) = pm.post_id
             AND l.type = %d
             WHERE p.post_type = 'product_variation'
-            AND p.post_status IN ('future', 'publish', 'inherit', 'private')
+            AND p.post_status IN ('draft', 'future', 'publish', 'inherit', 'private')
             AND pm.meta_key = '%s'
             AND pm.meta_value != 0
             AND l.host_id IS NULL
