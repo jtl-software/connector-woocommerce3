@@ -169,8 +169,13 @@ class Product extends BaseController
                 $endpoint['ID'] = $productId;
             }
         }
-        
+        // Post filtering
+        remove_filter('content_save_pre', 'wp_filter_post_kses');
+        remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
         $newPostId = \wp_insert_post($endpoint, true);
+        // Post filtering
+        add_filter('content_save_pre', 'wp_filter_post_kses');
+        add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
         
         if ($newPostId instanceof \WP_Error) {
             WpErrorLogger::getInstance()->logError($newPostId);

@@ -96,6 +96,8 @@ class Category extends BaseController
             $categoryData['slug'] = $urlPath;
         }
         
+        remove_filter('pre_term_description', 'wp_filter_kses');
+        
         if (empty($categoryId)) {
             $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
@@ -106,6 +108,8 @@ class Category extends BaseController
             
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
         }
+        
+        add_filter('pre_term_description', 'wp_filter_kses');
         
         if ($result instanceof \WP_Error) {
             WpErrorLogger::getInstance()->logError($result);
