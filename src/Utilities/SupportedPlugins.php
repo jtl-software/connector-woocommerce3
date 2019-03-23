@@ -9,11 +9,10 @@ namespace JtlWooCommerceConnector\Utilities;
 final class SupportedPlugins
 {
     //THEMESPECIALS
-    const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
-    const THEME_WOODMART = 'woodmart';
-    const THEME_WOODMART_CHILD = 'woodmart-child';
     
     //Compatible
+    const PLUGIN_B2B_MARKET = 'B2B Market';
+    const PLUGIN_GERMAN_MARKET = 'German Market';
     const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
     const PLUGIN_FB_FOR_WOO = 'Facebook for WooCommerce';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
@@ -26,15 +25,17 @@ final class SupportedPlugins
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
     const PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan';
-    const PLUGIN_GERMAN_MARKET = 'German Market';
     const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
     const PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan';
+    const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
     const PLUGIN_WP_MULTILANG = 'WP Multilang';
     
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
+        self::PLUGIN_B2B_MARKET,
+        self::PLUGIN_GERMAN_MARKET,
         self::PLUGIN_FB_FOR_WOO,
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
@@ -47,11 +48,11 @@ final class SupportedPlugins
     const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
         self::PLUGIN_CERBER_SECURITY,
-        self::PLUGIN_GERMAN_MARKET,
         self::PLUGIN_SMUSH,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
         self::PLUGIN_WP_MULTILANG,
+        self::PLUGIN_THEME_WOODMART_CORE,
     ];
     
     /**
@@ -120,15 +121,15 @@ final class SupportedPlugins
      *
      * @return array|string
      */
-    public static function getNotSupportedButActive($asString = false, $all = false)
+    public static function getNotSupportedButActive($asString = false, $all = false, $asArray = false)
     {
-        $plArray = self::getInstalledAndActivated();
-        $plugins = [];
-        $tmp     = [];
+        $plArray    = self::getInstalledAndActivated();
+        $plugins    = [];
+        $tmp        = [];
         foreach ($plArray as $plugin) {
             if (array_search($plugin['Name'], self::INCOMPATIBLE_PLUGINS) !== false) {
-                $plugins[] = $plugin;
-                $tmp[]     = $plugin['Name'];
+                $plugins[]    = $plugin;
+                $tmp[]        = $plugin['Name'];
             }
         }
         
@@ -139,6 +140,10 @@ final class SupportedPlugins
                 return implode(', ', $tmp);
             }
         } else {
+            if ($all && $asArray) {
+                return self::INCOMPATIBLE_PLUGINS;
+            }
+            
             return $plugins;
         }
     }

@@ -54,7 +54,6 @@ class Manufacturer extends BaseController
     
     protected function pushData(ManufacturerModel $manufacturer)
     {
-        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
             $meta             = null;
             $defaultAvailable = false;
@@ -109,6 +108,13 @@ class Manufacturer extends BaseController
                         WpErrorLogger::getInstance()->logError($newTerm);
                     }
                     $term = $newTerm;
+                    
+                    if (!$term instanceof \WP_Term) {
+                        if(array_key_exists('term_id', $term)){
+                            $term = get_term_by('id', $term['term_id'], 'pwb-brand');
+                        }
+                    }
+                    
                 } else {
                     
                     wp_update_term($term->term_id, 'pwb-brand', [
