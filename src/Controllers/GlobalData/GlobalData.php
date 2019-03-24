@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Utilities\Germanized;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class GlobalData extends BaseController
 {
@@ -27,7 +28,7 @@ class GlobalData extends BaseController
             ->setShippingMethods((new ShippingMethod())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
 
-        if (Germanized::getInstance()->isActive()) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             $globalData->setMeasurementUnits((new MeasurementUnit())->pullData());
         }
 

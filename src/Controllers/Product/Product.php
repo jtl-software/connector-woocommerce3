@@ -187,7 +187,7 @@ class Product extends BaseController
         
         $this->onProductInserted($product, $tmpI18n);
         
-        if (Germanized::getInstance()->isActive()) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             $this->updateGermanizedAttributes($product);
         }
         

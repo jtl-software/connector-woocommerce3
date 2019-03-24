@@ -25,10 +25,10 @@ class ProductI18n extends BaseController
             ->setShortDescription($product->get_short_description())
             ->setUrlPath($product->get_slug());
         
-        if (Germanized::getInstance()->isActive() && $product->gzd_product->has_product_units()) {
+        if ((Germanized::getInstance()->isActive() || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) && $product->gzd_product->has_product_units()) {
             $i18n->setMeasurementUnitName($product->gzd_product->unit);
         }
-    
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
