@@ -496,6 +496,9 @@ final class JtlConnectorAdmin
         
         ?>
         <div class="bootstrap-wrapper ">
+            <?php
+            self::displayNanvigation($page);
+            ?>
             <div class="container-fluid">
                 <div class="row justify-content-center">
                     <form method="post"
@@ -521,6 +524,44 @@ final class JtlConnectorAdmin
                     </form>
                 </div>
             </div>
+        </div>
+        <?php
+    }
+    
+    private static function displayNanvigation($page)
+    {
+        ?>
+
+        <div class="container-fluid mt-3 mb-3">
+            <nav class="nav nav-pills flex-column flex-sm-row">
+                <span class="navbar-brand mb-0 h1">JTL-Connector</span>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-information"><?php print __('Information',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'advanced_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-advanced"><?php print __('Advanced Settings',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'delivery_time_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-delivery-time"><?php print __('Delivery times',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'customer_order_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-customer-order"><?php print __('Customer orders',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page,
+                        'developer_logging_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-developer-logging"><?php print __('Developer Logging',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+            </nav>
         </div>
         <?php
     }
@@ -563,7 +604,12 @@ final class JtlConnectorAdmin
         //Add Information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('Basic information and credentials of the installed JTL-Connector. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the
+            free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product
+            family are perfectly suited to the requirements of e-commerce and mail order businesses.
+            They help you to process more orders in a shorter time and offer a range of exciting functionalities.
+            Basic information and credentials of the installed JTL-Connector. It is needed to configure the
+            JTL-Connector in the jtl customer center and JTL-Wawi.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -576,7 +622,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title'     => 'Connector URL',
             'type'      => 'connector_url',
-            'helpBlock' => ' Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.',
+            'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".', JTLWCC_TEXT_DOMAIN),
             'id'        => 'connector_url',
             'value'     => get_bloginfo('url') . '/index.php/jtlconnector/',
         ];
@@ -585,7 +631,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title'     => __('Connector Password', JTLWCC_TEXT_DOMAIN),
             'type'      => 'connector_password',
-            'helpBlock' => ' Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.',
+            'helpBlock' => __('This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.', JTLWCC_TEXT_DOMAIN),
             'id'        => 'connector_password',
             'value'     => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
         ];
@@ -594,7 +640,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title'     => 'Connector Version',
             'type'      => 'paragraph',
-            'helpBlock' => ' Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.',
+            'helpBlock' => __('This is your current installed connector version.', JTLWCC_TEXT_DOMAIN),
             'desc'      => Config::get('connector_version'),
         ];
         
@@ -724,15 +770,15 @@ final class JtlConnectorAdmin
         $fields[] = [
             'type' => 'sectionend',
         ];
-    
+        
         //Add variation specific radio field
         $fields[] = [
-            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
             'type'      => 'active_true_false_radio',
-            'desc'  => __('Do not choose when having a large amount of data and low server specifications.',
+            'desc'      => __('Do not choose when having a large amount of data and low server specifications.',
                 JTLWCC_TEXT_DOMAIN),
-            'id'    => self::OPTIONS_COMPLETED_ORDERS,
-            'value' => Config::get(self::OPTIONS_COMPLETED_ORDERS),
+            'id'        => self::OPTIONS_COMPLETED_ORDERS,
+            'value'     => Config::get(self::OPTIONS_COMPLETED_ORDERS),
             'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
@@ -1169,15 +1215,15 @@ final class JtlConnectorAdmin
         ?>
         <div class="form-group row">
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-          
-                        <input type="checkbox" class="form-control col-12" id="<?= $field['id'] ?>" name="<?= $field['id'] ?>"
-                            <?php if ($field['value']) {
-                                print 'checked';
-                            } ?>>
-              
-                <textarea type="text" class="form-control" aria-label="Text input with checkbox"
-                          readonly><?= $field['desc'] ?> </textarea>
-          
+
+            <input type="checkbox" class="form-control col-12" id="<?= $field['id'] ?>" name="<?= $field['id'] ?>"
+                <?php if ($field['value']) {
+                    print 'checked';
+                } ?>>
+
+            <textarea type="text" class="form-control" aria-label="Text input with checkbox"
+                      readonly><?= $field['desc'] ?> </textarea>
+
         </div>
         <?php
     }
