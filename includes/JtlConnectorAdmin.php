@@ -576,12 +576,6 @@ final class JtlConnectorAdmin
         return $links;
     }
     
-    // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
-    
-    /**
-     * @return array
-     */
-    
     private static function notCompatiblePluginsError()
     {
         //Show error if unsupported plugins are in use
@@ -604,12 +598,7 @@ final class JtlConnectorAdmin
         //Add Information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the
-            free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product
-            family are perfectly suited to the requirements of e-commerce and mail order businesses.
-            They help you to process more orders in a shorter time and offer a range of exciting functionalities.
-            Basic information and credentials of the installed JTL-Connector. It is needed to configure the
-            JTL-Connector in the jtl customer center and JTL-Wawi.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product family are perfectly suited to the requirements of e-commerce and mail order businesses. They help you to process more orders in a shorter time and offer a range of exciting functionalities. Basic information and credentials of the installed JTL-Connector. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -682,7 +671,7 @@ final class JtlConnectorAdmin
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. These are the advanced settings of the installed JTL-Connector. Here you can configure how some data is handled while push/pull.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -762,7 +751,7 @@ final class JtlConnectorAdmin
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Customer order related settings of the installed JTL-Connector. Here you can set some options to modify the import of customer orders.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -810,7 +799,7 @@ final class JtlConnectorAdmin
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Delivery time related settings of the installed JTL-Connector. Here you can set some options to modify the pull/psuh of delivery times.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -878,7 +867,7 @@ final class JtlConnectorAdmin
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Developer logging related settings of the installed JTL-Connector. Here you can enable/disable/reset/download the developer logs of the jtl connector.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -910,6 +899,7 @@ final class JtlConnectorAdmin
         return $fields;
     }
     
+    // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
     public static function jtl_date_field(array $field)
     {
         $option_value = $field['default'];// get_option($field['id'], $field['default']);
@@ -1027,8 +1017,8 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="form-group row">
-            <h2 class="col-12"><?php print($field['title']); ?></h2>
-            <ul class="list-group col-12">
+            <h2 class="col-12 mb-4"><?php print($field['title']); ?></h2>
+            <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
                 if (count($field['plugins']) > 0) {
@@ -1048,8 +1038,8 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="form-group row">
-            <h2 class="col-12"><?php print($field['title']); ?></h2>
-            <ul class="list-group col-12">
+            <h2 class="col-12 mb-4"><?php print($field['title']); ?></h2>
+            <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
                 if (count($field['plugins']) > 0) {
@@ -1144,7 +1134,7 @@ final class JtlConnectorAdmin
         ?>
         <div class="form-group row">
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select class="form-control custom-select col-12" name="<?= $field['id'] ?>">
+            <select class="form-control custom-select col-12 ml-2" name="<?= $field['id'] ?>">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
@@ -1192,7 +1182,7 @@ final class JtlConnectorAdmin
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
             <input
                     type="text"
-                    class="form-control col-12"
+                    class="form-control col-12 ml-3"
                     id="<?= $field['id'] ?>"
                     name="<?= $field['id'] ?>"
                     value="<?= $field['value'] ?>"

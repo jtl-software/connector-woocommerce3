@@ -5,7 +5,6 @@
         <mkdir dir="./dist/woo-jtl-connector/includes/"/>
         <mkdir dir="./dist/woo-jtl-connector/config"/>
         <mkdir dir="./dist/woo-jtl-connector/db"/>
-        <mkdir dir="./dist/woo-jtl-connector/languages"/>
         <mkdir dir="./dist/woo-jtl-connector/logs"/>
         <mkdir dir="./dist/woo-jtl-connector/plugins"/>
         <mkdir dir="./dist/woo-jtl-connector/tmp"/>
@@ -21,13 +20,6 @@
         <copy todir="./dist/woo-jtl-connector/db">
             <fileset dir="./db">
                 <include name=".htaccess"/>
-            </fileset>
-        </copy>
-
-        <phingcall target="translate"/>
-        <copy todir="./dist/woo-jtl-connector/languages">
-            <fileset dir="./languages">
-                <include name="**.mo"/>
             </fileset>
         </copy>
 
@@ -103,18 +95,5 @@
     <target name="clean">
         <delete dir="./build" quiet="true"/>
         <delete dir="./dist" quiet="true"/>
-    </target>
-
-    <target name="translate">
-        <exec command="msgfmt -o jtlconnector-de_CH.mo jtlconnector-de_CH.po" dir="./languages"/>
-        <exec command="msgfmt -o jtlconnector-de_DE.mo jtlconnector-de_DE.po" dir="./languages"/>
-        <copy todir="./languages">
-            <fileset dir="./languages"/>
-            <mapper type="glob" from="jtlconnector-de_DE.mo" to="jtlconnector-de_DE_formal.mo"/>
-        </copy>
-        <copy todir="./languages">
-            <fileset dir="./languages"/>
-            <mapper type="glob" from="jtlconnector-de_CH.mo" to="jtlconnector-de_CH_informal.mo"/>
-        </copy>
     </target>
 </project>
