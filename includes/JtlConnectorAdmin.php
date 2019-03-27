@@ -9,7 +9,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
 use \WC_Admin_Settings as WC_Admin_Settings;
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -45,7 +45,7 @@ final class JtlConnectorAdmin
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
     
     const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
-    const OPTIONS_DEVELOPER_LOGGING = 'jtlconnector_developer_logging';
+    const OPTIONS_DEVELOPER_LOGGING = 'developer_logging';
     const OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page';
     const OPTIONS_SEND_CUSTOM_PROPERTIES = 'jtlconnector_send_custom_properties';
     const OPTIONS_USE_GTIN_FOR_EAN = 'jtlconnector_use_gtin_for_ean';
@@ -122,7 +122,7 @@ final class JtlConnectorAdmin
             add_option(self::OPTIONS_INSTALLED_VERSION,
                 trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']));
         } catch (\jtl\Connector\Core\Exception\MissingRequirementException $exc) {
-            if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX)) {
+            if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();
                 wp_die($exc->getMessage());
             } else {
@@ -151,7 +151,7 @@ final class JtlConnectorAdmin
     
     private static function run_phar_check()
     {
-        if ( ! extension_loaded('phar')) {
+        if (!extension_loaded('phar')) {
             add_action('admin_notices', 'phar_extension');
         }
         if (extension_loaded('suhosin')) {
@@ -289,7 +289,7 @@ final class JtlConnectorAdmin
     
     public static function init()
     {
-        if ( ! self::$initiated) {
+        if (!self::$initiated) {
             self::init_hooks();
         }
     }
@@ -404,11 +404,12 @@ final class JtlConnectorAdmin
         {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
             // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
-            if ( ! preg_match('/^jtl-connector_page_woo-/', $hook)) {
+            if (!preg_match('/^jtl-connector_page_woo-/', $hook)) {
                 return;
             }
             
             wp_enqueue_style('bootstrap4', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css');
+            wp_enqueue_style('custom-css-jtl', JTLWCC_CONNECTOR_DIR_URL . '/includes/css/custom.css');
             wp_enqueue_script('boot1', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js',
                 ['jquery'], '', true);
             
@@ -446,11 +447,11 @@ final class JtlConnectorAdmin
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'woo-jtl-connector.php') !== false) {
-            $url       = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
+            $url = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
             ];
-            $links     = array_merge($links, $new_links);
+            $links = array_merge($links, $new_links);
         }
         
         return $links;
@@ -495,15 +496,15 @@ final class JtlConnectorAdmin
         $options = apply_filters('woocommerce_get_settings_jtlconnector', $settings);
         
         ?>
-        <div class="bootstrap-wrapper ">
+        <div class="bootstrap-wrapper m-0 bg-light">
             <?php
             self::displayNanvigation($page);
             ?>
             <div class="container-fluid">
-                <div class="row justify-content-center">
+                <div class="row justify-content-center pb-4">
                     <form method="post"
                           id="mainform"
-                          class="form-horizontal col-10"
+                          class="form-horizontal col-10 bg-light"
                           action="<?php echo esc_html(admin_url('admin-post.php')); ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
                         <div class="form-group row">
@@ -514,9 +515,9 @@ final class JtlConnectorAdmin
                         if ($submit) {
                             ?>
                             <div class="form-group row">
-                                <?php
-                                submit_button();
-                                ?>
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
                             </div>
                             <?php
                         }
@@ -531,10 +532,13 @@ final class JtlConnectorAdmin
     private static function displayNanvigation($page)
     {
         ?>
-
-        <div class="container-fluid mt-3 mb-3">
-            <nav class="nav nav-pills flex-column flex-sm-row">
-                <span class="navbar-brand mb-0 h1">JTL-Connector</span>
+        <div class="container-fluid mb-3 navbar navbar-dark bg-dark">
+            <nav class="nav nav-pills nav-fill flex-column flex-sm-row " id="jtlNavbar">
+                <a class="navbar-brand" href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank">
+                    <img src=" https://www.jtl-software.de/site/themes/jtlwebsite/assets/dist/images/logos/jtl-logo.svg"
+                         width="30" height="30" class="d-inline-block align-top" alt="">
+                    Connector
+                </a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
                     print 'active';
                 } ?>"
@@ -611,7 +615,8 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title'     => 'Connector URL',
             'type'      => 'connector_url',
-            'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".',
+                JTLWCC_TEXT_DOMAIN),
             'id'        => 'connector_url',
             'value'     => get_bloginfo('url') . '/index.php/jtlconnector/',
         ];
@@ -620,7 +625,8 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title'     => __('Connector Password', JTLWCC_TEXT_DOMAIN),
             'type'      => 'connector_password',
-            'helpBlock' => __('This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.',
+                JTLWCC_TEXT_DOMAIN),
             'id'        => 'connector_password',
             'value'     => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
         ];
@@ -910,7 +916,7 @@ final class JtlConnectorAdmin
             <label for="<?= $field['id'] ?>" class="col-12 col-form-label"><?= $field['title'] ?></label>
             <div class="col-12">
                 <input class="form-control" type="date"
-                       value="<?= isset($field['value']) && ! is_null($field['value']) && $field['value'] !== '' ? $field['value'] : $option_value ?>"
+                       value="<?= isset($field['value']) && !is_null($field['value']) && $field['value'] !== '' ? $field['value'] : $option_value ?>"
                        id="<?= $field['id'] ?>"
                        name="<?= $field['id'] ?>">
             </div>
@@ -989,8 +995,8 @@ final class JtlConnectorAdmin
                             title="Copy"
                             id="<?= $field['id'] ?>_btn"
                             onclick="
-                                var text = document.getElementById('connector_url').value;
-                                var dummy = document.createElement('textarea');
+                                let text = document.getElementById('connector_url').value;
+                                let dummy = document.createElement('textarea');
                                 document.body.appendChild(dummy);
                                 dummy.value = text;
                                 dummy.select();
@@ -1025,7 +1031,7 @@ final class JtlConnectorAdmin
                     foreach ($field['plugins'] as $key => $value) {
                         ?>
                         <li class="list-group-item <?php $change ? print('list-group-item-light') : print(''); ?>"><?php print $value; ?></li> <?php
-                        $change = ! $change;
+                        $change = !$change;
                     }
                 }
                 ?>
@@ -1055,7 +1061,7 @@ final class JtlConnectorAdmin
                             </a>)
                         </li>
                         <?php
-                        $change = ! $change;
+                        $change = !$change;
                     }
                 }
                 ?>
@@ -1107,11 +1113,11 @@ final class JtlConnectorAdmin
                 <div class="custom-control custom-radio">
                     <input type="radio" id="<?= $field['id'] ?>_2" name="<?= $field['id'] ?>" value="false"
                            class="custom-control-input "
-                        <?php if ( ! $field['value']) {
+                        <?php if (!$field['value']) {
                             print 'checked="checked"';
                         } ?>
                     >
-                    <label class="custom-control-label  <?php if ( ! $field['value']) {
+                    <label class="custom-control-label  <?php if (!$field['value']) {
                         print 'active';
                     } ?>" for="<?= $field['id'] ?>_2"><?= $field['falseText'] ?></label>
                 </div>
@@ -1134,7 +1140,7 @@ final class JtlConnectorAdmin
         ?>
         <div class="form-group row">
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select class="form-control custom-select col-12 ml-2" name="<?= $field['id'] ?>">
+            <select class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
@@ -1162,7 +1168,6 @@ final class JtlConnectorAdmin
     public static function dev_log_btn(array $field)
     {
         ?>
-
         <div class="form-group row">
             <div class="btn-group btn-group-lg col-12" role="group"
             ">
@@ -1170,7 +1175,6 @@ final class JtlConnectorAdmin
                     class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
             <button type="button" id="clearLogBtn"
                     class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
-        </div>
         </div>
         <?php
     }
@@ -1279,9 +1283,9 @@ final class JtlConnectorAdmin
             add_option(self::OPTIONS_TOKEN, self::create_password());
         }
         
-        if ( ! Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
-             || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
-                && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+        if (!Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
         ) {
             
             Config::set(
@@ -1292,7 +1296,7 @@ final class JtlConnectorAdmin
         
         $version = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
         
-        if ( ! Config::has('connector_version') || Config::has('connector_version') && version_compare(
+        if (!Config::has('connector_version') || Config::has('connector_version') && version_compare(
                 $configFileValues->connector_version,
                 $version,
                 '!='
@@ -1311,7 +1315,7 @@ final class JtlConnectorAdmin
                 add_option($key, $configFileValues->$key);
             }
             
-            if ( ! Config::has($key) && ! is_null($option) || Config::has($key) && ! is_null($option)) {
+            if (!Config::has($key) && !is_null($option) || Config::has($key) && !is_null($option)) {
                 $cast = self::JTLWCC_CONFIG[$key];
                 
                 switch ($cast) {
@@ -1339,7 +1343,7 @@ final class JtlConnectorAdmin
                 Config::set($key, $value);
             }
             
-            if ( ! Config::has($key) && is_null($option)) {
+            if (!Config::has($key) && is_null($option)) {
                 add_option($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
                 Config::set($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
             }
@@ -1430,9 +1434,9 @@ final class JtlConnectorAdmin
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
         
         foreach ($types as $type) {
-            $type      = (int)$type->type;
+            $type = (int)$type->type;
             $tableName = self::get_table_name($type);
-            $result    = $result && $wpdb->query("
+            $result = $result && $wpdb->query("
                 INSERT INTO `{$tableName}` (`host_id`, `endpoint_id`)
                 SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
             ");

@@ -6,14 +6,12 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Application\Application;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use Noodlehaus\AbstractConfig;
 
 final class Util extends Singleton
 {
@@ -58,7 +56,7 @@ final class Util extends Singleton
     {
         $countryIso = \get_option('woocommerce_default_country');
         
-        if ( ! is_null($order)) {
+        if (!is_null($order)) {
             $option = \get_option('woocommerce_tax_based_on', 'base');
             
             if ($option === 'shipping') {
@@ -75,7 +73,7 @@ final class Util extends Singleton
             'country'   => $countryIso,
         ]);
         
-        if ( ! empty($taxRates)) {
+        if (!empty($taxRates)) {
             return (double)array_values($taxRates)[0]['rate'];
         }
         
@@ -90,17 +88,17 @@ final class Util extends Singleton
             $stockStatus = $stockStatus || $backorders;
         }
         
-        return $stockStatus || ! $managesStock ? 'instock' : 'outofstock';
+        return $stockStatus || !$managesStock ? 'instock' : 'outofstock';
     }
     
     public function updateProductPrice(ProductPriceModel $productPrice, $vat)
     {
-        if ( ! $this->isValidCustomerGroup($productPrice->getCustomerGroupId()->getEndpoint())) {
+        if (!$this->isValidCustomerGroup($productPrice->getCustomerGroupId()->getEndpoint())) {
             return;
         }
         
         $productId = $productPrice->getProductId()->getEndpoint();
-        $product   = \wc_get_product($productId);
+        $product = \wc_get_product($productId);
         
         if ($product !== false) {
             foreach ($productPrice->getItems() as $item) {
@@ -111,7 +109,7 @@ final class Util extends Singleton
                         $regularPrice = $item->getNetPrice();
                     }
                     
-                    $pd        = \wc_get_price_decimals();
+                    $pd = \wc_get_price_decimals();
                     $salePrice = \get_post_meta($productId, '_sale_price', true);
                     
                     if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
@@ -132,9 +130,9 @@ final class Util extends Singleton
     public function addMasterProductToSync($productId)
     {
         $masterProductsToSyncCount = (int)\get_option(self::TO_SYNC_COUNT, 0);
-        $page                      = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
-        $masterProductsToSync      = \get_option(self::TO_SYNC . '_' . $page, []);
-        $masterProductsToSync[]    = $productId;
+        $page = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
+        $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
+        $masterProductsToSync[] = $productId;
         
         \update_option(self::TO_SYNC . '_' . $page, array_unique($masterProductsToSync));
     }
@@ -149,7 +147,7 @@ final class Util extends Singleton
             for ($i = 1; $i <= $page; $i++) {
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
                 
-                if ( ! empty($masterProductsToSync)) {
+                if (!empty($masterProductsToSync)) {
                     foreach ($masterProductsToSync as $productId) {
                         \WC_Product_Variable::sync($productId);
                     }
@@ -165,9 +163,9 @@ final class Util extends Singleton
     public function countCategories()
     {
         $offset = 0;
-        $limit  = 100;
+        $limit = 100;
         
-        while ( ! empty($result)) {
+        while (!empty($result)) {
             $result = Db::getInstance()->query(SqlHelper::categoryProductsCount($offset, $limit));
             
             foreach ($result as $category) {
@@ -184,9 +182,9 @@ final class Util extends Singleton
     public function countProductTags()
     {
         $offset = 0;
-        $limit  = 100;
+        $limit = 100;
         
-        while ( ! empty($result)) {
+        while (!empty($result)) {
             $result = Db::getInstance()->query(SqlHelper::productTagsCount($offset, $limit));
             
             foreach ($result as $tag) {
@@ -232,6 +230,10 @@ final class Util extends Singleton
                 return PaymentTypes::TYPE_BANK_TRANSFER;
             case 'direct-debit':
                 return PaymentTypes::TYPE_DIRECT_DEBIT;
+            case 'german_market_purchase_on_account':
+                return PaymentTypes::TYPE_INVOICE;
+            case 'german_market_sepa_direct_debit':
+                return PaymentTypes::TYPE_DIRECT_DEBIT;
             case 'invoice':
                 return PaymentTypes::TYPE_INVOICE;
             default:
@@ -241,7 +243,7 @@ final class Util extends Singleton
     
     public static function getAttributeTaxonomyIdByName($name)
     {
-        $name       = str_replace('pa_', '', $name);
+        $name = str_replace('pa_', '', $name);
         $taxonomies = \wp_list_pluck(\wc_get_attribute_taxonomies(), 'attribute_id', 'attribute_name');
         
         return isset($taxonomies[$name]) ? (int)$taxonomies[$name] : 0;
@@ -300,6 +302,6 @@ final class Util extends Singleton
      */
     public static function getInstance()
     {
-        return parent::getInstance();
+        return self::getInstance();
     }
 }

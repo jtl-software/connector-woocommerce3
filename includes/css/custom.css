@@ -1,0 +1,21 @@
+#wpcontent {
+    padding-left: 0 !important;
+}
+
+#jtlNavbar .nav-link {
+    color: #00b6ff;
+}
+
+#jtlNavbar a:hover {
+    color: #FFF;
+    border: 1px #00b6ff solid !important;
+}
+#jtlNavbar a:hover.navbar-brand {
+    color: #FFF;
+    border: none !important;
+}
+
+#jtlNavbar .nav-link.active {
+    color: #FFFFFF;
+    background-color: #00b6ff;
+}

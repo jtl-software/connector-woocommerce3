@@ -1,6 +1,6 @@
 {
   "name": "jtl-connector/woocommerce",
-  "type": "APP",
+  "type": "app",
   "description": "WooCommerce Connector based on jtl/connector",
   "keywords": [
     "jtl",

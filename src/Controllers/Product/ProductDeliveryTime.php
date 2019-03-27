@@ -6,7 +6,6 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;

@@ -16,7 +16,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 class GlobalData extends BaseController
 {
     use PullTrait, PushTrait;
-
+    
     public function pullData($limit)
     {
         $globalData = (new GlobalDataModel())
@@ -27,19 +27,24 @@ class GlobalData extends BaseController
             ->setShippingClasses((new ShippingClass())->pullData())
             ->setShippingMethods((new ShippingMethod())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
-
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             $globalData->setMeasurementUnits((new MeasurementUnit())->pullData());
         }
-
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            //Wawi steuert Grundpreisberechnung
+            update_option('woocommerce_de_automatic_calculation_ppu', 'off', true);
+        }
+        
         return [$globalData];
     }
-
+    
     public function pushData(GlobalDataModel $data)
     {
         (new Currency)->pushData($data->getCurrencies());
         (new ShippingClass)->pushData($data->getShippingClasses());
-
+        
         return $data;
     }
 }

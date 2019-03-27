@@ -22,7 +22,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 class CustomerOrder extends BaseController
 {
     use PullTrait, StatsTrait;
-
+    
     /** Order received (unpaid) */
     const STATUS_PENDING = 'pending';
     /** Payment received – the order is awaiting fulfillment */
@@ -37,23 +37,23 @@ class CustomerOrder extends BaseController
     const STATUS_CANCELLED = 'cancelled';
     /** Already paid */
     const STATUS_REFUNDED = 'refunded';
-
+    
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';
-
+    
     public function pullData($limit)
     {
         $orders = [];
-
+        
         $orderIds = $this->database->queryList(SqlHelper::customerOrderPull($limit));
-
+        
         foreach ($orderIds as $orderId) {
             $order = \wc_get_order($orderId);
-
+            
             if (!$order instanceof \WC_Order) {
                 continue;
             }
-
+            
             $customerOrder = (new CustomerOrderModel())
                 ->setId(new Identity($order->get_id()))
                 ->setCreationDate($order->get_date_created())
@@ -70,26 +70,31 @@ class CustomerOrder extends BaseController
                 ->setStatus($this->status($order))
                 ->setTotalSum(round($order->get_total() - $order->get_total_tax(), \wc_get_price_decimals()))
                 ->setTotalSumGross(round($order->get_total(), \wc_get_price_decimals()));
-
+            
             $customerOrder
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))
                 ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order))
                 ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order));
-
+            
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
-
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-                $this->setPaymentInfo($customerOrder);
+                $this->setGermanizedPaymentInfo($customerOrder);
             }
-
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                $this->setGermanMarketPaymentInfo($customerOrder);
+            }
+            
+            
             $orders[] = $customerOrder;
         }
-
+        
         return $orders;
     }
-
+    
     protected function paymentStatus(\WC_Order $order)
     {
         if ($order->has_status(self::STATUS_COMPLETED)) {
@@ -98,13 +103,13 @@ class CustomerOrder extends BaseController
             if ($order->get_payment_method() === 'cod') {
                 return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
             }
-
+            
             return CustomerOrderModel::PAYMENT_STATUS_COMPLETED;
         }
-
+        
         return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
     }
-
+    
     protected function status(\WC_Order $order)
     {
         if ($order->has_status(self::STATUS_COMPLETED)) {
@@ -112,36 +117,145 @@ class CustomerOrder extends BaseController
         } elseif ($order->has_status([self::STATUS_CANCELLED, self::STATUS_REFUNDED])) {
             return CustomerOrderModel::STATUS_CANCELLED;
         }
-
+        
         return CustomerOrderModel::STATUS_NEW;
     }
-
-    protected function setPaymentInfo(CustomerOrderModel &$customerOrder)
+    
+    protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder)
     {
         $directDebitGateway = new \WC_GZD_Gateway_Direct_Debit();
-
+        
         if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
             $orderId = $customerOrder->getId()->getEndpoint();
-
+            
             $bic = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
             $iban = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_iban', true));
-
+            
             $paymentInfo = (new CustomerOrderPaymentInfo())
                 ->setBic($bic)
                 ->setIban($iban)
                 ->setAccountHolder(\get_post_meta($orderId, '_direct_debit_holder', true));
-
+            
             $customerOrder->setPaymentInfo($paymentInfo);
-
+            
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
             $settings = \get_option('woocommerce_invoice_settings');
-
+            
             if (!empty($settings) && isset($settings['instructions'])) {
                 $customerOrder->setPui($settings['instructions']);
             }
         }
     }
-
+    
+    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder)
+    {
+        $orderId = $customerOrder->getId()->getEndpoint();
+        
+        if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
+            $instance = new \WGM_Gateway_Sepa_Direct_Debit();
+            $gmSettings = $instance->settings;
+            $bic = \get_post_meta($orderId, '_german_market_sepa_bic', true);
+            $iban = \get_post_meta($orderId, '_german_market_sepa_iban', true);
+            $accountHolder = \get_post_meta($orderId, '_german_market_sepa_holder', true);
+            $settingsKeys = [
+                '[creditor_information]',
+                '[creditor_identifier]',
+                '[creditor_account_holder]',
+                '[creditor_iban]',
+                '[creditor_bic]',
+                '[mandate_id]',
+                '[street]',
+                '[city]',
+                '[postcode]',
+                '[country]',
+                '[date]',
+                '[account_holder]',
+                '[account_iban]',
+                '[account_bic]',
+                '[amount]',
+            ];
+            $pui = array_key_exists('direct_debit_mandate', $gmSettings) ? $gmSettings['direct_debit_mandate'] : '';
+            
+            foreach ($settingsKeys as $key => $formValue) {
+                switch ($formValue) {
+                    case '[creditor_information]':
+                        $value = array_key_exists('creditor_information',
+                            $gmSettings) ? $gmSettings['creditor_information'] : '';
+                        break;
+                    case '[creditor_identifier]':
+                        $value = array_key_exists('creditor_identifier',
+                            $gmSettings) ? $gmSettings['creditor_identifier'] : '';
+                        break;
+                    case '[creditor_account_holder]':
+                        $value = array_key_exists('creditor_account_holder',
+                            $gmSettings) ? $gmSettings['creditor_account_holder'] : '';
+                        break;
+                    case '[creditor_iban]':
+                        $value = array_key_exists('iban', $gmSettings) ? $gmSettings['iban'] : '';
+                        break;
+                    case '[creditor_bic]':
+                        $value = array_key_exists('bic', $gmSettings) ? $gmSettings['bic'] : '';
+                        break;
+                    case '[mandate_id]':
+                        $value = \get_post_meta($orderId, '_german_market_sepa_mandate_reference', true);
+                        break;
+                    case '[street]':
+                        $value = $customerOrder->getBillingAddress()->getStreet();
+                        break;
+                    case '[city]':
+                        $value = $customerOrder->getBillingAddress()->getCity();
+                        break;
+                    case '[postcode]':
+                        $value = $customerOrder->getBillingAddress()->getZipCode();
+                        break;
+                    case '[country]':
+                        $value = $customerOrder->getBillingAddress()->getCountryIso();
+                        break;
+                    case '[date]':
+                        $value = $customerOrder->getPaymentDate()->getTimestamp();
+                        break;
+                    case '[account_holder]':
+                        $value = $accountHolder;
+                        break;
+                    case '[account_iban]':
+                        $value = $iban;
+                        break;
+                    case '[account_bic]':
+                        $value = $bic;
+                        break;
+                    case '[amount]':
+                        $value = $customerOrder->getTotalSum();
+                        break;
+                    default:
+                        $value = '';
+                        break;
+                }
+                
+                $pui = str_replace(
+                    $formValue,
+                    $value,
+                    $pui
+                );
+            }
+            
+            $paymentInfo = (new CustomerOrderPaymentInfo())
+                ->setBic($bic)
+                ->setIban($iban)
+                ->setAccountHolder($accountHolder);
+            
+            $customerOrder->setPui($pui);
+            $customerOrder->setPaymentInfo($paymentInfo);
+            
+        } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
+            $instance = new \WGM_Gateway_Purchase_On_Account();
+            $gmSettings = $instance->settings;
+    
+            if(array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== ''){
+                $customerOrder->setPui($gmSettings['direct_debit_mandate']);
+            }
+        }
+    }
+    
     public function getStats()
     {
         return $this->database->queryOne(SqlHelper::customerOrderPull(null));

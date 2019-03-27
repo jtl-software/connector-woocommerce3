@@ -287,8 +287,9 @@ class Product extends BaseController
                 false
             );
         }
-        //DELIVERYTIME
+        //Map to Delivery-time
         (new ProductDeliveryTime())->pushData($product, $wcProduct);
+        //Map to Manufacturer
         (new ProductManufacturer())->pushData($product, $wcProduct);
     }
     
@@ -368,11 +369,10 @@ class Product extends BaseController
     private function updateGermanizedAttributes(ProductModel &$product)
     {
         $id = $product->getId()->getEndpoint();
-        $this->updateBasePriceAndUnits($product, $id);
-        $this->updateDeliveryStatus($product, $id);
+        $this->updateGermanizedBasePriceAndUnits($product, $id);
     }
     
-    private function updateBasePriceAndUnits(ProductModel $product, $id)
+    private function updateGermanizedBasePriceAndUnits(ProductModel $product, $id)
     {
         if ($product->getConsiderBasePrice()) {
             $pd = \wc_get_price_decimals();
@@ -404,36 +404,6 @@ class Product extends BaseController
         
         if ($product->getMeasurementQuantity() !== 0) {
             \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
-        }
-    }
-    
-    private function updateDeliveryStatus(ProductModel $product, $id)
-    {
-        foreach ($product->getI18ns() as $i18n) {
-            $deliveryStatus = $i18n->getDeliveryStatus();
-            
-            if (Util::getInstance()->isWooCommerceLanguage($deliveryStatus) && ! empty($deliveryStatus)) {
-                $term = $this->database->queryOne(SqlHelper::deliveryStatusByText($deliveryStatus));
-                
-                if (empty($term)) {
-                    $result = \wp_insert_term($i18n->getDeliveryStatus(), 'product_delivery_time');
-                    
-                    if ($result instanceof \WP_Error) {
-                        WpErrorLogger::getInstance()->logError($result);
-                        break;
-                    }
-                    
-                    $term = $result['term_id'];
-                }
-                
-                $result = \wp_set_object_terms($id, (int)$term, 'product_delivery_time');
-                
-                if ($result instanceof \WP_Error) {
-                    WpErrorLogger::getInstance()->logError($result);
-                }
-                
-                break;
-            }
         }
     }
     
