@@ -565,6 +565,12 @@ final class JtlConnectorAdmin
                 } ?>"
                    href="admin.php?page=woo-jtl-connector-developer-logging"><?php print __('Developer Logging',
                         JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link"
+                   href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank"><?php print __('JTL-Guide',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+
+
+                
             </nav>
         </div>
         <?php

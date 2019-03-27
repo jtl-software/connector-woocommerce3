@@ -1,15 +1,1 @@
-{
-  "connector_password": "740F3225-DC4F-4CDA-AF21-3B9363503C2E",
-  "connector_version": "1.7.3",
-  "jtlconnector_show_variation_specifics_on_product_page": true,
-  "jtlconnector_send_custom_properties": true,
-  "jtlconnector_variation_name_format": "",
-  "jtlconnector_use_gtin_for_ean": true,
-  "jtlconnector_use_deliverytime_calc": true,
-  "jtlconnector_disabled_zero_delivery_time": true,
-  "jtlconnector_praefix_deliverytime": "ca.",
-  "jtlconnector_suffix_deliverytime": "Werktage",
-  "jtlconnector_completed_orders": true,
-  "jtlconnector_pull_orders_since": "",
-  "developer_logging": false
-}
+{"connector_password":"740F3225-DC4F-4CDA-AF21-3B9363503C2E","connector_version":"1.7.3","jtlconnector_show_variation_specifics_on_product_page":true,"jtlconnector_send_custom_properties":true,"jtlconnector_variation_name_format":"","jtlconnector_use_gtin_for_ean":true,"jtlconnector_use_deliverytime_calc":true,"jtlconnector_disabled_zero_delivery_time":true,"jtlconnector_praefix_deliverytime":"ca.","jtlconnector_suffix_deliverytime":"Werktage","jtlconnector_completed_orders":true,"jtlconnector_pull_orders_since":"","developer_logging":false}
