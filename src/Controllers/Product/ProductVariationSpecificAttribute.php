@@ -134,11 +134,6 @@ class ProductVariationSpecificAttribute extends BaseController
         //Identify Master/Child
         $isMaster = $product->getIsMasterProduct();
         
-        //New Values
-        $pushedAttributes = $product->getAttributes();
-        $pushedSpecifics = $product->getSpecifics();
-        $pushedVariations = $product->getVariations();
-        
         $productId = $product->getId()->getEndpoint();
         
         if ($isMaster) {
@@ -155,19 +150,19 @@ class ProductVariationSpecificAttribute extends BaseController
             );
             
             //GENERATE DATA ARRAYS
-            $variationSpecificData = $this->generateVariationSpecificData($pushedVariations);
-            $specificData = $this->generateSpecificData($pushedSpecifics);
+            $variationSpecificData = $this->generateVariationSpecificData($product->getVariations());
+            $specificData = $this->generateSpecificData($product->getSpecifics());
             
             //handleAttributes
             $finishedAttr = (new ProductAttr)->pushData(
                 $productId,
-                $pushedAttributes,
+                $product->getAttributes(),
                 $attributesFilteredVariationsAndSpecifics
             );
             $this->mergeAttributes($newProductAttributes, $finishedAttr);
             // handleVarSpecifics
             $finishedSpecifics = (new ProductSpecific)->pushData(
-                $productId, $curAttributes, $specificData, $pushedSpecifics
+                $productId, $curAttributes, $specificData, $product->getSpecifics()
             );
             $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
             // handleVarSpecifics
@@ -183,7 +178,7 @@ class ProductVariationSpecificAttribute extends BaseController
         } else {
             (new ProductVariation)->pushChildData(
                 $productId,
-                $pushedVariations
+                $product->getVariations()
             );
         }
         // remove the transient to renew the cache
