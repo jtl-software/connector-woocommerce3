@@ -6,6 +6,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
@@ -200,15 +201,18 @@ final class Util extends Singleton
     public function mapLanguageIso($locale)
     {
         $result = null;
-        
-        if (strpos($locale, '_')) {
-            $result = Language::map(substr($locale, 0, 5));
-        } else {
-            if (count($locale) === 2) {
-                $result = is_null(Language::convert($locale)) ? null : $locale;
-            } elseif (count($locale) === 3) {
-                $result = Language::convert(null, $locale);
+        try {
+            if (strpos($locale, '_')) {
+                $result = Language::map(substr($locale, 0, 5));
+            } else {
+                if (count($locale) === 2) {
+                    $result = is_null(Language::convert($locale)) ? null : $locale;
+                } elseif (count($locale) === 3) {
+                    $result = Language::convert(null, $locale);
+                }
             }
+        } catch (LanguageException $exception) {
+            //
         }
         
         if (empty($result)) {

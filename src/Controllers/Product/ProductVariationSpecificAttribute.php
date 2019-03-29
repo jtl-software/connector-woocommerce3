@@ -62,14 +62,41 @@ class ProductVariationSpecificAttribute extends BaseController
                 $isVariation = $attribute->get_variation();
                 $taxonomyExistsCurrentAttr = taxonomy_exists($slug);
                 
-                // <editor-fold defaultstate="collapsed" desc="Handling Variation Pull">
+                // <editor-fold defaultstate="collapsed" desc="Handling ATTR Pull">
+                if (!$isVariation && !$taxonomyExistsCurrentAttr) {
+                    $this->productData['productAttributes'][] = (new ProductAttr)
+                        ->pullData(
+                            $product,
+                            $attribute,
+                            $slug,
+                            $languageIso
+                        );
+                }
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="Handling Specific Pull">
+                if (!$isVariation && $taxonomyExistsCurrentAttr) {
+                    $tmp = (new ProductSpecific)
+                        ->pullData(
+                            $model,
+                            $product,
+                            $attribute,
+                            $slug
+                        );
+                    if (is_null($tmp)) {
+                        continue;
+                    }
+                    foreach ($tmp as $productSpecific) {
+                        $this->productData['productSpecifics'][] = $productSpecific;
+                    }
+                }
+                // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="Handling Variation Parent Pull">
                 
                 if ($isVariation && $isProductVariationParent) {
                     $tmp = (new ProductVariation)
                         ->pullDataParent(
                             $model,
                             $attribute,
-                            $slug,
                             $languageIso
                         );
                     if (is_null($tmp)) {
@@ -79,29 +106,9 @@ class ProductVariationSpecificAttribute extends BaseController
                 }
                 
                 // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="Handling Specific Pull">
-                if (!$isVariation && $taxonomyExistsCurrentAttr) {
-                    $name = $attribute->get_name();
-                    $productAttribute = $product->get_attribute($name);
-                    
-                    $values = array_map('trim', explode(',', $productAttribute));
-                    
-                    foreach ($values as $value) {
-                        if (empty($value)) {
-                            continue;
-                        }
-                        $this->productData['productSpecifics'][] = $this->buildProductSpecific($slug, $value, $model);
-                    }
-                }
-                // </editor-fold>
-                // <editor-fold defaultstate="collapsed" desc="Handling ATTR Pull">
-                if (!$isVariation && !$taxonomyExistsCurrentAttr) {
-                    $this->productData['productAttributes'][] = $this->buildAttribute($product, $attribute, $slug,
-                        $languageIso);
-                }
-                // </editor-fold>
             }
         } else {
+            // <editor-fold defaultstate="collapsed" desc="Handling Variation Child Pull">
             $tmp = (new ProductVariation)
                 ->pullDataChild(
                     $product,
@@ -111,6 +118,7 @@ class ProductVariationSpecificAttribute extends BaseController
             if (!is_null($tmp)) {
                 $this->productData['productVariation'][] = $tmp;
             }
+            // </editor-fold>
         }
         
         // <editor-fold defaultstate="collapsed" desc="FUNC ATTR Pull">
@@ -122,80 +130,189 @@ class ProductVariationSpecificAttribute extends BaseController
         return $this->productData;
     }
     
-    private function buildProductSpecific($slug, $value, ProductModel $result)
+    public function pushDataNew(ProductModel $product, \WC_Product $wcProduct)
     {
-        $valueId = $this->getSpecificValueId($slug, $value);
-        $specificId = (new Identity)->setEndpoint($this->getSpecificId($slug));
+        if ($wcProduct === false) {
+            return;
+        }
+        //Identify Master/Child
+        $isMaster = $product->getIsMasterProduct();
         
-        $specific = (new ProductSpecificModel)
-            ->setId($specificId)
-            ->setProductId($result->getId())
-            ->setSpecificValueId($valueId);
+        //New Values
+        $pushedAttributes = $product->getAttributes();
+        $pushedSpecifics = $product->getSpecifics();
+        $pushedVariations = $product->getVariations();
         
-        return $specific;
-    }
-    
-    // <editor-fold defaultstate="collapsed" desc="ATTR Methods">
-    
-    private function getSpecificValueId(
-        $slug,
-        $value
-    ) {
-        $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
+        $productId = $product->getId()->getEndpoint();
         
-        if (count($val) === 0) {
-            $result = (new Identity);
+        if ($isMaster) {
+            $newProductAttributes = [];
+            //Current Values
+            $curAttributes = $wcProduct->get_attributes();
+            
+            //Filtered
+            $attributesFilteredVariationsAndSpecifics = $this->getVariationAndSpecificAttributes(
+                $curAttributes
+            );
+            $attributesFilteredVariationSpecifics = $this->getVariationAttributes(
+                $curAttributes
+            );
+            
+            //GENERATE DATA ARRAYS
+            $variationSpecificData = $this->generateVariationSpecificData($pushedVariations);
+            $specificData = $this->generateSpecificData($pushedSpecifics);
+            
+            //handleAttributes
+            $finishedAttr = $this->handleAttributes(
+                $productId,
+                $pushedAttributes,
+                $attributesFilteredVariationsAndSpecifics
+            );
+            $this->mergeAttributes($newProductAttributes, $finishedAttr);
+            // handleVarSpecifics
+            $finishedSpecifics = $this->handleSpecifics(
+                $productId, $curAttributes, $specificData, $pushedSpecifics
+            );
+            $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
+            // handleVarSpecifics
+            $finishedVarSpecifics = $this->handleMasterVariationSpecifics(
+                $productId,
+                $variationSpecificData,
+                $attributesFilteredVariationSpecifics
+            );
+            $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
+            $old = \get_post_meta($productId, '_product_attributes', true);
+            $debug = \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
+            
+            // remove the transient to renew the cache
+            delete_transient('wc_attribute_taxonomies');
         } else {
-            $result = isset($val[0]['endpoint_id'])
-            && isset($val[0]['host_id'])
-            && !is_null($val[0]['endpoint_id'])
-            && !is_null($val[0]['host_id'])
-                ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+            $this->handleChildVariation(
+                $productId,
+                $pushedVariations
+            );
+        }
+    }
+ 
+    
+    // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
+    private function getVariationAndSpecificAttributes($attributes = [])
+    {
+        $filteredAttributes = [];
+        
+        /**
+         * @var string $slug The attributes unique slug.
+         * @var \WC_Product_Attribute $attribute The attribute.
+         */
+        foreach ($attributes as $slug => $attribute) {
+            if ($attribute->get_variation()) {
+                $filteredAttributes[$slug] = [
+                    'id'           => $attribute->get_id(),
+                    'name'         => $attribute->get_name(),
+                    'value'        => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
+                    'position'     => $attribute->get_position(),
+                    'is_visible'   => $attribute->get_visible(),
+                    'is_variation' => $attribute->get_variation(),
+                    'is_taxonomy'  => $attribute->get_taxonomy(),
+                ];
+            } elseif (taxonomy_exists($slug)) {
+                $filteredAttributes[$slug] =
+                    [
+                        'id'           => $attribute->get_id(),
+                        'name'         => $attribute->get_name(),
+                        'value'        => '',
+                        'position'     => $attribute->get_position(),
+                        'is_visible'   => $attribute->get_visible(),
+                        'is_variation' => $attribute->get_variation(),
+                        'is_taxonomy'  => $attribute->get_taxonomy(),
+                    ];
+            }
         }
         
-        return $result;
+        return $filteredAttributes;
     }
     
-    private function getSpecificId($slug)
+    private function getVariationAttributes($curAttributes)
     {
-        $name = substr($slug, 3);
-        $val = $this->database->query(SqlHelper::getSpecificId($name));
+        $filteredAttributes = [];
         
-        return isset($val[0]['attribute_id']) ? $val[0]['attribute_id'] : '';
+        /**
+         * @var string $slug
+         * @var \WC_Product_Attribute $curAttributes
+         */
+        foreach ($curAttributes as $slug => $product_specific) {
+            if (!$product_specific->get_variation()) {
+                $filteredAttributes[$slug] = [
+                    'name'         => $product_specific->get_name(),
+                    'value'        => implode(' ' . WC_DELIMITER . ' ', $product_specific->get_options()),
+                    'position'     => $product_specific->get_position(),
+                    'is_visible'   => $product_specific->get_visible(),
+                    'is_variation' => $product_specific->get_variation(),
+                    'is_taxonomy'  => $product_specific->get_taxonomy(),
+                ];
+            }
+        }
+        
+        return $filteredAttributes;
+    }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc="GenerateData Methods">
+    private function generateSpecificData($pushedSpecifics = [])
+    {
+        $specificData = [];
+        foreach ($pushedSpecifics as $specific) {
+            $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
+                (int)$specific->getSpecificValueId()->getEndpoint();
+        }
+        
+        return $specificData;
     }
     
-    /**
-     * @param \WC_Product $product
-     * @param \WC_Product_Attribute $attribute
-     * @param $slug
-     * @param string $languageIso
-     * @return ProductAttrModel
-     */
-    private function buildAttribute(
-        \WC_Product $product,
-        \WC_Product_Attribute $attribute,
-        $slug,
-        $languageIso = ''
-    ) {
-        $productAttribute = $product->get_attribute($attribute->get_name());
+    private function generateVariationSpecificData($pushedVariations = [])
+    {
+        $variationSpecificData = [];
+        foreach ($pushedVariations as $variation) {
+            /** @var ProductVariationI18nModel $variationI18n */
+            foreach ($variation->getI18ns() as $variationI18n) {
+                $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
+                
+                if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                    continue;
+                }
+                
+                $values = [];
+                
+                $this->values = $variation->getValues();
+                usort($this->values, [$this, 'sortI18nValues']);
+                
+                foreach ($this->values as $vv) {
+                    /** @var ProductVariationValueI18nModel $valueI18n */
+                    foreach ($vv->getI18ns() as $valueI18n) {
+                        if (!Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
+                            continue;
+                        }
+                        
+                        $values[] = $valueI18n->getName();
+                    }
+                }
+                
+                $variationSpecificData[$taxonomyName] = [
+                    'name'         => $variationI18n->getName(),
+                    'value'        => implode(' ' . WC_DELIMITER . ' ', $values),
+                    'position'     => $variation->getSort(),
+                    'is_visible'   => 0,
+                    'is_variation' => 1,
+                    'is_taxonomy'  => 0,
+                ];
+            }
+        }
         
-        // Divided by |
-        $values = explode(WC_DELIMITER, $productAttribute);
-        
-        $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($slug))
-            ->setName($attribute->get_name())
-            ->setValue(implode(', ', $values))
-            ->setLanguageISO($languageIso);
-        
-        return (new ProductAttrModel)
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
-            ->setIsCustomProperty($attribute->is_taxonomy())
-            ->addI18n($i18n);
+        return $variationSpecificData;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc="FuncAttr Methods">
     /**
      * @param \WC_Product $product
      * @param string $languageIso
@@ -393,187 +510,10 @@ class ProductVariationSpecificAttribute extends BaseController
         
         return $attribute;
     }
-    
-    public function pushDataNew(ProductModel $product, \WC_Product $wcProduct)
-    {
-        if ($wcProduct === false) {
-            return;
-        }
-        //Identify Master/Child
-        $isMaster = $product->getIsMasterProduct();
-        
-        //New Values
-        $pushedAttributes = $product->getAttributes();
-        $pushedSpecifics = $product->getSpecifics();
-        $pushedVariations = $product->getVariations();
-        
-        $productId = $product->getId()->getEndpoint();
-        
-        if ($isMaster) {
-            $newProductAttributes = [];
-            //Current Values
-            $curAttributes = $wcProduct->get_attributes();
-            
-            
-            //Filtered
-            $attributesFilteredVariationsAndSpecifics = $this->getVariationAndSpecificAttributes(
-                $curAttributes
-            );
-            $attributesFilteredVariationSpecifics = $this->getVariationAttributes(
-                $curAttributes
-            );
-            
-            //GENERATE DATA ARRAYS
-            $variationSpecificData = $this->generateVariationSpecificData($pushedVariations);
-            $specificData = $this->generateSpecificData($pushedSpecifics);
-            
-            //handleAttributes
-            $finishedAttr = $this->handleAttributes(
-                $productId,
-                $pushedAttributes,
-                $attributesFilteredVariationsAndSpecifics
-            );
-            $this->mergeAttributes($newProductAttributes, $finishedAttr);
-            // handleVarSpecifics
-            $finishedSpecifics = $this->handleSpecifics(
-                $productId, $curAttributes, $specificData, $pushedSpecifics
-            );
-            $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
-            // handleVarSpecifics
-            $finishedVarSpecifics = $this->handleMasterVariationSpecifics(
-                $productId,
-                $variationSpecificData,
-                $attributesFilteredVariationSpecifics
-            );
-            $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
-            $old = \get_post_meta($productId, '_product_attributes', true);
-            $debug = \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
-    
-            // remove the transient to renew the cache
-            delete_transient( 'wc_attribute_taxonomies' );
-        } else {
-            $this->handleChildVariation(
-                $productId,
-                $pushedVariations
-            );
-        }
-    }
-    
-    private function getVariationAndSpecificAttributes($attributes = [])
-    {
-        $filteredAttributes = [];
-        
-        /**
-         * @var string $slug The attributes unique slug.
-         * @var \WC_Product_Attribute $attribute The attribute.
-         */
-        foreach ($attributes as $slug => $attribute) {
-            if ($attribute->get_variation()) {
-                $filteredAttributes[$slug] = [
-                    'id'           => $attribute->get_id(),
-                    'name'         => $attribute->get_name(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
-                    'position'     => $attribute->get_position(),
-                    'is_visible'   => $attribute->get_visible(),
-                    'is_variation' => $attribute->get_variation(),
-                    'is_taxonomy'  => $attribute->get_taxonomy(),
-                ];
-            } elseif (taxonomy_exists($slug)) {
-                $filteredAttributes[$slug] =
-                    [
-                        'id'           => $attribute->get_id(),
-                        'name'         => $attribute->get_name(),
-                        'value'        => '',
-                        'position'     => $attribute->get_position(),
-                        'is_visible'   => $attribute->get_visible(),
-                        'is_variation' => $attribute->get_variation(),
-                        'is_taxonomy'  => $attribute->get_taxonomy(),
-                    ];
-            }
-        }
-        
-        return $filteredAttributes;
-    }
-    
-    private function getVariationAttributes($curAttributes)
-    {
-        $filteredAttributes = [];
-        
-        /**
-         * @var string $slug
-         * @var \WC_Product_Attribute $curAttributes
-         */
-        foreach ($curAttributes as $slug => $product_specific) {
-            if (!$product_specific->get_variation()) {
-                $filteredAttributes[$slug] = [
-                    'name'         => $product_specific->get_name(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $product_specific->get_options()),
-                    'position'     => $product_specific->get_position(),
-                    'is_visible'   => $product_specific->get_visible(),
-                    'is_variation' => $product_specific->get_variation(),
-                    'is_taxonomy'  => $product_specific->get_taxonomy(),
-                ];
-            }
-        }
-        
-        return $filteredAttributes;
-    }
-    
-    private function generateVariationSpecificData($pushedVariations = [])
-    {
-        $variationSpecificData = [];
-        foreach ($pushedVariations as $variation) {
-            /** @var ProductVariationI18nModel $variationI18n */
-            foreach ($variation->getI18ns() as $variationI18n) {
-                $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
-                
-                if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
-                    continue;
-                }
-                
-                $values = [];
-                
-                $this->values = $variation->getValues();
-                usort($this->values, [$this, 'sortI18nValues']);
-                
-                foreach ($this->values as $vv) {
-                    /** @var ProductVariationValueI18nModel $valueI18n */
-                    foreach ($vv->getI18ns() as $valueI18n) {
-                        if (!Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
-                            continue;
-                        }
-                        
-                        $values[] = $valueI18n->getName();
-                    }
-                }
-                
-                $variationSpecificData[$taxonomyName] = [
-                    'name'         => $variationI18n->getName(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $values),
-                    'position'     => $variation->getSort(),
-                    'is_visible'   => 0,
-                    'is_variation' => 1,
-                    'is_taxonomy'  => 0,
-                ];
-            }
-        }
-        
-        return $variationSpecificData;
-    }
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Specific Methods">
-
-    private function generateSpecificData($pushedSpecifics = [])
-    {
-        $specificData = [];
-        foreach ($pushedSpecifics as $specific) {
-            $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
-                (int)$specific->getSpecificValueId()->getEndpoint();
-        }
-        
-        return $specificData;
-    }
+    
     
     /**
      * @param $productId
@@ -1178,7 +1118,26 @@ class ProductVariationSpecificAttribute extends BaseController
     }
     
     //ALL
-
+    public function getSpecificValueId(
+        $slug,
+        $value
+    ) {
+        $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
+        
+        if (count($val) === 0) {
+            $result = (new Identity);
+        } else {
+            $result = isset($val[0]['endpoint_id'])
+            && isset($val[0]['host_id'])
+            && !is_null($val[0]['endpoint_id'])
+            && !is_null($val[0]['host_id'])
+                ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
+                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+        }
+        
+        return $result;
+    }
+    
     private function handleChildVariation(
         $productId,
         $pushedVariations
@@ -1227,7 +1186,6 @@ class ProductVariationSpecificAttribute extends BaseController
     }
     
     //VARIATIONSPECIFIC && SPECIFIC
-
     private function sortI18nValues(
         ProductVariationValueModel $a,
         ProductVariationValueModel $b

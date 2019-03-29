@@ -17,20 +17,15 @@ use JtlWooCommerceConnector\Utilities\Id;
 
 class ProductVariation extends BaseController
 {
-    
+    // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
      * @param ProductModel $model
      * @param \WC_Product_Attribute $attribute
-     * @param string $slug
      * @param string $languageIso
      * @return ProductVariationModel|null
      */
-    public function pullDataParent(
-        ProductModel $model,
-        \WC_Product_Attribute $attribute,
-        $slug = '',
-        $languageIso = ''
-    ) {
+    public function pullDataParent(ProductModel $model, \WC_Product_Attribute $attribute, $languageIso = '')
+    {
         $id = new Identity(Id::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
         
         $productVariation = (new ProductVariationModel())
@@ -83,7 +78,6 @@ class ProductVariation extends BaseController
         
         return $productVariation;
     }
-    
     
     /**
      * @param \WC_Product $product
@@ -163,4 +157,11 @@ class ProductVariation extends BaseController
         
         return $productVariation;
     }
+    
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Push">
+    
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Methods">
+    // </editor-fold>
 }
