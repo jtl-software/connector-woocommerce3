@@ -144,12 +144,4 @@ abstract class BaseController extends Controller
 
         return $action;
     }
-
-    /**
-     * @return \jtl\Connector\Core\Utilities\Singleton|BaseController
-     */
-    public static function getInstance()
-    {
-        return parent::getInstance();
-    }
 }

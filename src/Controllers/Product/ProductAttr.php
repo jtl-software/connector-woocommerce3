@@ -222,30 +222,6 @@ class ProductAttr extends BaseController
         return $attribute;
     }
     
-    /* private function getFacebookVisibilityFunctionAttribute(\WC_Product $product)
-     {
-         $value = 'false';
-         $visibility = get_post_meta($product->get_id(), 'fb_visibility');
-         
-         if (count($visibility) > 0 && strcmp($visibility[0], '1') === 0) {
-             $value = 'true';
-         }
-         
-         $i18n = (new ProductAttrI18nModel())
-             ->setProductAttrId(new Identity($product->get_id() . '_' . self::FACEBOOK_VISIBILITY_ATTR))
-             ->setName(self::FACEBOOK_VISIBILITY_ATTR)
-             ->setValue((string)$value)
-             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
-         
-         $attribute = (new ProductAttrModel())
-             ->setId($i18n->getProductAttrId())
-             ->setProductId(new Identity($product->get_id()))
-             ->setIsCustomProperty(false)
-             ->addI18n($i18n);
-         
-         return $attribute;
-     }*/
-    
     private function getFacebookSyncStatusFunctionAttribute(\WC_Product $product)
     {
         $value  = 'false';

@@ -18,6 +18,7 @@ final class SupportedPlugins
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
+    const PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS = 'Atomion WooCommerce Blocks';
     const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
     const PLUGIN_YOAST_SEO = 'Yoast SEO';
     const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
@@ -31,6 +32,7 @@ final class SupportedPlugins
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
     const PLUGIN_WP_MULTILANG = 'WP Multilang';
     
+    
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
@@ -40,6 +42,7 @@ final class SupportedPlugins
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
+        self::PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
         self::PLUGIN_YOAST_SEO,
         self::PLUGIN_YOAST_SEO_PREMIUM,

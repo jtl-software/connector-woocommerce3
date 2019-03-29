@@ -24,6 +24,7 @@ final class Util extends Singleton
     
     public function __construct()
     {
+        parent::__construct();
         $this->locale = $this->mapLanguageIso(\get_locale());
         
         $this->namespaceMapping = [
@@ -298,10 +299,10 @@ final class Util extends Singleton
     }
     
     /**
-     * @return $this
+     * @return Singleton|$this
      */
     public static function getInstance()
     {
-        return self::getInstance();
+        return parent::getInstance();
     }
 }

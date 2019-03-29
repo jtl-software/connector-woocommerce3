@@ -36,14 +36,14 @@ class Product extends BaseController
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
             
-            if ( ! $product instanceof \WC_Product) {
+            if (!$product instanceof \WC_Product) {
                 continue;
             }
             
             $postDate = $product->get_date_created();
-            $modDate  = $product->get_date_modified();
-            $status   = $product->get_status('view');
-            $result   = (new ProductModel())
+            $modDate = $product->get_date_modified();
+            $status = $product->get_status('view');
+            $productModel = (new ProductModel())
                 ->setId(new Identity($product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
                 ->setIsActive(in_array($status, ['private', 'draft', 'future']) ? false : true)
@@ -66,51 +66,57 @@ class Product extends BaseController
             
             //EAN / GTIN
             if (Util::useGtinAsEanEnabled()) {
-                $ean = get_post_meta($product->get_id(), '_ts_gtin');
+                $ean = '';
                 
-                if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
-                    $ean = $ean[0];
-                } else {
-                    $ean = '';
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+                    $ean = get_post_meta($product->get_id(), '_ts_gtin');
+                    
+                    if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
+                        $ean = $ean[0];
+                    } else {
+                        $ean = '';
+                    }
                 }
                 
-                $result->setEan($ean);
+                $productModel->setEan($ean);
             }
             
             if ($product->get_parent_id() !== 0) {
-                $result->setMasterProductId(new Identity($product->get_parent_id()));
+                $productModel->setMasterProductId(new Identity($product->get_parent_id()));
             }
             
-            $result
-                ->addI18n(ProductI18n::getInstance()->pullData($product, $result))
+            $productModel
+                ->addI18n(ProductI18n::getInstance()->pullData($product, $productModel))
                 ->addPrice(ProductPrice::getInstance()->pullData($product))
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
-                ->setCategories(Product2Category::getInstance()->pullData($product))
-                ->setVariations(ProductVariation::getInstance()->pullData($product, $result));
-            //->setAttributes(ProductAttr::getInstance()->pullData($product))
-            
+                ->setCategories(Product2Category::getInstance()->pullData($product));
+    
+            $productVariationSpecificAttribute= (new ProductVariationSpecificAttribute)->pullData($product, $productModel);
             // Simple or father articles
             if ($product->is_type('variable') || $product->is_type('simple')) {
-                $result->setAttributes(ProductAttr::getInstance()->pullData($product))
-                       ->setSpecifics(ProductSpecific::getInstance()->pullData($product, $result));
+                if ($product->is_type('variable')) {
+                    $productModel->setVariations($productVariationSpecificAttribute['productVariation']);
+                }
+                $productModel->setAttributes($productVariationSpecificAttribute['productAttributes'])
+                    ->setSpecifics($productVariationSpecificAttribute['productSpecifics']);
             }
             
             if ($product->managing_stock()) {
-                $result->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
+                $productModel->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-                $this->setGermanizedAttributes($result, $product);
+                $this->setGermanizedAttributes($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
-                $tmpManId = ProductManufacturer::getInstance()->pullData($product, $result);
-                if ( ! is_null($tmpManId) && $tmpManId instanceof Identity) {
-                    $result->setManufacturerId($tmpManId);
+                $tmpManId = ProductManufacturer::getInstance()->pullData($productModel);
+                if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
+                    $productModel->setManufacturerId($tmpManId);
                 }
             }
             
-            $products[] = $result;
+            $products[] = $productModel;
         }
         
         return $products;
@@ -118,7 +124,7 @@ class Product extends BaseController
     
     protected function pushData(ProductModel $product)
     {
-        $tmpI18n         = null;
+        $tmpI18n = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
         
         if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
@@ -139,7 +145,7 @@ class Product extends BaseController
         
         $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
         
-        if ( ! $creationDate instanceof DateTime) {
+        if (!$creationDate instanceof DateTime) {
             $creationDate = new DateTime();
         }
         
@@ -228,13 +234,14 @@ class Product extends BaseController
         
         $this->updateProductRelations($product);
         
+        (new ProductVariationSpecificAttribute)->pushDataNew($product, $wcProduct);
+        
         if ($this->getType($product) !== 'product_variation') {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
         
         //variations
-        (new ProductVariation)->pushData($product);
         if ($this->getType($product) === 'product_variation') {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         }
@@ -253,13 +260,15 @@ class Product extends BaseController
         $wcProduct->set_width($product->getWidth());
         $wcProduct->set_weight($product->getShippingWeight());
         
-        if (Util::useGtinAsEanEnabled()) {
-            \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', (string)$product->getEan());
-        } else {
-            \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', '');
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            if (Util::useGtinAsEanEnabled()) {
+                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', (string)$product->getEan());
+            } else {
+                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', '');
+            }
         }
         
-        if ( ! is_null($product->getModified())) {
+        if (!is_null($product->getModified())) {
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
         
@@ -279,7 +288,7 @@ class Product extends BaseController
             'product_shipping_class'
         );
         
-        if ( ! empty($shippingClass)) {
+        if (!empty($shippingClass)) {
             \wp_set_object_terms(
                 $wcProduct->get_id(),
                 $shippingClass->term_id,
@@ -290,7 +299,7 @@ class Product extends BaseController
         //Map to Delivery-time
         (new ProductDeliveryTime())->pushData($product, $wcProduct);
         //Map to Manufacturer
-        (new ProductManufacturer())->pushData($product, $wcProduct);
+        (new ProductManufacturer())->pushData($product);
     }
     
     private function updateProductRelations(ProductModel $product)
@@ -304,14 +313,13 @@ class Product extends BaseController
     {
         $productId = (int)$product->getId()->getEndpoint();
         
-        $productTitle         = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
+        $productTitle = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
         $variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post(['ID' => $productId, 'post_title' => $variation_post_title]);
         \update_post_meta($productId, '_variation_description', $meta->getDescription());
         \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
         
-        $productStockLevel = new ProductStockLevel();
-        $productStockLevel->pushDataChild($product);
+        (new ProductStockLevel)->pushDataChild($product);
     }
     
     private function updateProduct(ProductModel $product)
@@ -320,8 +328,6 @@ class Product extends BaseController
         
         \update_post_meta($productId, '_visibility', 'visible');
         
-        (new ProductAttr)->pushData($product);
-        (new ProductSpecific)->pushData($product);
         (new ProductStockLevel)->pushDataParent($product);
         
         if ($product->getIsMasterProduct()) {
@@ -388,7 +394,7 @@ class Product extends BaseController
             
             $salePrice = \get_post_meta($id, '_sale_price', true);
             
-            if ( ! empty($salePrice)) {
+            if (!empty($salePrice)) {
                 if ($product->getBasePriceDivisor() !== 0) {
                     $unitSale = (float)$salePrice / $product->getBasePriceDivisor();
                     \update_post_meta($id, '_unit_price_sale', round($unitSale, $pd));
@@ -410,13 +416,13 @@ class Product extends BaseController
     private function getType(ProductModel $product)
     {
         $variations = $product->getVariations();
-        $productId  = (int)$product->getId()->getEndpoint();
-        $type       = \get_post_field('post_type', $productId);
+        $productId = (int)$product->getId()->getEndpoint();
+        $type = \get_post_field('post_type', $productId);
         
-        $allowedTypes                      = \wc_get_product_types();
+        $allowedTypes = \wc_get_product_types();
         $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
         
-        if ( ! empty($variations) && $type === 'product') {
+        if (!empty($variations) && $type === 'product') {
             return 'variable';
         } elseif (array_key_exists($type, $allowedTypes)) {
             return $type;

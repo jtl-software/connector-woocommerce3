@@ -13,7 +13,7 @@ class Config
     
     public function __toString()
     {
-        return (array)self::$data;
+        return (string)self::$data;
     }
     
     /**

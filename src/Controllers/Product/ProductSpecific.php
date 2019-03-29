@@ -11,8 +11,6 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
-use JtlWooCommerceConnector\Utilities\Util;
-use WC_Product;
 
 class ProductSpecific extends BaseController
 {
@@ -73,7 +71,10 @@ class ProductSpecific extends BaseController
         if (count($val) === 0) {
             $result = (new Identity);
         } else {
-            $result = isset($val[0]['endpoint_id']) && isset($val[0]['host_id']) && ! is_null($val[0]['endpoint_id']) && ! is_null($val[0]['host_id'])
+            $result = isset($val[0]['endpoint_id'])
+            && isset($val[0]['host_id'])
+            && ! is_null($val[0]['endpoint_id'])
+            && ! is_null($val[0]['host_id'])
                 ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
                 : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
         }

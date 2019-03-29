@@ -10,14 +10,13 @@ use jtl\Connector\Model\GlobalData as GlobalDataModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class GlobalData extends BaseController
 {
     use PullTrait, PushTrait;
     
-    public function pullData($limit)
+    public function pullData()
     {
         $globalData = (new GlobalDataModel())
             ->addCurrency((new Currency())->pullData())
@@ -29,12 +28,16 @@ class GlobalData extends BaseController
             ->setTaxRates((new TaxRate())->pullData());
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-            $globalData->setMeasurementUnits((new MeasurementUnit())->pullData());
+            $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanizedData());
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             //Wawi steuert Grundpreisberechnung
             update_option('woocommerce_de_automatic_calculation_ppu', 'off', true);
+            //Wawi steuert Lieferzeiten
+            update_option('woocommerce_global_lieferzeit', '-1', true);
+            
+            $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());
         }
         
         return [$globalData];

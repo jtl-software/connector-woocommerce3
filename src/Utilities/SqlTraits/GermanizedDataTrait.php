@@ -10,7 +10,7 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 
 trait GermanizedDataTrait {
-	public static function globalDataMeasurementUnitPull() {
+	public static function globalDataGermanizedMeasurementUnitPull() {
 		global $wpdb;
 		
 		return "
