@@ -22,9 +22,9 @@ trait GermanMarketTrait
         
         if (count($defaultValues) > 0) {
             $slug = $defaultValues[0]['attribute_name'];
-            if (strcmp($slug, 'measuring-unit')) {
+            if (strcmp($slug, 'measuring-unit')===0) {
                 $exId = Util::getAttributeTaxonomyIdByName($slug);
-                $notExists = is_null($exId);
+                $notExists = $exId === 0;
             }
         }
         
