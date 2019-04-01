@@ -1,13 +1,10 @@
 <?php
 
-use jtl\Connector\Core\Exception\MissingRequirementException;
-use jtl\Connector\Application\Application;
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
-use \WC_Admin_Settings as WC_Admin_Settings;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -90,7 +87,6 @@ final class JtlConnectorAdmin
         self::OPTIONS_DEVELOPER_LOGGING                        => false,
     ];
     
-    
     private static $initiated = false;
     
     // <editor-fold defaultstate="collapsed" desc="Activation">
@@ -98,6 +94,7 @@ final class JtlConnectorAdmin
     {
         global $woocommerce;
         $version = $woocommerce->version;
+        $connectorVersion = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
@@ -111,16 +108,17 @@ final class JtlConnectorAdmin
         try {
             self::run_system_check();
             self::activate_linking();
-            self::activate_checksum();
-            self::activate_category_tree();
-            self::set_linking_table_name_prefix_correctly();
-            self::add_manufacturer_linking_tables();
+            
             add_option(self::OPTIONS_TOKEN, self::create_password());
-            add_option(self::OPTIONS_COMPLETED_ORDERS, 'yes');
-            add_option(self::OPTIONS_PULL_ORDERS_SINCE, '');
-            add_option(self::OPTIONS_VARIATION_NAME_FORMAT, '');
-            add_option(self::OPTIONS_INSTALLED_VERSION,
-                trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']));
+            add_option(self::OPTIONS_INSTALLED_VERSION, $connectorVersion);
+            
+            foreach (self::JTLWCC_CONFIG as $oKey => $castItem) {
+                $curValue = get_option($oKey, null);
+                if ($curValue === null) {
+                    $curValue = self::JTLWCC_CONFIG_DEFAULTS[$oKey];
+                    update_option($oKey, $curValue, true);
+                }
+            }
         } catch (\jtl\Connector\Core\Exception\MissingRequirementException $exc) {
             if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();
@@ -165,7 +163,7 @@ final class JtlConnectorAdmin
     {
         global $wpdb;
         
-        $query = '
+        $createQuery = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
@@ -173,32 +171,87 @@ final class JtlConnectorAdmin
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
         
-        $tables = [
-            'jtl_connector_link_category',
-            'jtl_connector_link_crossselling',
-            'jtl_connector_link_order',
-            'jtl_connector_link_payment',
-            'jtl_connector_link_product',
-            'jtl_connector_link_shipping_class',
-            'jtl_connector_link_specific',
-            'jtl_connector_link_specific_value',
-        ];
+        $dropOldQuery = '
+          DROP TABLE IF EXISTS `%s`;
+        ';
         
-        foreach ($tables as $table) {
-            $wpdb->query(sprintf($query, $table));
+        $oldPrefix = 'jtl_connector_link_';
+        $prefix = $wpdb->prefix . $oldPrefix;
+        
+        $existingTables = self::getOldDatabaseTables();
+        
+        $tables = [
+            'category',
+            'category_level',
+            'crossselling',
+            'currency',//not implemented yet
+            'customer',
+            'customer_group', //not implemented yet
+            'image',
+            'language',//not implemented yet
+            'manufacturer',
+            'measurement_unit',//not implemented yet
+            'order',
+            'payment',
+            'product',
+            'product_checksum',
+            'shipping_class',
+            'shipping_method',//not implemented yet
+            'specific',
+            'specific_value',
+        ];
+        self::activate_category_tree($prefix);
+        foreach ($tables as $key => $table) {
+            $oldExists = in_array($oldPrefix . $table, $existingTables);
+            $newExists = in_array($prefix . $table, $existingTables);
+            
+            if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
+                $oldPrefix = substr($oldPrefix, 0, -5);
+                $prefix = substr($prefix, 0, -5);
+                $oldExists = in_array($oldPrefix . $table, $existingTables);
+                $newExists = in_array($prefix . $table, $existingTables);
+            }
+            
+            if ($oldExists && $newExists) {
+                $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
+            } elseif (!$oldExists && !$newExists) {
+                if (strcmp($table, 'category_level') === 0) {
+                    self::activate_category_tree($prefix);
+                } elseif (strcmp($table, 'product_checksum') === 0) {
+                    self::activate_checksum($prefix);
+                } elseif (strcmp($table, 'customer') === 0) {
+                    self::createCustomerLinkingTable();
+                } elseif (strcmp($table, 'image') === 0) {
+                    self::createImageLinkingTable();
+                } elseif (strcmp($table, 'manufacturer') === 0) {
+                    self::createManufacturerLinkingTable();
+                } else {
+                    $wpdb->query(sprintf($createQuery, $prefix . $table));
+                }
+            } elseif ($oldExists && !$newExists) {
+                self::renameTable($oldPrefix . $table, $prefix . $table);
+            }
+            //reset values
+            $oldPrefix = 'jtl_connector_link_';
+            $prefix = $wpdb->prefix . $oldPrefix;
         }
         
-        $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
-                `endpoint_id` VARCHAR(255) NOT NULL,
-                `host_id` INT(10) unsigned NOT NULL,
-                `is_guest` BIT,
-                PRIMARY KEY (`endpoint_id`, `host_id`, `is_guest`),
-                INDEX (`host_id`, `is_guest`),
-                INDEX (`endpoint_id`, `is_guest`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
-        );
+        self::add_constraints_for_multi_linking_tables($prefix);
+    }
+    
+    private static function renameTable($oldName, $newName)
+    {
+        global $wpdb;
         
+        $query = 'RENAME TABLE %s TO %s;';
+        
+        $sql = sprintf($query, $oldName, $newName);
+        $wpdb->query($sql);
+    }
+    
+    private static function createImageLinkingTable()
+    {
+        global $wpdb;
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -210,12 +263,41 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
         
-        self::add_constraints_for_multi_linking_tables();
-        self::set_linking_table_name_prefix_correctly();
-        self::add_manufacturer_linking_tables();
     }
     
-    private static function activate_checksum()
+    private static function createCustomerLinkingTable()
+    {
+        global $wpdb;
+        $wpdb->query('
+            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
+                `endpoint_id` VARCHAR(255) NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                `is_guest` BIT,
+                PRIMARY KEY (`endpoint_id`, `host_id`, `is_guest`),
+                INDEX (`host_id`, `is_guest`),
+                INDEX (`endpoint_id`, `is_guest`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
+        );
+    }
+    
+    private static function getOldDatabaseTables()
+    {
+        global $wpdb;
+        $existingTables = [];
+        $tableDataSet = $wpdb->get_results('SHOW TABLES');
+        
+        if (count($tableDataSet) !== 0) {
+            foreach ($tableDataSet as $tableData) {
+                foreach ($tableData as $t) {
+                    $existingTables[] = $t;
+                }
+            }
+        }
+        
+        return array_values($existingTables);
+    }
+    
+    private static function activate_checksum($prefix)
     {
         global $wpdb;
         
@@ -233,7 +315,7 @@ final class JtlConnectorAdmin
         }
         
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
+            CREATE TABLE IF NOT EXISTS `{$prefix}product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
                 `type` tinyint unsigned NOT NULL,
                 `checksum` varchar(255) NOT NULL,
@@ -241,7 +323,7 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
     
-    private static function activate_category_tree()
+    private static function activate_category_tree($prefix)
     {
         global $wpdb;
         
@@ -259,7 +341,7 @@ final class JtlConnectorAdmin
         }
         
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
+            CREATE TABLE IF NOT EXISTS `{$prefix}category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
                 `level` int(10) unsigned NOT NULL,
                 `sort` int(10) unsigned NOT NULL,
@@ -566,11 +648,11 @@ final class JtlConnectorAdmin
                    href="admin.php?page=woo-jtl-connector-developer-logging"><?php print __('Developer Logging',
                         JTLWCC_TEXT_DOMAIN); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link"
-                   href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank"><?php print __('JTL-Guide',
+                   href="https://guide.jtl-software.de/jtl-connector/woocommerce/"
+                   target="_blank"><?php print __('JTL-Guide',
                         JTLWCC_TEXT_DOMAIN); ?></a>
 
 
-                
             </nav>
         </div>
         <?php
@@ -1403,7 +1485,7 @@ final class JtlConnectorAdmin
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::add_manufacturer_linking_tables();
+                self::createManufacturerLinkingTable();
             case '1.7.2':
         }
         
@@ -1524,10 +1606,10 @@ final class JtlConnectorAdmin
             Id::PRODUCT_PREFIX
         ));
         
-        self::add_constraints_for_multi_linking_tables();
+        self::add_constraints_for_multi_linking_tables('jtl_connector_link_');
     }
     
-    private static function add_constraints_for_multi_linking_tables()
+    private static function add_constraints_for_multi_linking_tables($prefix)
     {
         global $wpdb;
         
@@ -1540,38 +1622,30 @@ final class JtlConnectorAdmin
         
         if ($engine === 'InnoDB') {
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_product`
+                ALTER TABLE `{$prefix}product`
                 ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_order`
+                ALTER TABLE `{$prefix}order`
                 ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_payment`
+                ALTER TABLE `{$prefix}payment`
                 ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_crossselling`
+                ALTER TABLE `{$prefix}crossselling`
                 ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
-        }
-        $engine = $wpdb->get_var(sprintf("
-            SELECT ENGINE
-            FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
-            DB_NAME
-        ));
-        
-        if ($engine === 'InnoDB') {
+            
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_category`
+                ALTER TABLE `{$prefix}category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_specific`
+                ALTER TABLE `{$prefix}specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
         }
@@ -1647,7 +1721,7 @@ final class JtlConnectorAdmin
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
-    private static function add_manufacturer_linking_tables()
+    private static function createManufacturerLinkingTable()
     {
         global $wpdb;
         

@@ -18,12 +18,12 @@ class MeasurementUnit
 {
     public function pullGermanizedData()
     {
-        $return = [];
+        $measurementUnits = [];
         
         $result = Db::getInstance()->query(SqlHelper::globalDataGermanizedMeasurementUnitPull());
         
         foreach ((array)$result as $row) {
-            $return[] = (new MeasurementUnitModel())
+            $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($row['id']))
                 ->setCode(Germanized::getInstance()->parseUnit($row['code']))
                 ->setDisplayCode($row['code'])
@@ -35,18 +35,18 @@ class MeasurementUnit
                 ]);
         }
         
-        return $return;
+        return $measurementUnits;
     }
     
     public function pullGermanMarketData()
     {
-        $return = [];
+        $measurementUnits = [];
        
         $sql = SqlHelper::globalDataGMMUPullSpecific();
         $specific = Db::getInstance()->query($sql);
         
         if (count($specific) <= 0) {
-            return $return;
+            return $measurementUnits;
         }
         
         $specific = $specific[0];
@@ -57,7 +57,7 @@ class MeasurementUnit
         )));
         
         foreach ($values as $unit) {
-            $return[] = (new MeasurementUnitModel())
+            $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($unit['term_id']))
                 ->setCode($unit['name'])
                 ->setDisplayCode($unit['name'])
@@ -69,7 +69,7 @@ class MeasurementUnit
                 ]);
         }
         
-        return $return;
+        return $measurementUnits;
     }
     
 }
