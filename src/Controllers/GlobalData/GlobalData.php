@@ -20,12 +20,15 @@ class GlobalData extends BaseController
     {
         $globalData = (new GlobalDataModel())
             ->addCurrency((new Currency())->pullData())
-            ->addCustomerGroup((new CustomerGroup())->pullData())
             ->addLanguage((new Language())->pullData())
             ->setProductTypes((new ProductType())->pullData())
             ->setShippingClasses((new ShippingClass())->pullData())
             ->setShippingMethods((new ShippingMethod())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
+        
+        foreach ((new CustomerGroup)->pullData() as $group){
+            $globalData->addCustomerGroup($group);
+        }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanizedData());

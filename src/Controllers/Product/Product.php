@@ -108,6 +108,10 @@ class Product extends BaseController
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
                 $this->setGermanizedAttributes($productModel, $product);
             }
+    
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                $this->setGermanMarketAttributes($productModel, $product);
+            }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
                 $tmpManId = ProductManufacturer::getInstance()->pullData($productModel);
@@ -370,6 +374,41 @@ class Product extends BaseController
             $product->setBasePriceUnitCode($code);
             $product->setBasePriceUnitName($unitObject->name);
         }
+    }
+    
+    private function setGermanMarketAttributes(ProductModel &$product, \WC_Product $wcProduct)
+    {
+//       /* $units = new \WC_GZD_Units();
+//
+//        if ($wcProduct->gzd_product->has_product_units()) {
+//            $plugin = \get_plugin_data(WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
+//
+//            if (isset($plugin['Version']) && version_compare($plugin['Version'], '1.6.0') < 0) {
+//                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
+//            } else {
+//                $unitObject = \get_term_by('slug', $wcProduct->gzd_product->unit, 'product_unit');
+//            }
+//
+//            $code = Germanized::getInstance()->parseUnit($unitObject->slug);
+//
+//            $productQuantity = (double)$wcProduct->gzd_product->unit_product;
+//            $product->setMeasurementQuantity($productQuantity);
+//            $product->setMeasurementUnitId(new Identity($unitObject->term_id));
+//            $product->setMeasurementUnitCode($code);
+//
+//            $product->setConsiderBasePrice(true);
+//
+//            $baseQuantity = (double)$wcProduct->gzd_product->unit_base;
+//
+//            if ($baseQuantity !== 0.0) {
+//                $product->setBasePriceDivisor($productQuantity / $baseQuantity);
+//            }
+//
+//            $product->setBasePriceQuantity($baseQuantity);
+//            $product->setBasePriceUnitId(new Identity($unitObject->term_id));
+//            $product->setBasePriceUnitCode($code);
+//            $product->setBasePriceUnitName($unitObject->name);
+//        }*/
     }
     
     private function updateGermanizedAttributes(ProductModel &$product)

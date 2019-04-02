@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Utilities;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CategoryTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\ChecksumTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CrossSellingTrait;
+use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerGroupTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerOrderTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\GermanizedDataTrait;
@@ -28,6 +29,7 @@ final class SqlHelper {
 		ChecksumTrait,
 		CrossSellingTrait,
 		CustomerTrait,
+        CustomerGroupTrait,
 		CustomerOrderTrait,
         GermanMarketTrait,
 		GermanizedDataTrait,

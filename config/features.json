@@ -21,8 +21,8 @@
       "delete": false
     },
     "CategoryCustomerGroup": {
-      "pull": false,
-      "push": false,
+      "pull": true,
+      "push": true,
       "delete": false
     },
     "CategoryInvisibility": {

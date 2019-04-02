@@ -13,10 +13,11 @@ use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 
 class Category extends BaseController
 {
@@ -37,7 +38,7 @@ class Category extends BaseController
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
             
-            if ( ! empty($categoryDataSet['parent'])) {
+            if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
             
@@ -49,6 +50,21 @@ class Category extends BaseController
                 ->setUrlPath($categoryDataSet['slug'])
                 ->setTitleTag($categoryDataSet['name']);
             
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+                $taxonomySeo = get_option('wpseo_taxonomy_meta');
+                
+                if (isset($taxonomySeo['product_cat'])) {
+                    foreach ($taxonomySeo['product_cat'] as $catId => $seoData) {
+                        if ($catId === (int)$categoryDataSet['category_id']) {
+                            $i18n->setMetaDescription(isset($seoData['wpseo_desc']) ? $seoData['wpseo_desc'] : '')
+                                ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $categoryDataSet['name'])
+                                ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $categoryDataSet['name']);
+                        }
+                    }
+                }
+            }
+            
             $categories[] = $category->addI18n($i18n);
         }
         
@@ -57,7 +73,7 @@ class Category extends BaseController
     
     protected function pushData(CategoryModel $category)
     {
-        if ( ! $category->getIsActive()) {
+        if (!$category->getIsActive()) {
             return $category;
         }
         
@@ -69,8 +85,8 @@ class Category extends BaseController
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
         
-        $meta       = null;
-        $categoryId = $category->getId()->getEndpoint();
+        $meta = null;
+        $categoryId = (int)$category->getId()->getEndpoint();
         
         foreach ($category->getI18ns() as $i18n) {
             if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
@@ -92,7 +108,7 @@ class Category extends BaseController
         
         $urlPath = $meta->getUrlPath();
         
-        if ( ! empty($urlPath)) {
+        if (!empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
         }
         
@@ -116,6 +132,40 @@ class Category extends BaseController
             
             return $category;
         }
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+            $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
+        
+            if ($taxonomySeo === false) {
+                $taxonomySeo = ['product_cat' => []];
+            }
+        
+            if (!isset($taxonomySeo['product_cat'])) {
+                $taxonomySeo['product_cat'] = [];
+            }
+            $exists = false;
+        
+            foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
+                if ($catKey === (int)$result['term_id']) {
+                    $exists = true;
+                    $taxonomySeo['product_cat'][$catKey]['wpseo_desc'] = $meta->getMetaDescription();
+                    $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
+                    $taxonomySeo['product_cat'][$catKey]['wpseo_title'] = strcmp($meta->getTitleTag(),
+                        '') === 0 ? $meta->getName() : $meta->getTitleTag();
+                }
+            }
+            if ($exists === false) {
+                $taxonomySeo['product_cat'][(int)$result['term_id']] = [
+                    'wpseo_desc'    => $meta->getMetaDescription(),
+                    'wpseo_focuskw' => $meta->getMetaKeywords(),
+                    'wpseo_title'   => strcmp($meta->getTitleTag(),
+                        '') === 0 ? $meta->getName() : $meta->getTitleTag(),
+                ];
+            }
+        
+            \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+        }
         
         $category->getId()->setEndpoint($result['term_id']);
         self::$idCache[$category->getId()->getHost()] = $result['term_id'];
@@ -129,7 +179,7 @@ class Category extends BaseController
     {
         $categoryId = $specific->getId()->getEndpoint();
         
-        if ( ! empty($categoryId)) {
+        if (!empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
             
             $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
