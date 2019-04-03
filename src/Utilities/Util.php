@@ -96,37 +96,81 @@ final class Util extends Singleton
         return $stockStatus || !$managesStock ? 'instock' : 'outofstock';
     }
     
-    public function updateProductPrice(ProductPriceModel $productPrice, $vat)
+    // Quick Sync
+    public function updateProductPrice(\WC_Product $product, ProductPriceModel $productPrice, $vat)
     {
-        if (!$this->isValidCustomerGroup($productPrice->getCustomerGroupId()->getEndpoint())) {
+        $customerGroupId = $productPrice->getCustomerGroupId()->getEndpoint();
+        
+        if ($customerGroupId === '') {
+            $customerGroupId = ProductPrice::GUEST_CUSTOMER_GROUP;
+        }
+        
+        if (!$this->isValidCustomerGroup($customerGroupId) || $customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP) {
             return;
         }
         
-        $productId = $productPrice->getProductId()->getEndpoint();
-        $product = \wc_get_product($productId);
+        $parentProduct = null;
+        $productId = $product->get_id();
+        
+        if (CustomerGroup::DEFAULT_GROUP === $customerGroupId) {
+            $salePriceKey = '_sale_price';
+            $priceKey = '_price';
+            $regularPriceKey = '_regular_price';
+        } else {
+            $productType = $product->get_type();
+            $customerGroup = \get_post($customerGroupId);
+            
+            if ($productType !== 'variable') {
+                $parentProduct = \wc_get_product($product->get_parent_id());
+                
+                $salePriceKey = sprintf('_jtlwcc_bm_%s_%s_sale_price', $customerGroup->post_name, $productId);
+                $priceKey = sprintf('bm_%s_price', $customerGroup->post_name);
+                $regularPriceKey = sprintf('_jtlwcc_bm_%s_regular_price', $customerGroup->post_name);
+            } else {
+                return;
+            }
+        }
         
         if ($product !== false) {
+            $pd = \wc_get_price_decimals();
+            
             foreach ($productPrice->getItems() as $item) {
+                
                 if ($item->getQuantity() === 0) {
+                    
                     if (\wc_prices_include_tax()) {
-                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        $newRegularPrice = $item->getNetPrice() * (1 + $vat / 100);
                     } else {
-                        $regularPrice = $item->getNetPrice();
+                        $newRegularPrice = $item->getNetPrice();
                     }
                     
-                    $pd = \wc_get_price_decimals();
-                    $salePrice = \get_post_meta($productId, '_sale_price', true);
+                    $sellPriceIdForGet = is_null($parentProduct) ? $productId : $parentProduct->get_id();
                     
-                    if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
-                        \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd));
+                    $salePrice = \get_post_meta($sellPriceIdForGet, $salePriceKey, true);
+                    $oldPrice = \get_post_meta($productId, $priceKey, true);
+                    $oldRegularPrice = \get_post_meta($productId, $regularPriceKey, true);
+                    
+                    if (empty($salePrice) || $salePrice !== $oldPrice) {
+                        \update_post_meta(
+                            $productId,
+                            $priceKey,
+                            \wc_format_decimal($newRegularPrice, $pd),
+                            $oldPrice
+                        );
                     }
                     
-                    \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd));
+                    \update_post_meta(
+                        $productId,
+                        $regularPriceKey,
+                        \wc_format_decimal($newRegularPrice, $pd),
+                        $oldRegularPrice
+                    );
                 }
             }
         }
     }
     
+    //Normal
     public function updateProductPrices($productPrices, ProductModel $product, $vat)
     {
         $productId = $product->getId()->getEndpoint();
