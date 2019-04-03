@@ -41,10 +41,11 @@ class ProductAttr extends BaseController
      */
     public function pushData($productId, $pushedAttributes, $attributesFilteredVariationsAndSpecifics)
     {
-      //  $parent = (new ProductVariationSpecificAttribute);
+        //  $parent = (new ProductVariationSpecificAttribute);
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
         $downloadable = false;
+        $digital = false;
         $payable = false;
         $nosearch = false;
         $fbStatusCode = false;
@@ -100,6 +101,27 @@ class ProductAttr extends BaseController
                              }
                              $fbVisibility = true;
                          }*/
+                    }
+                    
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                        if (strcmp($attrName, ProductVariationSpecificAttribute::DIGITAL_GM_ATTR) === 0) {
+                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                            $value = $value ? 'yes' : 'no';
+                            
+                            if (!add_post_meta(
+                                $productId,
+                                substr($attrName, 5),
+                                $value,
+                                true
+                            )) {
+                                update_post_meta(
+                                    $productId,
+                                    substr($attrName, 5),
+                                    $value
+                                );
+                            }
+                            $digital = true;
+                        }
                     }
                     
                     if (strcmp($attrName, ProductVariationSpecificAttribute::DOWNLOADABLE_ATTR) === 0) {
@@ -183,7 +205,7 @@ class ProductAttr extends BaseController
                 );
             }
         }
-        
+    
         if (!$downloadable) {
             if (!add_post_meta(
                 $productId,
@@ -214,6 +236,23 @@ class ProductAttr extends BaseController
                 );
             }
             wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
+        }
+        
+        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)){
+            if (!$digital) {
+                if (!add_post_meta(
+                    $productId,
+                    '_digital',
+                    'no',
+                    true
+                )) {
+                    update_post_meta(
+                        $productId,
+                        '_digital',
+                        'no'
+                    );
+                }
+            }
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {

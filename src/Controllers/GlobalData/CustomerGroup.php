@@ -39,12 +39,20 @@ class CustomerGroup
         $customerGroups[] = $defaultGroup;
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $sql = SqlHelper::customerGroupPull();
-            $result = Db::getInstance()->query($sql);
+            $result = Db::getInstance()->query(SqlHelper::customerGroupPull());
             
             if (count($result) > 0) {
                 foreach ($result as $group) {
+                    $meta = \get_post_meta($group['ID']);
+                    
                     $customerGroup = (new CustomerGroupModel)
+                        ->setApplyNetPrice(
+                            isset($meta['bm_vat_type'])
+                            && isset($meta['bm_vat_type'][0])
+                            && $meta['bm_vat_type'][0] === 'off'
+                                ? true
+                                : false
+                        )
                         ->setId(new Identity($group['ID']))
                         ->setIsDefault(false);
                     

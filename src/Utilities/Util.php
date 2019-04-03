@@ -9,10 +9,13 @@ namespace JtlWooCommerceConnector\Utilities;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\Product\Product;
+use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 
 final class Util extends Singleton
 {
@@ -124,9 +127,138 @@ final class Util extends Singleton
         }
     }
     
+    public function updateProductPrices($productPrices, ProductModel $product, $vat)
+    {
+        $productId = $product->getId()->getEndpoint();
+        $pd = \wc_get_price_decimals();
+        
+        /** @var ProductPriceModel $productPrice */
+        foreach ($productPrices as $customerGroupId => $productPrice) {
+            $val1 = !$this->isValidCustomerGroup((string)$customerGroupId);
+            $val2 = (string)$customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP;
+            if ($val1 || $val2) {
+                continue;
+            }
+            
+            $customerGroupMeta = null;
+            
+            if (is_int($customerGroupId)) {
+                $customerGroupMeta = \get_post_meta($customerGroupId);
+            }
+            
+            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
+                foreach ($productPrice->getItems() as $item) {
+                    if ($item->getQuantity() === 0) {
+                        if (\wc_prices_include_tax()) {
+                            $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        } else {
+                            $regularPrice = $item->getNetPrice();
+                        }
+                        
+                        $salePrice = \get_post_meta($productId, '_sale_price', true);
+                        
+                        if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
+                            \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd),
+                                \get_post_meta($productId, '_price', true));
+                        }
+                        
+                        \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($productId, '_regular_price', true));
+                    }
+                }
+            } elseif (!is_null($customerGroupMeta)) {
+                $customerGroup = get_post($customerGroupId);
+                $productType = (new Product)->getType($product);
+                
+                foreach ($productPrice->getItems() as $item) {
+                    if ($item->getQuantity() === 0) {
+                        if (\wc_prices_include_tax()) {
+                            $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        } else {
+                            $regularPrice = $item->getNetPrice();
+                        }
+                        
+                        $metaKeyForCustomerGroupPrice = sprintf(
+                            'bm_%s_price',
+                            $customerGroup->post_name
+                        );
+                        
+                        if ($productType !== 'variable') {
+                            $metaKeyForCustomerGroupRegularPrice = sprintf(
+                                '_jtlwcc_bm_%s_regular_price',
+                                $customerGroup->post_name
+                            );
+                            
+                            if ($productType === 'product_variation') {
+                                $parentProduct = \wc_get_product($product->getMasterProductId()->getEndpoint());
+                                if ($parentProduct instanceof \WC_Product) {
+                                    $childParentPrice = sprintf(
+                                        'bm_%s_%s_price',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                    \update_post_meta($parentProduct->get_id(),
+                                        $childParentPrice,
+                                        \wc_format_decimal($regularPrice, $pd),
+                                        \get_post_meta($parentProduct->get_id(), $childParentPrice, true));
+                                    
+                                    $childParentKey = sprintf(
+                                        'bm_%s_%s_price_type',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                    \update_post_meta($parentProduct->get_id(),
+                                        $childParentKey,
+                                        'fix',
+                                        \get_post_meta($parentProduct->get_id(), $childParentKey, true));
+                                }
+                            }
+                        }
+                        $metaKeyForCustomerGroupPriceType = $metaKeyForCustomerGroupPrice . '_type';
+                        
+                        \update_post_meta(
+                            $productId,
+                            $metaKeyForCustomerGroupPrice,
+                            \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
+                        );
+                        
+                        if ($productType !== 'variable' && isset($metaKeyForCustomerGroupRegularPrice)) {
+                            \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
+                                \wc_format_decimal($regularPrice, $pd),
+                                \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));
+                        }
+                        
+                        \update_post_meta(
+                            $productId,
+                            $metaKeyForCustomerGroupPriceType,
+                            'fix',
+                            \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                        );
+                    }
+                }
+            }
+        }
+    }
+    
     public function isValidCustomerGroup($group)
     {
-        return empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        
+        if ($result) {
+            return $result;
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            foreach ($customerGroups as $cKey => $customerGroup) {
+                if (isset($customerGroup['ID']) && $customerGroup['ID'] === $group) {
+                    $result = true;
+                }
+            }
+        }
+        
+        return $result;
     }
     
     public function addMasterProductToSync($productId)

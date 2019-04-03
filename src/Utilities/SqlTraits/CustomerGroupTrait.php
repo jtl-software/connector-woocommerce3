@@ -16,7 +16,7 @@ trait CustomerGroupTrait
         $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';
         
         return "
-            SELECT *
+            SELECT p.ID, p.post_title, p.post_name
              FROM `{$wpdb->posts}` p
             LEFT JOIN {$jclcg} l
             ON l.endpoint_id = p.ID

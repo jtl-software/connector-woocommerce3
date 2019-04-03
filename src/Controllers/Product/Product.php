@@ -236,7 +236,7 @@ class Product extends BaseController
         
         $this->updateProductMeta($product, $wcProduct);
         
-        $this->updateProductRelations($product);
+        $this->updateProductRelations($product, $wcProduct);
         
         (new ProductVariationSpecificAttribute)->pushDataNew($product, $wcProduct);
         
@@ -306,11 +306,11 @@ class Product extends BaseController
         (new ProductManufacturer())->pushData($product);
     }
     
-    private function updateProductRelations(ProductModel $product)
+    private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct)
     {
         (new Product2Category)->pushData($product);
         (new ProductPrice)->pushData($product);
-        (new ProductSpecialPrice)->pushData($product);
+        (new ProductSpecialPrice)->pushData($product, $wcProduct);
     }
     
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
@@ -452,7 +452,7 @@ class Product extends BaseController
         }
     }
     
-    private function getType(ProductModel $product)
+    public function getType(ProductModel $product)
     {
         $variations = $product->getVariations();
         $productId = (int)$product->getId()->getEndpoint();

@@ -12,6 +12,8 @@ use jtl\Connector\Model\ProductSpecialPrice as ProductSpecialPriceModel;
 use jtl\Connector\Model\ProductSpecialPriceItem;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductSpecialPrice extends BaseController
@@ -29,7 +31,7 @@ class ProductSpecialPrice extends BaseController
                 ->setId(new Identity($product->get_id()))
                 ->setProductId(new Identity($product->get_id()))
                 ->setIsActive($product->is_on_sale())
-                ->setConsiderDateLimit(! is_null($product->get_date_on_sale_to()))
+                ->setConsiderDateLimit(!is_null($product->get_date_on_sale_to()))
                 ->setActiveFromDate($product->get_date_on_sale_from())
                 ->setActiveUntilDate($product->get_date_on_sale_to())
                 ->addItem((new ProductSpecialPriceItem())
@@ -52,55 +54,438 @@ class ProductSpecialPrice extends BaseController
         return $netPrice;
     }
     
-    public function pushData(ProductModel $product)
+    public function pushData(ProductModel $product, \WC_Product $wcProduct)
     {
-        $pd        = \wc_get_price_decimals();
+        $pd = \wc_get_price_decimals();
         $productId = $product->getId()->getEndpoint();
-        
+        $masterProductId = $product->getMasterProductId();
         $specialPrices = $product->getSpecialPrices();
         
         if (count($specialPrices) > 0) {
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
+                    $endpoint = $item->getCustomerGroupId()->getEndpoint();
+                    $productType = (new Product)->getType($product);
+                    $current_time = time();
+                    
+                    if ($specialPrice->getConsiderDateLimit()) {
+                        $dateTo = is_null($end = $specialPrice->getActiveUntilDate()) ? null : $end->getTimestamp();
+                        $dateFrom = is_null($start = $specialPrice->getActiveFromDate()) ? null : $start->getTimestamp();
+                    } else {
+                        $dateTo = '';
+                        $dateFrom = '';
+                    }
+                    
                     if (\wc_prices_include_tax()) {
                         $salePrice = $item->getPriceNet() * (1 + $product->getVat() / 100);
                     } else {
                         $salePrice = $item->getPriceNet();
                     }
                     
-                    \update_post_meta($productId, '_sale_price', \wc_format_decimal($salePrice, $pd));
-                    
-                    if ($specialPrice->getConsiderDateLimit()) {
-                        $dateTo   = is_null($end = $specialPrice->getActiveUntilDate()) ? null : $end->getTimestamp();
-                        $dateFrom = is_null($start = $specialPrice->getActiveFromDate()) ? null : $start->getTimestamp();
-                    } else {
-                        $dateTo   = '';
-                        $dateFrom = '';
+                    if (!Util::getInstance()->isValidCustomerGroup((string)$endpoint)) {
+                        continue;
                     }
                     
-                    \update_post_meta($productId, '_sale_price_dates_to', $dateTo);
-                    \update_post_meta($productId, '_sale_price_dates_from', $dateFrom);
-                    
-                    if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
-                        \update_post_meta($productId, '_price', \wc_format_decimal($salePrice, $pd));
-                    }
-                    
-                    $current_time = time();
-                    
-                    if ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
-                        \update_post_meta($productId, '_price', \wc_format_decimal($salePrice, $pd));
+                    if ($endpoint === CustomerGroup::DEFAULT_GROUP) {
+                        $salePriceMetaKey = '_sale_price';
+                        $salePriceDatesToKey = '_sale_price_dates_to';
+                        $salePriceDatesFromKey = '_sale_price_dates_from';
+                        $priceMetaKey = '_price';
+                        $regularPriceKey = '_regular_price';
+                        
+                        \update_post_meta($productId, $salePriceMetaKey, \wc_format_decimal($salePrice, $pd),
+                            \get_post_meta($productId, $salePriceMetaKey, true));
+                        
+                        \update_post_meta($productId, $salePriceDatesToKey, $dateTo,
+                            \get_post_meta($productId, $salePriceDatesToKey, true));
+                        
+                        \update_post_meta($productId, $salePriceDatesFromKey, $dateFrom,
+                            \get_post_meta($productId, $salePriceDatesFromKey, true));
+                        
+                        if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom && isset($priceMetaKey)) {
+                            \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($salePrice, $pd),
+                                \get_post_meta($productId, $priceMetaKey, true));
+                        }
+                        
+                        if ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                            \update_post_meta(
+                                $productId,
+                                $priceMetaKey,
+                                \wc_format_decimal($salePrice, $pd),
+                                \get_post_meta($productId, $priceMetaKey, true)
+                            );
+                        } else {
+                            $regularPrice = (float)\get_post_meta($productId, $regularPriceKey, true);
+                            \update_post_meta(
+                                $productId,
+                                $priceMetaKey,
+                                \wc_format_decimal($regularPrice, $pd),
+                                \get_post_meta($productId, $priceMetaKey, true)
+                            );
+                        }
+                        
+                    } elseif (is_int((int)$endpoint)) {
+                        if ($productType !== 'variable') {
+                            $customerGroup = get_post($endpoint);
+                            $priceMetaKey = sprintf(
+                                'bm_%s_price',
+                                $customerGroup->post_name
+                            );
+                            $regularPriceMetaKey = sprintf(
+                                '_jtlwcc_bm_%s_regular_price',
+                                $customerGroup->post_name
+                            );
+                            
+                            $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
+                            \update_post_meta(
+                                $productId,
+                                $metaKeyForCustomerGroupPriceType,
+                                'fix',
+                                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                            );
+                            
+                            if ($productType === 'product_variation') {
+                                $COPpriceMetaKey = sprintf(
+                                    'bm_%s_%s_price',
+                                    $customerGroup->post_name,
+                                    $productId
+                                );
+                                $COPpriceTypeMetaKey = sprintf(
+                                    'bm_%s_%s_price_type',
+                                    $customerGroup->post_name,
+                                    $productId
+                                );
+                                $COPsalePriceMetaKey = sprintf(
+                                    '_jtlwcc_bm_%s_%s_sale_price',
+                                    $customerGroup->post_name,
+                                    $productId
+                                );
+                                $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
+                                    $customerGroup->post_name,
+                                    $productId
+                                );
+                                $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
+                                    $customerGroup->post_name,
+                                    $productId
+                                );
+                            } else {
+                                $salePriceMetaKey = sprintf(
+                                    '_jtlwcc_bm_%s_sale_price',
+                                    $customerGroup->post_name
+                                );
+                                $salePriceDatesToKey = sprintf(
+                                    '_jtlwcc_bm_%s_sale_price_dates_to',
+                                    $customerGroup->post_name
+                                );
+                                $salePriceDatesFromKey = sprintf(
+                                    '_jtlwcc_bm_%s_sale_price_dates_from',
+                                    $customerGroup->post_name
+                                );
+                            }
+                            
+                            if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
+                                \update_post_meta(
+                                    $productId,
+                                    $priceMetaKey,
+                                    \wc_format_decimal($salePrice, $pd),
+                                    \get_post_meta($productId, $priceMetaKey, true)
+                                );
+                                
+                                if ($productType === 'product_variation'
+                                    && isset($COPpriceMetaKey)
+                                    && isset($COPpriceTypeMetaKey)
+                                    && isset($COPsalePriceMetaKey)
+                                ) {
+                                    //Update price on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPpriceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPpriceMetaKey,
+                                            true
+                                        )
+                                    );
+                                    //Update price type on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPpriceTypeMetaKey,
+                                        'fix',
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPpriceTypeMetaKey,
+                                            true
+                                        )
+                                    );
+                                    //Update sale_price on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPsalePriceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPsalePriceMetaKey,
+                                            true
+                                        )
+                                    );
+                                } else {
+                                    if (isset($salePriceMetaKey)) {
+                                        //Update sale_price on product
+                                        \update_post_meta(
+                                            $productId,
+                                            $salePriceMetaKey,
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $productId,
+                                                $salePriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                    }
+                                }
+                            }
+                            
+                            if ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                                \update_post_meta(
+                                    $productId,
+                                    $priceMetaKey,
+                                    \wc_format_decimal($salePrice, $pd),
+                                    \get_post_meta($productId, $priceMetaKey, true)
+                                );
+                                
+                                if ($productType === 'product_variation'
+                                    && isset($COPpriceMetaKey)
+                                    && isset($COPpriceTypeMetaKey)
+                                    && isset($COPsalePriceMetaKey)
+                                    && isset($COPsalePriceDatesToKey)
+                                    && isset($COPsalePriceDatesFromKey)
+                                ) {
+                                    //Update price on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPpriceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPpriceMetaKey,
+                                            true
+                                        )
+                                    );
+                                    //Update price type on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPpriceTypeMetaKey,
+                                        'fix',
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPpriceTypeMetaKey,
+                                            true
+                                        )
+                                    );
+                                    //Update sale_price on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPsalePriceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPsalePriceMetaKey,
+                                            true
+                                        )
+                                    );
+                                    //Update sale_price_date_to on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPsalePriceDatesToKey,
+                                        $dateTo,
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPsalePriceDatesToKey,
+                                            true
+                                        )
+                                    );
+                                    //Update sale_price_date_from on parent
+                                    \update_post_meta(
+                                        $masterProductId->getEndpoint(),
+                                        $COPsalePriceDatesFromKey,
+                                        $dateFrom,
+                                        \get_post_meta(
+                                            $masterProductId->getEndpoint(),
+                                            $COPsalePriceDatesFromKey,
+                                            true
+                                        )
+                                    );
+                                } else {
+                                    if (
+                                        isset($salePriceMetaKey)
+                                        && isset($salePriceDatesToKey)
+                                        && isset($salePriceDatesFromKey)
+                                    ) {
+                                        //Update sale_price on product
+                                        \update_post_meta(
+                                            $productId,
+                                            $salePriceMetaKey,
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $productId,
+                                                $salePriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                        //Update sale_price_date_to on product
+                                        \update_post_meta(
+                                            $productId,
+                                            $salePriceDatesToKey,
+                                            $dateTo,
+                                            \get_post_meta(
+                                                $productId,
+                                                $salePriceDatesToKey,
+                                                true
+                                            )
+                                        );
+                                        //Update sale_price_date_from on product
+                                        \update_post_meta(
+                                            $productId,
+                                            $salePriceDatesFromKey,
+                                            $dateFrom,
+                                            \get_post_meta(
+                                                $productId,
+                                                $salePriceDatesFromKey,
+                                                true
+                                            )
+                                        );
+                                    }
+                                }
+                            } else {
+                                $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
+                                \update_post_meta(
+                                    $productId,
+                                    $priceMetaKey,
+                                    \wc_format_decimal($regularPrice, $pd),
+                                    \get_post_meta($productId, $priceMetaKey, true)
+                                );
+                            }
+                        }
                     } else {
-                        $regularPrice = (float)\get_post_meta($productId, '_regular_price', true);
-                        \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd));
+                        continue;
                     }
                 }
             }
         } else {
-            \update_post_meta($productId, '_sale_price', '');
-            \update_post_meta($productId, '_sale_price_dates_to', '');
-            \update_post_meta($productId, '_sale_price_dates_from', '');
-            $regularPrice = (float)\get_post_meta($productId, '_regular_price', true);
-            \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd));
+            
+            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            $productType = (new Product)->getType($product);
+            
+            foreach ($customerGroups as $groupKey => $customerGroup) {
+                if (is_int((int)$customerGroup['ID'])) {
+                    $priceMetaKey = sprintf(
+                        'bm_%s_price',
+                        $customerGroup['post_name']
+                    );
+                    $regularPriceMetaKey = sprintf(
+                        '_jtlwcc_bm_%s_regular_price',
+                        $customerGroup['post_name']
+                    );
+                    
+                    $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
+                    \update_post_meta(
+                        $productId,
+                        $metaKeyForCustomerGroupPriceType,
+                        'fix',
+                        \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                    );
+                    
+                    if ($productType === 'product_variation') {
+                        $COPpriceMetaKey = sprintf(
+                            'bm_%s_%s_price',
+                            $customerGroup['post_name'],
+                            $productId
+                        );
+                        $COPpriceTypeMetaKey = sprintf(
+                            'bm_%s_%s_price_type',
+                            $customerGroup['post_name'],
+                            $productId
+                        );
+                        $COPsalePriceMetaKey = sprintf(
+                            '_jtlwcc_bm_%s_%s_sale_price',
+                            $customerGroup['post_name'],
+                            $productId
+                        );
+                        $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
+                            $customerGroup['post_name'],
+                            $productId
+                        );
+                        $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
+                            $customerGroup['post_name'],
+                            $productId
+                        );
+                        
+                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey, true));
+                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey, true));
+                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey, true));
+                    } else {
+                        $salePriceMetaKey = sprintf(
+                            '_jtlwcc_bm_%s_sale_price',
+                            $customerGroup['post_name']
+                        );
+                        $salePriceDatesToKey = sprintf(
+                            '_jtlwcc_bm_%s_sale_price_dates_to',
+                            $customerGroup['post_name']
+                        );
+                        $salePriceDatesFromKey = sprintf(
+                            '_jtlwcc_bm_%s_sale_price_dates_from',
+                            $customerGroup['post_name']
+                        );
+                        \delete_post_meta($productId, $salePriceMetaKey,
+                            \get_post_meta($productId, $salePriceMetaKey, true));
+                        \delete_post_meta($productId, $salePriceDatesToKey,
+                            \get_post_meta($productId, $salePriceDatesToKey, true));
+                        \delete_post_meta($productId, $salePriceDatesFromKey,
+                            \get_post_meta($productId, $salePriceDatesFromKey, true));
+                    }
+                    
+                    $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
+                    
+                } elseif ($customerGroup['ID'] === CustomerGroup::DEFAULT_GROUP) {
+                    $salePriceMetaKey = '_sale_price';
+                    $salePriceDatesToKey = '_sale_price_dates_to';
+                    $salePriceDatesFromKey = '_sale_price_dates_from';
+                    $priceMetaKey = '_price';
+                    $regularPriceKey = '_regular_price';
+                    $regularPrice = (float)\get_post_meta($productId, $regularPriceKey, true);
+                    
+                    \update_post_meta($productId, $salePriceMetaKey, '',
+                        \get_post_meta($productId, $salePriceMetaKey, true));
+                    \update_post_meta($productId, $salePriceDatesToKey, '',
+                        \get_post_meta($productId, $salePriceDatesToKey, true));
+                    \update_post_meta($productId, $salePriceDatesFromKey, '',
+                        \get_post_meta($productId, $salePriceDatesFromKey, true));
+                } else {
+                    continue;
+                }
+                
+                \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($regularPrice, $pd),
+                    \get_post_meta($productId, $priceMetaKey, true));
+                
+                if ($productType === 'product_variation' && isset($COPpriceTypeMetaKey) && isset($COPpriceMetaKey)) {
+                    \update_post_meta(
+                        $masterProductId->getEndpoint(),
+                        $COPpriceMetaKey,
+                        \wc_format_decimal($regularPrice, $pd),
+                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceMetaKey, true)
+                    );
+                    \update_post_meta(
+                        $masterProductId->getEndpoint(),
+                        $COPpriceTypeMetaKey,
+                        'fix',
+                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceTypeMetaKey, true)
+                    );
+                }
+            }
         }
     }
 }

@@ -16,6 +16,8 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductPrice extends BaseController
 {
+    const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
+    
     public function pullData(\WC_Product $product)
     {
         return (new ProductPriceModel())
@@ -27,42 +29,38 @@ class ProductPrice extends BaseController
                 ->setQuantity(1)
                 ->setNetPrice($this->netPrice($product)));
     }
-
+    
     protected function netPrice(\WC_Product $product)
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
-
+        
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = ((float)$product->get_regular_price()) / ($taxRate + 100) * 100;
         } else {
             $netPrice = round((float)$product->get_regular_price(), \wc_get_price_decimals());
         }
-
+        
         return $netPrice;
     }
-
+    
     public function pushData(ProductModel $product)
     {
-        $productPrice = null;
-
+        $productPrices = [];
+        
         foreach ($product->getPrices() as &$price) {
             $endpoint = $price->getCustomerGroupId()->getEndpoint();
-
+            
             if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
-                if (is_null($productPrice)) {
-                    $productPrice = $price;
-                } else {
-                    /** @var ProductPriceModel $productPrice */
-                    if ($productPrice->getCustomerGroupId()->getEndpoint() === '') {
-                        $productPrice = $price;
-                    }
+                if ($endpoint === '') {
+                    $endpoint = self::GUEST_CUSTOMER_GROUP;
                 }
+                $price->setProductId($product->getId());
+                $productPrices[$endpoint] = $price;
             }
         }
-
-        if (!is_null($productPrice)) {
-            $productPrice->setProductId($product->getId());
-            Util::getInstance()->updateProductPrice($productPrice, $product->getVat());
+        
+        if (count($productPrices) > 0) {
+            Util::getInstance()->updateProductPrices($productPrices, $product, $product->getVat());
         }
     }
 }

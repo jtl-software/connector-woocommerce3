@@ -27,6 +27,7 @@ class ProductVariationSpecificAttribute extends BaseController
 {
     const DELIVERY_TIME_ATTR = 'wc_dt_offset';
     const DOWNLOADABLE_ATTR = 'wc_downloadable';
+    const DIGITAL_GM_ATTR = 'wc_gm_digital';
     const FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility';
     const FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status';
     const PAYABLE_ATTR = 'wc_payable';
@@ -375,6 +376,13 @@ class ProductVariationSpecificAttribute extends BaseController
             );
         }
         
+        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)){
+            $functionAttributes[] =$this->getDigitalFunctionAttribute(
+                $product,
+                $languageIso
+            );
+        }
+        
         foreach ($functionAttributes as $functionAttribute) {
             $this->productData['productAttributes'][] = $functionAttribute;
         }
@@ -412,6 +420,31 @@ class ProductVariationSpecificAttribute extends BaseController
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
         
+        return $attribute;
+    }
+    
+    private function getDigitalFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $digital = get_post_meta($product->get_id(), '_digital');
+    
+        if (count($digital) > 0 && strcmp($digital[0], 'yes') === 0) {
+            $value = 'true';
+        } else {
+            $value = 'false';
+        }
+    
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::DIGITAL_GM_ATTR))
+            ->setName(self::DIGITAL_GM_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+    
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+    
         return $attribute;
     }
     
