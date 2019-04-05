@@ -50,6 +50,8 @@ final class JtlConnectorAdmin
     const OPTIONS_DISABLED_ZERO_DELIVERY_TIME = 'jtlconnector_disabled_zero_delivery_time';
     const OPTIONS_PRAEFIX_DELIVERYTIME = 'jtlconnector_praefix_deliverytime';
     const OPTIONS_SUFFIX_DELIVERYTIME = 'jtlconnector_suffix_deliverytime';
+    const OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
+    const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
     
     const JTLWCC_CONFIG = [
         //FIRSTPAGE
@@ -67,6 +69,8 @@ final class JtlConnectorAdmin
         self::OPTIONS_PULL_ORDERS_SINCE                        => 'date',
         //Page
         self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => 'bool',
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => 'bool',
     ];
     
     const JTLWCC_CONFIG_DEFAULTS = [
@@ -85,6 +89,8 @@ final class JtlConnectorAdmin
         self::OPTIONS_PULL_ORDERS_SINCE                        => '',
         //Page
         self::OPTIONS_DEVELOPER_LOGGING                        => false,
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => true,
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => true,
     ];
     
     private static $initiated = false;
@@ -472,11 +478,11 @@ final class JtlConnectorAdmin
             
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Developer Logging', JTLWCC_TEXT_DOMAIN),
-                __('Developer Logging', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
+                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
-                'woo-jtl-connector-developer-logging',
-                'woo_jtl_connector_developer_logging_page'
+                'woo-jtl-connector-developer-settings',
+                'woo_jtl_connector_developer_settings_page'
             );
             
             remove_submenu_page('woo-jtl-connector', 'woo-jtl-connector');
@@ -517,9 +523,9 @@ final class JtlConnectorAdmin
             JtlConnectorAdmin::displayPageNew('customer_order_page', __('Customer order', JTLWCC_TEXT_DOMAIN), true);
         }
         
-        function woo_jtl_connector_developer_logging_page()
+        function woo_jtl_connector_developer_settings_page()
         {
-            JtlConnectorAdmin::displayPageNew('developer_logging_page', __('Developer Logging', JTLWCC_TEXT_DOMAIN),
+            JtlConnectorAdmin::displayPageNew('developer_settings_page', __('Developer Settings', JTLWCC_TEXT_DOMAIN),
                 true);
         }
         
@@ -563,8 +569,8 @@ final class JtlConnectorAdmin
             case 'customer_order_page':
                 $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields());
                 break;
-            case'developer_logging_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeveloperLoggingFields());
+            case 'developer_settings_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeveloperSettingsFields());
                 break;
             default:
                 $settings = null;
@@ -642,10 +648,10 @@ final class JtlConnectorAdmin
                    href="admin.php?page=woo-jtl-connector-customer-order"><?php print __('Customer orders',
                         JTLWCC_TEXT_DOMAIN); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page,
-                        'developer_logging_page') === 0) {
+                        'developer_settings_page') === 0) {
                     print 'active';
                 } ?>"
-                   href="admin.php?page=woo-jtl-connector-developer-logging"><?php print __('Developer Logging',
+                   href="admin.php?page=woo-jtl-connector-developer-settings"><?php print __('Developer Settings',
                         JTLWCC_TEXT_DOMAIN); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link"
                    href="https://guide.jtl-software.de/jtl-connector/woocommerce/"
@@ -952,7 +958,7 @@ final class JtlConnectorAdmin
         return $fields;
     }
     
-    private static function getDeveloperLoggingFields()
+    private static function getDeveloperSettingsFields()
     {
         $fields = [];
         
@@ -961,7 +967,7 @@ final class JtlConnectorAdmin
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
-            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Developer logging related settings of the installed JTL-Connector. Here you can enable/disable/reset/download the developer logs of the jtl connector.',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Developer related settings of the installed JTL-Connector. Here you can enable/disable/reset/download the developer logs of the jtl connector.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -984,11 +990,36 @@ final class JtlConnectorAdmin
             'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
         ];
         
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $fields[] = [
+                'title'     => __('German Market', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'        => self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS,
+                'value'     => Config::get(self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $fields[] = [
+                'title'     => __('B2B Market', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'        => self::OPTIONS_AUTO_B2B_MARKET_OPTIONS,
+                'value'     => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+        }
+        
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
         
         return $fields;
     }
@@ -1257,12 +1288,12 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="form-group row">
-            <div class="btn-group btn-group-lg col-12" role="group"
-            ">
-            <button type="button" id="downloadLogBtn"
-                    class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
-            <button type="button" id="clearLogBtn"
-                    class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
+            <div class="btn-group btn-group-lg col-12" role="group">
+                <button type="button" id="downloadLogBtn"
+                        class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
+                <button type="button" id="clearLogBtn"
+                        class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
+            </div>
         </div>
         <?php
     }

@@ -16,7 +16,6 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
-use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -46,7 +45,11 @@ class Product extends BaseController
             $productModel = (new ProductModel())
                 ->setId(new Identity($product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
-                ->setIsActive(in_array($status, ['private', 'draft', 'future']) ? false : true)
+                ->setIsActive(in_array($status, [
+                    'private',
+                    'draft',
+                    'future',
+                ]) ? false : true)
                 ->setSku($product->get_sku())
                 ->setVat(Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
@@ -90,8 +93,9 @@ class Product extends BaseController
                 ->addPrice(ProductPrice::getInstance()->pullData($product))
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
                 ->setCategories(Product2Category::getInstance()->pullData($product));
-    
-            $productVariationSpecificAttribute= (new ProductVariationSpecificAttribute)->pullData($product, $productModel);
+            
+            $productVariationSpecificAttribute = (new ProductVariationSpecificAttribute)->pullData($product,
+                $productModel);
             // Simple or father articles
             if ($product->is_type('variable') || $product->is_type('simple')) {
                 if ($product->is_type('variable')) {
@@ -102,15 +106,15 @@ class Product extends BaseController
             }
             
             if ($product->managing_stock()) {
-                $productModel->setStockLevel(ProductStockLevel::getInstance()->pullData($product));
+                $productModel->setStockLevel((new ProductStockLevel)->pullData($product));
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-                $this->setGermanizedAttributes($productModel, $product);
+                (new ProductGermanizedAttributes)->pullData($productModel, $product);
             }
-    
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                $this->setGermanMarketAttributes($productModel, $product);
+                (new ProductGermanMarketAttributes)->pullData($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
@@ -198,12 +202,16 @@ class Product extends BaseController
         $this->onProductInserted($product, $tmpI18n);
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-            $this->updateGermanizedAttributes($product);
+            (new ProductGermanizedAttributes)->pushData($product);
+        }
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            (new ProductGermanMarketAttributes)->pushData($product);
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-            ProductMetaSeo::getInstance()->pushData($product, $newPostId, $tmpI18n);
+            (new ProductMetaSeo)->pushData($product, $newPostId, $tmpI18n);
         }
         
         return $product;
@@ -319,7 +327,10 @@ class Product extends BaseController
         
         $productTitle = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
         $variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
-        \wp_update_post(['ID' => $productId, 'post_title' => $variation_post_title]);
+        \wp_update_post([
+            'ID'         => $productId,
+            'post_title' => $variation_post_title,
+        ]);
         \update_post_meta($productId, '_variation_description', $meta->getDescription());
         \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
         
@@ -339,117 +350,6 @@ class Product extends BaseController
         }
         
         self::$idCache[$product->getId()->getHost()] = $productId;
-    }
-    
-    private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct)
-    {
-        $units = new \WC_GZD_Units();
-        
-        if ($wcProduct->gzd_product->has_product_units()) {
-            $plugin = \get_plugin_data(WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
-            
-            if (isset($plugin['Version']) && version_compare($plugin['Version'], '1.6.0') < 0) {
-                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
-            } else {
-                $unitObject = \get_term_by('slug', $wcProduct->gzd_product->unit, 'product_unit');
-            }
-            
-            $code = Germanized::getInstance()->parseUnit($unitObject->slug);
-            
-            $productQuantity = (double)$wcProduct->gzd_product->unit_product;
-            $product->setMeasurementQuantity($productQuantity);
-            $product->setMeasurementUnitId(new Identity($unitObject->term_id));
-            $product->setMeasurementUnitCode($code);
-            
-            $product->setConsiderBasePrice(true);
-            
-            $baseQuantity = (double)$wcProduct->gzd_product->unit_base;
-            
-            if ($baseQuantity !== 0.0) {
-                $product->setBasePriceDivisor($productQuantity / $baseQuantity);
-            }
-            
-            $product->setBasePriceQuantity($baseQuantity);
-            $product->setBasePriceUnitId(new Identity($unitObject->term_id));
-            $product->setBasePriceUnitCode($code);
-            $product->setBasePriceUnitName($unitObject->name);
-        }
-    }
-    
-    private function setGermanMarketAttributes(ProductModel &$product, \WC_Product $wcProduct)
-    {
-//       /* $units = new \WC_GZD_Units();
-//
-//        if ($wcProduct->gzd_product->has_product_units()) {
-//            $plugin = \get_plugin_data(WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
-//
-//            if (isset($plugin['Version']) && version_compare($plugin['Version'], '1.6.0') < 0) {
-//                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
-//            } else {
-//                $unitObject = \get_term_by('slug', $wcProduct->gzd_product->unit, 'product_unit');
-//            }
-//
-//            $code = Germanized::getInstance()->parseUnit($unitObject->slug);
-//
-//            $productQuantity = (double)$wcProduct->gzd_product->unit_product;
-//            $product->setMeasurementQuantity($productQuantity);
-//            $product->setMeasurementUnitId(new Identity($unitObject->term_id));
-//            $product->setMeasurementUnitCode($code);
-//
-//            $product->setConsiderBasePrice(true);
-//
-//            $baseQuantity = (double)$wcProduct->gzd_product->unit_base;
-//
-//            if ($baseQuantity !== 0.0) {
-//                $product->setBasePriceDivisor($productQuantity / $baseQuantity);
-//            }
-//
-//            $product->setBasePriceQuantity($baseQuantity);
-//            $product->setBasePriceUnitId(new Identity($unitObject->term_id));
-//            $product->setBasePriceUnitCode($code);
-//            $product->setBasePriceUnitName($unitObject->name);
-//        }*/
-    }
-    
-    private function updateGermanizedAttributes(ProductModel &$product)
-    {
-        $id = $product->getId()->getEndpoint();
-        $this->updateGermanizedBasePriceAndUnits($product, $id);
-    }
-    
-    private function updateGermanizedBasePriceAndUnits(ProductModel $product, $id)
-    {
-        if ($product->getConsiderBasePrice()) {
-            $pd = \wc_get_price_decimals();
-            \update_post_meta($id, '_unit_base', $product->getBasePriceQuantity());
-            
-            if ($product->getBasePriceDivisor() != 0) {
-                $divisor = $product->getBasePriceDivisor();
-                \update_post_meta($id, '_unit_price',
-                    round((float)\get_post_meta($id, '_price', true) / $divisor, $pd));
-                \update_post_meta($id, '_unit_price_regular',
-                    round((float)\get_post_meta($id, '_regular_price', true) / $divisor, $pd));
-            }
-            
-            $salePrice = \get_post_meta($id, '_sale_price', true);
-            
-            if (!empty($salePrice)) {
-                if ($product->getBasePriceDivisor() !== 0) {
-                    $unitSale = (float)$salePrice / $product->getBasePriceDivisor();
-                    \update_post_meta($id, '_unit_price_sale', round($unitSale, $pd));
-                    
-                    if (\get_post_meta($id, '_price', true) === $salePrice) {
-                        \update_post_meta($id, '_unit_price', round($unitSale, $pd));
-                    }
-                }
-            }
-        }
-        
-        \update_post_meta($id, '_unit', $product->getBasePriceUnitName());
-        
-        if ($product->getMeasurementQuantity() !== 0) {
-            \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
-        }
     }
     
     public function getType(ProductModel $product)

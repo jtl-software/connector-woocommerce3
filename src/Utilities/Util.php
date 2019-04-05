@@ -116,7 +116,7 @@ final class Util extends Singleton
             $salePriceKey = '_sale_price';
             $priceKey = '_price';
             $regularPriceKey = '_regular_price';
-        } else {
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $productType = $product->get_type();
             $customerGroup = \get_post($customerGroupId);
             
@@ -129,6 +129,8 @@ final class Util extends Singleton
             } else {
                 return;
             }
+        } else {
+            return;
         }
         
         if ($product !== false) {
@@ -178,9 +180,8 @@ final class Util extends Singleton
         
         /** @var ProductPriceModel $productPrice */
         foreach ($productPrices as $customerGroupId => $productPrice) {
-            $val1 = !$this->isValidCustomerGroup((string)$customerGroupId);
-            $val2 = (string)$customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP;
-            if ($val1 || $val2) {
+            if (!$this->isValidCustomerGroup((string)$customerGroupId)
+                || (string)$customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP) {
                 continue;
             }
             
@@ -210,7 +211,9 @@ final class Util extends Singleton
                             \get_post_meta($productId, '_regular_price', true));
                     }
                 }
-            } elseif (!is_null($customerGroupMeta)) {
+            } elseif (!is_null($customerGroupMeta)
+                && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            ) {
                 $customerGroup = get_post($customerGroupId);
                 $productType = (new Product)->getType($product);
                 
