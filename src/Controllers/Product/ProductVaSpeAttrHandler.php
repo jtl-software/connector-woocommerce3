@@ -23,16 +23,21 @@ if (defined('WC_DELIMITER')) {
     define('WC_DELIMITER', '|');
 }
 
-class ProductVariationSpecificAttribute extends BaseController
+class ProductVaSpeAttrHandler extends BaseController
 {
     const DELIVERY_TIME_ATTR = 'wc_dt_offset';
     const DOWNLOADABLE_ATTR = 'wc_downloadable';
-    const DIGITAL_GM_ATTR = 'wc_gm_digital';
     const FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility';
     const FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status';
     const PAYABLE_ATTR = 'wc_payable';
     const NOSEARCH_ATTR = 'wc_nosearch';
     const VIRTUAL_ATTR = 'wc_virtual';
+    const PURCHASE_NOTE_ATTR = 'wc_purchase_note';
+    
+    //GERMAN MARKET
+    const GM_DIGITAL_ATTR = 'wc_gm_digital';
+    const GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note';
+    const GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice';
     
     private $productData = [
         'productVariation'  => [],
@@ -51,7 +56,7 @@ class ProductVariationSpecificAttribute extends BaseController
         
         if (!$isProductVariation) {
             /**
-             * @var string $slug
+             * @var string                $slug
              * @var \WC_Product_Attribute $attribute
              */
             foreach ($globCurrentAttr as $slug => $attribute) {
@@ -158,7 +163,8 @@ class ProductVariationSpecificAttribute extends BaseController
             $finishedAttr = (new ProductAttr)->pushData(
                 $productId,
                 $product->getAttributes(),
-                $attributesFilteredVariationsAndSpecifics
+                $attributesFilteredVariationsAndSpecifics,
+                $product
             );
             $this->mergeAttributes($newProductAttributes, $finishedAttr);
             // handleVarSpecifics
@@ -192,7 +198,7 @@ class ProductVariationSpecificAttribute extends BaseController
         $filteredAttributes = [];
         
         /**
-         * @var string $slug The attributes unique slug.
+         * @var string                $slug The attributes unique slug.
          * @var \WC_Product_Attribute $attribute The attribute.
          */
         foreach ($attributes as $slug => $attribute) {
@@ -228,7 +234,7 @@ class ProductVariationSpecificAttribute extends BaseController
         $filteredAttributes = [];
         
         /**
-         * @var string $slug
+         * @var string                $slug
          * @var \WC_Product_Attribute $curAttributes
          */
         foreach ($curAttributes as $slug => $product_specific) {
@@ -275,7 +281,10 @@ class ProductVariationSpecificAttribute extends BaseController
                 $values = [];
                 
                 $this->values = $variation->getValues();
-                usort($this->values, [$this, 'sortI18nValues']);
+                usort($this->values, [
+                    $this,
+                    'sortI18nValues',
+                ]);
                 
                 foreach ($this->values as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
@@ -306,7 +315,7 @@ class ProductVariationSpecificAttribute extends BaseController
     // <editor-fold defaultstate="collapsed" desc="FuncAttr Methods">
     /**
      * @param \WC_Product $product
-     * @param string $languageIso
+     * @param string      $languageIso
      */
     private function handleCustomPropertyAttributes(\WC_Product $product, $languageIso = '')
     {
@@ -339,7 +348,7 @@ class ProductVariationSpecificAttribute extends BaseController
     
     /**
      * @param \WC_Product $product
-     * @param string $languageIso
+     * @param string      $languageIso
      */
     private function setProductFunctionAttributes(
         \WC_Product $product,
@@ -366,6 +375,10 @@ class ProductVariationSpecificAttribute extends BaseController
                 $product,
                 $languageIso
             ),
+            $this->getPurchaseNoteFunctionAttribute(
+                $product,
+                $languageIso
+            ),
         ];
         
         if (SupportedPluginsAlias::isActive(SupportedPluginsAlias::PLUGIN_FB_FOR_WOO)) {
@@ -376,8 +389,18 @@ class ProductVariationSpecificAttribute extends BaseController
             );
         }
         
-        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)){
-            $functionAttributes[] =$this->getDigitalFunctionAttribute(
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $functionAttributes[] = $this->getDigitalFunctionAttribute(
+                $product,
+                $languageIso
+            );
+    
+            $functionAttributes[] = $this->getSuppressShippingNoticeFunctionAttribute(
+                $product,
+                $languageIso
+            );
+    
+            $functionAttributes[] = $this->getAltDeliveryNoteFunctionAttribute(
                 $product,
                 $languageIso
             );
@@ -426,25 +449,88 @@ class ProductVariationSpecificAttribute extends BaseController
     private function getDigitalFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
         $digital = get_post_meta($product->get_id(), '_digital');
-    
+        
         if (count($digital) > 0 && strcmp($digital[0], 'yes') === 0) {
             $value = 'true';
         } else {
             $value = 'false';
         }
-    
+        
         $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::DIGITAL_GM_ATTR))
-            ->setName(self::DIGITAL_GM_ATTR)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_DIGITAL_ATTR))
+            ->setName(self::GM_DIGITAL_ATTR)
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
-    
+        
         $attribute = (new ProductAttrModel)
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
+        
+        return $attribute;
+    }
     
+    private function getSuppressShippingNoticeFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $value = \get_post_meta($product->get_id(), '_suppress_shipping_notice', true);
+        
+        if (strcmp($value, 'on') === 0) {
+            $value = 'true';
+        } else {
+            $value = 'false';
+        }
+        
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_SUPPRESS_SHIPPPING_NOTICE))
+            ->setName(self::GM_SUPPRESS_SHIPPPING_NOTICE)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+        
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getAltDeliveryNoteFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $info = \get_post_meta($product->get_id(), '_alternative_shipping_information', true);
+        
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_ALT_DELIVERY_NOTE_ATTR))
+            ->setName(self::GM_ALT_DELIVERY_NOTE_ATTR)
+            ->setValue((string)$info)
+            ->setLanguageISO($languageIso);
+        
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getPurchaseNoteFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $info = \get_post_meta($product->get_id(), '_purchase_note', true);
+        
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_NOTE_ATTR))
+            ->setName(self::PURCHASE_NOTE_ATTR)
+            ->setValue((string)$info)
+            ->setLanguageISO($languageIso);
+        
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
         return $attribute;
     }
     
@@ -535,7 +621,7 @@ class ProductVariationSpecificAttribute extends BaseController
     }
     
     // </editor-fold>
-  
+    
     //ALL
     public function getSpecificValueId(
         $slug,

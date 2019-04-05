@@ -143,7 +143,7 @@ class ProductSpecific extends BaseController
     
     private function buildProductSpecific($slug, $value, ProductModel $result)
     {
-        $parent = (new ProductVariationSpecificAttribute);
+        $parent = (new ProductVaSpeAttrHandler);
         $valueId = $parent->getSpecificValueId($slug, $value);
         $specificId = (new Identity)->setEndpoint($this->getSpecificId($slug));
         

@@ -7,6 +7,7 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
@@ -34,22 +35,33 @@ class ProductAttr extends BaseController
     // <editor-fold defaultstate="collapsed" desc="Push">
     
     /**
-     * @param $productId
-     * @param $pushedAttributes
-     * @param $attributesFilteredVariationsAndSpecifics
+     * @param              $productId
+     * @param              $pushedAttributes
+     * @param              $attributesFilteredVariationsAndSpecifics
+     * @param ProductModel $product
+     *
      * @return mixed
      */
-    public function pushData($productId, $pushedAttributes, $attributesFilteredVariationsAndSpecifics)
-    {
+    public function pushData(
+        $productId,
+        $pushedAttributes,
+        $attributesFilteredVariationsAndSpecifics,
+        ProductModel $product
+    ) {
         //  $parent = (new ProductVariationSpecificAttribute);
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
         $downloadable = false;
-        $digital = false;
         $payable = false;
         $nosearch = false;
         $fbStatusCode = false;
+        $purchaseNote = false;
         /* $fbVisibility = false;*/
+        //GERMAN MARKET
+        $digital = false;
+        $altDeliveryNote = false;
+        $suppressShippingNotice = false;
+        $variationPreselect = [];
         
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
@@ -61,10 +73,14 @@ class ProductAttr extends BaseController
                 $attrName = strtolower(trim($i18n->getName()));
                 
                 if (preg_match('/^(wc_)[a-zA-Z\_]+$/', $attrName)
-                    || in_array($attrName, ['nosearch', 'payable'])
+                    || in_array($attrName, [
+                        'nosearch',
+                        'payable',
+                    ])
                 ) {
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
-                        if (strcmp($attrName, ProductVariationSpecificAttribute::FACEBOOK_SYNC_STATUS_ATTR) === 0) {
+                        
+                        if (strcmp($attrName, ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR) === 0) {
                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                             $value = $value ? '1' : '';
                             
@@ -77,7 +93,8 @@ class ProductAttr extends BaseController
                                 update_post_meta(
                                     $productId,
                                     substr($attrName, 3),
-                                    $value
+                                    $value,
+                                    \get_post_meta($productId, substr($attrName, 3), true)
                                 );
                             }
                             $fbStatusCode = true;
@@ -104,7 +121,28 @@ class ProductAttr extends BaseController
                     }
                     
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                        if (strcmp($attrName, ProductVariationSpecificAttribute::DIGITAL_GM_ATTR) === 0) {
+                        
+                        if (
+                            preg_match(
+                                '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
+                                $attrName
+                            )
+                            && $product->getIsMasterProduct()
+                        ) {
+                            $attrName = substr($attrName, 18);
+                            
+                            $term = \get_term_by(
+                                'slug',
+                                wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
+                                'pa_' . $attrName
+                            );
+                            
+                            if ($term instanceof \WP_Term) {
+                                $variationPreselect[$term->taxonomy] = $term->slug;
+                            }
+                        }
+                        
+                        if (strcmp($attrName, ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) === 0) {
                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                             $value = $value ? 'yes' : 'no';
                             
@@ -117,14 +155,74 @@ class ProductAttr extends BaseController
                                 update_post_meta(
                                     $productId,
                                     substr($attrName, 5),
-                                    $value
+                                    $value,
+                                    \get_post_meta($productId, substr($attrName, 5), true)
                                 );
                             }
                             $digital = true;
                         }
+                        
+                        if (strcmp($attrName, ProductVaSpeAttrHandler::GM_SUPPRESS_SHIPPPING_NOTICE) === 0) {
+                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                            $value = $value ? 'on' : '';
+                            if ($value) {
+                                if (!add_post_meta(
+                                    $productId,
+                                    substr($attrName, 5),
+                                    $value,
+                                    true
+                                )) {
+                                    update_post_meta(
+                                        $productId,
+                                        substr($attrName, 5),
+                                        $value,
+                                        \get_post_meta($productId, substr($attrName, 5), true)
+                                    );
+                                }
+                            }
+                            $suppressShippingNotice = true;
+                        }
+                        
+                        if (strcmp($attrName, ProductVaSpeAttrHandler::GM_ALT_DELIVERY_NOTE_ATTR) === 0) {
+                            $value = trim($i18n->getValue());
+                            $attrKey = '_alternative_shipping_information';
+                            if (!add_post_meta(
+                                $productId,
+                                $attrKey,
+                                $value,
+                                true
+                            )) {
+                                \update_post_meta(
+                                    $productId,
+                                    $attrKey,
+                                    $value,
+                                    \get_post_meta($productId, $attrKey, true)
+                                );
+                            }
+                            $altDeliveryNote = true;
+                        }
                     }
                     
-                    if (strcmp($attrName, ProductVariationSpecificAttribute::DOWNLOADABLE_ATTR) === 0) {
+                    if (strcmp($attrName, ProductVaSpeAttrHandler::PURCHASE_NOTE_ATTR) === 0) {
+                        $value = trim($i18n->getValue());
+                        $attrKey = '_purchase_note';
+                        if (!add_post_meta(
+                            $productId,
+                            $attrKey,
+                            $value,
+                            true
+                        )) {
+                            \update_post_meta(
+                                $productId,
+                                $attrKey,
+                                $value,
+                                \get_post_meta($productId, $attrKey, true)
+                            );
+                        }
+                        $purchaseNote = true;
+                    }
+                    
+                    if (strcmp($attrName, ProductVaSpeAttrHandler::DOWNLOADABLE_ATTR) === 0) {
                         $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                         $value = $value ? 'yes' : 'no';
                         
@@ -137,13 +235,14 @@ class ProductAttr extends BaseController
                             update_post_meta(
                                 $productId,
                                 substr($attrName, 2),
-                                $value
+                                $value,
+                                \get_post_meta($productId, substr($attrName, 2), true)
                             );
                         }
                         $downloadable = true;
                     }
                     
-                    if (strcmp($attrName, ProductVariationSpecificAttribute::VIRTUAL_ATTR) === 0) {
+                    if (strcmp($attrName, ProductVaSpeAttrHandler::VIRTUAL_ATTR) === 0) {
                         $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                         $value = $value ? 'yes' : 'no';
                         
@@ -156,23 +255,32 @@ class ProductAttr extends BaseController
                             update_post_meta(
                                 $productId,
                                 substr($attrName, 2),
-                                $value
+                                $value,
+                                \get_post_meta($productId, substr($attrName, 2), true)
                             );
                         }
                         
                         $virtual = true;
                     }
                     
-                    if ($attrName === ProductVariationSpecificAttribute::PAYABLE_ATTR || $attrName === 'payable') {
+                    if ($attrName === ProductVaSpeAttrHandler::PAYABLE_ATTR || $attrName === 'payable') {
                         if (strcmp(trim($i18n->getValue()), 'false') === 0) {
-                            \wp_update_post(['ID' => $productId, 'post_status' => 'private']);
+                            \wp_update_post([
+                                'ID'          => $productId,
+                                'post_status' => 'private',
+                            ]);
                             $payable = true;
                         }
                     }
                     
-                    if ($attrName === ProductVariationSpecificAttribute::NOSEARCH_ATTR || $attrName === 'nosearch') {
+                    if ($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR || $attrName === 'nosearch') {
                         if (strcmp(trim($i18n->getValue()), 'true') === 0) {
-                            \update_post_meta($productId, '_visibility', 'catalog');
+                            \update_post_meta(
+                                $productId,
+                                '_visibility',
+                                'catalog',
+                                \get_post_meta($productId, '_visibility', true)
+                            );
                             
                             /*
                             "   exclude-from-catalog"
@@ -190,83 +298,135 @@ class ProductAttr extends BaseController
             }
         }
         
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            \update_post_meta(
+                $productId,
+                '_default_attributes',
+                $variationPreselect,
+                \get_post_meta($productId,
+                    '_default_attributes',
+                    true)
+            );
+        }
+        
         //Revert
         if (!$virtual) {
-            if (!add_post_meta(
+            if (!\add_post_meta(
                 $productId,
                 '_virtual',
                 'no',
                 true
             )) {
-                update_post_meta(
+                \update_post_meta(
                     $productId,
                     '_virtual',
-                    'no'
+                    'no',
+                    \get_post_meta($productId, '_virtual', true)
                 );
             }
         }
-    
+        
         if (!$downloadable) {
-            if (!add_post_meta(
+            if (!\add_post_meta(
                 $productId,
                 '_downloadable',
                 'no',
                 true
             )) {
-                update_post_meta(
+                \update_post_meta(
                     $productId,
                     '_downloadable',
-                    'no'
+                    'no',
+                    \get_post_meta($productId, '_downloadable', true)
                 );
             }
         }
         
         if (!$nosearch) {
             
-            if (!add_post_meta(
+            if (!\add_post_meta(
                 $productId,
                 '_visibility',
                 'visible',
                 true
             )) {
-                update_post_meta(
+                \update_post_meta(
                     $productId,
                     '_visibility',
-                    'visible'
+                    'visible',
+                    \get_post_meta($productId, '_visibility', true)
                 );
             }
-            wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
+            \wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
         }
         
-        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)){
+        if (!$purchaseNote) {
+            if (!\add_post_meta(
+                $productId,
+                '_purchase_note',
+                '',
+                true
+            )) {
+                \update_post_meta(
+                    $productId,
+                    '_purchase_note',
+                    '',
+                    \get_post_meta($productId, '_purchase_note', true)
+                );
+            }
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            if (!$altDeliveryNote) {
+                if (!\add_post_meta(
+                    $productId,
+                    '_alternative_shipping_information',
+                    '',
+                    true
+                )) {
+                    \update_post_meta(
+                        $productId,
+                        '_alternative_shipping_information',
+                        '',
+                        \get_post_meta($productId, '_alternative_shipping_information', true)
+                    );
+                }
+            }
+            
             if (!$digital) {
-                if (!add_post_meta(
+                if (!\add_post_meta(
                     $productId,
                     '_digital',
                     'no',
                     true
                 )) {
-                    update_post_meta(
+                    \update_post_meta(
                         $productId,
                         '_digital',
-                        'no'
+                        'no',
+                        \get_post_meta($productId, '_digital', true)
                     );
                 }
+            }
+            
+            if (!$suppressShippingNotice) {
+                \delete_post_meta($productId, '_suppress_shipping_notice');
             }
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
             if (!$fbStatusCode) {
-                if (!add_post_meta(
+                if (!\add_post_meta(
                     $productId,
-                    substr(ProductVariationSpecificAttribute::FACEBOOK_SYNC_STATUS_ATTR, 3),
+                    substr(ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR, 3),
                     '',
                     true
                 )) {
-                    update_post_meta(
+                    \update_post_meta(
                         $productId,
-                        substr(ProductVariationSpecificAttribute::FACEBOOK_SYNC_STATUS_ATTR, 3),
-                        ''
+                        substr(ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR, 3),
+                        '',
+                        \get_post_meta($productId, substr(ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR, 3), true)
                     );
                 }
             }
@@ -288,7 +448,10 @@ class ProductAttr extends BaseController
         }
         
         if (!$payable) {
-            \wp_update_post(['ID' => $productId, 'post_status' => 'publish']);
+            \wp_update_post([
+                'ID'          => $productId,
+                'post_status' => 'publish',
+            ]);
         }
         
         foreach ($attributesFilteredVariationsAndSpecifics as $key => $attr) {
@@ -332,10 +495,11 @@ class ProductAttr extends BaseController
     
     // <editor-fold defaultstate="collapsed" desc="Methods">
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
-     * @param $slug
-     * @param string $languageIso
+     * @param                       $slug
+     * @param string                $languageIso
+     *
      * @return ProductAttrModel
      */
     private function buildAttribute(

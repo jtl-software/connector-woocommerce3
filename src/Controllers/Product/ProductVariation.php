@@ -171,7 +171,7 @@ class ProductVariation extends BaseController
         $attributesFilteredVariationSpecifics
     ) {
         $result = null;
-        $parent = (new ProductVariationSpecificAttribute);
+        $parent = (new ProductVaSpeAttrHandler);
         
         foreach ($variationSpecificData as $key => $variationSpecific) {
             $taxonomy = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));

@@ -16,7 +16,7 @@ use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
 
-class ProductGermanMarketAttributes extends BaseController
+class ProductGermanMarketFields extends BaseController
 {
     /**
      * @param ProductModel $product

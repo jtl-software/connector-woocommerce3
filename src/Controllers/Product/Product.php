@@ -94,7 +94,7 @@ class Product extends BaseController
                 ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
                 ->setCategories(Product2Category::getInstance()->pullData($product));
             
-            $productVariationSpecificAttribute = (new ProductVariationSpecificAttribute)->pullData($product,
+            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)->pullData($product,
                 $productModel);
             // Simple or father articles
             if ($product->is_type('variable') || $product->is_type('simple')) {
@@ -110,11 +110,11 @@ class Product extends BaseController
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-                (new ProductGermanizedAttributes)->pullData($productModel, $product);
+                (new ProductGermanizedFields)->pullData($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                (new ProductGermanMarketAttributes)->pullData($productModel, $product);
+                (new ProductGermanMarketFields)->pullData($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
@@ -202,11 +202,11 @@ class Product extends BaseController
         $this->onProductInserted($product, $tmpI18n);
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-            (new ProductGermanizedAttributes)->pushData($product);
+            (new ProductGermanizedFields)->pushData($product);
         }
     
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            (new ProductGermanMarketAttributes)->pushData($product);
+            (new ProductGermanMarketFields)->pushData($product);
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -246,7 +246,7 @@ class Product extends BaseController
         
         $this->updateProductRelations($product, $wcProduct);
         
-        (new ProductVariationSpecificAttribute)->pushDataNew($product, $wcProduct);
+        (new ProductVaSpeAttrHandler)->pushDataNew($product, $wcProduct);
         
         if ($this->getType($product) !== 'product_variation') {
             $this->updateProduct($product);

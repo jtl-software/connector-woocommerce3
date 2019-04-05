@@ -11,7 +11,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 
-class ProductGermanizedAttributes extends BaseController
+class ProductGermanizedFields extends BaseController
 {
     public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
