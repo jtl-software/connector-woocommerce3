@@ -45,7 +45,7 @@ class CustomerGroup
             if (count($result) > 0) {
                 foreach ($result as $group) {
                     $allProductsKey = 'bm_all_products';
-                    $allConditionalProductsKey = 'bm_conditional_all_products';
+                   /* $allConditionalProductsKey = 'bm_conditional_all_products';*/
                   
                     \update_post_meta(
                         $group['ID'],
@@ -54,12 +54,12 @@ class CustomerGroup
                         \get_post_meta($group['ID'], $allProductsKey, true)
                     );
                     
-                    \update_post_meta(
+                  /*  \update_post_meta(
                         $group['ID'],
                         $allConditionalProductsKey,
                         'on',
                         \get_post_meta($group['ID'], $allConditionalProductsKey, true)
-                    );
+                    );*/
                     
                     $meta = \get_post_meta($group['ID']);
                     
