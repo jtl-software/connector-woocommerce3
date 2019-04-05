@@ -294,8 +294,8 @@ final class JtlConnectorAdmin
         
         if (count($tableDataSet) !== 0) {
             foreach ($tableDataSet as $tableData) {
-                foreach ($tableData as $t) {
-                    $existingTables[] = $t;
+                foreach ($tableData as $table) {
+                    $existingTables[] = $table;
                 }
             }
         }
@@ -624,7 +624,7 @@ final class JtlConnectorAdmin
             <nav class="nav nav-pills nav-fill flex-column flex-sm-row " id="jtlNavbar">
                 <a class="navbar-brand" href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank">
                     <img src=" https://www.jtl-software.de/site/themes/jtlwebsite/assets/dist/images/logos/jtl-logo.svg"
-                         width="30" height="30" class="d-inline-block align-top" alt="">
+                         width="30" height="30" class="d-inline-block align-top" alt="JTL-Software">
                     Connector
                 </a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
@@ -1142,7 +1142,7 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php print($field['title']); ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
@@ -1163,7 +1163,7 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php print($field['title']); ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;

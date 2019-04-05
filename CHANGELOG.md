@@ -1,4 +1,32 @@
-#Changelog
+# Changelog
+
+This is the changelog of our "JTL WooCommerce Connector".
+
+## 1.8.0
+* Enhancement - Support of HTML-TEXT in descriptions
+* Enhancement - Separate menu for all JTL-Connector settings
+* Enhancement - Support of seo for "manufacturer" (Required plugin: Yoast SEO / Beta)
+* Enhancement - Support of seo for "categories" (Required plugin: Yoast SEO / Beta)
+* Enhancement - Switch to new SupportedPluginHelper functions
+* Enhancement - Use new meta keys instead of use mapped ones
+* Enhancement - Remove unnecessary files
+* Enhancement - new install routine
+* Enhancement - Change some building logic
+* Enhancement - Increase product(attribute/variation/custom_property/specifics/ push performance
+* Enhancement - CO-466 - Support of German Market (BETA ! NO EAN)
+* Enhancement - CO-483 - German Market: measurement_units (BETA)
+* Enhancement - CO-480 - German Market: digital product type (BETA)
+* Enhancement - CO-467 - German Market: base prices (BETA)
+* Enhancement - CO-483 - German Market: delivery times (BETA)
+* Enhancement - CO-474 - German Market: preselect variations (BETA)
+* Enhancement - German Market: alt delivery note (BETA)
+* Enhancement - German Market: purchased note note (BETA)
+* Enhancement - German Market: suppress shipping notice (BETA)
+* Enhancement - CO-434 - Support of B2B Market (BETA ! NO SCALED PRICES)
+* Enhancement - CO-253 - customer groups (BETA)
+* Enhancement - CO-478 - customer groups based prices (BETA)
+* Enhancement - special price for customer groups
+* Fix - special prices
 
 ## 1.7.2
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)
