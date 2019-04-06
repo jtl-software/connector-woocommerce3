@@ -143,8 +143,13 @@ This section describes how to install the plugin and get it working.
 
 == Screenshots ==
 
-1. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
-2. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
+1. The WooCommerce JTL-Connector (>=1.8.0) information & JTL-Wawi settings page.
+2. The WooCommerce JTL-Connector (>=1.8.0) advanced settings page.
+3. The WooCommerce JTL-Connector (>=1.8.0) delivery time settings page.
+4. The WooCommerce JTL-Connector (>=1.8.0) customer orders settings page.
+5. The WooCommerce JTL-Connector (>=1.8.0) developer settings page.
+6. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
+7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
 
