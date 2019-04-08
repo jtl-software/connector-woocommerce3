@@ -86,6 +86,9 @@ class Product extends BaseController
             
             if ($product->get_parent_id() !== 0) {
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
+                $productModel->setIsMasterProduct(false);
+            }else{
+                $productModel->setIsMasterProduct(true);
             }
             
             $productModel
@@ -204,7 +207,7 @@ class Product extends BaseController
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             (new ProductGermanizedFields)->pushData($product);
         }
-    
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             (new ProductGermanMarketFields)->pushData($product);
         }
@@ -273,10 +276,21 @@ class Product extends BaseController
         $wcProduct->set_weight($product->getShippingWeight());
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            $productId = $product->getId()->getEndpoint();
             if (Util::useGtinAsEanEnabled()) {
-                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', (string)$product->getEan());
+                \update_post_meta(
+                    $productId,
+                    '_ts_gtin',
+                    (string)$product->getEan(),
+                    \get_post_meta($productId, '_ts_gtin', true)
+                );
             } else {
-                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', '');
+                \update_post_meta(
+                    $productId,
+                    '_ts_gtin',
+                    '',
+                    \get_post_meta($productId, '_ts_gtin', true)
+                );
             }
         }
         
