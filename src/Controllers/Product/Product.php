@@ -87,14 +87,17 @@ class Product extends BaseController
             if ($product->get_parent_id() !== 0) {
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
                 $productModel->setIsMasterProduct(false);
-            }else{
+            } else {
                 $productModel->setIsMasterProduct(true);
             }
             
+            $specialPrices = ProductSpecialPrice::getInstance()->pullData($product, $productModel);
+            $prices = ProductPrice::getInstance()->pullData($product, $productModel);
+            
             $productModel
                 ->addI18n(ProductI18n::getInstance()->pullData($product, $productModel))
-                ->addPrice(ProductPrice::getInstance()->pullData($product))
-                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
+                ->setPrices($prices)
+                ->setSpecialPrices($specialPrices)
                 ->setCategories(Product2Category::getInstance()->pullData($product));
             
             $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)->pullData($product,

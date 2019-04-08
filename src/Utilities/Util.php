@@ -105,7 +105,7 @@ final class Util extends Singleton
             $customerGroupId = ProductPrice::GUEST_CUSTOMER_GROUP;
         }
         
-        if (!$this->isValidCustomerGroup($customerGroupId) || $customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP) {
+        if ($customerGroupId === ProductPrice::GUEST_CUSTOMER_GROUP || !$this->isValidCustomerGroup($customerGroupId)) {
             return;
         }
         
@@ -138,14 +138,13 @@ final class Util extends Singleton
             
             foreach ($productPrice->getItems() as $item) {
                 
+                if (\wc_prices_include_tax()) {
+                    $newPrice = $item->getNetPrice() * (1 + $vat / 100);
+                } else {
+                    $newPrice = $item->getNetPrice();
+                }
+                
                 if ($item->getQuantity() === 0) {
-                    
-                    if (\wc_prices_include_tax()) {
-                        $newRegularPrice = $item->getNetPrice() * (1 + $vat / 100);
-                    } else {
-                        $newRegularPrice = $item->getNetPrice();
-                    }
-                    
                     $sellPriceIdForGet = is_null($parentProduct) ? $productId : $parentProduct->get_id();
                     
                     $salePrice = \get_post_meta($sellPriceIdForGet, $salePriceKey, true);
@@ -156,7 +155,7 @@ final class Util extends Singleton
                         \update_post_meta(
                             $productId,
                             $priceKey,
-                            \wc_format_decimal($newRegularPrice, $pd),
+                            \wc_format_decimal($newPrice, $pd),
                             $oldPrice
                         );
                     }
@@ -164,7 +163,7 @@ final class Util extends Singleton
                     \update_post_meta(
                         $productId,
                         $regularPriceKey,
-                        \wc_format_decimal($newRegularPrice, $pd),
+                        \wc_format_decimal($newPrice, $pd),
                         $oldRegularPrice
                     );
                 }
@@ -193,13 +192,12 @@ final class Util extends Singleton
             
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
                 foreach ($productPrice->getItems() as $item) {
+                    if (\wc_prices_include_tax()) {
+                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    } else {
+                        $regularPrice = $item->getNetPrice();
+                    }
                     if ($item->getQuantity() === 0) {
-                        if (\wc_prices_include_tax()) {
-                            $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
-                        } else {
-                            $regularPrice = $item->getNetPrice();
-                        }
-                        
                         $salePrice = \get_post_meta($productId, '_sale_price', true);
                         
                         if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
@@ -216,15 +214,16 @@ final class Util extends Singleton
             ) {
                 $customerGroup = get_post($customerGroupId);
                 $productType = (new Product)->getType($product);
+                $bulkPrices = [];
                 
                 foreach ($productPrice->getItems() as $item) {
+                   
                     if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
                             $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
                         } else {
                             $regularPrice = $item->getNetPrice();
                         }
-                        
                         $metaKeyForCustomerGroupPrice = sprintf(
                             'bm_%s_price',
                             $customerGroup->post_name
@@ -281,6 +280,59 @@ final class Util extends Singleton
                             $metaKeyForCustomerGroupPriceType,
                             'fix',
                             \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                        );
+                    } else {
+                        $bulkPrices[] = [
+                            'bulk_price'      => (string)$item->getNetPrice(),
+                            'bulk_price_from' => (string)$item->getQuantity(),
+                            'bulk_price_to'   => '',
+                            'bulk_price_type' => 'fix',
+                        ];
+                    }
+                }
+                
+                if (count($bulkPrices) > 0) {
+                    
+                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaProductId = $product->getId()->getEndpoint();
+                    
+                    \update_post_meta(
+                        $metaProductId,
+                        $metaKey,
+                        $bulkPrices,
+                        \get_post_meta($metaProductId, $metaKey, true)
+                    );
+                    
+                    if (!$product->getIsMasterProduct()) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                            $product->getId()->getEndpoint());
+                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                        
+                        \update_post_meta(
+                            $metaProductId,
+                            $metaKey,
+                            $bulkPrices,
+                            \get_post_meta($metaProductId, $metaKey, true)
+                        );
+                    }
+                }
+                else{
+                    
+                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaProductId = $product->getId()->getEndpoint();
+                    
+                    \delete_post_meta(
+                        $metaProductId,
+                        $metaKey
+                    );
+                    
+                    if (!$product->getIsMasterProduct()) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                            $product->getId()->getEndpoint());
+                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                        \delete_post_meta(
+                            $metaProductId,
+                            $metaKey
                         );
                     }
                 }

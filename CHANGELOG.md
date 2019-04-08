@@ -22,7 +22,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Enhancement - German Market: alt delivery note (BETA)
 * Enhancement - German Market: purchased note note (BETA)
 * Enhancement - German Market: suppress shipping notice (BETA)
-* Enhancement - CO-434 - Support of B2B Market (BETA ! NO SCALED PRICES)
+* Enhancement - CO-434 - Support of B2B Market (BETA ! NO BULK PRICES)
+* Enhancement - rrp support (BETA)
 * Enhancement - CO-253 - customer groups (BETA)
 * Enhancement - CO-478 - customer groups based prices (BETA)
 * Enhancement - special price for customer groups

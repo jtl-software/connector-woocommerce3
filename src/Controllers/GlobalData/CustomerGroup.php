@@ -87,4 +87,12 @@ class CustomerGroup
         
         return $customerGroups;
     }
+    
+    public function getSlugById($customerId){
+        $group = \get_post($customerId);
+        if ($group instanceof \WP_Post){
+            return $group->post_name;
+        }
+        return false;
+    }
 }
