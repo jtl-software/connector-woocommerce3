@@ -509,6 +509,7 @@ class ProductAttr extends BaseController
         $languageIso
     ) {
         $productAttribute = $product->get_attribute($attribute->get_name());
+        $isTax = $attribute->is_taxonomy();
         
         // Divided by |
         $values = explode(WC_DELIMITER, $productAttribute);
@@ -522,7 +523,7 @@ class ProductAttr extends BaseController
         return (new ProductAttrModel)
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
-            ->setIsCustomProperty($attribute->is_taxonomy())
+            ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }
     

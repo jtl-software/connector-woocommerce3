@@ -22,11 +22,14 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Enhancement - German Market: alt delivery note (BETA)
 * Enhancement - German Market: purchased note note (BETA)
 * Enhancement - German Market: suppress shipping notice (BETA)
-* Enhancement - CO-434 - Support of B2B Market (BETA ! NO SCALED PRICES)
-* Enhancement - CO-253 - customer groups (BETA)
-* Enhancement - CO-478 - customer groups based prices (BETA)
-* Enhancement - special price for customer groups
+* Enhancement - CO-434 - Support of B2B Market (BETA)
+* Enhancement - CO-479 - B2B Market: bulk prices support (BETA)
+* Enhancement - CO-468 - B2B Market: rrp support (BETA)
+* Enhancement - CO-253 - B2B Market:customer groups (BETA)
+* Enhancement - CO-478 - B2B Market:customer groups based prices (BETA)
+* Enhancement - B2B Market/JTL-CONNECTOR/WAWI: special price for customer groups
 * Fix - special prices
+* Fix - custom fields
 
 ## 1.7.2
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)

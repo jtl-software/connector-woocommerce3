@@ -27,7 +27,8 @@ class ProductGermanMarketFields extends BaseController
      */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
-        $this->setGermanMarketAttributes($product, $wcProduct);
+        $this->setBasePriceProperties($product, $wcProduct);
+        $this->setRRPProperty($product, $wcProduct);
     }
     
     /**
@@ -37,9 +38,9 @@ class ProductGermanMarketFields extends BaseController
      * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
      * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
      */
-    private function setGermanMarketAttributes(ProductModel &$product, \WC_Product $wcProduct)
+    private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
     {
-        $metaKeys = $this->getGermanMarketMetaKeys();
+        $metaKeys = $this->getGermanMarketMetaKeys($product->getIsMasterProduct());
         
         if ($this->hasGermanMarketUnitPrice($wcProduct, $metaKeys)) {
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
@@ -224,6 +225,14 @@ class ProductGermanMarketFields extends BaseController
         }
     }
     
+    private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct)
+    {
+        $rrp = get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+        if ($rrp !== '' && !is_null($rrp) && !empty($rrp)) {
+            $product->setRecommendedRetailPrice((float)$rrp);
+        }
+    }
+    
     /**
      * @return array
      */
@@ -379,6 +388,7 @@ class ProductGermanMarketFields extends BaseController
     public function pushData(ProductModel $product)
     {
         $this->updateGermanMarketPPU($product);
+        $this->updateRRP($product);
     }
     
     /**
@@ -573,5 +583,33 @@ class ProductGermanMarketFields extends BaseController
             '',
             $metaData[$metaKeys['unitSalePriceKey']]
         );
+    }
+    
+    /**
+     * @param ProductModel $product
+     */
+    private function updateRRP(ProductModel $product)
+    {
+        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+        $rrp = $product->getRecommendedRetailPrice();
+        $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+        
+        if ($rrp !== $oldValue) {
+            if (!$product->getIsMasterProduct()) {
+                $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
+                \update_post_meta(
+                    $wcProduct->get_parent_id(),
+                    $vKey,
+                    $rrp,
+                    \get_post_meta($wcProduct, $vKey, true)
+                );
+            }
+            \update_post_meta(
+                $wcProduct->get_id(),
+                'bm_rrp',
+                $rrp,
+                \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
+            );
+        }
     }
 }

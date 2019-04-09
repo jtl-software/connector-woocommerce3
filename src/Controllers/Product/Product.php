@@ -16,13 +16,14 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Product extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
+    use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
     
     private static $idCache = [];
     
@@ -86,12 +87,18 @@ class Product extends BaseController
             
             if ($product->get_parent_id() !== 0) {
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
+                $productModel->setIsMasterProduct(false);
+            } else {
+                $productModel->setIsMasterProduct(true);
             }
+            
+            $specialPrices = ProductSpecialPrice::getInstance()->pullData($product, $productModel);
+            $prices = ProductPrice::getInstance()->pullData($product, $productModel);
             
             $productModel
                 ->addI18n(ProductI18n::getInstance()->pullData($product, $productModel))
-                ->addPrice(ProductPrice::getInstance()->pullData($product))
-                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($product))
+                ->setPrices($prices)
+                ->setSpecialPrices($specialPrices)
                 ->setCategories(Product2Category::getInstance()->pullData($product));
             
             $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)->pullData($product,
@@ -204,7 +211,7 @@ class Product extends BaseController
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             (new ProductGermanizedFields)->pushData($product);
         }
-    
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             (new ProductGermanMarketFields)->pushData($product);
         }
@@ -273,10 +280,21 @@ class Product extends BaseController
         $wcProduct->set_weight($product->getShippingWeight());
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            $productId = $product->getId()->getEndpoint();
             if (Util::useGtinAsEanEnabled()) {
-                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', (string)$product->getEan());
+                \update_post_meta(
+                    $productId,
+                    '_ts_gtin',
+                    (string)$product->getEan(),
+                    \get_post_meta($productId, '_ts_gtin', true)
+                );
             } else {
-                \update_post_meta($product->getId()->getEndpoint(), '_ts_gtin', '');
+                \update_post_meta(
+                    $productId,
+                    '_ts_gtin',
+                    '',
+                    \get_post_meta($productId, '_ts_gtin', true)
+                );
             }
         }
         
@@ -317,6 +335,7 @@ class Product extends BaseController
     private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct)
     {
         (new Product2Category)->pushData($product);
+        $this->fixProductPriceForCustomerGroups($product, $wcProduct);
         (new ProductPrice)->pushData($product);
         (new ProductSpecialPrice)->pushData($product, $wcProduct);
     }
