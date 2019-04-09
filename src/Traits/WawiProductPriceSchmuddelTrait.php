@@ -6,9 +6,11 @@
 
 namespace JtlWooCommerceConnector\Traits;
 
+use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\Util;
 
 trait WawiProductPriceSchmuddelTrait
@@ -17,21 +19,32 @@ trait WawiProductPriceSchmuddelTrait
     {
         $pushedPrices = $product->getPrices();
         $defaultPrices = null;
-        $defaultPriceNetto = 0;
+        $defaultPriceNet = 0;
         $prices = [];
         $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
         
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
+                if (count($product->getPrices()) === 1) {
+                    $customerGroups = (new CustomerGroup)->pullData();
+    
+                    /** @var CustomerGroupModel $customerGroup */
+                    foreach ($customerGroups as $cKey => $customerGroup){
+                        $missingProductPrice = clone($pValue);
+                        $missingProductPrice->setCustomerGroupId($customerGroup->getId());
+                        $prices[] = $missingProductPrice;
+                    }
+                }
+                
                 $defaultPrices = $pValue;
                 
                 /** @var ProductPriceItemModel $item */
                 foreach ($pValue->getItems() as $ikey => $item) {
                     if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
-                            $defaultPriceNetto = $item->getNetPrice() * (1 + $vat / 100);
+                            $defaultPriceNet = $item->getNetPrice() * (1 + $vat / 100);
                         } else {
-                            $defaultPriceNetto = $item->getNetPrice();
+                            $defaultPriceNet = $item->getNetPrice();
                         }
                     }
                 }
@@ -62,8 +75,8 @@ trait WawiProductPriceSchmuddelTrait
             
             if (!$hasRegularPrice) {
                 $productPrice->addItem((new ProductPriceItemModel())
-                    ->setNetPrice($defaultPriceNetto)
-                ->setQuantity(0)
+                    ->setNetPrice($defaultPriceNet)
+                    ->setQuantity(0)
                 );
             }
         }
