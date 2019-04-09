@@ -132,13 +132,13 @@ class ProductVaSpeAttrHandler extends BaseController
         return $this->productData;
     }
     
-    public function pushDataNew(ProductModel $product, \WC_Product $wcProduct)
+    public function pushDataNew(ProductModel &$product, \WC_Product &$wcProduct)
     {
         if ($wcProduct === false) {
             return;
         }
-        //Identify Master/Child
-        $isMaster = $product->getIsMasterProduct();
+        //Identify Master = parent/simple
+        $isMaster = $product->getMasterProductId()->getHost() === 0;
         
         $productId = $product->getId()->getEndpoint();
         
@@ -167,7 +167,8 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product
             );
             $this->mergeAttributes($newProductAttributes, $finishedAttr);
-            // handleVarSpecifics
+            
+            // handleSpecifics
             $finishedSpecifics = (new ProductSpecific)->pushData(
                 $productId, $curAttributes, $specificData, $product->getSpecifics()
             );
@@ -178,6 +179,11 @@ class ProductVaSpeAttrHandler extends BaseController
                 $variationSpecificData,
                 $attributesFilteredVariationSpecifics
             );
+            
+            if (!is_array($finishedVarSpecifics)) {
+                $finishedVarSpecifics = [];
+            }
+            
             $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
@@ -394,12 +400,12 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             );
-    
+            
             $functionAttributes[] = $this->getSuppressShippingNoticeFunctionAttribute(
                 $product,
                 $languageIso
             );
-    
+            
             $functionAttributes[] = $this->getAltDeliveryNoteFunctionAttribute(
                 $product,
                 $languageIso

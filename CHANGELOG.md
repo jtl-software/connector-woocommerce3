@@ -28,6 +28,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Enhancement - CO-478 - customer groups based prices (BETA)
 * Enhancement - special price for customer groups
 * Fix - special prices
+* Fix - custom fields
 
 ## 1.7.2
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)
