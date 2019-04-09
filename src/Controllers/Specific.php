@@ -6,11 +6,11 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Specific as SpecificModel;
 use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
 use jtl\Connector\Model\SpecificValue as SpecificValueModel;
 use jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
-use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
@@ -77,7 +77,7 @@ class Specific extends BaseController
     {
         //WooFix
         $specific->setType('string');
-        $meta             = null;
+        $meta = null;
         $defaultAvailable = false;
         
         foreach ($specific->getI18ns() as $i18n) {
@@ -107,7 +107,7 @@ class Specific extends BaseController
             $attrName = wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
             
             //STOP here if already exists
-            $exId  = Util::getAttributeTaxonomyIdByName($attrName);
+            $exId = Util::getAttributeTaxonomyIdByName($attrName);
             $endId = (int)$specific->getId()->getEndpoint();
             
             if ($exId !== 0) {
@@ -158,7 +158,7 @@ class Specific extends BaseController
             /** @var SpecificValueModel $value */
             foreach ($specific->getValues() as $key => $value) {
                 $value->getSpecificId()->setEndpoint($attributeId);
-                $metaValue             = null;
+                $metaValue = null;
                 $defaultValueAvailable = false;
                 
                 //Get i18n
@@ -256,7 +256,7 @@ class Specific extends BaseController
     {
         $specificId = (int)$specific->getId()->getEndpoint();
         
-        if ( ! empty($specificId)) {
+        if (!empty($specificId)) {
             
             unset(self::$idCache[$specific->getId()->getHost()]);
             
@@ -295,8 +295,9 @@ class Specific extends BaseController
             
             /** @var \WP_Post $post */
             foreach ($posts as $post) {
-                $wcProduct        = \wc_get_product($post->ID);
+                $wcProduct = \wc_get_product($post->ID);
                 $productSpecifics = $wcProduct->get_attributes();
+                
                 /** @var \WC_Product_Attribute $productSpecific */
                 foreach ($productSpecifics as $productSpecific) {
                     if ($productSpecific->get_variation()) {
@@ -305,7 +306,7 @@ class Specific extends BaseController
                 }
             }
             
-            if ( ! $isVariation) {
+            if (!$isVariation) {
                 
                 foreach ($specificValueData as $value) {
                     \wp_delete_term($value['term_id'], $taxonomy);

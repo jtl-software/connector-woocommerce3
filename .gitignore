@@ -2,8 +2,8 @@ plugins/
 !plugins/.gitkeep
 composer.lock
 vendor/**
-build/
-dist/
+/build/
+/dist/
 db/
 !db/.gitkeep
 logs/

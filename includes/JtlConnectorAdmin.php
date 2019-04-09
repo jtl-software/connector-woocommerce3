@@ -1,15 +1,12 @@
 <?php
 
-use jtl\Connector\Core\Exception\MissingRequirementException;
-use jtl\Connector\Application\Application;
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
-use \WC_Admin_Settings as WC_Admin_Settings;
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -22,7 +19,7 @@ final class JtlConnectorAdmin
     /**
      * Password for connector
      */
-    const OPTIONS_TOKEN = 'jtlconnector_password';
+    const OPTIONS_TOKEN = 'connector_password';
     /**
      * Pull all orders even the completed ones
      */
@@ -38,24 +35,63 @@ final class JtlConnectorAdmin
     /**
      * The currently installed connector version.
      */
-    const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
+    
     /**
      * The update to a new connector version failed.
      */
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
     
+    const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
     const OPTIONS_DEVELOPER_LOGGING = 'developer_logging';
+    const OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page';
+    const OPTIONS_SEND_CUSTOM_PROPERTIES = 'jtlconnector_send_custom_properties';
+    const OPTIONS_USE_GTIN_FOR_EAN = 'jtlconnector_use_gtin_for_ean';
+    const OPTIONS_USE_DELIVERYTIME_CALC = 'jtlconnector_use_deliverytime_calc';
+    const OPTIONS_DISABLED_ZERO_DELIVERY_TIME = 'jtlconnector_disabled_zero_delivery_time';
+    const OPTIONS_PRAEFIX_DELIVERYTIME = 'jtlconnector_praefix_deliverytime';
+    const OPTIONS_SUFFIX_DELIVERYTIME = 'jtlconnector_suffix_deliverytime';
+    const OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
+    const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
     
-    const OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'show_variation_specifics_on_product_page';
+    const JTLWCC_CONFIG = [
+        //FIRSTPAGE
+        self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
+        self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
+        self::OPTIONS_VARIATION_NAME_FORMAT                    => 'string',
+        self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
+        //PAGE
+        self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
+        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
+        self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
+        self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
+        //PAGE
+        self::OPTIONS_COMPLETED_ORDERS                         => 'bool',
+        self::OPTIONS_PULL_ORDERS_SINCE                        => 'date',
+        //Page
+        self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => 'bool',
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => 'bool',
+    ];
     
-    const OPTIONS_SEND_CUSTOM_PROPERTIES = 'send_custom_properties';
-    
-    const OPTIONS_USE_GTIN_FOR_EAN = 'use_gtin_for_ean';
-    
-    const OPTIONS_USE_DELIVERYTIME_CALC = 'use_deliverytime_calc';
-    const OPTIONS_DISABLED_ZERO_DELIVERY_TIME = 'disabled_zero_delivery_time';
-    const OPTIONS_PRAEFIX_DELIVERYTIME = 'praefix_deliverytime';
-    const OPTIONS_SUFFIX_DELIVERYTIME = 'suffix_deliverytime';
+    const JTLWCC_CONFIG_DEFAULTS = [
+        //FIRSTPAGE
+        self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => true,
+        self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => true,
+        self::OPTIONS_VARIATION_NAME_FORMAT                    => '',
+        self::OPTIONS_USE_GTIN_FOR_EAN                         => true,
+        //PAGE
+        self::OPTIONS_USE_DELIVERYTIME_CALC                    => true,
+        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => true,
+        self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'ca. ',
+        self::OPTIONS_SUFFIX_DELIVERYTIME                      => ' Werktage',
+        //PAGE
+        self::OPTIONS_COMPLETED_ORDERS                         => true,
+        self::OPTIONS_PULL_ORDERS_SINCE                        => '',
+        //Page
+        self::OPTIONS_DEVELOPER_LOGGING                        => false,
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => true,
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => true,
+    ];
     
     private static $initiated = false;
     
@@ -64,6 +100,7 @@ final class JtlConnectorAdmin
     {
         global $woocommerce;
         $version = $woocommerce->version;
+        $connectorVersion = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
@@ -77,18 +114,19 @@ final class JtlConnectorAdmin
         try {
             self::run_system_check();
             self::activate_linking();
-            self::activate_checksum();
-            self::activate_category_tree();
-            self::set_linking_table_name_prefix_correctly();
-            self::add_manufacturer_linking_tables();
+            
             add_option(self::OPTIONS_TOKEN, self::create_password());
-            add_option(self::OPTIONS_COMPLETED_ORDERS, 'yes');
-            add_option(self::OPTIONS_PULL_ORDERS_SINCE, '');
-            add_option(self::OPTIONS_VARIATION_NAME_FORMAT, '');
-            add_option(self::OPTIONS_INSTALLED_VERSION,
-                trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']));
+            add_option(self::OPTIONS_INSTALLED_VERSION, $connectorVersion);
+            
+            foreach (self::JTLWCC_CONFIG as $oKey => $castItem) {
+                $curValue = get_option($oKey, null);
+                if ($curValue === null) {
+                    $curValue = self::JTLWCC_CONFIG_DEFAULTS[$oKey];
+                    update_option($oKey, $curValue, true);
+                }
+            }
         } catch (\jtl\Connector\Core\Exception\MissingRequirementException $exc) {
-            if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX)) {
+            if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();
                 wp_die($exc->getMessage());
             } else {
@@ -117,7 +155,7 @@ final class JtlConnectorAdmin
     
     private static function run_phar_check()
     {
-        if ( ! extension_loaded('phar')) {
+        if (!extension_loaded('phar')) {
             add_action('admin_notices', 'phar_extension');
         }
         if (extension_loaded('suhosin')) {
@@ -131,7 +169,7 @@ final class JtlConnectorAdmin
     {
         global $wpdb;
         
-        $query = '
+        $createQuery = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
@@ -139,32 +177,87 @@ final class JtlConnectorAdmin
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
         
-        $tables = [
-            'jtl_connector_link_category',
-            'jtl_connector_link_crossselling',
-            'jtl_connector_link_order',
-            'jtl_connector_link_payment',
-            'jtl_connector_link_product',
-            'jtl_connector_link_shipping_class',
-            'jtl_connector_link_specific',
-            'jtl_connector_link_specific_value',
-        ];
+        $dropOldQuery = '
+          DROP TABLE IF EXISTS `%s`;
+        ';
         
-        foreach ($tables as $table) {
-            $wpdb->query(sprintf($query, $table));
+        $oldPrefix = 'jtl_connector_link_';
+        $prefix = $wpdb->prefix . $oldPrefix;
+        
+        $existingTables = self::getOldDatabaseTables();
+        
+        $tables = [
+            'category',
+            'category_level',
+            'crossselling',
+            'currency',//not implemented yet
+            'customer',
+            'customer_group', //not implemented yet
+            'image',
+            'language',//not implemented yet
+            'manufacturer',
+            'measurement_unit',//not implemented yet
+            'order',
+            'payment',
+            'product',
+            'product_checksum',
+            'shipping_class',
+            'shipping_method',//not implemented yet
+            'specific',
+            'specific_value',
+        ];
+        self::activate_category_tree($prefix);
+        foreach ($tables as $key => $table) {
+            $oldExists = in_array($oldPrefix . $table, $existingTables);
+            $newExists = in_array($prefix . $table, $existingTables);
+            
+            if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
+                $oldPrefix = substr($oldPrefix, 0, -5);
+                $prefix = substr($prefix, 0, -5);
+                $oldExists = in_array($oldPrefix . $table, $existingTables);
+                $newExists = in_array($prefix . $table, $existingTables);
+            }
+            
+            if ($oldExists && $newExists) {
+                $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
+            } elseif (!$oldExists && !$newExists) {
+                if (strcmp($table, 'category_level') === 0) {
+                    self::activate_category_tree($prefix);
+                } elseif (strcmp($table, 'product_checksum') === 0) {
+                    self::activate_checksum($prefix);
+                } elseif (strcmp($table, 'customer') === 0) {
+                    self::createCustomerLinkingTable();
+                } elseif (strcmp($table, 'image') === 0) {
+                    self::createImageLinkingTable();
+                } elseif (strcmp($table, 'manufacturer') === 0) {
+                    self::createManufacturerLinkingTable();
+                } else {
+                    $wpdb->query(sprintf($createQuery, $prefix . $table));
+                }
+            } elseif ($oldExists && !$newExists) {
+                self::renameTable($oldPrefix . $table, $prefix . $table);
+            }
+            //reset values
+            $oldPrefix = 'jtl_connector_link_';
+            $prefix = $wpdb->prefix . $oldPrefix;
         }
         
-        $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
-                `endpoint_id` VARCHAR(255) NOT NULL,
-                `host_id` INT(10) unsigned NOT NULL,
-                `is_guest` BIT,
-                PRIMARY KEY (`endpoint_id`, `host_id`, `is_guest`),
-                INDEX (`host_id`, `is_guest`),
-                INDEX (`endpoint_id`, `is_guest`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
-        );
+        self::add_constraints_for_multi_linking_tables($prefix);
+    }
+    
+    private static function renameTable($oldName, $newName)
+    {
+        global $wpdb;
         
+        $query = 'RENAME TABLE %s TO %s;';
+        
+        $sql = sprintf($query, $oldName, $newName);
+        $wpdb->query($sql);
+    }
+    
+    private static function createImageLinkingTable()
+    {
+        global $wpdb;
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -176,12 +269,41 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
         
-        self::add_constraints_for_multi_linking_tables();
-        self::set_linking_table_name_prefix_correctly();
-        self::add_manufacturer_linking_tables();
     }
     
-    private static function activate_checksum()
+    private static function createCustomerLinkingTable()
+    {
+        global $wpdb;
+        $wpdb->query('
+            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
+                `endpoint_id` VARCHAR(255) NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                `is_guest` BIT,
+                PRIMARY KEY (`endpoint_id`, `host_id`, `is_guest`),
+                INDEX (`host_id`, `is_guest`),
+                INDEX (`endpoint_id`, `is_guest`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
+        );
+    }
+    
+    private static function getOldDatabaseTables()
+    {
+        global $wpdb;
+        $existingTables = [];
+        $tableDataSet = $wpdb->get_results('SHOW TABLES');
+        
+        if (count($tableDataSet) !== 0) {
+            foreach ($tableDataSet as $tableData) {
+                foreach ($tableData as $table) {
+                    $existingTables[] = $table;
+                }
+            }
+        }
+        
+        return array_values($existingTables);
+    }
+    
+    private static function activate_checksum($prefix)
     {
         global $wpdb;
         
@@ -199,7 +321,7 @@ final class JtlConnectorAdmin
         }
         
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
+            CREATE TABLE IF NOT EXISTS `{$prefix}product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
                 `type` tinyint unsigned NOT NULL,
                 `checksum` varchar(255) NOT NULL,
@@ -207,7 +329,7 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
     
-    private static function activate_category_tree()
+    private static function activate_category_tree($prefix)
     {
         global $wpdb;
         
@@ -225,7 +347,7 @@ final class JtlConnectorAdmin
         }
         
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
+            CREATE TABLE IF NOT EXISTS `{$prefix}category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
                 `level` int(10) unsigned NOT NULL,
                 `sort` int(10) unsigned NOT NULL,
@@ -255,7 +377,7 @@ final class JtlConnectorAdmin
     
     public static function init()
     {
-        if ( ! self::$initiated) {
+        if (!self::$initiated) {
             self::init_hooks();
         }
     }
@@ -266,18 +388,146 @@ final class JtlConnectorAdmin
         
         add_filter('plugin_row_meta', ['JtlConnectorAdmin', 'jtlconnector_plugin_row_meta'], 10, 2);
         
-        add_action('woocommerce_settings_tabs_array', ['JtlConnectorAdmin', 'add_settings_tab'], 50);
-        add_action('woocommerce_settings_tabs_woo-jtl-connector', ['JtlConnectorAdmin', 'display_page'], 1);
-        add_action('woocommerce_settings_save_woo-jtl-connector', ['JtlConnectorAdmin', 'save']);
+        add_action('admin_post_settings_save_woo-jtl-connector', ['JtlConnectorAdmin', 'save']);
         
-        add_action('woocommerce_admin_field_date', ['JtlConnectorAdmin', 'date_field']);
-        add_action('woocommerce_admin_field_paragraph', ['JtlConnectorAdmin', 'paragraph_field']);
-        add_action('woocommerce_admin_field_connector_url', ['JtlConnectorAdmin', 'connector_url_field']);
-        add_action('woocommerce_admin_field_connector_password', ['JtlConnectorAdmin', 'connector_password_field']);
+        //Register custom fields
+        add_action('woocommerce_admin_field_jtl_date_field',
+            ['JtlConnectorAdmin', 'jtl_date_field']
+        );
+        add_action('woocommerce_admin_field_paragraph',
+            ['JtlConnectorAdmin', 'paragraph_field']
+        );
+        add_action('woocommerce_admin_field_connector_url',
+            ['JtlConnectorAdmin', 'connector_url_field']
+        );
+        add_action('woocommerce_admin_field_connector_password',
+            ['JtlConnectorAdmin', 'connector_password_field']
+        );
         add_action('woocommerce_admin_field_active_true_false_radio',
-            ['JtlConnectorAdmin', 'active_true_false_radio_btn']);
-        add_action('woocommerce_admin_field_dev_log_btn', ['JtlConnectorAdmin', 'dev_log_btn']);
-        add_action('woocommerce_admin_field_jtl_text_input', ['JtlConnectorAdmin', 'jtl_text_input']);
+            ['JtlConnectorAdmin', 'active_true_false_radio_btn']
+        );
+        add_action('woocommerce_admin_field_variation_name_select',
+            ['JtlConnectorAdmin', 'variation_name_select']
+        );
+        add_action('woocommerce_admin_field_dev_log_btn',
+            ['JtlConnectorAdmin', 'dev_log_btn']
+        );
+        add_action('woocommerce_admin_field_jtl_text_input',
+            ['JtlConnectorAdmin', 'jtl_text_input']
+        );
+        add_action('woocommerce_admin_field_jtl_checkbox',
+            ['JtlConnectorAdmin', 'jtl_checkbox']
+        );
+        add_action('woocommerce_admin_field_not_compatible_plugins_field',
+            ['JtlConnectorAdmin', 'not_compatible_plugins_field']
+        );
+        add_action('woocommerce_admin_field_compatible_plugins_field',
+            ['JtlConnectorAdmin', 'compatible_plugins_field']
+        );
+        
+        //NEW PAGE
+        add_action('admin_menu', 'woo_jtl_connector_add_admin_menu');
+        add_action('admin_enqueue_scripts', 'woo_jtl_connector_loadCssAndJs');
+        function woo_jtl_connector_add_admin_menu()
+        {
+            add_menu_page(
+                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector',
+                null,
+                null,
+                '55.5'
+            );
+            
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Information', JTLWCC_TEXT_DOMAIN),
+                __('Information', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-information',
+                'woo_jtl_connector_information_page'
+            );
+            
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Advanced', JTLWCC_TEXT_DOMAIN),
+                __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-advanced',
+                'woo_jtl_connector_advanced_page'
+            );
+            
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Delivery times', JTLWCC_TEXT_DOMAIN),
+                __('Delivery times', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-delivery-time',
+                'woo_jtl_connector_delivery_time_page'
+            );
+            
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Customer orders', JTLWCC_TEXT_DOMAIN),
+                __('Customer orders', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-customer-order',
+                'woo_jtl_connector_customer_order_page'
+            );
+            
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
+                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-developer-settings',
+                'woo_jtl_connector_developer_settings_page'
+            );
+            
+            remove_submenu_page('woo-jtl-connector', 'woo-jtl-connector');
+        }
+        
+        function woo_jtl_connector_loadCssAndJs($hook)
+        {
+            // your-slug => The slug name to refer to this menu used in "add_submenu_page"
+            // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
+            if (!preg_match('/^jtl-connector_page_woo-/', $hook)) {
+                return;
+            }
+            
+            wp_enqueue_style('bootstrap4', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css');
+            wp_enqueue_style('custom-css-jtl', JTLWCC_CONNECTOR_DIR_URL . '/includes/css/custom.css');
+            wp_enqueue_script('boot1', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js',
+                ['jquery'], '', true);
+            
+        }
+        
+        function woo_jtl_connector_information_page()
+        {
+            JtlConnectorAdmin::displayPageNew('information_page', __('Connector information', JTLWCC_TEXT_DOMAIN));
+        }
+        
+        function woo_jtl_connector_advanced_page()
+        {
+            JtlConnectorAdmin::displayPageNew('advanced_page', __('Advanced Settings', JTLWCC_TEXT_DOMAIN), true);
+        }
+        
+        function woo_jtl_connector_delivery_time_page()
+        {
+            JtlConnectorAdmin::displayPageNew('delivery_time_page', __('Delivery time', JTLWCC_TEXT_DOMAIN), true);
+        }
+        
+        function woo_jtl_connector_customer_order_page()
+        {
+            JtlConnectorAdmin::displayPageNew('customer_order_page', __('Customer order', JTLWCC_TEXT_DOMAIN), true);
+        }
+        
+        function woo_jtl_connector_developer_settings_page()
+        {
+            JtlConnectorAdmin::displayPageNew('developer_settings_page', __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                true);
+        }
         
         self::update();
     }
@@ -285,27 +535,138 @@ final class JtlConnectorAdmin
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'woo-jtl-connector.php') !== false) {
-            $url       = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
+            $url = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
             ];
-            $links     = array_merge($links, $new_links);
+            $links = array_merge($links, $new_links);
         }
         
         return $links;
     }
     
     // <editor-fold defaultstate="collapsed" desc="Settings">
-    public static function add_settings_tab($tabs)
+    
+    public static function displayPageNew($page, $title = 'Connector information', $submit = false)
     {
-        $tabs[JTLWCC_TEXT_DOMAIN] = 'JTL-Connector';
+        $options = null;
+        if (is_null($page)) {
+            return;
+        }
         
-        return $tabs;
+        self::validateAndPrepareConfig();
+        
+        switch ($page) {
+            case 'information_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields());
+                break;
+            case 'advanced_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getAdvancedFields());
+                break;
+            case 'delivery_time_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeliveryTimeFields());
+                break;
+            case 'customer_order_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields());
+                break;
+            case 'developer_settings_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeveloperSettingsFields());
+                break;
+            default:
+                $settings = null;
+                break;
+        }
+        
+        if (is_null($settings)) {
+            return;
+        }
+        
+        $options = apply_filters('woocommerce_get_settings_jtlconnector', $settings);
+        
+        ?>
+        <div class="bootstrap-wrapper m-0 bg-light">
+            <?php
+            self::displayNanvigation($page);
+            ?>
+            <div class="container-fluid">
+                <div class="row justify-content-center pb-4">
+                    <form method="post"
+                          id="mainform"
+                          class="form-horizontal col-10 bg-light"
+                          action="<?php echo esc_html(admin_url('admin-post.php')); ?>?action=settings_save_woo-jtl-connector"
+                          enctype="multipart/form-data">
+                        <div class="form-group row">
+                            <h2 class="col-12"><?php print $title ?></h2>
+                        </div>
+                        <?php
+                        print '' . woocommerce_admin_fields($options) . '';
+                        if ($submit) {
+                            ?>
+                            <div class="form-group row">
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+    
+    private static function displayNanvigation($page)
+    {
+        ?>
+        <div class="container-fluid mb-3 navbar navbar-dark bg-dark">
+            <nav class="nav nav-pills nav-fill flex-column flex-sm-row " id="jtlNavbar">
+                <a class="navbar-brand" href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank">
+                    <img src=" https://www.jtl-software.de/site/themes/jtlwebsite/assets/dist/images/logos/jtl-logo.svg"
+                         width="30" height="30" class="d-inline-block align-top" alt="JTL-Software">
+                    Connector
+                </a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-information"><?php print __('Information',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'advanced_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-advanced"><?php print __('Advanced Settings',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'delivery_time_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-delivery-time"><?php print __('Delivery times',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'customer_order_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-customer-order"><?php print __('Customer orders',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page,
+                        'developer_settings_page') === 0) {
+                    print 'active';
+                } ?>"
+                   href="admin.php?page=woo-jtl-connector-developer-settings"><?php print __('Developer Settings',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+                <a class="flex-sm-fill text-sm-center nav-link"
+                   href="https://guide.jtl-software.de/jtl-connector/woocommerce/"
+                   target="_blank"><?php print __('JTL-Guide',
+                        JTLWCC_TEXT_DOMAIN); ?></a>
+
+
+            </nav>
+        </div>
+        <?php
     }
     
     public static function settings_link($links = [])
     {
-        $settings_link = '<a href="admin.php?page=wc-settings&tab=woo-jtl-connector">' . __('Settings',
+        $settings_link = '<a href="admin.php?page=woo-jtl-connector-information">' . __('Settings',
                 JTLWCC_TEXT_DOMAIN) . '</a>';
         
         array_unshift($links, $settings_link);
@@ -313,73 +674,8 @@ final class JtlConnectorAdmin
         return $links;
     }
     
-    public static function display_page()
+    private static function notCompatiblePluginsError()
     {
-        return '<div class="wrap woocommerce">' . woocommerce_admin_fields(JtlConnectorAdmin::get_settings()) . '</div>';
-    }
-    
-    public static function get_settings()
-    {
-        self::validateAndPrepareConfig();
-        
-        $settings = apply_filters('woocommerce_settings_jtlconnector', self::getConfigFields());
-        
-        return apply_filters('woocommerce_get_settings_jtlconnector', $settings);
-    }
-    
-    // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
-    
-    /**
-     * @return array
-     */
-    
-    private static function getConfigFields()
-    {
-        $fields = [];
-        
-        //Add Information field
-        $fields[] = [
-            'title' => __('Information', JTLWCC_TEXT_DOMAIN),
-            'type'  => 'title',
-            'desc'  => __('Basic information and credentials of the installed JTL-Connectors. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
-                JTLWCC_TEXT_DOMAIN),
-        ];
-        
-        //Add connector url field
-        $fields[] = [
-            'title' => 'Connector URL',
-            'type'  => 'connector_url',
-            'id'    => 'connector_url',
-            'value' => get_bloginfo('url') . '/index.php/jtlconnector/',
-        ];
-        
-        //Add connector password field
-        $fields[] = [
-            'title' => __('Connector Password', JTLWCC_TEXT_DOMAIN),
-            'type'  => 'connector_password',
-            'id'    => 'connector_password',
-            'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
-        ];
-        
-        //Add connector version field
-        $fields[] = [
-            'title' => 'Connector Version',
-            'type'  => 'paragraph',
-            'desc'  => Config::get('connector_version'),
-        ];
-        
-        //Add sectionend
-        $fields[] = [
-            'type' => 'sectionend',
-        ];
-        
-        //Add Incompatible plugin informations
-        $fields[] = [
-            'title' => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
-            'type'  => 'title',
-            'desc'  => SupportedPlugins::getNotSupportedButActive(true, true),
-        ];
-        
         //Show error if unsupported plugins are in use
         if (count(SupportedPlugins::getNotSupportedButActive()) > 0) {
             self::jtlwcc_show_wordpress_error(
@@ -389,70 +685,99 @@ final class JtlConnectorAdmin
                 )
             );
         }
+    }
+    
+    private static function getInformationFields()
+    {
+        $fields = [];
         
-        //Add extend plugin informations
-        if (count(SupportedPlugins::getSupported()) > 0) {
-            
-            $fields[] = [
-                'title' => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
-                'type'  => 'title',
-                'desc'  => SupportedPlugins::getSupported(true),
-            ];
-        }
+        self::notCompatiblePluginsError();
+        
+        //Add Information field
+        $fields[] = [
+            'type' => 'title',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product family are perfectly suited to the requirements of e-commerce and mail order businesses. They help you to process more orders in a shorter time and offer a range of exciting functionalities. Basic information and credentials of the installed JTL-Connector. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
+                JTLWCC_TEXT_DOMAIN),
+        ];
         
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
         
+        //Add connector url field
+        $fields[] = [
+            'title'     => 'Connector URL',
+            'type'      => 'connector_url',
+            'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => 'connector_url',
+            'value'     => get_bloginfo('url') . '/index.php/jtlconnector/',
+        ];
+        
+        //Add connector password field
+        $fields[] = [
+            'title'     => __('Connector Password', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'connector_password',
+            'helpBlock' => __('This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => 'connector_password',
+            'value'     => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
+        ];
+        
+        //Add connector version field
+        $fields[] = [
+            'title'     => 'Connector Version',
+            'type'      => 'paragraph',
+            'helpBlock' => __('This is your current installed connector version.', JTLWCC_TEXT_DOMAIN),
+            'desc'      => Config::get('connector_version'),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        //Add extend plugin informations
+        if (count(SupportedPlugins::getSupported()) > 0) {
+            $fields[] = [
+                'title'   => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
+                'type'    => 'compatible_plugins_field',
+                'plugins' => SupportedPlugins::getSupported(),
+            ];
+        }
+        
+        //Add Incompatible plugin informations
+        $fields[] = [
+            'title'   => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
+            'type'    => 'not_compatible_plugins_field',
+            'plugins' => SupportedPlugins::getNotSupportedButActive(false, true, true),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        return $fields;
+    }
+    
+    private static function getAdvancedFields()
+    {
+        $fields = [];
+        
+        self::notCompatiblePluginsError();
+        
         //Add Settings information field
         $fields[] = [
-            'title' => __('Settings', JTLWCC_TEXT_DOMAIN),
-            'type'  => 'title',
-            'desc'  => __('Settings for the usage of the connector. By default the completed orders are pulled with no time limit.',
+            'type' => 'title',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. These are the advanced settings of the installed JTL-Connector. Here you can configure how some data is handled while push/pull.',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
-        //Add delivery time calculation radio field
+        //Add sectionend
         $fields[] = [
-            'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
-                JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
-            'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-        ];
-        
-        //Add dont use zero values radio field
-        $fields[] = [
-            'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
-                JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-            'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-        ];
-        
-        //Add prefix for delivery time textinput field
-        $fields[] = [
-            'title'    => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'     => 'jtl_text_input',
-            'id'       => self::OPTIONS_PRAEFIX_DELIVERYTIME,
-            'value'    => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
-            'desc_tip' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
-        ];
-        
-        //Add suffix for delivery time textinput field
-        $fields[] = [
-            'title'    => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'     => 'jtl_text_input',
-            'id'       => self::OPTIONS_SUFFIX_DELIVERYTIME,
-            'value'    => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
-            'desc_tip' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
+            'type' => 'sectionend',
         ];
         
         //Add variation specific radio field
@@ -491,30 +816,13 @@ final class JtlConnectorAdmin
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
         
-        //Add pull completed order checkbox field
-        $fields[] = [
-            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
-            'type'  => 'checkbox',
-            'desc'  => __('Do not choose when having a large amount of data and low server specifications.',
-                JTLWCC_TEXT_DOMAIN),
-            'id'    => self::OPTIONS_COMPLETED_ORDERS,
-        ];
-        
-        //Add pull order since date field
-        $fields[] = [
-            'title'    => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
-            'type'     => 'date',
-            'desc_tip' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
-            'id'       => self::OPTIONS_PULL_ORDERS_SINCE,
-        ];
-        
         //Add variation select field
         $fields[] = [
-            'title'    => __('Variation name format', JTLWCC_TEXT_DOMAIN),
-            'type'     => 'select',
-            'class'    => 'wc-enhanced-select',
-            'id'       => self::OPTIONS_VARIATION_NAME_FORMAT,
-            'options'  => [
+            'title'     => __('Variation name format', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'variation_name_select',
+            'id'        => self::OPTIONS_VARIATION_NAME_FORMAT,
+            'value'     => Config::get(self::OPTIONS_VARIATION_NAME_FORMAT),
+            'options'   => [
                 ''                => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
                 'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
                 'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)',
@@ -522,7 +830,145 @@ final class JtlConnectorAdmin
                 'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
                 'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
             ],
-            'desc_tip' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        
+        return $fields;
+    }
+    
+    private static function getCustomerOrderFields()
+    {
+        $fields = [];
+        
+        self::notCompatiblePluginsError();
+        
+        //Add Settings information field
+        $fields[] = [
+            'type' => 'title',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Customer order related settings of the installed JTL-Connector. Here you can set some options to modify the import of customer orders.',
+                JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        //Add variation specific radio field
+        $fields[] = [
+            'title'     => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Do not choose when having a large amount of data and low server specifications.',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_COMPLETED_ORDERS,
+            'value'     => Config::get(self::OPTIONS_COMPLETED_ORDERS),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        //Add pull order since date field
+        $fields[] = [
+            'title'     => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'jtl_date_field',
+            // 'default'  => '2019-03-22',
+            'value'     => Config::get(self::OPTIONS_PULL_ORDERS_SINCE),
+            'helpBlock' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_PULL_ORDERS_SINCE,
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        
+        return $fields;
+    }
+    
+    private static function getDeliveryTimeFields()
+    {
+        $fields = [];
+        
+        self::notCompatiblePluginsError();
+        
+        //Add Settings information field
+        $fields[] = [
+            'type' => 'title',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Delivery time related settings of the installed JTL-Connector. Here you can set some options to modify the pull/psuh of delivery times.',
+                JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        //Add delivery time calculation radio field
+        $fields[] = [
+            'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
+            'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add dont use zero values radio field
+        $fields[] = [
+            'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+            'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add prefix for delivery time textinput field
+        $fields[] = [
+            'title'     => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'jtl_text_input',
+            'id'        => self::OPTIONS_PRAEFIX_DELIVERYTIME,
+            'value'     => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+            'helpBlock' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add suffix for delivery time textinput field
+        $fields[] = [
+            'title'     => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'jtl_text_input',
+            'id'        => self::OPTIONS_SUFFIX_DELIVERYTIME,
+            'value'     => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+            'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
+        ];
+        
+        //Add sectionend
+        $fields[] = [
+            'type' => 'sectionend',
+        ];
+        
+        return $fields;
+    }
+    
+    private static function getDeveloperSettingsFields()
+    {
+        $fields = [];
+        
+        self::notCompatiblePluginsError();
+        
+        //Add Settings information field
+        $fields[] = [
+            'type' => 'title',
+            'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Developer related settings of the installed JTL-Connector. Here you can enable/disable/reset/download the developer logs of the jtl connector.',
+                JTLWCC_TEXT_DOMAIN),
         ];
         
         //Add dev log radio field
@@ -544,211 +990,357 @@ final class JtlConnectorAdmin
             'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
         ];
         
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $fields[] = [
+                'title'     => __('German Market', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'        => self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS,
+                'value'     => Config::get(self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $fields[] = [
+                'title'     => __('B2B Market', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'active_true_false_radio',
+                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                    JTLWCC_TEXT_DOMAIN),
+                'id'        => self::OPTIONS_AUTO_B2B_MARKET_OPTIONS,
+                'value'     => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
+                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+        }
+        
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
         
-        
         return $fields;
     }
     
-    /**
-     * @param array $field
-     */
-    public static function date_field(array $field)
+    // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
+    public static function jtl_date_field(array $field)
     {
-        $option_value = get_option($field['id'], $field['default']);
+        $option_value = $field['default'];// get_option($field['id'], $field['default']);
         
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
-            </th>
-            <td class="forminp forminp-select">
-                <input id="<?= $field['id'] ?>" name="<?= $field['id'] ?>" value="<?= $option_value ?>"
-                       style="width:400px;margin:0;padding:6px;box-sizing:border-box" type="date">
-                <span class="description"><?= $field['desc'] ?></span>
-            </td>
-        </tr>
+
+        <div class="form-group row">
+            <label for="<?= $field['id'] ?>" class="col-12 col-form-label"><?= $field['title'] ?></label>
+            <div class="col-12">
+                <input class="form-control" type="date"
+                       value="<?= isset($field['value']) && !is_null($field['value']) && $field['value'] !== '' ? $field['value'] : $option_value ?>"
+                       id="<?= $field['id'] ?>"
+                       name="<?= $field['id'] ?>">
+            </div>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
     
-    /**
-     * Output a field with non editable content. With an copy btn
-     *
-     * @param array $field
-     */
     public static function connector_password_field(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td class="connector-password">
-
-                <div class="input-group">
-                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
-                           readonly="readonly">
-                    <span class="input-group-btn">
-                        <button type="button"
-                                class="clip-btn btn btn-default button"
-                                title="Copy"
-                                onclick="
-                                var text = document.getElementById('connector_password').value;
-                                var dummy = document.createElement('textarea');
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <div class="input-group col-12">
+                <input type="text"
+                       class="form-control"
+                       aria-label="Connector Password"
+                       aria-describedby="<?= $field['id'] ?>_btn"
+                       id="<?= $field['id'] ?>"
+                       value="<?= $field['value'] ?>"
+                       readonly="readonly">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary"
+                            type="button"
+                            title="Copy"
+                            id="<?= $field['id'] ?>_btn"
+                            onclick="
+                                let text = document.getElementById('connector_password').value;
+                                let dummy = document.createElement('textarea');
                                 document.body.appendChild(dummy);
                                 dummy.value = text;
                                 dummy.select();
                                 document.execCommand('copy');
                                 document.body.removeChild(dummy);
                         ">Copy
-                        </button>
-                        </span>
+                    </button>
                 </div>
-            </td>
-        </tr>
+            </div>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
     
-    /**
-     * Output a field with non editable content. With an copy btn
-     *
-     * @param array $field
-     */
     public static function connector_url_field(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td class="connector-password">
-
-                <div class="input-group">
-                    <input class="form-control" type="text" id="<?= $field['id'] ?>" value="<?= $field['value'] ?>"
-                           readonly="readonly">
-                    <span class="input-group-btn">
-                        <button type="button"
-                                class="clip-btn btn btn-default button"
-                                title="Copy"
-                                onclick="
-                                var text = document.getElementById('connector_url').value;
-                                var dummy = document.createElement('textarea');
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <div class="input-group col-12">
+                <input type="text"
+                       class="form-control"
+                       aria-label="Connector URL"
+                       aria-describedby="<?= $field['id'] ?>_btn"
+                       id="<?= $field['id'] ?>"
+                       value="<?= $field['value'] ?>"
+                       readonly="readonly">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary"
+                            type="button"
+                            title="Copy"
+                            id="<?= $field['id'] ?>_btn"
+                            onclick="
+                                let text = document.getElementById('connector_url').value;
+                                let dummy = document.createElement('textarea');
                                 document.body.appendChild(dummy);
                                 dummy.value = text;
                                 dummy.select();
                                 document.execCommand('copy');
                                 document.body.removeChild(dummy);
                         ">Copy
-                        </button>
-                        </span>
+                    </button>
                 </div>
-            </td>
-        </tr>
+            </div>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
     
-    /**
-     * Output a paragraph with non editable content.
-     *
-     * @param array $field The field information.
-     */
+    public static function not_compatible_plugins_field(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <ul class="list-group col-12 pl-3">
+                <?php
+                $change = false;
+                if (count($field['plugins']) > 0) {
+                    foreach ($field['plugins'] as $key => $value) {
+                        ?>
+                        <li class="list-group-item <?php $change ? print('list-group-item-light') : print(''); ?>"><?php print $value; ?></li> <?php
+                        $change = !$change;
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+        <?php
+    }
+    
+    public static function compatible_plugins_field(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <ul class="list-group col-12 pl-3">
+                <?php
+                $change = false;
+                if (count($field['plugins']) > 0) {
+                    foreach ($field['plugins'] as $key => $value) {
+                        ?>
+                        <li class="list-group-item <?php $change ? print('list-group-item-light') : print(''); ?>">
+                            <?php print isset($value['Name']) && $value['Name'] !== '' ? $value['Name'] : $value['Name']; ?>
+                            -
+                            <?php print isset($value['Version']) && $value['Version'] !== '' ? $value['Version'] : $value['Version']; ?>
+                            (<a target="_blank"
+                                href="<?php print isset($value['AuthorURI']) && $value['AuthorURI'] !== '' ? $value['AuthorURI'] : '#'; ?>">
+                                <?php print isset($value['Author']) && $value['Author'] !== '' ? $value['Author'] : $value['Author']; ?>
+                            </a>)
+                        </li>
+                        <?php
+                        $change = !$change;
+                    }
+                }
+                ?>
+            </ul>
+        </div>
+        <?php
+    }
+    
     public static function paragraph_field(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label><?= $field['title'] ?></label>
-            </th>
-            <td>
-                <p style="margin-top:0"><?= $field['desc'] ?></p>
-            </td>
-        </tr>
+        <div class="form-group row">
+            <label for="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>"
+                   class="col-12 col-form-label"><?= $field['title'] ?></label>
+            <div class="col-12">
+                <input type="text" readonly class="form-control-plaintext"
+                       id="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>" value="<?= $field['desc'] ?>">
+                <?php
+                if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                    ?>
+                    <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted">
+                        <?= $field['helpBlock'] ?>
+                    </small>
+                    <?php
+                }
+                ?>
+            </div>
+        </div>
         <?php
     }
     
-    /**
-     * Output a radio btn for true false content.
-     *
-     * @param array $field
-     */
     public static function active_true_false_radio_btn(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            </th>
-            <td>
-                <p style="margin-top:0"><?= $field['desc'] ?></p>
-            </td>
-        </tr>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-
-            </th>
-            <td class="true_false_radio">
-                <input type="radio" name="<?= $field['id'] ?>" value="true" <?php checked(true, $field['value'],
-                    true); ?>><?= $field['trueText'] ?>
-                <input type="radio" name="<?= $field['id'] ?>" value="false" <?php checked(false, $field['value'],
-                    true); ?>><?= $field['falseText'] ?>
-            </td>
-
-        </tr>
-        
+        <div class="form-group row">
+            <label class="col-12" for="true_false_radio_<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <div class="true_false_radio col-12 " name="true_false_radio_<?= $field['id'] ?>">
+                <div class="custom-control custom-radio">
+                    <input type="radio" id="<?= $field['id'] ?>_1" name="<?= $field['id'] ?>" value="true"
+                           class="custom-control-input "
+                        <?php if ($field['value']) {
+                            print 'checked';
+                        } ?>
+                    >
+                    <label class="custom-control-label <?php if ($field['value']) {
+                        print 'active';
+                    } ?>" for="<?= $field['id'] ?>_1"><?= $field['trueText'] ?></label>
+                </div>
+                <div class="custom-control custom-radio">
+                    <input type="radio" id="<?= $field['id'] ?>_2" name="<?= $field['id'] ?>" value="false"
+                           class="custom-control-input "
+                        <?php if (!$field['value']) {
+                            print 'checked="checked"';
+                        } ?>
+                    >
+                    <label class="custom-control-label  <?php if (!$field['value']) {
+                        print 'active';
+                    } ?>" for="<?= $field['id'] ?>_2"><?= $field['falseText'] ?></label>
+                </div>
+            </div>
+            <?php
+            if (isset($field['desc']) && $field['desc'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_desc" class="form-text text-muted col-12">
+                    <?= $field['desc'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
     
+    public static function variation_name_select(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <select class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
+                <?php
+                if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
+                    foreach ($field['options'] as $key => $ovalue) {
+                        ?>
+                        <option value="<?php print $key; ?>" <?php if ($key === $field['value']) {
+                            print 'selected';
+                        } ?>><?php print $ovalue; ?></option> <?php
+                    }
+                }
+                ?>
+            </select>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
     
-    /**
-     * Output Developer Log Buttons
-     *
-     * @param array $field
-     */
     public static function dev_log_btn(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-
-            </th>
-            <td>
-                <div class="btn-group" style="margin-top: 0px;">
-                    <button type="button" id="downloadLogBtn"
-                            class="btn btn-primary button"><?= $field['downloadText'] ?></button>
-                    <button type="button" id="clearLogBtn"
-                            class="btn btn-primary button"><?= $field['clearLogsText'] ?></button>
-                </div>
-            </td>
-        </tr>
+        <div class="form-group row">
+            <div class="btn-group btn-group-lg col-12" role="group">
+                <button type="button" id="downloadLogBtn"
+                        class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
+                <button type="button" id="clearLogBtn"
+                        class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
+            </div>
+        </div>
         <?php
     }
     
-    /**
-     * @param array $field
-     */
     public static function jtl_text_input(array $field)
     {
         ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-                <span class="woocommerce-help-tip" data-tip="<?= $field['desc_tip'] ?>"></span>
-            </th>
-            <td>
-                <input class="form-control"
-                       type="text"
-                       name="<?= $field['id'] ?>"
-                       id="<?= $field['id'] ?>"
-                       value="<?= $field['value'] ?>"
-                >
-            </td>
-        </tr>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <input
+                    type="text"
+                    class="form-control col-12 ml-3"
+                    id="<?= $field['id'] ?>"
+                    name="<?= $field['id'] ?>"
+                    value="<?= $field['value'] ?>"
+            >
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
         <?php
     }
+    
+    public static function jtl_checkbox(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+
+            <input type="checkbox" class="form-control col-12" id="<?= $field['id'] ?>" name="<?= $field['id'] ?>"
+                <?php if ($field['value']) {
+                    print 'checked';
+                } ?>>
+
+            <textarea type="text" class="form-control" aria-label="Text input with checkbox"
+                      readonly><?= $field['desc'] ?> </textarea>
+
+        </div>
+        <?php
+    }
+    
     // </editor-fold>
     
     /**
@@ -756,50 +1348,47 @@ final class JtlConnectorAdmin
      */
     public static function save()
     {
-        $settings     = self::get_settings();
-        $configValues = [
-            self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
-            self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
-            self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
-            self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
-            self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
-            self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
-            self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
-            self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
-        ];
+        $settings = $_REQUEST;
         
-        foreach ($configValues as $configValue => $type) {
-            foreach ($settings as $key => $setting) {
-                if (isset($setting['id']) && $setting['id'] === $configValue) {
-                    unset($settings[$key]);
-                }
+        foreach ($settings as $key => $item) {
+            $cast = self::JTLWCC_CONFIG[$key];
+            
+            switch ($cast) {
+                case 'bool':
+                    if (strcmp($item, 'on') === 0 || strcmp($item, 'true') === 0 || strcmp($item,
+                            '1') === 0 || $item === true) {
+                        $value = true;
+                    } else {
+                        $value = false;
+                    }
+                    break;
+                case 'int':
+                    $value = (int)$item;
+                    break;
+                case 'float':
+                    $value = (float)$item;
+                    break;
+                default:
+                    $value = trim($item);
+                    break;
             }
-        }
-        foreach ($_POST as $key => $item) {
-            if (array_key_exists($key, $configValues)) {
-                $cast = $configValues[$key];
-                
-                switch ($cast) {
-                    case 'bool':
-                        $value = 'true' === $item;
-                        break;
-                    case 'int':
-                        $value = (int)$item;
-                        break;
-                    case 'float':
-                        $value = (float)$item;
-                        break;
-                    default:
-                        $value = trim($item);
-                        break;
-                }
+            
+            if (array_key_exists($key, self::JTLWCC_CONFIG)) {
                 
                 Config::set($key, $value);
-                unset($_POST[$key]);
+                $option = get_option($key, null);
+                
+                if ($option !== $value || is_null($option)) {
+                    update_option($key, $value);
+                }
+                
             }
+            
         }
+        $request = $_SERVER["HTTP_REFERER"];
         
-        WC_Admin_Settings::save_fields($settings);
+        wp_redirect($request, 301);
+        //WC_Admin_Settings::save_fields($settings);
     }
     
     /**
@@ -807,69 +1396,76 @@ final class JtlConnectorAdmin
      */
     private static function validateAndPrepareConfig()
     {
-        //UPADTE config.json with Plugin options
-        if ( ! Config::has('connector_password')
-             || Config::has('connector_password')
-                && Config::get('connector_password') !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+        $configFileValues = Config::getData();
+        
+        if (get_option(JtlConnectorAdmin::OPTIONS_TOKEN, false) === false) {
+            add_option(self::OPTIONS_TOKEN, self::create_password());
+        }
+        
+        if (!Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
         ) {
+            
             Config::set(
-                'connector_password',
+                JtlConnectorAdmin::OPTIONS_TOKEN,
                 get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
             );
         }
         
-        if ( ! Config::has('connector_version') || Config::has('connector_version') && version_compare(
-                Config::get('connector_version'),
-                trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']),
+        $version = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
+        
+        if (!Config::has('connector_version') || Config::has('connector_version') && version_compare(
+                $configFileValues->connector_version,
+                $version,
                 '!='
             )
         ) {
             Config::set(
                 'connector_version',
-                Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']
+                $version
             );
         }
         
-        if ( ! Config::has(self::OPTIONS_DEVELOPER_LOGGING)) {
-            Config::set(
-                self::OPTIONS_DEVELOPER_LOGGING,
-                false
-            );
-        }
-        
-        if ( ! Config::has(self::OPTIONS_USE_GTIN_FOR_EAN)) {
-            Config::set(
-                self::OPTIONS_USE_GTIN_FOR_EAN,
-                true
-            );
-        }
-        
-        if ( ! Config::has(self::OPTIONS_USE_DELIVERYTIME_CALC)) {
-            Config::set(
-                self::OPTIONS_USE_DELIVERYTIME_CALC,
-                true
-            );
-        }
-        
-        if ( ! Config::has(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
-            Config::set(
-                self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-                true
-            );
-        }
-        
-        if ( ! Config::has(self::OPTIONS_PRAEFIX_DELIVERYTIME)) {
-            Config::set(
-                self::OPTIONS_PRAEFIX_DELIVERYTIME,
-                'ca.'
-            );
-        }
-        
-        if ( ! Config::has(self::OPTIONS_SUFFIX_DELIVERYTIME)) {
-            Config::set(
-                self::OPTIONS_SUFFIX_DELIVERYTIME,
-                'Werktage'
-            );
+        foreach (self::JTLWCC_CONFIG as $key => $value) {
+            $option = get_option($key, null);
+            
+            if (Config::has($key) && is_null($option)) {
+                add_option($key, $configFileValues->$key);
+            }
+            
+            if (!Config::has($key) && !is_null($option) || Config::has($key) && !is_null($option)) {
+                $cast = self::JTLWCC_CONFIG[$key];
+                
+                switch ($cast) {
+                    case 'bool':
+                        if (strcmp($option, 'on') === 0 || strcmp($option, 'true') === 0 || strcmp($option,
+                                '1') === 0 || $option === true) {
+                            $value = true;
+                            update_option($key, true);
+                        } else {
+                            $value = false;
+                            update_option($key, false);
+                        }
+                        break;
+                    case 'int':
+                        $value = (int)$option;
+                        break;
+                    case 'float':
+                        $value = (float)$option;
+                        break;
+                    default:
+                        $value = trim($option);
+                        break;
+                }
+                
+                Config::set($key, $value);
+            }
+            
+            if (!Config::has($key) && is_null($option)) {
+                add_option($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
+                Config::set($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
+            }
         }
     }
     // </editor-fold>
@@ -920,7 +1516,7 @@ final class JtlConnectorAdmin
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::add_manufacturer_linking_tables();
+                self::createManufacturerLinkingTable();
             case '1.7.2':
         }
         
@@ -957,9 +1553,9 @@ final class JtlConnectorAdmin
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
         
         foreach ($types as $type) {
-            $type      = (int)$type->type;
+            $type = (int)$type->type;
             $tableName = self::get_table_name($type);
-            $result    = $result && $wpdb->query("
+            $result = $result && $wpdb->query("
                 INSERT INTO `{$tableName}` (`host_id`, `endpoint_id`)
                 SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
             ");
@@ -1041,10 +1637,10 @@ final class JtlConnectorAdmin
             Id::PRODUCT_PREFIX
         ));
         
-        self::add_constraints_for_multi_linking_tables();
+        self::add_constraints_for_multi_linking_tables('jtl_connector_link_');
     }
     
-    private static function add_constraints_for_multi_linking_tables()
+    private static function add_constraints_for_multi_linking_tables($prefix)
     {
         global $wpdb;
         
@@ -1057,38 +1653,30 @@ final class JtlConnectorAdmin
         
         if ($engine === 'InnoDB') {
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_product`
+                ALTER TABLE `{$prefix}product`
                 ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_order`
+                ALTER TABLE `{$prefix}order`
                 ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_payment`
+                ALTER TABLE `{$prefix}payment`
                 ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_crossselling`
+                ALTER TABLE `{$prefix}crossselling`
                 ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
-        }
-        $engine = $wpdb->get_var(sprintf("
-            SELECT ENGINE
-            FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
-            DB_NAME
-        ));
-        
-        if ($engine === 'InnoDB') {
+            
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_category`
+                ALTER TABLE `{$prefix}category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             $wpdb->query("
-                ALTER TABLE `jtl_connector_link_specific`
+                ALTER TABLE `{$prefix}specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
             );
         }
@@ -1164,7 +1752,7 @@ final class JtlConnectorAdmin
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
-    private static function add_manufacturer_linking_tables()
+    private static function createManufacturerLinkingTable()
     {
         global $wpdb;
         

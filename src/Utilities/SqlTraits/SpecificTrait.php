@@ -29,7 +29,7 @@ trait SpecificTrait
         global $wpdb;
         $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
         
-        return "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
+        return "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt
                   ON t.term_id = tt.term_id

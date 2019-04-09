@@ -2,15 +2,14 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.7.2.1
- * WC tested up to: 3.5.6
+ * Version: 1.8.0
+ * WC tested up to: 3.5.7
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
  * License: GPL3
  * License URI: http://www.gnu.org/licenses/lgpl-3.0.html
  * Requires at least WooCommerce: 3.4.7
  * Text Domain: woo-jtl-connector
- * Domain Path: languages/
  *
  * @author Jan Weskamp <jan.weskamp@jtl-software.com>
  */
@@ -19,6 +18,7 @@ define('JTLWCC_TEXT_DOMAIN', 'woo-jtl-connector');
 define('JTLWCC_WOOCOMMERCE_PLUGIN_FILE', 'woocommerce/woocommerce.php');
 define('JTLWCC_DS', DIRECTORY_SEPARATOR);
 define('JTLWCC_CONNECTOR_DIR', __DIR__);
+define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAIN);
 define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);
 
@@ -42,11 +42,8 @@ try {
 
 }
 
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-
 add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
-add_action('admin_menu', 'register_woo_jtl_connector_menu_link');
 
 if (jtlwcc_rewriting_disabled()) {
     jtlwcc_deactivate_plugin();
@@ -252,24 +249,6 @@ function jtlwcc_woocommerce_deactivated()
 {
     return ! in_array(JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
         apply_filters('active_plugins', get_option('active_plugins')));
-}
-
-/**
- * Register Menu Link
- */
-function register_woo_jtl_connector_menu_link()
-{
-    if (current_user_can('manage_woocommerce')) {
-        add_menu_page(
-            'JTL-Connector',
-            'JTL-Connector',
-            'manage_woocommerce',
-            'woo-jtl-connector',
-            'woo_jtl_connector_menu_link',
-            null,
-            '54'
-        );
-    }
 }
 
 /**

@@ -6,7 +6,7 @@ Tested up to: 5.1
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.5.6
-Stable tag: 1.7.2.1
+Stable tag: 1.8.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -143,10 +143,44 @@ This section describes how to install the plugin and get it working.
 
 == Screenshots ==
 
-1. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
-2. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
+1. The WooCommerce JTL-Connector (>=1.8.0) information & JTL-Wawi settings page.
+2. The WooCommerce JTL-Connector (>=1.8.0) advanced settings page.
+3. The WooCommerce JTL-Connector (>=1.8.0) delivery time settings page.
+4. The WooCommerce JTL-Connector (>=1.8.0) customer orders settings page.
+5. The WooCommerce JTL-Connector (>=1.8.0) developer settings page.
+6. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
+7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.8.0 =
+* Enhancement - Support of HTML-TEXT in descriptions
+* Enhancement - Separate menu for all JTL-Connector settings
+* Enhancement - Support of seo for "manufacturer" (Required plugin: Yoast SEO / Beta)
+* Enhancement - Support of seo for "categories" (Required plugin: Yoast SEO / Beta)
+* Enhancement - Switch to new SupportedPluginHelper functions
+* Enhancement - Use new meta keys instead of use mapped ones
+* Enhancement - Remove unnecessary files
+* Enhancement - new install routine
+* Enhancement - Change some building logic
+* Enhancement - Increase product(attribute/variation/custom_property/specifics/ push performance
+* Enhancement - CO-466 - Support of German Market (BETA ! NO EAN)
+* Enhancement - CO-483 - German Market: measurement_units (BETA)
+* Enhancement - CO-480 - German Market: digital product type (BETA)
+* Enhancement - CO-467 - German Market: base prices (BETA)
+* Enhancement - CO-483 - German Market: delivery times (BETA)
+* Enhancement - CO-474 - German Market: preselect variations (BETA)
+* Enhancement - German Market: alt delivery note (BETA)
+* Enhancement - German Market: purchased note note (BETA)
+* Enhancement - German Market: suppress shipping notice (BETA)
+* Enhancement - CO-434 - Support of B2B Market (BETA)
+* Enhancement - CO-479 - B2B Market: bulk prices support (BETA)
+* Enhancement - CO-468 - B2B Market: rrp support (BETA)
+* Enhancement - CO-253 - B2B Market:customer groups (BETA)
+* Enhancement - CO-478 - B2B Market:customer groups based prices (BETA)
+* Enhancement - B2B Market/JTL-CONNECTOR/WAWI: special price for customer groups
+* Fix - special prices
+* Fix - custom fields
 
 = 1.7.2 =
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)

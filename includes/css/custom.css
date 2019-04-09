@@ -1,0 +1,31 @@
+#wpcontent {
+    padding-left: 0 !important;
+}
+
+#wpwrap {
+    background-color: #f8f9fa!important;
+}
+
+#jtlNavbar .nav-link {
+    color: #00b6ff;
+}
+
+#jtlNavbar a {
+    border: 1px #00b6ff00 solid !important;
+}
+
+#jtlNavbar a:hover {
+    color: #FFF;
+    border: 1px #00b6ff solid !important;
+}
+
+#jtlNavbar a:hover.navbar-brand {
+    color: #FFF;
+    border: none !important;
+    border: 1px #00b6ff00 solid !important;
+}
+
+#jtlNavbar .nav-link.active {
+    color: #FFFFFF;
+    background-color: #00b6ff;
+}

@@ -15,9 +15,8 @@ class ProductManufacturer extends BaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product  $wcProduct
      */
-    public function pushData(ProductModel $product, \WC_Product $wcProduct)
+    public function pushData(ProductModel $product)
     {
         $productId = $product->getId()->getEndpoint();
         
@@ -37,7 +36,6 @@ class ProductManufacturer extends BaseController
         }
     }
     
-    
     /**
      * @param string $productId
      */
@@ -55,7 +53,7 @@ class ProductManufacturer extends BaseController
         }
     }
     
-    public function pullData(\WC_Product $product, ProductModel $model)
+    public function pullData(ProductModel $model)
     {
         $productId      = $model->getId()->getEndpoint();
         $manufacturerId = null;
@@ -68,6 +66,7 @@ class ProductManufacturer extends BaseController
                 $manufacturerId = (new Identity)->setEndpoint($term->term_id);
             }
         }
+        
         return $manufacturerId;
     }
     

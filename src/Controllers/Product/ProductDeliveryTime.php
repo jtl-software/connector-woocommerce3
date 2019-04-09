@@ -6,11 +6,11 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WP_Error;
 
@@ -70,14 +70,14 @@ class ProductDeliveryTime extends BaseController
             
             $term = get_term_by('slug', wc_sanitize_taxonomy_name(
                 Util::removeSpecialchars($deliveryTimeString)
-            ), 'product_delivery_time');
+            ), 'product_delivery_times');
             
             if ($term === false) {
                 
                 //Add term
                 $newTerm = \wp_insert_term(
                     $deliveryTimeString,
-                    'product_delivery_time'
+                    'product_delivery_times'
                 );
                 
                 if ($newTerm instanceof WP_Error) {
@@ -89,10 +89,18 @@ class ProductDeliveryTime extends BaseController
                 } else {
                     $termId = $newTerm['term_id'];
                     
-                    wp_set_object_terms($productId, $termId, 'product_delivery_time', true);
+                    wp_set_object_terms($productId, $termId, 'product_delivery_times', true);
+    
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                        update_post_meta($productId, '_lieferzeit', $termId);
+                    }
                 }
             } else {
                 wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
+    
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                    update_post_meta($productId, '_lieferzeit', $term->term_id);
+                }
             }
         } else {
             $this->removeDeliveryTimeTerm($productId);
@@ -106,12 +114,17 @@ class ProductDeliveryTime extends BaseController
      */
     private function removeDeliveryTimeTerm($productId)
     {
-        $terms = wp_get_object_terms($productId, 'product_delivery_time');
-        if (count($terms) > 0) {
-            /** @var \WP_Term $term */
-            foreach ($terms as $key => $term) {
-                if ($term instanceof \WP_Term) {
-                    wp_remove_object_terms($productId, $term->term_id, 'product_delivery_time');
+        $terms = wp_get_object_terms($productId, 'product_delivery_times');
+        if (is_array($terms) && ! $terms instanceof WP_Error) {
+            if (count($terms) > 0) {
+                /** @var \WP_Term $term */
+                foreach ($terms as $key => $term) {
+                    if ($term instanceof \WP_Term) {
+                        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                            delete_post_meta($productId, '_lieferzeit', $term->term_id);
+                        }
+                        wp_remove_object_terms($productId, $term->term_id, 'product_delivery_times');
+                    }
                 }
             }
         }

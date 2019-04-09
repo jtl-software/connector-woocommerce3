@@ -6,14 +6,12 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Application\Application;
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use Noodlehaus\AbstractConfig;
 
 final class Util extends Singleton
 {
@@ -26,6 +24,7 @@ final class Util extends Singleton
     
     public function __construct()
     {
+        parent::__construct();
         $this->locale = $this->mapLanguageIso(\get_locale());
         
         $this->namespaceMapping = [
@@ -58,7 +57,7 @@ final class Util extends Singleton
     {
         $countryIso = \get_option('woocommerce_default_country');
         
-        if ( ! is_null($order)) {
+        if (!is_null($order)) {
             $option = \get_option('woocommerce_tax_based_on', 'base');
             
             if ($option === 'shipping') {
@@ -75,7 +74,7 @@ final class Util extends Singleton
             'country'   => $countryIso,
         ]);
         
-        if ( ! empty($taxRates)) {
+        if (!empty($taxRates)) {
             return (double)array_values($taxRates)[0]['rate'];
         }
         
@@ -90,51 +89,35 @@ final class Util extends Singleton
             $stockStatus = $stockStatus || $backorders;
         }
         
-        return $stockStatus || ! $managesStock ? 'instock' : 'outofstock';
-    }
-    
-    public function updateProductPrice(ProductPriceModel $productPrice, $vat)
-    {
-        if ( ! $this->isValidCustomerGroup($productPrice->getCustomerGroupId()->getEndpoint())) {
-            return;
-        }
-        
-        $productId = $productPrice->getProductId()->getEndpoint();
-        $product   = \wc_get_product($productId);
-        
-        if ($product !== false) {
-            foreach ($productPrice->getItems() as $item) {
-                if ($item->getQuantity() === 0) {
-                    if (\wc_prices_include_tax()) {
-                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
-                    } else {
-                        $regularPrice = $item->getNetPrice();
-                    }
-                    
-                    $pd        = \wc_get_price_decimals();
-                    $salePrice = \get_post_meta($productId, '_sale_price', true);
-                    
-                    if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
-                        \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd));
-                    }
-                    
-                    \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd));
-                }
-            }
-        }
+        return $stockStatus || !$managesStock ? 'instock' : 'outofstock';
     }
     
     public function isValidCustomerGroup($group)
     {
-        return empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        
+        if ($result) {
+            return $result;
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            foreach ($customerGroups as $cKey => $customerGroup) {
+                if (isset($customerGroup['ID']) && $customerGroup['ID'] === $group) {
+                    $result = true;
+                }
+            }
+        }
+        
+        return $result;
     }
     
     public function addMasterProductToSync($productId)
     {
         $masterProductsToSyncCount = (int)\get_option(self::TO_SYNC_COUNT, 0);
-        $page                      = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
-        $masterProductsToSync      = \get_option(self::TO_SYNC . '_' . $page, []);
-        $masterProductsToSync[]    = $productId;
+        $page = ($masterProductsToSyncCount + 1) % self::TO_SYNC_MOD + 1;
+        $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
+        $masterProductsToSync[] = $productId;
         
         \update_option(self::TO_SYNC . '_' . $page, array_unique($masterProductsToSync));
     }
@@ -149,7 +132,7 @@ final class Util extends Singleton
             for ($i = 1; $i <= $page; $i++) {
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
                 
-                if ( ! empty($masterProductsToSync)) {
+                if (!empty($masterProductsToSync)) {
                     foreach ($masterProductsToSync as $productId) {
                         \WC_Product_Variable::sync($productId);
                     }
@@ -165,9 +148,9 @@ final class Util extends Singleton
     public function countCategories()
     {
         $offset = 0;
-        $limit  = 100;
+        $limit = 100;
         
-        while ( ! empty($result)) {
+        while (!empty($result)) {
             $result = Db::getInstance()->query(SqlHelper::categoryProductsCount($offset, $limit));
             
             foreach ($result as $category) {
@@ -184,9 +167,9 @@ final class Util extends Singleton
     public function countProductTags()
     {
         $offset = 0;
-        $limit  = 100;
+        $limit = 100;
         
-        while ( ! empty($result)) {
+        while (!empty($result)) {
             $result = Db::getInstance()->query(SqlHelper::productTagsCount($offset, $limit));
             
             foreach ($result as $tag) {
@@ -201,15 +184,18 @@ final class Util extends Singleton
     public function mapLanguageIso($locale)
     {
         $result = null;
-        
-        if (strpos($locale, '_')) {
-            $result = Language::map(substr($locale, 0, 5));
-        } else {
-            if (count($locale) === 2) {
-                $result = is_null(Language::convert($locale)) ? null : $locale;
-            } elseif (count($locale) === 3) {
-                $result = Language::convert(null, $locale);
+        try {
+            if (strpos($locale, '_')) {
+                $result = Language::map(substr($locale, 0, 5));
+            } else {
+                if (count($locale) === 2) {
+                    $result = is_null(Language::convert($locale)) ? null : $locale;
+                } elseif (count($locale) === 3) {
+                    $result = Language::convert(null, $locale);
+                }
             }
+        } catch (LanguageException $exception) {
+            //
         }
         
         if (empty($result)) {
@@ -232,6 +218,10 @@ final class Util extends Singleton
                 return PaymentTypes::TYPE_BANK_TRANSFER;
             case 'direct-debit':
                 return PaymentTypes::TYPE_DIRECT_DEBIT;
+            case 'german_market_purchase_on_account':
+                return PaymentTypes::TYPE_INVOICE;
+            case 'german_market_sepa_direct_debit':
+                return PaymentTypes::TYPE_DIRECT_DEBIT;
             case 'invoice':
                 return PaymentTypes::TYPE_INVOICE;
             default:
@@ -241,7 +231,7 @@ final class Util extends Singleton
     
     public static function getAttributeTaxonomyIdByName($name)
     {
-        $name       = str_replace('pa_', '', $name);
+        $name = str_replace('pa_', '', $name);
         $taxonomies = \wp_list_pluck(\wc_get_attribute_taxonomies(), 'attribute_id', 'attribute_name');
         
         return isset($taxonomies[$name]) ? (int)$taxonomies[$name] : 0;
@@ -296,7 +286,7 @@ final class Util extends Singleton
     }
     
     /**
-     * @return $this
+     * @return Singleton|$this
      */
     public static function getInstance()
     {

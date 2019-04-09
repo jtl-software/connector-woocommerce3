@@ -16,6 +16,7 @@ use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class Customer extends BaseController
 {
@@ -76,7 +77,7 @@ class Customer extends BaseController
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
 
-            if (Germanized::getInstance()->isActive()) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
@@ -115,7 +116,7 @@ class Customer extends BaseController
                 ->setIsActive(false)
                 ->setHasCustomerAccount(false);
 
-            if (Germanized::getInstance()->isActive()) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }

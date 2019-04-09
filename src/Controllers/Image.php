@@ -75,7 +75,7 @@ class Image extends BaseController
                     ->addI18n((new ImageI18n())
                         ->setId(new Identity($image['id']))
                         ->setImageId(new Identity($image['id']))
-                        ->setAltText($altText !== false ? $altText : '')
+                        ->setAltText(substr($altText !== false ? $altText : '', 0, 254 ))
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                     );
                 
