@@ -142,7 +142,174 @@ class ProductPrice extends BaseController
         }
         
         if (count($productPrices) > 0) {
-            Util::getInstance()->updateProductPrices($productPrices, $product, $product->getVat());
+            $this->updateProductPrices($productPrices, $product, $product->getVat());
+        }
+    }
+    
+    public function updateProductPrices($productPrices, ProductModel $product, $vat)
+    {
+        $productId = $product->getId()->getEndpoint();
+        $pd = \wc_get_price_decimals();
+        
+        /** @var ProductPriceModel $productPrice */
+        foreach ($productPrices as $customerGroupId => $productPrice) {
+            if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)
+                || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
+                continue;
+            }
+            
+            $customerGroupMeta = null;
+            
+            if (is_int($customerGroupId)) {
+                $customerGroupMeta = \get_post_meta($customerGroupId);
+            }
+            
+            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
+                foreach ($productPrice->getItems() as $item) {
+                    if (\wc_prices_include_tax()) {
+                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    } else {
+                        $regularPrice = $item->getNetPrice();
+                    }
+                    
+                    if ($item->getQuantity() === 0) {
+                        $salePrice = \get_post_meta($productId, '_sale_price', true);
+                        
+                        if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
+                            \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd),
+                                \get_post_meta($productId, '_price', true));
+                        }
+                        
+                        \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($productId, '_regular_price', true));
+                    }
+                }
+            } elseif (!is_null($customerGroupMeta)
+                && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            ) {
+                $customerGroup = get_post($customerGroupId);
+                $productType = (new Product)->getType($product);
+                $bulkPrices = [];
+                
+                foreach ($productPrice->getItems() as $item) {
+                    if (\wc_prices_include_tax()) {
+                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    } else {
+                        $regularPrice = $item->getNetPrice();
+                    }
+                    if ($item->getQuantity() === 0) {
+                        $metaKeyForCustomerGroupPrice = sprintf(
+                            'bm_%s_price',
+                            $customerGroup->post_name
+                        );
+                        
+                        if ($productType !== 'variable') {
+                            $metaKeyForCustomerGroupRegularPrice = sprintf(
+                                '_jtlwcc_bm_%s_regular_price',
+                                $customerGroup->post_name
+                            );
+                            
+                            if ($productType === 'product_variation') {
+                                $parentProduct = \wc_get_product($product->getMasterProductId()->getEndpoint());
+                                if ($parentProduct instanceof \WC_Product) {
+                                    $childParentPrice = sprintf(
+                                        'bm_%s_%s_price',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                    \update_post_meta($parentProduct->get_id(),
+                                        $childParentPrice,
+                                        \wc_format_decimal($regularPrice, $pd),
+                                        \get_post_meta($parentProduct->get_id(), $childParentPrice, true));
+                                    
+                                    $childParentKey = sprintf(
+                                        'bm_%s_%s_price_type',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                    \update_post_meta($parentProduct->get_id(),
+                                        $childParentKey,
+                                        'fix',
+                                        \get_post_meta($parentProduct->get_id(), $childParentKey, true));
+                                }
+                            }
+                        }
+                        $metaKeyForCustomerGroupPriceType = $metaKeyForCustomerGroupPrice . '_type';
+                        
+                        \update_post_meta(
+                            $productId,
+                            $metaKeyForCustomerGroupPrice,
+                            \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
+                        );
+                        
+                        if ($productType !== 'variable' && isset($metaKeyForCustomerGroupRegularPrice)) {
+                            \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
+                                \wc_format_decimal($regularPrice, $pd),
+                                \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));
+                        }
+                        
+                        \update_post_meta(
+                            $productId,
+                            $metaKeyForCustomerGroupPriceType,
+                            'fix',
+                            \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                        );
+                    } else {
+                        $bulkPrices[] = [
+                            'bulk_price'      => (string)$regularPrice,
+                            'bulk_price_from' => (string)$regularPrice,
+                            'bulk_price_to'   => '',
+                            'bulk_price_type' => 'fix',
+                        ];
+                    }
+                }
+                
+                if (count($bulkPrices) > 0) {
+                    
+                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaProductId = $product->getId()->getEndpoint();
+                    
+                    \update_post_meta(
+                        $metaProductId,
+                        $metaKey,
+                        $bulkPrices,
+                        \get_post_meta($metaProductId, $metaKey, true)
+                    );
+                    
+                    if (!$product->getIsMasterProduct()) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                            $product->getId()->getEndpoint());
+                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                        
+                        \update_post_meta(
+                            $metaProductId,
+                            $metaKey,
+                            $bulkPrices,
+                            \get_post_meta($metaProductId, $metaKey, true)
+                        );
+                    }
+                } else {
+                    
+                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaProductId = $product->getId()->getEndpoint();
+                    
+                    \delete_post_meta(
+                        $metaProductId,
+                        $metaKey
+                    );
+                    
+                    if (!$product->getIsMasterProduct()) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                            $product->getId()->getEndpoint());
+                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                        \delete_post_meta(
+                            $metaProductId,
+                            $metaKey
+                        );
+                    }
+                }
+            }
         }
     }
 }
