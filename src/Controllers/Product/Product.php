@@ -16,13 +16,14 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Product extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
+    use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
     
     private static $idCache = [];
     
@@ -334,6 +335,7 @@ class Product extends BaseController
     private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct)
     {
         (new Product2Category)->pushData($product);
+        $this->fixProductPriceForCustomerGroups($product, $wcProduct);
         (new ProductPrice)->pushData($product);
         (new ProductSpecialPrice)->pushData($product, $wcProduct);
     }
