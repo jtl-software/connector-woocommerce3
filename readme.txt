@@ -180,6 +180,7 @@ This section describes how to install the plugin and get it working.
 * Enhancement - CO-478 - B2B Market:customer groups based prices (BETA)
 * Enhancement - B2B Market/JTL-CONNECTOR/WAWI: special price for customer groups
 * Fix - special prices
+* Fix - custom fields
 
 = 1.7.2 =
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)
