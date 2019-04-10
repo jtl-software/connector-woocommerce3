@@ -50,7 +50,7 @@ class GlobalData extends BaseController
             
             //LIEFERZEITEN
             update_option('woocommerce_global_lieferzeit', '-1', true);
-            update_option('woocommerce_de_show_delivery_time_overview', 'off', true);
+            //update_option('woocommerce_de_show_delivery_time_overview', 'off', true);
             update_option('woocommerce_de_show_delivery_time_product_page', 'on', true);
             update_option('woocommerce_de_show_delivery_time_checkout', 'on', true);
             update_option('woocommerce_de_show_delivery_time_order_summary', 'on', true);
