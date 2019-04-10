@@ -181,6 +181,7 @@ This section describes how to install the plugin and get it working.
 * Enhancement - B2B Market/JTL-CONNECTOR/WAWI: special price for customer groups
 * Fix - special prices
 * Fix - custom fields
+* Fix - CO-462 - set correct vat for all order items
 
 = 1.7.2 =
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)

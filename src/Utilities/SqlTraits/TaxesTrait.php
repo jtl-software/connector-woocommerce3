@@ -33,6 +33,6 @@ trait TaxesTrait {
 		global $wpdb;
 		$wtr = $wpdb->prefix . 'woocommerce_tax_rates';
 		
-		return "SELECT tax_rate FROM {$wtr}";
+		return "SELECT tax_rate FROM {$wtr} ORDER BY tax_rate DESC";
 	}
 }
