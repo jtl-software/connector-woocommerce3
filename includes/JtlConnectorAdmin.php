@@ -805,11 +805,11 @@ final class JtlConnectorAdmin
         ];
         
         $fields[] = [
-            'title'   => __('Important information', JTLWCC_TEXT_DOMAIN),
-            'type'    => 'jtlwcc_card',
-            'color'   => 'warning',
+            'title'  => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'   => 'jtlwcc_card',
+            'color'  => 'warning',
             'center' => true,
-            'text'    => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+            'text'   => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -1883,7 +1883,7 @@ final class JtlConnectorAdmin
     
     public static function jtlwcc_show_wordpress_error($message)
     {
-        echo '<div class="error"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
+        echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
     }
     // </editor-fold>
 }

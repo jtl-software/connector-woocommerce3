@@ -31,8 +31,8 @@ final class SupportedPlugins
     const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
     const PLUGIN_WP_MULTILANG = 'WP Multilang';
-    
-    
+    const PLUGIN_WOODY_AD_SNIPPET = 'Woody ad snippets (PHP snippets | Insert PHP)';
+    CONST PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET = 'Schema - All In One Schema Rich Snippets';
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
@@ -56,6 +56,8 @@ final class SupportedPlugins
         self::PLUGIN_WP_FASTEST_CACHE,
         self::PLUGIN_WP_MULTILANG,
         self::PLUGIN_THEME_WOODMART_CORE,
+        self::PLUGIN_WOODY_AD_SNIPPET,
+        self::PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET,
     ];
     
     /**
@@ -66,10 +68,10 @@ final class SupportedPlugins
     public static function getInstalledAndActivated()
     {
         $plugins = get_plugins();
-        $plArr   = [];
+        $plArr = [];
         
         foreach (wp_get_active_and_valid_plugins() as $activePl) {
-            $tmp   = explode('/', $activePl);
+            $tmp = explode('/', $activePl);
             $count = count($tmp) - 1;
             
             $string = '';
@@ -101,11 +103,11 @@ final class SupportedPlugins
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
-        $tmp     = [];
+        $tmp = [];
         foreach ($plArray as $plugin) {
             if (array_search($plugin['Name'], self::SUPPORTED_PLUGINS) !== false) {
                 $plugins[] = $plugin;
-                $tmp[]     = $plugin['Name'];
+                $tmp[] = $plugin['Name'];
             }
         }
         
@@ -126,13 +128,13 @@ final class SupportedPlugins
      */
     public static function getNotSupportedButActive($asString = false, $all = false, $asArray = false)
     {
-        $plArray    = self::getInstalledAndActivated();
-        $plugins    = [];
-        $tmp        = [];
+        $plArray = self::getInstalledAndActivated();
+        $plugins = [];
+        $tmp = [];
         foreach ($plArray as $plugin) {
             if (array_search($plugin['Name'], self::INCOMPATIBLE_PLUGINS) !== false) {
-                $plugins[]    = $plugin;
-                $tmp[]        = $plugin['Name'];
+                $plugins[] = $plugin;
+                $tmp[] = $plugin['Name'];
             }
         }
         
@@ -161,7 +163,7 @@ final class SupportedPlugins
     public static function isActive($pluginName = 'WooCommerce')
     {
         $plArray = self::getInstalledAndActivated();
-        $active  = false;
+        $active = false;
         
         foreach ($plArray as $plugin) {
             if (strcmp($pluginName, $plugin['Name']) === 0) {
@@ -180,7 +182,7 @@ final class SupportedPlugins
     public static function themeIsInstalled($name = '')
     {
         $installed = false;
-        $themes    = wp_get_themes();
+        $themes = wp_get_themes();
         
         if (is_array($themes)) {
             $installed = array_key_exists((string)$name, $themes);

@@ -29,3 +29,8 @@
     color: #FFFFFF;
     background-color: #00b6ff;
 }
+
+#jtlwcc_plugin_error{
+    margin: auto;
+    padding: 1.75rem .75rem .75rem 1rem;
+}
