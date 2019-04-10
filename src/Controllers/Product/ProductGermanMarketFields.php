@@ -40,7 +40,7 @@ class ProductGermanMarketFields extends BaseController
      */
     private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
     {
-        $metaKeys = $this->getGermanMarketMetaKeys($product->getIsMasterProduct());
+        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
         
         if ($this->hasGermanMarketUnitPrice($wcProduct, $metaKeys)) {
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
@@ -399,7 +399,7 @@ class ProductGermanMarketFields extends BaseController
      */
     private function updateGermanMarketPPU(ProductModel $product)
     {
-        $metaKeys = $this->getGermanMarketMetaKeys($product->getIsMasterProduct());
+        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
         
         if ($product->getConsiderBasePrice()) {
             $productId = $product->getId()->getEndpoint();
@@ -411,11 +411,11 @@ class ProductGermanMarketFields extends BaseController
             $wcVolumeOption = 'L';
             
             $ppuType = $this->identifyGermanMarketMetaGroup($product->getBasePriceUnitCode());
-            $code = $product->getBasePriceUnitCode();
-            $baseQuantity = $product->getBasePriceQuantity();
+            $code = $product->getBasePriceUnitCode();//g
+            $baseQuantity = $product->getBasePriceQuantity(); //1000
             
-            $productQuantity = $product->getMeasurementQuantity();
-            $productQuantityCode = $product->getMeasurementUnitCode();
+            $productQuantity = $product->getMeasurementQuantity(); //500
+            $productQuantityCode = $product->getMeasurementUnitCode(); //g
             
             $basePrice = null;
             $currenPrice = \get_post_meta($productId, '_price', true);
@@ -593,23 +593,30 @@ class ProductGermanMarketFields extends BaseController
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
         $rrp = $product->getRecommendedRetailPrice();
         $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        
-        if ($rrp !== $oldValue) {
-            if (!$product->getIsMasterProduct()) {
-                $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
+        if ($rrp !== 0) {
+            if ($rrp !== $oldValue) {
+                if (!$product->getMasterProductId()->getHost() === 0) {
+                    $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
+                    \update_post_meta(
+                        $wcProduct->get_parent_id(),
+                        $vKey,
+                        $rrp,
+                        \get_post_meta($wcProduct->get_parent_id(), $vKey, true)
+                    );
+                }
                 \update_post_meta(
-                    $wcProduct->get_parent_id(),
-                    $vKey,
+                    $wcProduct->get_id(),
+                    'bm_rrp',
                     $rrp,
-                    \get_post_meta($wcProduct, $vKey, true)
+                    \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
                 );
             }
-            \update_post_meta(
-                $wcProduct->get_id(),
-                'bm_rrp',
-                $rrp,
-                \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
-            );
+        } else {
+            if (!$product->getMasterProductId()->getHost() === 0) {
+                $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
+                \delete_post_meta($wcProduct->get_parent_id(), $vKey);
+            }
+            \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
         }
     }
 }

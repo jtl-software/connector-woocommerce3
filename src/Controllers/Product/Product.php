@@ -87,9 +87,6 @@ class Product extends BaseController
             
             if ($product->get_parent_id() !== 0) {
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
-                $productModel->setIsMasterProduct(false);
-            } else {
-                $productModel->setIsMasterProduct(true);
             }
             
             $specialPrices = ProductSpecialPrice::getInstance()->pullData($product, $productModel);

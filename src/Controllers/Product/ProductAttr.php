@@ -127,7 +127,7 @@ class ProductAttr extends BaseController
                                 '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
                                 $attrName
                             )
-                            && $product->getIsMasterProduct()
+                            && $product->getMasterProductId()->getHost() === 0
                         ) {
                             $attrName = substr($attrName, 18);
                             
@@ -145,18 +145,18 @@ class ProductAttr extends BaseController
                         if (strcmp($attrName, ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) === 0) {
                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                             $value = $value ? 'yes' : 'no';
-                            
+                            $metaKey = substr($attrName, 5);
                             if (!add_post_meta(
                                 $productId,
-                                substr($attrName, 5),
+                                $metaKey,
                                 $value,
                                 true
                             )) {
                                 update_post_meta(
                                     $productId,
-                                    substr($attrName, 5),
+                                    $metaKey,
                                     $value,
-                                    \get_post_meta($productId, substr($attrName, 5), true)
+                                    \get_post_meta($productId, $metaKey, true)
                                 );
                             }
                             $digital = true;
@@ -448,10 +448,8 @@ class ProductAttr extends BaseController
         }
         
         if (!$payable) {
-            \wp_update_post([
-                'ID'          => $productId,
-                'post_status' => 'publish',
-            ]);
+            $wcProduct = \wc_get_product($productId);
+            $wcProduct->set_status('publish');
         }
         
         foreach ($attributesFilteredVariationsAndSpecifics as $key => $attr) {

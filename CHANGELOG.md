@@ -7,7 +7,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Enhancement - Separate menu for all JTL-Connector settings
 * Enhancement - Support of seo for "manufacturer" (Required plugin: Yoast SEO / Beta)
 * Enhancement - Support of seo for "categories" (Required plugin: Yoast SEO / Beta)
-* Enhancement - Switch to new SupportedPluginHelper functions
+* Enhancement - Switch to new "SupportedPluginHelper" functions
 * Enhancement - Use new meta keys instead of use mapped ones
 * Enhancement - Remove unnecessary files
 * Enhancement - new install routine
@@ -30,6 +30,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Enhancement - B2B Market/JTL-CONNECTOR/WAWI: special price for customer groups
 * Fix - special prices
 * Fix - custom fields
+* Fix - CO-462 - set correct vat for all order items
 
 ## 1.7.2
 * Enhancement - CO-436 - Support of seo for "products" (Required plugin: Yoast SEO / RC)

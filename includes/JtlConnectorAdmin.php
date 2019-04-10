@@ -190,19 +190,24 @@ final class JtlConnectorAdmin
             'category',
             'category_level',
             'crossselling',
-            'currency',//not implemented yet
+            'currency',
+            //not implemented yet
             'customer',
-            'customer_group', //not implemented yet
+            'customer_group',
+            //not implemented yet
             'image',
-            'language',//not implemented yet
+            'language',
+            //not implemented yet
             'manufacturer',
-            'measurement_unit',//not implemented yet
+            'measurement_unit',
+            //not implemented yet
             'order',
             'payment',
             'product',
             'product_checksum',
             'shipping_class',
-            'shipping_method',//not implemented yet
+            'shipping_method',
+            //not implemented yet
             'specific',
             'specific_value',
         ];
@@ -386,43 +391,88 @@ final class JtlConnectorAdmin
     {
         self::$initiated = true;
         
-        add_filter('plugin_row_meta', ['JtlConnectorAdmin', 'jtlconnector_plugin_row_meta'], 10, 2);
+        add_filter('plugin_row_meta', [
+            'JtlConnectorAdmin',
+            'jtlconnector_plugin_row_meta',
+        ], 10, 2);
         
-        add_action('admin_post_settings_save_woo-jtl-connector', ['JtlConnectorAdmin', 'save']);
+        add_action('admin_post_settings_save_woo-jtl-connector', [
+            'JtlConnectorAdmin',
+            'save',
+        ]);
         
         //Register custom fields
         add_action('woocommerce_admin_field_jtl_date_field',
-            ['JtlConnectorAdmin', 'jtl_date_field']
+            [
+                'JtlConnectorAdmin',
+                'jtl_date_field',
+            ]
         );
         add_action('woocommerce_admin_field_paragraph',
-            ['JtlConnectorAdmin', 'paragraph_field']
+            [
+                'JtlConnectorAdmin',
+                'paragraph_field',
+            ]
         );
         add_action('woocommerce_admin_field_connector_url',
-            ['JtlConnectorAdmin', 'connector_url_field']
+            [
+                'JtlConnectorAdmin',
+                'connector_url_field',
+            ]
         );
         add_action('woocommerce_admin_field_connector_password',
-            ['JtlConnectorAdmin', 'connector_password_field']
+            [
+                'JtlConnectorAdmin',
+                'connector_password_field',
+            ]
         );
         add_action('woocommerce_admin_field_active_true_false_radio',
-            ['JtlConnectorAdmin', 'active_true_false_radio_btn']
+            [
+                'JtlConnectorAdmin',
+                'active_true_false_radio_btn',
+            ]
         );
         add_action('woocommerce_admin_field_variation_name_select',
-            ['JtlConnectorAdmin', 'variation_name_select']
+            [
+                'JtlConnectorAdmin',
+                'variation_name_select',
+            ]
         );
         add_action('woocommerce_admin_field_dev_log_btn',
-            ['JtlConnectorAdmin', 'dev_log_btn']
+            [
+                'JtlConnectorAdmin',
+                'dev_log_btn',
+            ]
         );
         add_action('woocommerce_admin_field_jtl_text_input',
-            ['JtlConnectorAdmin', 'jtl_text_input']
+            [
+                'JtlConnectorAdmin',
+                'jtl_text_input',
+            ]
         );
         add_action('woocommerce_admin_field_jtl_checkbox',
-            ['JtlConnectorAdmin', 'jtl_checkbox']
+            [
+                'JtlConnectorAdmin',
+                'jtl_checkbox',
+            ]
         );
         add_action('woocommerce_admin_field_not_compatible_plugins_field',
-            ['JtlConnectorAdmin', 'not_compatible_plugins_field']
+            [
+                'JtlConnectorAdmin',
+                'not_compatible_plugins_field',
+            ]
+        );
+        add_action('woocommerce_admin_field_jtlwcc_card',
+            [
+                'JtlConnectorAdmin',
+                'jtlwcc_card',
+            ]
         );
         add_action('woocommerce_admin_field_compatible_plugins_field',
-            ['JtlConnectorAdmin', 'compatible_plugins_field']
+            [
+                'JtlConnectorAdmin',
+                'compatible_plugins_field',
+            ]
         );
         
         //NEW PAGE
@@ -752,6 +802,15 @@ final class JtlConnectorAdmin
             'title'   => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
             'type'    => 'not_compatible_plugins_field',
             'plugins' => SupportedPlugins::getNotSupportedButActive(false, true, true),
+        ];
+        
+        $fields[] = [
+            'title'  => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'   => 'jtlwcc_card',
+            'color'  => 'warning',
+            'center' => true,
+            'text'   => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+                JTLWCC_TEXT_DOMAIN),
         ];
         
         //Add sectionend
@@ -1155,6 +1214,22 @@ final class JtlConnectorAdmin
                 }
                 ?>
             </ul>
+        </div>
+        <?php
+    }
+    
+    public static function jtlwcc_card(array $field)
+    {
+        ?>
+        <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
+        <?php echo isset($field['color']) && $field['color'] !== '' ? 'bg-' . $field['color'] : 'bg-light'; ?>">
+            <div class="card-title">
+                <h5 class="card-title"><?php echo $field['title']; ?></h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text"><?php echo $field['text']; ?></p>
+                <!--  <a href="#" class="btn btn-primary">Go somewhere</a>-->
+            </div>
         </div>
         <?php
     }
@@ -1808,7 +1883,7 @@ final class JtlConnectorAdmin
     
     public static function jtlwcc_show_wordpress_error($message)
     {
-        echo '<div class="error"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
+        echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';
     }
     // </editor-fold>
 }

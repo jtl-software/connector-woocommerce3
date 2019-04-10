@@ -7,11 +7,9 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
-use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductMetaSeo extends BaseController
@@ -28,7 +26,7 @@ class ProductMetaSeo extends BaseController
             $productId = $product->getId()->getEndpoint();
             try {
                 $wcProduct = \wc_get_product($newPostId);
-                if ( ! $wcProduct instanceof \WC_Product) {
+                if (!$wcProduct instanceof \WC_Product) {
                     throw new Exception('Can´t find Product');
                 }
                 
@@ -37,22 +35,16 @@ class ProductMetaSeo extends BaseController
                             $var2 = $tmpMeta->getUrlPath();
                 */
                 if ($wcProduct->get_slug() !== $tmpMeta->getUrlPath()) {
-                    $endpoint = [
-                        'ID'        => (int)$product->getId()->getEndpoint(),
-                        'post_name' => $tmpMeta->getUrlPath(),
-                    ];
-                    
-                    $postId = \wp_update_post($endpoint, true);
-                    
-                    if ($postId instanceof \WP_Error) {
-                        WpErrorLogger::getInstance()->logError($postId);
-                        
+                    $tmpWcProduct = \wc_get_product((int)$product->getId()->getEndpoint());
+                    if (!$tmpWcProduct instanceof \WC_Product) {
+                        throw new Exception('Can´t find Product');
                     }
+                    $tmpWcProduct->set_name($tmpMeta->getUrlPath());
                 }
                 
                 $updated_title = update_post_meta($productId, '_yoast_wpseo_title', $tmpMeta->getTitleTag());
-                $updated_desc  = update_post_meta($productId, '_yoast_wpseo_metadesc', $tmpMeta->getMetaDescription());
-                $updated_kw    = update_post_meta($productId, '_yoast_wpseo_focuskw', $tmpMeta->getMetaKeywords());
+                $updated_desc = update_post_meta($productId, '_yoast_wpseo_metadesc', $tmpMeta->getMetaDescription());
+                $updated_kw = update_post_meta($productId, '_yoast_wpseo_focuskw', $tmpMeta->getMetaKeywords());
                 
             } catch (Exception $e) {
             
@@ -69,14 +61,15 @@ class ProductMetaSeo extends BaseController
     public function pullData(\WC_Product $product, ProductModel $model)
     {
         $productId = $model->getId()->getEndpoint();
-        $values    = null;
+        $values = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
             $values = [
                 'titleTag' => get_post_meta($productId, '_yoast_wpseo_title'),
                 'metaDesc' => get_post_meta($productId, '_yoast_wpseo_metadesc'),
                 'keywords' => get_post_meta($productId, '_yoast_wpseo_focuskw'),
-                'permlink' => $product->get_slug(), //$product->get_permalink()
+                'permlink' => $product->get_slug(),
+                //$product->get_permalink()
             ];
             
             foreach ($values as $key => $value) {

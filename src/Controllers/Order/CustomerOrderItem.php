@@ -12,7 +12,6 @@ use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
-use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderItem extends BaseController
 {
@@ -39,7 +38,7 @@ class CustomerOrderItem extends BaseController
      * Add the positions for products. Not that complicated.
      *
      * @param \WC_Order $order
-     * @param $customerOrderItems
+     * @param           $customerOrderItems
      */
     public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
     {
@@ -130,9 +129,9 @@ class CustomerOrderItem extends BaseController
     public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
     {
         $this->accurateItemTaxCalculation(
-        	$order,
-	        'shipping',
-	        $customerOrderItems,
+            $order,
+            'shipping',
+            $customerOrderItems,
             function ($shippingItem, $order, $taxRateId) {
                 return $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
             });
@@ -142,8 +141,9 @@ class CustomerOrderItem extends BaseController
      * Create an order item with the basic non price relevant information.
      *
      * @param \WC_Order_Item_Shipping $shippingItem
-     * @param \WC_Order $order
-     * @param null $taxRateId
+     * @param \WC_Order               $order
+     * @param null                    $taxRateId
+     *
      * @return CustomerOrderItemModel
      */
     private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
@@ -168,8 +168,9 @@ class CustomerOrderItem extends BaseController
      * Create an order item with the basic non price relevant information.
      *
      * @param \WC_Order_Item_Fee $feeItem
-     * @param \WC_Order $order
-     * @param null $taxRateId
+     * @param \WC_Order          $order
+     * @param null               $taxRateId
+     *
      * @return CustomerOrderItemModel
      */
     private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
@@ -184,9 +185,9 @@ class CustomerOrderItem extends BaseController
     
     /**
      * @param \WC_Order $order
-     * @param $type
-     * @param $customerOrderItems
-     * @param callable $getItem
+     * @param           $type
+     * @param           $customerOrderItems
+     * @param callable  $getItem
      */
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
@@ -249,7 +250,7 @@ class CustomerOrderItem extends BaseController
                     $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
                     
                     foreach ($taxRates as $taxrate) {
-                        if ($tmpVat >= $taxrate['tax_rate']) {
+                        if ($taxrate['tax_rate'] !== '0.0000' && $tmpVat >= $taxrate['tax_rate']) {
                             $vat = $taxrate['tax_rate'];
                         }
                     }
@@ -266,12 +267,12 @@ class CustomerOrderItem extends BaseController
     
     /**
      * @param \WC_Order $order
-     * @param $customerOrderItems
+     * @param           $customerOrderItems
      */
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
         /**
-         * @var integer $itemId
+         * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
