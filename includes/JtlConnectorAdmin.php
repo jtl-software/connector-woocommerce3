@@ -809,7 +809,7 @@ final class JtlConnectorAdmin
             'type'    => 'jtlwcc_card',
             'color'   => 'warning',
             'center' => true,
-            'text'    => __('Similar plugins, like the not compatible plugins which are listed here, might be incompatible too!',
+            'text'    => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
