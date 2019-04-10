@@ -127,7 +127,7 @@ class ProductAttr extends BaseController
                                 '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
                                 $attrName
                             )
-                            && $product->getIsMasterProduct()
+                            && $product->getMasterProductId()->getEndpoint() === 0
                         ) {
                             $attrName = substr($attrName, 18);
                             
