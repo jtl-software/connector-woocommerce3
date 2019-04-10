@@ -277,7 +277,7 @@ class ProductPrice extends BaseController
                         \get_post_meta($metaProductId, $metaKey, true)
                     );
                     
-                    if (!$product->getMasterProductId()->getEndpoint() === 0) {
+                    if (!$product->getMasterProductId()->getHost() === 0) {
                         $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
                             $product->getId()->getEndpoint());
                         $metaProductId = $product->getMasterProductId()->getEndpoint();
@@ -299,7 +299,7 @@ class ProductPrice extends BaseController
                         $metaKey
                     );
                     
-                    if (!$product->getMasterProductId()->getEndpoint() === 0) {
+                    if (!$product->getMasterProductId()->getHost() === 0) {
                         $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
                             $product->getId()->getEndpoint());
                         $metaProductId = $product->getMasterProductId()->getEndpoint();

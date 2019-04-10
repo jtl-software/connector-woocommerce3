@@ -40,7 +40,7 @@ class ProductGermanMarketFields extends BaseController
      */
     private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
     {
-        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getEndpoint() === 0);
+        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
         
         if ($this->hasGermanMarketUnitPrice($wcProduct, $metaKeys)) {
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
@@ -399,7 +399,7 @@ class ProductGermanMarketFields extends BaseController
      */
     private function updateGermanMarketPPU(ProductModel $product)
     {
-        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getEndpoint() === 0);
+        $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
         
         if ($product->getConsiderBasePrice()) {
             $productId = $product->getId()->getEndpoint();
@@ -595,7 +595,7 @@ class ProductGermanMarketFields extends BaseController
         $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         
         if ($rrp !== $oldValue) {
-            if (!$product->getMasterProductId()->getEndpoint() === 0) {
+            if (!$product->getMasterProductId()->getHost() === 0) {
                 $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
                 \update_post_meta(
                     $wcProduct->get_parent_id(),
