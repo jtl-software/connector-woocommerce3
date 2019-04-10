@@ -70,6 +70,10 @@ class ProductPrice extends BaseController
             if ($productType !== 'variable') {
                 $parentProduct = \wc_get_product($product->get_parent_id());
                 
+                if ($parentProduct === false) {
+                    $parentProduct = null;
+                }
+                
                 $salePriceKey = sprintf('_jtlwcc_bm_%s_%s_sale_price', $customerGroup->post_name, $productId);
                 $priceKey = sprintf('bm_%s_price', $customerGroup->post_name);
                 $regularPriceKey = sprintf('_jtlwcc_bm_%s_regular_price', $customerGroup->post_name);
