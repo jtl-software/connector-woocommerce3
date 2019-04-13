@@ -810,11 +810,12 @@ final class JtlConnectorAdmin
         ];
         
         $fields[] = [
-            'title'  => __('Important information', JTLWCC_TEXT_DOMAIN),
-            'type'   => 'jtlwcc_card',
-            'color'  => 'warning',
-            'center' => true,
-            'text'   => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'       => 'jtlwcc_card',
+            'color'      => 'border-warning',
+            'text-color' => 'text-warning',
+            'center'     => true,
+            'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -1064,6 +1065,20 @@ final class JtlConnectorAdmin
             'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
+        $fields[] = [
+            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'       => 'jtlwcc_card',
+            'color'      => 'border-info',
+            'text-color' => 'text-danger',
+            'center'     => false,
+            'text'       => __('The <b>JTL-Connector</b> set following settings for WooCommerce:</br></br>
+                                    <ul class="list-group bg-transparent border-info text-info">
+                                      <li class="list-group-item bg-transparent">Prices entered with tax: "No, I will enter prices exclusive of tax" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Display prices in the shop: "Including tax" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Display prices during cart and checkout: "Including tax" (Dont change this!)</li>
+                                    </ul>',
+                JTLWCC_TEXT_DOMAIN),
+        ];
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
@@ -1076,9 +1091,84 @@ final class JtlConnectorAdmin
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
+            $fields[] = [
+                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type'       => 'jtlwcc_card',
+                'color'      => 'border-info',
+                'text-color' => 'text-danger',
+                'center'     => false,
+                'text'       => __('<h6>The <b>JTL-Connector</b> set following settings for German Market:</br></br></h6>
+                                    <ul class="list-group bg-transparent border-info text-info">
+                                      <li class="list-group-item bg-transparent">Delivery Time > Default Delivery Time: "not specified" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times on Product Pages: "On"</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times during Checkout: "On"</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times on Order Summary: "On"</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels in Shop: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels on Product Pages: "Off" (Dont change this!)</li>
+                                      
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Product Attributes in product name: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Advertise Free Shipping: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Show Single Price of Order Items in Orders: "On"</li>
+                                      <li class="list-group-item bg-transparent">Products > Show Product Attributes not used for Variations: "Off" (Dont change this!)</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Product Images on Cart Page: "On"</li>
+                                      <li class="list-group-item bg-transparent">Products > Product Images for Order Summaries: "On"</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Show Price per Unit: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Scale Unit: "kg" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Quantity to display: "1" (Dont change this!)</li>
+                                    
+                                      
+                                      <li class="list-group-item bg-transparent">Global Options > Prorated Tax Calculation For Fees & Shipping Cost: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Global Options > Gross Shipping Costs and Gross Fees: "Off"</li>
+                                    </ul>',
+                    JTLWCC_TEXT_DOMAIN),
+            ];
+          /*  $fields[] = [
+                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type'       => 'jtlwcc_card',
+                'color'      => 'border-info',
+                'text-color' => 'text-danger',
+                'center'     => false,
+                'text'       => __('The <b>JTL-Connector</b> set following settings for German Market:</br></br>
+                                    <ul class="list-group list-group-flush">
+                                      <li class="list-group-item">Standardwert Lieferzeit: "nicht angegeben" (Dont change this!)</li>
+                                      <li class="list-group-item">Zeige die Lieferzeit auf der Produktseite: "Ein"</li>
+                                      <li class="list-group-item">Zeige die Lieferzeit im Checkout: "Ein"</li>
+                                      <li class="list-group-item">Zeige die Lieferzeiten auf der Bestellübersicht an: "Ein"</li>
+                                      
+                                      <li class="list-group-item">Zeige Streichlabel im Shop an: "Aus" (Dont change this!)</li>
+                                      <li class="list-group-item">Zeige Streichlabel auf der Produktseite an: "Aus" (Dont change this!)</li>
+                                      
+                                      
+                                      <li class="list-group-item">Produkteigenschaften am Produktnamen: "Aus" (Dont change this!)</li>
+                                      <li class="list-group-item">Kostenlosen Versand anzeigen: "Ein" (Dont change this!)</li>
+                                      <li class="list-group-item">Zeige Artikel-Einzelpreise in Bestellungen: "Ein"</li>
+                                      <li class="list-group-item">Zeige Produkteigenschaften, die nicht für Varianten verwendet werden: "Aus" (Dont change this!)</li>
+                                      
+                                      <li class="list-group-item">Produktbilder im Warenkorb: "Ein"</li>
+                                      <li class="list-group-item">Produktbilder in Bestellzusammenfassungen: "Ein"</li>
+                                      
+                                      <li class="list-group-item">Grundpreis anzeigen: "Ein" (Dont change this!)</li>
+                                      <li class="list-group-item">Automatische Grundpreisberechnung: "Aus" (Dont change this!)</li>
+                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen: "Aus" (Dont change this!)</li>
+                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen - Maßeinheit: "kg" (Dont change this!)</li>
+                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen - Grundmenge: "1" (Dont change this!)</li>
+                                    
+                                      
+                                      <li class="list-group-item">Anteilige Steuerberechnung für Nebenleistungen: "Ein" (Dont change this!)</li>
+                                      <li class="list-group-item">Brutto-Versandkosten und Brutto-Gebühren: "Aus"</li>
+                                    </ul>',
+                    JTLWCC_TEXT_DOMAIN),
+            ];*/
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+        //CURRENT DISBALED THIS
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && false) {
             $fields[] = [
                 'title'     => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
                 'type'      => 'active_true_false_radio',
@@ -1088,6 +1178,15 @@ final class JtlConnectorAdmin
                 'value'     => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+            $fields[] = [
+                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type'       => 'jtlwcc_card',
+                'color'      => 'border-info',
+                'text-color' => 'text-info',
+                'center'     => false,
+                'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+                    JTLWCC_TEXT_DOMAIN),
             ];
         }
         
@@ -1238,11 +1337,16 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
-        <?php echo isset($field['color']) && $field['color'] !== '' ? 'bg-' . $field['color'] : 'bg-light'; ?>">
-            <div class="card-title">
+        <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>">
+            <div class="card-header bg-transparent
+             <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
+              <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
                 <h5 class="card-title"><?php echo $field['title']; ?></h5>
             </div>
-            <div class="card-body">
+            <div class="card-body bg-transparent
+            <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
+                <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
+
                 <p class="card-text"><?php echo $field['text']; ?></p>
                 <!--  <a href="#" class="btn btn-primary">Go somewhere</a>-->
             </div>
@@ -1608,7 +1712,14 @@ final class JtlConnectorAdmin
             case '1.7.0':
             case '1.7.1':
                 self::createManufacturerLinkingTable();
-            case '1.7.2':
+            case '1.8.0.1':
+                //hotfix
+            case '1.8.0.2':
+                //hotfix
+            case '1.8.0.3':
+                //hotfix
+            case '1.8.0':
+                self::activate_linking();
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,

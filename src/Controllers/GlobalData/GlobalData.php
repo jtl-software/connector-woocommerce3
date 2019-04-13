@@ -34,12 +34,12 @@ class GlobalData extends BaseController
         
         if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
-         //   \update_option('woocommerce_prices_include_tax', 'no', true);
+            //   \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer
-           // \update_option('woocommerce_tax_display_shop', 'incl', true);   //MOVED PROD PUSH
+            // \update_option('woocommerce_tax_display_shop', 'incl', true);   //MOVED PROD PUSH
             //Preise im Cart mit hinterlegter Steuer
             //\update_option('woocommerce_tax_display_cart', 'incl', true);
-    
+            
             /*\update_option('woocommerce_dimension_unit', 'cm', true);
             \update_option('woocommerce_weight_unit', 'kg', true);*/
         }
@@ -69,10 +69,11 @@ class GlobalData extends BaseController
                 update_option('woocommerce_de_show_free_shipping', 'on', true);
                 update_option('gm_show_product_attributes', 'off', true);
                 update_option('gm_show_single_price_of_order_items', 'on', true);
-                //update_option('german_market_product_images_in_order', 'on', true);
-                //update_option('german_market_product_images_in_cart', 'on', true);
-                update_option('woocommerce_de_show_price_per_unit', 'on', true);
                 
+                update_option('german_market_product_images_in_order', 'on', true);
+                update_option('german_market_product_images_in_cart', 'on', true);
+                
+                update_option('woocommerce_de_show_price_per_unit', 'on', true);
                 update_option('woocommerce_de_automatic_calculation_ppu', 'off', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight', 'off', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight_scale_unit', 'kg', true);
@@ -81,9 +82,8 @@ class GlobalData extends BaseController
                 //Globale Optionen
                 update_option('wgm_use_split_tax', 'on', true);
                 update_option('gm_gross_shipping_costs_and_fees', 'off', true);
-                
-                $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());
             }
+            $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());
         }
         
         return [$globalData];
