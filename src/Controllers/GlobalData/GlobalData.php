@@ -69,8 +69,8 @@ class GlobalData extends BaseController
                 update_option('woocommerce_de_show_free_shipping', 'on', true);
                 update_option('gm_show_product_attributes', 'off', true);
                 update_option('gm_show_single_price_of_order_items', 'on', true);
-                update_option('german_market_product_images_in_order', 'on', true);
-                update_option('german_market_product_images_in_cart', 'on', true);
+                //update_option('german_market_product_images_in_order', 'on', true);
+                //update_option('german_market_product_images_in_cart', 'on', true);
                 update_option('woocommerce_de_show_price_per_unit', 'on', true);
                 
                 update_option('woocommerce_de_automatic_calculation_ppu', 'off', true);
