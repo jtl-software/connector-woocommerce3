@@ -1128,43 +1128,6 @@ final class JtlConnectorAdmin
                                     </ul>',
                     JTLWCC_TEXT_DOMAIN),
             ];
-          /*  $fields[] = [
-                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
-                'type'       => 'jtlwcc_card',
-                'color'      => 'border-info',
-                'text-color' => 'text-danger',
-                'center'     => false,
-                'text'       => __('The <b>JTL-Connector</b> set following settings for German Market:</br></br>
-                                    <ul class="list-group list-group-flush">
-                                      <li class="list-group-item">Standardwert Lieferzeit: "nicht angegeben" (Dont change this!)</li>
-                                      <li class="list-group-item">Zeige die Lieferzeit auf der Produktseite: "Ein"</li>
-                                      <li class="list-group-item">Zeige die Lieferzeit im Checkout: "Ein"</li>
-                                      <li class="list-group-item">Zeige die Lieferzeiten auf der Bestellübersicht an: "Ein"</li>
-                                      
-                                      <li class="list-group-item">Zeige Streichlabel im Shop an: "Aus" (Dont change this!)</li>
-                                      <li class="list-group-item">Zeige Streichlabel auf der Produktseite an: "Aus" (Dont change this!)</li>
-                                      
-                                      
-                                      <li class="list-group-item">Produkteigenschaften am Produktnamen: "Aus" (Dont change this!)</li>
-                                      <li class="list-group-item">Kostenlosen Versand anzeigen: "Ein" (Dont change this!)</li>
-                                      <li class="list-group-item">Zeige Artikel-Einzelpreise in Bestellungen: "Ein"</li>
-                                      <li class="list-group-item">Zeige Produkteigenschaften, die nicht für Varianten verwendet werden: "Aus" (Dont change this!)</li>
-                                      
-                                      <li class="list-group-item">Produktbilder im Warenkorb: "Ein"</li>
-                                      <li class="list-group-item">Produktbilder in Bestellzusammenfassungen: "Ein"</li>
-                                      
-                                      <li class="list-group-item">Grundpreis anzeigen: "Ein" (Dont change this!)</li>
-                                      <li class="list-group-item">Automatische Grundpreisberechnung: "Aus" (Dont change this!)</li>
-                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen: "Aus" (Dont change this!)</li>
-                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen - Maßeinheit: "kg" (Dont change this!)</li>
-                                      <li class="list-group-item">Automatische Grundpreisberechnung - WooCommerce Gewichtseinheit und Gewichte von Produkten nutzen - Grundmenge: "1" (Dont change this!)</li>
-                                    
-                                      
-                                      <li class="list-group-item">Anteilige Steuerberechnung für Nebenleistungen: "Ein" (Dont change this!)</li>
-                                      <li class="list-group-item">Brutto-Versandkosten und Brutto-Gebühren: "Aus"</li>
-                                    </ul>',
-                    JTLWCC_TEXT_DOMAIN),
-            ];*/
         }
         
         //CURRENT DISBALED THIS
