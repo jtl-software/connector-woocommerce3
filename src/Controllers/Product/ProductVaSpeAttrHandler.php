@@ -19,7 +19,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
 use JtlWooCommerceConnector\Utilities\Util;
 
-if (defined('WC_DELIMITER')) {
+if (!defined('WC_DELIMITER')) {
     define('WC_DELIMITER', '|');
 }
 
