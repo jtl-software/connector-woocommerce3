@@ -63,7 +63,7 @@ class ProductSpecialPrice extends BaseController
                     $groupSlug = $groupController->getSlugById($customerGroup->getId()->getEndpoint());
                     $defaultSpecialPrice = false;
                     $salePrice = $product->get_sale_price();
-    
+                    
                     if (!empty($salePrice)) {
                         $defaultSpecialPrice = true;
                     }
@@ -77,11 +77,11 @@ class ProductSpecialPrice extends BaseController
                     }
                     $specialPrice = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
                     
-                    if(!empty($specialPrice)){
+                    if (!empty($specialPrice)) {
                         $specialPrice = $this->getPriceNet($specialPrice, $product);
-                    }elseif (empty($specialPrice) && $defaultSpecialPrice){
+                    } elseif (empty($specialPrice) && $defaultSpecialPrice) {
                         $specialPrice = $this->getPriceNet($salePrice, $product);
-                    } else{
+                    } else {
                         continue;
                     }
                     
@@ -134,6 +134,10 @@ class ProductSpecialPrice extends BaseController
     public function pushData(ProductModel $product, \WC_Product $wcProduct)
     {
         $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
         $productId = $product->getId()->getEndpoint();
         $masterProductId = $product->getMasterProductId();
         $specialPrices = $product->getSpecialPrices();
@@ -203,6 +207,9 @@ class ProductSpecialPrice extends BaseController
                         
                     } elseif (is_int((int)$endpoint)) {
                         if ($productType !== 'variable') {
+                            if ($pd > 4) {
+                                $pd = 3;
+                            }
                             $customerGroup = get_post($endpoint);
                             $priceMetaKey = sprintf(
                                 'bm_%s_price',

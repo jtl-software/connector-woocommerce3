@@ -175,43 +175,6 @@ class ProductGermanMarketFields extends BaseController
                     break;
             }
             
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularUnitKey'],
-                $code,
-                $metaData[$metaKeys['unitRegularUnitKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularMultiplikatorKey'],
-                $baseQuantity,
-                $metaData[$metaKeys['unitRegularMultiplikatorKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularKey'],
-                $basePrice,
-                $metaData[$metaKeys['unitRegularKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSaleUnitKey'],
-                $code,
-                $metaData[$metaKeys['unitSaleUnitKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSaleMultiplikatorKey'],
-                $baseQuantity,
-                $metaData[$metaKeys['unitSaleMultiplikatorKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSalePriceKey'],
-                $basePrice,
-                $metaData[$metaKeys['unitSalePriceKey']]
-            );
-            
             $id = new Identity($code);
             
             $product->setMeasurementQuantity((float)$productQuantity);
@@ -240,21 +203,20 @@ class ProductGermanMarketFields extends BaseController
     {
         $result = [
             //Price
-            'priceKey'     => '_price',
+            'priceKey'         => '_price',
             //meta keys vars
-            'weightKey'    => '_weight',
-            'lengthKey'    => '_length',
-            'widthKey'     => '_width',
-            'heightKey'    => '_height',
-            'jtlwccStkKey' => '_jtlwcc_stk',
+            'weightKey'        => '_weight',
+            'lengthKey'        => '_length',
+            'widthKey'         => '_width',
+            'heightKey'        => '_height',
+            'jtlwccStkKey'     => '_jtlwcc_stk',
+            'usedCustomPPUKey' => '_v_used_setting_ppu',
         ];
+        
         $keys = [  //meta keys PPU vars
-                   'unitRegularUnitKey'          => '_unit_regular_price_per_unit',
-                   'unitRegularMultiplikatorKey' => '_unit_regular_price_per_unit_mult',
-                   'unitRegularKey'              => '_regular_price_per_unit',
-                   'unitSaleUnitKey'             => '_unit_sale_price_per_unit',
-                   'unitSaleMultiplikatorKey'    => '_unit_sale_price_per_unit_mult',
-                   'unitSalePriceKey'            => '_sale_price_per_unit',
+                   'unitRegularUnitKey'                => '_unit_regular_price_per_unit',
+                   'unitRegularMultiplikatorKey'       => '_unit_regular_price_per_unit_mult',
+                   'unitRegularAutoPPUProductQuantity' => '_auto_ppu_complete_product_quantity',
         ];
         
         foreach ($keys as $key => $value) {
@@ -499,11 +461,8 @@ class ProductGermanMarketFields extends BaseController
             } else {
                 $unitCodeKey = $metaKeys['unitRegularUnitKey'];
                 $unitMultiplikatorKey = $metaKeys['unitRegularMultiplikatorKey'];
-                $basePriceKey = $metaKeys['unitRegularKey'];
-                
-                $unitSaleCode = $metaKeys['unitSaleUnitKey'];
-                $unitSaleMultiplikatorKey = $metaKeys['unitSaleMultiplikatorKey'];
-                $baseSalePriceKey = $metaKeys['unitSalePriceKey'];
+                $unitRegularAutoPPUProductQuantity = $metaKeys['unitRegularAutoPPUProductQuantity'];
+                $usedCustomPPU = $metaKeys['usedCustomPPUKey'];
                 
                 \update_post_meta(
                     $productId,
@@ -519,28 +478,15 @@ class ProductGermanMarketFields extends BaseController
                 );
                 \update_post_meta(
                     $productId,
-                    $basePriceKey,
-                    round($basePrice, 4),
-                    $metaData[$basePriceKey]
-                );
-                
-                \update_post_meta(
-                    $productId,
-                    $unitSaleCode,
-                    $baseUnit,
-                    $metaData[$unitSaleCode]
+                    $unitRegularAutoPPUProductQuantity,
+                    $productQuantity,
+                    $metaData[$unitRegularAutoPPUProductQuantity]
                 );
                 \update_post_meta(
                     $productId,
-                    $unitSaleMultiplikatorKey,
-                    $baseQuantity,
-                    $metaData[$unitSaleMultiplikatorKey]
-                );
-                \update_post_meta(
-                    $productId,
-                    $baseSalePriceKey,
-                    round($basePrice, 4),
-                    $metaData[$baseSalePriceKey]
+                    $usedCustomPPU,
+                    1,
+                    $metaData[$usedCustomPPU]
                 );
             }
         } else {
@@ -561,27 +507,27 @@ class ProductGermanMarketFields extends BaseController
         );
         \update_post_meta(
             $productId,
+            $metaKeys['unitRegularUnitKey'],
+            '',
+            $metaData[$metaKeys['unitRegularUnitKey']]
+        );
+        \update_post_meta(
+            $productId,
             $metaKeys['unitRegularMultiplikatorKey'],
             '',
             $metaData[$metaKeys['unitRegularMultiplikatorKey']]
         );
         \update_post_meta(
             $productId,
-            $metaKeys['unitRegularKey'],
+            $metaKeys['unitRegularAutoPPUProductQuantity'],
             '',
-            $metaData[$metaKeys['unitRegularKey']]
+            $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
         );
         \update_post_meta(
             $productId,
-            $metaKeys['unitSaleMultiplikatorKey'],
-            '',
-            $metaData[$metaKeys['unitSaleMultiplikatorKey']]
-        );
-        \update_post_meta(
-            $productId,
-            $metaKeys['unitSalePriceKey'],
-            '',
-            $metaData[$metaKeys['unitSalePriceKey']]
+            $metaKeys['usedCustomPPUKey'],
+            0,
+            $metaData[$metaKeys['usedCustomPPUKey']]
         );
     }
     

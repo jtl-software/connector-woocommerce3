@@ -1117,7 +1117,7 @@ final class JtlConnectorAdmin
                                       <li class="list-group-item bg-transparent">Products > Product Images for Order Summaries: "On"</li>
                                       
                                       <li class="list-group-item bg-transparent">Products > Show Price per Unit: "On" (Dont change this!)</li>
-                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation: "On" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights: "Off" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Scale Unit: "kg" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Quantity to display: "1" (Dont change this!)</li>
@@ -1680,8 +1680,12 @@ final class JtlConnectorAdmin
             case '1.8.0.2':
                 //hotfix
             case '1.8.0.3':
-                //hotfix
+            //hotfix
             case '1.8.0.4':
+            //hotfix
+            case '1.8.0.5':
+            //hotfix
+            case '1.8.0.6':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();

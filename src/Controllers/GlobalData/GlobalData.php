@@ -74,7 +74,7 @@ class GlobalData extends BaseController
                 update_option('german_market_product_images_in_cart', 'on', true);
                 
                 update_option('woocommerce_de_show_price_per_unit', 'on', true);
-                update_option('woocommerce_de_automatic_calculation_ppu', 'off', true);
+                update_option('woocommerce_de_automatic_calculation_ppu', 'on', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight', 'off', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight_scale_unit', 'kg', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight_mult', '1', true);

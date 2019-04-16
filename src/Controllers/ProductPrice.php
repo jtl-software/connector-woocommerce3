@@ -45,6 +45,11 @@ class ProductPrice extends BaseController
      */
     public function updateProductPrice(\WC_Product $product, ProductPriceModel $productPrice, $vat)
     {
+        $pd = \wc_get_price_decimals();
+    
+        if ($pd < 4){
+            $pd = 4;
+        }
         $customerGroupId = $productPrice->getCustomerGroupId()->getEndpoint();
         
         if ($customerGroupId === '') {
@@ -66,7 +71,9 @@ class ProductPrice extends BaseController
         } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $productType = $product->get_type();
             $customerGroup = \get_post($customerGroupId);
-            
+            if ($pd > 3){
+                $pd = 3;
+            }
             if ($productType !== 'variable') {
                 $parentProduct = \wc_get_product($product->get_parent_id());
                 
@@ -85,7 +92,7 @@ class ProductPrice extends BaseController
         }
         
         if ($product !== false) {
-            $pd = \wc_get_price_decimals();
+            
             $bulkPrices = [];
             
             foreach ($productPrice->getItems() as $item) {
