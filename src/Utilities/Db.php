@@ -81,6 +81,16 @@ class Db extends Singleton
 
         return $return;
     }
+    
+    public static function checkIfFKExists($table, $constraint){
+        return (bool)Db::getInstance()->queryOne("
+               SELECT COUNT(*)
+                  FROM information_schema.TABLE_CONSTRAINTS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = '{$table}'
+                    AND CONSTRAINT_NAME = '{$constraint}';"
+        );
+    }
 
     /**
      * @return Db

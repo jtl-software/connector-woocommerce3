@@ -2,11 +2,12 @@
 
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -102,7 +103,7 @@ final class JtlConnectorAdmin
     public static function plugin_activation()
     {
         global $woocommerce;
-        $version          = $woocommerce->version;
+        $version = $woocommerce->version;
         $connectorVersion = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
@@ -131,7 +132,7 @@ final class JtlConnectorAdmin
                 }
             }
         } catch (\jtl\Connector\Core\Exception\MissingRequirementException $exc) {
-            if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX)) {
+            if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();
                 wp_die($exc->getMessage());
             } else {
@@ -160,7 +161,7 @@ final class JtlConnectorAdmin
     
     private static function run_phar_check()
     {
-        if ( ! extension_loaded('phar')) {
+        if (!extension_loaded('phar')) {
             add_action('admin_notices', 'phar_extension');
         }
         if (extension_loaded('suhosin')) {
@@ -187,7 +188,7 @@ final class JtlConnectorAdmin
         ';
         
         $oldPrefix = 'jtl_connector_link_';
-        $prefix    = $wpdb->prefix . $oldPrefix;
+        $prefix = $wpdb->prefix . $oldPrefix;
         
         $existingTables = self::getOldDatabaseTables();
         
@@ -223,14 +224,14 @@ final class JtlConnectorAdmin
             
             if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
                 $oldPrefix = substr($oldPrefix, 0, -5);
-                $prefix    = substr($prefix, 0, -5);
+                $prefix = substr($prefix, 0, -5);
                 $oldExists = in_array($oldPrefix . $table, $existingTables);
                 $newExists = in_array($prefix . $table, $existingTables);
             }
             
             if ($oldExists && $newExists) {
                 $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
-            } elseif ( ! $oldExists && ! $newExists) {
+            } elseif (!$oldExists && !$newExists) {
                 if (strcmp($table, 'category_level') === 0) {
                     self::activate_category_tree($prefix);
                 } elseif (strcmp($table, 'product_checksum') === 0) {
@@ -244,12 +245,12 @@ final class JtlConnectorAdmin
                 } else {
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
-            } elseif ($oldExists && ! $newExists) {
+            } elseif ($oldExists && !$newExists) {
                 self::renameTable($oldPrefix . $table, $prefix . $table);
             }
             //reset values
             $oldPrefix = 'jtl_connector_link_';
-            $prefix    = $wpdb->prefix . $oldPrefix;
+            $prefix = $wpdb->prefix . $oldPrefix;
         }
         
         self::add_constraints_for_multi_linking_tables($prefix);
@@ -300,7 +301,7 @@ final class JtlConnectorAdmin
     {
         global $wpdb;
         $existingTables = [];
-        $tableDataSet   = $wpdb->get_results('SHOW TABLES');
+        $tableDataSet = $wpdb->get_results('SHOW TABLES');
         
         if (count($tableDataSet) !== 0) {
             foreach ($tableDataSet as $tableData) {
@@ -387,7 +388,7 @@ final class JtlConnectorAdmin
     
     public static function init()
     {
-        if ( ! self::$initiated) {
+        if (!self::$initiated) {
             self::init_hooks();
         }
     }
@@ -547,7 +548,7 @@ final class JtlConnectorAdmin
         {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
             // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
-            if ( ! preg_match('/^jtl-connector_page_woo-/', $hook)) {
+            if (!preg_match('/^jtl-connector_page_woo-/', $hook)) {
                 return;
             }
             
@@ -590,11 +591,11 @@ final class JtlConnectorAdmin
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'woo-jtl-connector.php') !== false) {
-            $url       = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
+            $url = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
             ];
-            $links     = array_merge($links, $new_links);
+            $links = array_merge($links, $new_links);
         }
         
         return $links;
@@ -1172,7 +1173,7 @@ final class JtlConnectorAdmin
             <label for="<?= $field['id'] ?>" class="col-12 col-form-label"><?= $field['title'] ?></label>
             <div class="col-12">
                 <input class="form-control" type="date"
-                       value="<?= isset($field['value']) && ! is_null($field['value']) && $field['value'] !== '' ? $field['value'] : $option_value ?>"
+                       value="<?= isset($field['value']) && !is_null($field['value']) && $field['value'] !== '' ? $field['value'] : $option_value ?>"
                        id="<?= $field['id'] ?>"
                        name="<?= $field['id'] ?>">
             </div>
@@ -1287,7 +1288,7 @@ final class JtlConnectorAdmin
                     foreach ($field['plugins'] as $key => $value) {
                         ?>
                         <li class="list-group-item <?php $change ? print('list-group-item-light') : print(''); ?>"><?php print $value; ?></li> <?php
-                        $change = ! $change;
+                        $change = !$change;
                     }
                 }
                 ?>
@@ -1338,7 +1339,7 @@ final class JtlConnectorAdmin
                             </a>)
                         </li>
                         <?php
-                        $change = ! $change;
+                        $change = !$change;
                     }
                 }
                 ?>
@@ -1390,11 +1391,11 @@ final class JtlConnectorAdmin
                 <div class="custom-control custom-radio">
                     <input type="radio" id="<?= $field['id'] ?>_2" name="<?= $field['id'] ?>" value="false"
                            class="custom-control-input "
-                        <?php if ( ! $field['value']) {
+                        <?php if (!$field['value']) {
                             print 'checked="checked"';
                         } ?>
                     >
-                    <label class="custom-control-label  <?php if ( ! $field['value']) {
+                    <label class="custom-control-label  <?php if (!$field['value']) {
                         print 'active';
                     } ?>" for="<?= $field['id'] ?>_2"><?= $field['falseText'] ?></label>
                 </div>
@@ -1560,9 +1561,9 @@ final class JtlConnectorAdmin
             add_option(self::OPTIONS_TOKEN, self::create_password());
         }
         
-        if ( ! Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
-             || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
-                && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
+        if (!Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
+            && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
         ) {
             
             Config::set(
@@ -1573,7 +1574,7 @@ final class JtlConnectorAdmin
         
         $version = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
         
-        if ( ! Config::has('connector_version') || Config::has('connector_version') && version_compare(
+        if (!Config::has('connector_version') || Config::has('connector_version') && version_compare(
                 $configFileValues->connector_version,
                 $version,
                 '!='
@@ -1592,7 +1593,7 @@ final class JtlConnectorAdmin
                 add_option($key, $configFileValues->$key);
             }
             
-            if ( ! Config::has($key) && ! is_null($option) || Config::has($key) && ! is_null($option)) {
+            if (!Config::has($key) && !is_null($option) || Config::has($key) && !is_null($option)) {
                 $cast = self::JTLWCC_CONFIG[$key];
                 
                 switch ($cast) {
@@ -1620,7 +1621,7 @@ final class JtlConnectorAdmin
                 Config::set($key, $value);
             }
             
-            if ( ! Config::has($key) && is_null($option)) {
+            if (!Config::has($key) && is_null($option)) {
                 add_option($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
                 Config::set($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
             }
@@ -1680,11 +1681,11 @@ final class JtlConnectorAdmin
             case '1.8.0.2':
                 //hotfix
             case '1.8.0.3':
-            //hotfix
+                //hotfix
             case '1.8.0.4':
-            //hotfix
+                //hotfix
             case '1.8.0.5':
-            //hotfix
+                //hotfix
             case '1.8.0.6':
                 //hotfix
             case '1.8.0.7':
@@ -1726,9 +1727,9 @@ final class JtlConnectorAdmin
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
         
         foreach ($types as $type) {
-            $type      = (int)$type->type;
+            $type = (int)$type->type;
             $tableName = self::get_table_name($type);
-            $result    = $result && $wpdb->query("
+            $result = $result && $wpdb->query("
                 INSERT INTO `{$tableName}` (`host_id`, `endpoint_id`)
                 SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
             ");
@@ -1825,33 +1826,44 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}product`
-                ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
+            if (DB::checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}order`
                 ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                );
+            }
+            if (DB::checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}payment`
                 ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                );
+            }
+            if (DB::checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}crossselling`
                 ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            
-            $wpdb->query("
+                );
+            }
+            if (DB::checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}category`
-                ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            $wpdb->query("
+            if (DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     
@@ -1881,16 +1893,22 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (DB::checkIfFKExists('jtl_connector_link_category',
+                'jtl_connector_link_category_1')) {
+                $wpdb->query("
                 ALTER TABLE `jtl_connector_link_category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            $wpdb->query("
+            if (DB::checkIfFKExists('jtl_connector_link_specific',
+                'jtl_connector_link_specific_1')) {
+                $wpdb->query("
                 ALTER TABLE `jtl_connector_link_specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     // </editor-fold>
@@ -1947,10 +1965,13 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (DB::checkIfFKExists($wpdb->prefix . 'jtl_connector_link_manufacturer',
+                'jtl_connector_link_manufacturer_1')) {
+                $wpdb->query("
               ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`
                 ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     // </editor-fold>

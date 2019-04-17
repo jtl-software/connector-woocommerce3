@@ -45,12 +45,12 @@ class GlobalData extends BaseController
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-            && ! SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanizedData());
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
-            && ! SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
             
             if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
                 //LIEFERZEITEN
