@@ -45,6 +45,7 @@ trait WawiProductPriceSchmuddelTrait
                             $defaultPriceNet = $item->getNetPrice() * (1 + $vat / 100);
                         } else {
                             $defaultPriceNet = $item->getNetPrice();
+                            $defaultPriceNet = Util::getNetPriceCutted($defaultPriceNet, 4);
                         }
                     }
                 }

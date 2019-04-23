@@ -2,6 +2,7 @@
 
 use jtl\Connector\Core\System\Check;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
@@ -52,6 +53,7 @@ final class JtlConnectorAdmin
     const OPTIONS_SUFFIX_DELIVERYTIME = 'jtlconnector_suffix_deliverytime';
     const OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
     const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
+    const OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce';
     
     const JTLWCC_CONFIG = [
         //FIRSTPAGE
@@ -69,6 +71,7 @@ final class JtlConnectorAdmin
         self::OPTIONS_PULL_ORDERS_SINCE                        => 'date',
         //Page
         self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
+        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS                 => 'bool',
         self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => 'bool',
         self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => 'bool',
     ];
@@ -89,6 +92,7 @@ final class JtlConnectorAdmin
         self::OPTIONS_PULL_ORDERS_SINCE                        => '',
         //Page
         self::OPTIONS_DEVELOPER_LOGGING                        => false,
+        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS                 => true,
         self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => true,
         self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => true,
     ];
@@ -104,9 +108,11 @@ final class JtlConnectorAdmin
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
-            
-        } elseif (version_compare($version,
-            trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['min_wc_version']), '<')) {
+        } elseif (version_compare(
+            $version,
+            trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['min_wc_version'])
+            , '<'
+        )) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_wrong_woocommerce_version');
         }
@@ -337,7 +343,7 @@ final class JtlConnectorAdmin
     private static function activate_category_tree($prefix)
     {
         global $wpdb;
-        
+        $prefix = $wpdb->prefix . 'jtl_connector_';
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
@@ -346,7 +352,9 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
+            if (!DB::checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
+                $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
+            }
         } else {
             $constraint = '';
         }
@@ -805,11 +813,12 @@ final class JtlConnectorAdmin
         ];
         
         $fields[] = [
-            'title'  => __('Important information', JTLWCC_TEXT_DOMAIN),
-            'type'   => 'jtlwcc_card',
-            'color'  => 'warning',
-            'center' => true,
-            'text'   => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'       => 'jtlwcc_card',
+            'color'      => 'border-warning',
+            'text-color' => 'text-warning',
+            'center'     => true,
+            'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                 JTLWCC_TEXT_DOMAIN),
         ];
         
@@ -1049,9 +1058,34 @@ final class JtlConnectorAdmin
             'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
         ];
         
+        $fields[] = [
+            'title'     => __('Recommend WooCommerce Settings', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                JTLWCC_TEXT_DOMAIN),
+            'id'        => self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS,
+            'value'     => Config::get(self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+        $fields[] = [
+            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type'       => 'jtlwcc_card',
+            'color'      => 'border-info',
+            'text-color' => 'text-danger',
+            'center'     => false,
+            'text'       => __('The <b>JTL-Connector</b> set following settings for WooCommerce:</br></br>
+                                    <ul class="list-group bg-transparent border-info text-info">
+                                      <li class="list-group-item bg-transparent">Prices entered with tax: "No, I will enter prices exclusive of tax" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Display prices in the shop: "Including tax" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Display prices during cart and checkout: "Including tax" (Dont change this!)</li>
+                                    </ul>',
+                JTLWCC_TEXT_DOMAIN),
+        ];
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
-                'title'     => __('German Market', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Recommend German Market Settings', JTLWCC_TEXT_DOMAIN),
                 'type'      => 'active_true_false_radio',
                 'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
                     JTLWCC_TEXT_DOMAIN),
@@ -1060,11 +1094,49 @@ final class JtlConnectorAdmin
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
+            $fields[] = [
+                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type'       => 'jtlwcc_card',
+                'color'      => 'border-info',
+                'text-color' => 'text-danger',
+                'center'     => false,
+                'text'       => __('<h6>The <b>JTL-Connector</b> set following settings for German Market:</br></br></h6>
+                                    <ul class="list-group bg-transparent border-info text-info">
+                                      <li class="list-group-item bg-transparent">Delivery Time > Default Delivery Time: "not specified" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times on Product Pages: "On"</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times during Checkout: "On"</li>
+                                      <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times on Order Summary: "On"</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels in Shop: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels on Product Pages: "Off" (Dont change this!)</li>
+                                      
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Product Attributes in product name: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Advertise Free Shipping: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Show Single Price of Order Items in Orders: "On"</li>
+                                      <li class="list-group-item bg-transparent">Products > Show Product Attributes not used for Variations: "Off" (Dont change this!)</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Product Images on Cart Page: "On"</li>
+                                      <li class="list-group-item bg-transparent">Products > Product Images for Order Summaries: "On"</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Show Price per Unit: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights: "Off" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Scale Unit: "kg" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Products > Automatic Calculation - Use WooCommerce Weight Unit and Product Weights - Quantity to display: "1" (Dont change this!)</li>
+                                    
+                                      
+                                      <li class="list-group-item bg-transparent">Global Options > Prorated Tax Calculation For Fees & Shipping Cost: "On" (Dont change this!)</li>
+                                      <li class="list-group-item bg-transparent">Global Options > Gross Shipping Costs and Gross Fees: "Off"</li>
+                                    </ul>',
+                    JTLWCC_TEXT_DOMAIN),
+            ];
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+        //CURRENT DISBALED THIS
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && false) {
             $fields[] = [
-                'title'     => __('B2B Market', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
                 'type'      => 'active_true_false_radio',
                 'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
                     JTLWCC_TEXT_DOMAIN),
@@ -1072,6 +1144,15 @@ final class JtlConnectorAdmin
                 'value'     => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            ];
+            $fields[] = [
+                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type'       => 'jtlwcc_card',
+                'color'      => 'border-info',
+                'text-color' => 'text-info',
+                'center'     => false,
+                'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+                    JTLWCC_TEXT_DOMAIN),
             ];
         }
         
@@ -1222,11 +1303,16 @@ final class JtlConnectorAdmin
     {
         ?>
         <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
-        <?php echo isset($field['color']) && $field['color'] !== '' ? 'bg-' . $field['color'] : 'bg-light'; ?>">
-            <div class="card-title">
+        <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>">
+            <div class="card-header bg-transparent
+             <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
+              <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
                 <h5 class="card-title"><?php echo $field['title']; ?></h5>
             </div>
-            <div class="card-body">
+            <div class="card-body bg-transparent
+            <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
+                <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
+
                 <p class="card-text"><?php echo $field['text']; ?></p>
                 <!--  <a href="#" class="btn btn-primary">Go somewhere</a>-->
             </div>
@@ -1592,7 +1678,22 @@ final class JtlConnectorAdmin
             case '1.7.0':
             case '1.7.1':
                 self::createManufacturerLinkingTable();
-            case '1.7.2':
+            case '1.8.0.1':
+                //hotfix
+            case '1.8.0.2':
+                //hotfix
+            case '1.8.0.3':
+                //hotfix
+            case '1.8.0.4':
+                //hotfix
+            case '1.8.0.5':
+                //hotfix
+            case '1.8.0.6':
+                //hotfix
+            case '1.8.0.7':
+                //hotfix
+            case '1.8.0':
+                self::activate_linking();
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,
@@ -1727,33 +1828,44 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (!DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}product`
-                ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
+            if (!DB::checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}order`
                 ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                );
+            }
+            if (!DB::checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}payment`
                 ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            $wpdb->query("
+                );
+            }
+            if (!DB::checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}crossselling`
                 ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
-            
-            $wpdb->query("
+                );
+            }
+            if (!DB::checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}category`
-                ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            $wpdb->query("
+            if (!DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
+                $wpdb->query("
                 ALTER TABLE `{$prefix}specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     
@@ -1783,16 +1895,22 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (!DB::checkIfFKExists('jtl_connector_link_category',
+                'jtl_connector_link_category_1')) {
+                $wpdb->query("
                 ALTER TABLE `jtl_connector_link_category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            $wpdb->query("
+            if (!DB::checkIfFKExists('jtl_connector_link_specific',
+                'jtl_connector_link_specific_1')) {
+                $wpdb->query("
                 ALTER TABLE `jtl_connector_link_specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     // </editor-fold>
@@ -1849,10 +1967,13 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $wpdb->query("
+            if (!DB::checkIfFKExists($wpdb->prefix . 'jtl_connector_link_manufacturer',
+                'jtl_connector_link_manufacturer_1')) {
+                $wpdb->query("
               ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`
                 ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
-            );
+                );
+            }
         }
     }
     // </editor-fold>

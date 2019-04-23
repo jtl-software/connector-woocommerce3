@@ -165,11 +165,16 @@ class ProductPrice extends BaseController
             }
             
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
+                if ($pd < 4){
+                    $pd = 4;
+                }
+                
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
                         $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
                     } else {
                         $regularPrice = $item->getNetPrice();
+                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
                     }
                     
                     if ($item->getQuantity() === 0) {
@@ -187,6 +192,9 @@ class ProductPrice extends BaseController
             } elseif (!is_null($customerGroupMeta)
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             ) {
+                if ($pd > 3){
+                    $pd = 3;
+                }
                 $customerGroup = get_post($customerGroupId);
                 $productType = (new Product)->getType($product);
                 $bulkPrices = [];
@@ -196,7 +204,9 @@ class ProductPrice extends BaseController
                         $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
                     } else {
                         $regularPrice = $item->getNetPrice();
+                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
                     }
+                    
                     if ($item->getQuantity() === 0) {
                         $metaKeyForCustomerGroupPrice = sprintf(
                             'bm_%s_price',

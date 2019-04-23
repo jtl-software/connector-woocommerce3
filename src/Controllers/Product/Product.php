@@ -10,6 +10,7 @@ use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
@@ -17,6 +18,7 @@ use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -136,6 +138,35 @@ class Product extends BaseController
     
     protected function pushData(ProductModel $product)
     {
+        if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
+            //Wawi überträgt Netto
+            \update_option('woocommerce_prices_include_tax', 'no', true);
+            //Preise im Shop mit hinterlegter Steuer
+            \update_option('woocommerce_tax_display_shop', 'incl', true);
+            //Preise im Cart mit hinterlegter Steuer
+            \update_option('woocommerce_tax_display_cart', 'incl', true);
+            
+           /* $taxRateClasses = \get_option('woocommerce_tax_classes');
+            $splittedTaxRateClasses = preg_split('/\n|\r\n?/', $taxRateClasses);
+            $newTaxClasses = [];
+            
+            foreach ($splittedTaxRateClasses as $key => $taxRateClass) {
+                if ($key === 0) {
+                    $newTaxClasses[] = 'Reduced Rate';
+                } elseif ($key === 1) {
+                    $newTaxClasses[] = 'Zero Rate';
+                } else {
+                    $newTaxClasses[] = $taxRateClass;
+                }
+            }
+            
+            $newTaxClasses = implode("\r\n", $newTaxClasses);
+            
+            if (strcmp($taxRateClasses, $newTaxClasses) !== 0) {
+                \update_option('woocommerce_tax_classes', $newTaxClasses, true);
+            }*/
+        }
+        
         $tmpI18n = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
         

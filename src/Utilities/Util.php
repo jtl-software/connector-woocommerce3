@@ -92,6 +92,17 @@ final class Util extends Singleton
         return $stockStatus || !$managesStock ? 'instock' : 'outofstock';
     }
     
+    public static function getNetPriceCutted($price, $pd){
+        $position = strrpos($price,'.');
+    
+        if($position > 0){
+            $cut = substr($price,0,$position + 1 + $pd);
+            $price = $cut;
+        }
+        
+        return $price;
+}
+    
     public function isValidCustomerGroup($group)
     {
         $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
