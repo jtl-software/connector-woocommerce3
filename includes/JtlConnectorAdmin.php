@@ -343,7 +343,7 @@ final class JtlConnectorAdmin
     private static function activate_category_tree($prefix)
     {
         global $wpdb;
-        
+        $prefix = $wpdb->prefix . 'jtl_connector_';
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
@@ -352,7 +352,9 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
+            if (!DB::checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
+                $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
+            }
         } else {
             $constraint = '';
         }
@@ -1826,31 +1828,31 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            if (DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
+            if (!DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}product`
                 ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (DB::checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
+            if (!DB::checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}order`
                 ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (DB::checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
+            if (!DB::checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}payment`
                 ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (DB::checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
+            if (!DB::checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}crossselling`
                 ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (DB::checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
+            if (!DB::checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}category`
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
@@ -1858,7 +1860,7 @@ final class JtlConnectorAdmin
             }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            if (DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
+            if (!DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
                 $wpdb->query("
                 ALTER TABLE `{$prefix}specific`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
@@ -1893,7 +1895,7 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            if (DB::checkIfFKExists('jtl_connector_link_category',
+            if (!DB::checkIfFKExists('jtl_connector_link_category',
                 'jtl_connector_link_category_1')) {
                 $wpdb->query("
                 ALTER TABLE `jtl_connector_link_category`
@@ -1902,7 +1904,7 @@ final class JtlConnectorAdmin
             }
             
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            if (DB::checkIfFKExists('jtl_connector_link_specific',
+            if (!DB::checkIfFKExists('jtl_connector_link_specific',
                 'jtl_connector_link_specific_1')) {
                 $wpdb->query("
                 ALTER TABLE `jtl_connector_link_specific`
@@ -1965,7 +1967,7 @@ final class JtlConnectorAdmin
         ));
         
         if ($engine === 'InnoDB') {
-            if (DB::checkIfFKExists($wpdb->prefix . 'jtl_connector_link_manufacturer',
+            if (!DB::checkIfFKExists($wpdb->prefix . 'jtl_connector_link_manufacturer',
                 'jtl_connector_link_manufacturer_1')) {
                 $wpdb->query("
               ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`

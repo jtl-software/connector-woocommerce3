@@ -168,11 +168,13 @@ class ProductPrice extends BaseController
                 if ($pd < 4){
                     $pd = 4;
                 }
+                
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
                         $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
                     } else {
                         $regularPrice = $item->getNetPrice();
+                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
                     }
                     
                     if ($item->getQuantity() === 0) {
@@ -202,7 +204,9 @@ class ProductPrice extends BaseController
                         $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
                     } else {
                         $regularPrice = $item->getNetPrice();
+                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
                     }
+                    
                     if ($item->getQuantity() === 0) {
                         $metaKeyForCustomerGroupPrice = sprintf(
                             'bm_%s_price',
