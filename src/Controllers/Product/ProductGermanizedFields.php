@@ -68,6 +68,11 @@ class ProductGermanizedFields extends BaseController
     {
         if ($product->getConsiderBasePrice()) {
             $pd = \wc_get_price_decimals();
+            
+            if ($pd < 4) {
+                $pd = 4;
+            }
+            
             \update_post_meta($id, '_unit_base', $product->getBasePriceQuantity());
             
             if ($product->getBasePriceDivisor() != 0) {

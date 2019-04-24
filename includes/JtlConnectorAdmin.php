@@ -350,13 +350,13 @@ final class JtlConnectorAdmin
             WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
+    
+        $constraint = '';
         
         if ($engine === 'InnoDB') {
             if (!DB::checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
                 $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
             }
-        } else {
-            $constraint = '';
         }
         
         $wpdb->query("
@@ -1691,6 +1691,10 @@ final class JtlConnectorAdmin
             case '1.8.0.6':
                 //hotfix
             case '1.8.0.7':
+                //hotfix
+            case '1.8.0.8':
+                //hotfix
+            case '1.8.0.9':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();
