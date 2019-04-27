@@ -22,10 +22,10 @@ class ProductPrice extends BaseController
     
     public function pullData(\WC_Product $product, ProductModel $model)
     {
-        $prices = [];
+        $prices          = [];
         $groupController = (new CustomerGroup);
         
-        if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+        if ( ! SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $prices[] = (new ProductPriceModel())
                 ->setId(new Identity($product->get_id()))
                 ->setProductId(new Identity($product->get_id()))
@@ -52,13 +52,13 @@ class ProductPrice extends BaseController
                     
                     if ($model->getIsMasterProduct()) {
                         $productIdForMeta = $product->get_id();
-                        $priceKeyForMeta = sprintf('bm_%s_price', $groupSlug);
+                        $priceKeyForMeta  = sprintf('bm_%s_price', $groupSlug);
                     } else {
                         $productIdForMeta = $product->get_parent_id();
-                        $priceKeyForMeta = sprintf('bm_%s_%s_price', $groupSlug, $product->get_id());
+                        $priceKeyForMeta  = sprintf('bm_%s_%s_price', $groupSlug, $product->get_id());
                     }
                     
-                    $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
+                    $price    = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
                     $items [] = (new ProductPriceItem())
                         ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
@@ -86,16 +86,16 @@ class ProductPrice extends BaseController
         ProductModel $model
     ) {
         if ($model->getIsMasterProduct()) {
-            $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
+            $metaKey       = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
         } else {
-            $metaKey = sprintf('bm_%s_%s_bulk_prices', $groupSlug, $product->get_id());
+            $metaKey       = sprintf('bm_%s_%s_bulk_prices', $groupSlug, $product->get_id());
             $metaProductId = $product->get_parent_id();
         }
         
         $bulkPrices = \get_post_meta($metaProductId, $metaKey, true);
         
-        if (!is_array($bulkPrices)) {
+        if ( ! is_array($bulkPrices)) {
             $bulkPrices = [];
         }
         
@@ -115,11 +115,17 @@ class ProductPrice extends BaseController
     protected function netPrice(\WC_Product $product)
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
+        $pd      = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
         
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = ((float)$product->get_regular_price()) / ($taxRate + 100) * 100;
         } else {
-            $netPrice = round((float)$product->get_regular_price(), \wc_get_price_decimals());
+            $netPrice = (float)$product->get_regular_price();
+            $netPrice = Util::getNetPriceCutted($netPrice, $pd);
         }
         
         return $netPrice;
@@ -149,12 +155,12 @@ class ProductPrice extends BaseController
     public function updateProductPrices($productPrices, ProductModel $product, $vat)
     {
         $productId = $product->getId()->getEndpoint();
-        $pd = \wc_get_price_decimals();
+        $pd        = \wc_get_price_decimals();
         
         /** @var ProductPriceModel $productPrice */
         foreach ($productPrices as $customerGroupId => $productPrice) {
-            if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)
-                || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
+            if ( ! Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)
+                 || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
                 continue;
             }
             
@@ -165,7 +171,7 @@ class ProductPrice extends BaseController
             }
             
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
-                if ($pd < 4){
+                if ($pd < 4) {
                     $pd = 4;
                 }
                 
@@ -189,15 +195,15 @@ class ProductPrice extends BaseController
                             \get_post_meta($productId, '_regular_price', true));
                     }
                 }
-            } elseif (!is_null($customerGroupMeta)
-                && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            } elseif ( ! is_null($customerGroupMeta)
+                       && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             ) {
-                if ($pd > 3){
+                if ($pd > 3) {
                     $pd = 3;
                 }
                 $customerGroup = get_post($customerGroupId);
-                $productType = (new Product)->getType($product);
-                $bulkPrices = [];
+                $productType   = (new Product)->getType($product);
+                $bulkPrices    = [];
                 
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
@@ -277,7 +283,7 @@ class ProductPrice extends BaseController
                 
                 if (count($bulkPrices) > 0) {
                     
-                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaKey       = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
                     $metaProductId = $product->getId()->getEndpoint();
                     
                     \update_post_meta(
@@ -287,8 +293,8 @@ class ProductPrice extends BaseController
                         \get_post_meta($metaProductId, $metaKey, true)
                     );
                     
-                    if (!$product->getMasterProductId()->getHost() === 0) {
-                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                    if ( ! $product->getMasterProductId()->getHost() === 0) {
+                        $metaKey       = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
                             $product->getId()->getEndpoint());
                         $metaProductId = $product->getMasterProductId()->getEndpoint();
                         
@@ -301,7 +307,7 @@ class ProductPrice extends BaseController
                     }
                 } else {
                     
-                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
+                    $metaKey       = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
                     $metaProductId = $product->getId()->getEndpoint();
                     
                     \delete_post_meta(
@@ -309,8 +315,8 @@ class ProductPrice extends BaseController
                         $metaKey
                     );
                     
-                    if (!$product->getMasterProductId()->getHost() === 0) {
-                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
+                    if ( ! $product->getMasterProductId()->getHost() === 0) {
+                        $metaKey       = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
                             $product->getId()->getEndpoint());
                         $metaProductId = $product->getMasterProductId()->getEndpoint();
                         \delete_post_meta(
