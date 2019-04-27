@@ -66,7 +66,6 @@ class GlobalData extends BaseController
                 
                 //PRODUKTE
                 update_option('german_market_attribute_in_product_name', 'off', true);
-                update_option('woocommerce_de_show_free_shipping', 'on', true);
                 update_option('gm_show_product_attributes', 'off', true);
                 update_option('gm_show_single_price_of_order_items', 'on', true);
                 

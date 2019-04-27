@@ -1112,7 +1112,6 @@ final class JtlConnectorAdmin
                                       
                                       
                                       <li class="list-group-item bg-transparent">Products > Product Attributes in product name: "Off" (Dont change this!)</li>
-                                      <li class="list-group-item bg-transparent">Products > Advertise Free Shipping: "On" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Show Single Price of Order Items in Orders: "On"</li>
                                       <li class="list-group-item bg-transparent">Products > Show Product Attributes not used for Variations: "Off" (Dont change this!)</li>
                                       
@@ -1695,6 +1694,10 @@ final class JtlConnectorAdmin
             case '1.8.0.8':
                 //hotfix
             case '1.8.0.9':
+            //hotfix
+            case '1.8.0.10':
+            //hotfix
+            case '1.8.0.11':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();

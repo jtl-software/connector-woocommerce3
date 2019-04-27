@@ -108,11 +108,17 @@ class ProductSpecialPrice extends BaseController
     protected function getPriceNet($priceNet, \WC_Product $product)
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
+        $pd = \wc_get_price_decimals();
+        
+        if($pd < 4){
+            $pd = 4;
+        }
         
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = ((float)$priceNet) / ($taxRate + 100) * 100;
         } else {
-            $netPrice = round((float)$priceNet, \wc_get_price_decimals());
+            $netPrice = (float)$priceNet;
+            $netPrice = Util::getNetPriceCutted($netPrice, $pd);
         }
         
         return $netPrice;
@@ -161,6 +167,7 @@ class ProductSpecialPrice extends BaseController
                         $salePrice = $item->getPriceNet() * (1 + $product->getVat() / 100);
                     } else {
                         $salePrice = $item->getPriceNet();
+                        $salePrice = Util::getNetPriceCutted($salePrice, $pd);
                     }
                     
                     if (!Util::getInstance()->isValidCustomerGroup((string)$endpoint)) {
