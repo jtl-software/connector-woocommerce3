@@ -128,7 +128,7 @@ class ProductPrice extends BaseController
             $netPrice = Util::getNetPriceCutted($netPrice, $pd);
         }
         
-        return $netPrice;
+        return (float)$netPrice;
     }
     
     public function pushData(ProductModel $product)

@@ -1702,6 +1702,8 @@ final class JtlConnectorAdmin
             case '1.8.0.12':
             //hotfix
             case '1.8.0.13':
+            //hotfix
+            case '1.8.0.14':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();
