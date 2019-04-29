@@ -13,8 +13,6 @@ use jtl\Connector\Model\ProductSpecialPrice as ProductSpecialPriceModel;
 use jtl\Connector\Model\ProductSpecialPriceItem;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -464,19 +462,23 @@ class ProductSpecialPrice extends BaseController
                 }
             }
         } else {
-            
-            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+    
+            $customerGroups = (new CustomerGroup)->pullData();
             $productType = (new Product)->getType($product);
-            
+    
+            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $groupKey => $customerGroup) {
-                if (is_int((int)$customerGroup['ID'])) {
+                $customerGroupId = $customerGroup->getId()->getEndpoint();
+                $post = \get_post($customerGroupId);
+                if (!is_null($post) && $post instanceof \WP_Post && is_int((int)$customerGroupId)) {
+                    //$post = \get_post($customerGroupId);
                     $priceMetaKey = sprintf(
                         'bm_%s_price',
-                        $customerGroup['post_name']
+                        $post->post_name
                     );
                     $regularPriceMetaKey = sprintf(
                         '_jtlwcc_bm_%s_regular_price',
-                        $customerGroup['post_name']
+                        $post->post_name
                     );
                     
                     $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
@@ -490,25 +492,25 @@ class ProductSpecialPrice extends BaseController
                     if ($productType === 'product_variation') {
                         $COPpriceMetaKey = sprintf(
                             'bm_%s_%s_price',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPpriceTypeMetaKey = sprintf(
                             'bm_%s_%s_price_type',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceMetaKey = sprintf(
                             '_jtlwcc_bm_%s_%s_sale_price',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         
@@ -521,15 +523,15 @@ class ProductSpecialPrice extends BaseController
                     } else {
                         $salePriceMetaKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         $salePriceDatesToKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_to',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         $salePriceDatesFromKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_from',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         \delete_post_meta($productId, $salePriceMetaKey,
                             \get_post_meta($productId, $salePriceMetaKey, true));
@@ -541,7 +543,8 @@ class ProductSpecialPrice extends BaseController
                     
                     $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
                     
-                } elseif ($customerGroup['ID'] === CustomerGroup::DEFAULT_GROUP) {
+                }
+                elseif (is_null($post) && $customerGroupId === CustomerGroup::DEFAULT_GROUP) {
                     $salePriceMetaKey = '_sale_price';
                     $salePriceDatesToKey = '_sale_price_dates_to';
                     $salePriceDatesFromKey = '_sale_price_dates_from';
