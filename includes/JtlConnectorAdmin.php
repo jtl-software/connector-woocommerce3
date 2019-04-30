@@ -225,6 +225,11 @@ final class JtlConnectorAdmin
             $newExists = in_array($prefix . $table, $existingTables);
             
             if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
+                //repair bug
+                if(in_array($prefix . $table, $existingTables)){
+                    self::renameTable($prefix . $table, substr($prefix, 0, -5) . $table);
+                }
+                
                 $oldPrefix = substr($oldPrefix, 0, -5);
                 $prefix = substr($prefix, 0, -5);
                 $oldExists = in_array($oldPrefix . $table, $existingTables);
@@ -1717,6 +1722,8 @@ final class JtlConnectorAdmin
             case '1.8.0.15':
             //hotfix
             case '1.8.0.16':
+            //hotfix
+            case '1.8.0.17':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();
