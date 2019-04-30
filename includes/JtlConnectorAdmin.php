@@ -103,8 +103,10 @@ final class JtlConnectorAdmin
     public static function plugin_activation()
     {
         global $woocommerce;
+        
         $version = $woocommerce->version;
         $connectorVersion = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
+        
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
@@ -217,7 +219,7 @@ final class JtlConnectorAdmin
             'specific',
             'specific_value',
         ];
-        self::activate_category_tree($prefix);
+        //self::activate_category_tree();
         foreach ($tables as $key => $table) {
             $oldExists = in_array($oldPrefix . $table, $existingTables);
             $newExists = in_array($prefix . $table, $existingTables);
@@ -233,7 +235,7 @@ final class JtlConnectorAdmin
                 $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
             } elseif (!$oldExists && !$newExists) {
                 if (strcmp($table, 'category_level') === 0) {
-                    self::activate_category_tree($prefix);
+                    self::activate_category_tree();
                 } elseif (strcmp($table, 'product_checksum') === 0) {
                     self::activate_checksum($prefix);
                 } elseif (strcmp($table, 'customer') === 0) {
@@ -246,7 +248,14 @@ final class JtlConnectorAdmin
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
             } elseif ($oldExists && !$newExists) {
-                self::renameTable($oldPrefix . $table, $prefix . $table);
+                if (strcmp($table, 'category_level') === 0 || strcmp($table, 'product_checksum') === 0) {
+                    $tmp = $prefix;
+                    $prefix = substr($prefix, 0, -5);
+                    self::renameTable($oldPrefix . $table, $prefix . $table);
+                    $prefix = $tmp;
+                } else {
+                    self::renameTable($oldPrefix . $table, $prefix . $table);
+                }
             }
             //reset values
             $oldPrefix = 'jtl_connector_link_';
@@ -340,7 +349,7 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
     
-    private static function activate_category_tree($prefix)
+    private static function activate_category_tree()
     {
         global $wpdb;
         $prefix = $wpdb->prefix . 'jtl_connector_';
@@ -350,7 +359,7 @@ final class JtlConnectorAdmin
             WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-    
+        
         $constraint = '';
         
         if ($engine === 'InnoDB') {
@@ -1694,18 +1703,20 @@ final class JtlConnectorAdmin
             case '1.8.0.8':
                 //hotfix
             case '1.8.0.9':
-            //hotfix
+                //hotfix
             case '1.8.0.10':
-            //hotfix
+                //hotfix
             case '1.8.0.11':
-            //hotfix
+                //hotfix
             case '1.8.0.12':
-            //hotfix
+                //hotfix
             case '1.8.0.13':
-            //hotfix
+                //hotfix
             case '1.8.0.14':
             //hotfix
             case '1.8.0.15':
+            //hotfix
+            case '1.8.0.16':
                 //hotfix
             case '1.8.0':
                 self::activate_linking();
