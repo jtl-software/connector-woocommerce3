@@ -146,25 +146,25 @@ class Product extends BaseController
             //Preise im Cart mit hinterlegter Steuer
             \update_option('woocommerce_tax_display_cart', 'incl', true);
             
-           /* $taxRateClasses = \get_option('woocommerce_tax_classes');
-            $splittedTaxRateClasses = preg_split('/\n|\r\n?/', $taxRateClasses);
-            $newTaxClasses = [];
-            
-            foreach ($splittedTaxRateClasses as $key => $taxRateClass) {
-                if ($key === 0) {
-                    $newTaxClasses[] = 'Reduced Rate';
-                } elseif ($key === 1) {
-                    $newTaxClasses[] = 'Zero Rate';
-                } else {
-                    $newTaxClasses[] = $taxRateClass;
-                }
-            }
-            
-            $newTaxClasses = implode("\r\n", $newTaxClasses);
-            
-            if (strcmp($taxRateClasses, $newTaxClasses) !== 0) {
-                \update_option('woocommerce_tax_classes', $newTaxClasses, true);
-            }*/
+            /* $taxRateClasses = \get_option('woocommerce_tax_classes');
+             $splittedTaxRateClasses = preg_split('/\n|\r\n?/', $taxRateClasses);
+             $newTaxClasses = [];
+             
+             foreach ($splittedTaxRateClasses as $key => $taxRateClass) {
+                 if ($key === 0) {
+                     $newTaxClasses[] = 'Reduced Rate';
+                 } elseif ($key === 1) {
+                     $newTaxClasses[] = 'Zero Rate';
+                 } else {
+                     $newTaxClasses[] = $taxRateClass;
+                 }
+             }
+             
+             $newTaxClasses = implode("\r\n", $newTaxClasses);
+             
+             if (strcmp($taxRateClasses, $newTaxClasses) !== 0) {
+                 \update_option('woocommerce_tax_classes', $newTaxClasses, true);
+             }*/
         }
         
         $tmpI18n = null;
@@ -272,6 +272,7 @@ class Product extends BaseController
     protected function onProductInserted(ProductModel &$product, &$meta)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+        $productType = $this->getType($product);
         
         if (is_null($wcProduct)) {
             return;
@@ -283,14 +284,35 @@ class Product extends BaseController
         
         (new ProductVaSpeAttrHandler)->pushDataNew($product, $wcProduct);
         
-        if ($this->getType($product) !== 'product_variation') {
+        
+        if ($productType !== 'product_variation') {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
         
         //variations
-        if ($this->getType($product) === 'product_variation') {
+        if ($productType === 'product_variation') {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
+        }
+        
+        $productTypeTerm = \get_term_by('slug', $productType, 'product_type');
+        $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
+        
+        $removeTerm = null;
+        foreach ($currentProductType as $term) {
+            if ($term instanceof \WP_Term) {
+                $removeTerm = $term->term_id;
+            }
+        }
+        
+        if (!is_null($removeTerm) && is_int($removeTerm)) {
+            \wp_remove_object_terms($wcProduct->get_id(), $removeTerm, 'product_type');
+        }
+        
+        if ($productTypeTerm instanceof \WP_Term) {
+            \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
+        } else {
+            \wp_set_object_terms($wcProduct->get_id(), $productType, 'product_type', false);
         }
     }
     
@@ -335,10 +357,8 @@ class Product extends BaseController
         
         $wcProduct->save();
         
-        \wp_set_object_terms($wcProduct->get_id(), $this->getType($product), 'product_type');
-        
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
-        \wp_set_post_terms($wcProduct->get_id(), implode(',', $tags), 'product_tag');
+        \wp_set_post_terms($wcProduct->get_id(), implode(',', $tags), 'product_tag', false);
         
         $shippingClass = get_term_by(
             'id',

@@ -2,11 +2,11 @@
 Contributors: ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.1
+Tested up to: 5.2
 Requires PHP: 5.6.4
 WC requires at least: 3.4
-WC tested up to: 3.6.1
-Stable tag: 1.8.0.17
+WC tested up to: 3.6
+Stable tag: 1.8.0.19
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -14,7 +14,7 @@ Extend your shop software, trough this connector, with an full ERP with many fea
 
 == Description ==
 
-https://www.youtube.com/watch?v=8DEX2xHoqtM&index=11
+https://www.youtube.com/watch?v=k6xv8LsR15w
 
 With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the
 free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product
