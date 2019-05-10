@@ -1,6 +1,8 @@
 <?php
 
 use jtl\Connector\Core\System\Check;
+use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGroupModel;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -33,6 +35,7 @@ final class JtlConnectorAdmin
      * Use another format for child product names than Variation #22 of Product name
      */
     const OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format';
+    
     /**
      * The currently installed connector version.
      */
@@ -54,6 +57,7 @@ final class JtlConnectorAdmin
     const OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
     const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
     const OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce';
+    const OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group';
     
     const JTLWCC_CONFIG = [
         //FIRSTPAGE
@@ -61,6 +65,7 @@ final class JtlConnectorAdmin
         self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
         self::OPTIONS_VARIATION_NAME_FORMAT                    => 'string',
         self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
+        self::OPTIONS_DEFAULT_CUSTOMER_GROUP                   => 'string',
         //PAGE
         self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
         self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
@@ -82,6 +87,7 @@ final class JtlConnectorAdmin
         self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => true,
         self::OPTIONS_VARIATION_NAME_FORMAT                    => '',
         self::OPTIONS_USE_GTIN_FOR_EAN                         => true,
+        self::OPTIONS_DEFAULT_CUSTOMER_GROUP                   => 'customer',
         //PAGE
         self::OPTIONS_USE_DELIVERYTIME_CALC                    => true,
         self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => true,
@@ -226,7 +232,7 @@ final class JtlConnectorAdmin
             
             if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
                 //repair bug
-                if(in_array($prefix . $table, $existingTables)){
+                if (in_array($prefix . $table, $existingTables)) {
                     self::renameTable($prefix . $table, substr($prefix, 0, -5) . $table);
                 }
                 
@@ -454,10 +460,10 @@ final class JtlConnectorAdmin
                 'active_true_false_radio_btn',
             ]
         );
-        add_action('woocommerce_admin_field_variation_name_select',
+        add_action('woocommerce_admin_field_jtl_connector_select',
             [
                 'JtlConnectorAdmin',
-                'variation_name_select',
+                'jtl_connector_select',
             ]
         );
         add_action('woocommerce_admin_field_dev_log_btn',
@@ -901,7 +907,7 @@ final class JtlConnectorAdmin
         //Add variation select field
         $fields[] = [
             'title'     => __('Variation name format', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'variation_name_select',
+            'type'      => 'jtl_connector_select',
             'id'        => self::OPTIONS_VARIATION_NAME_FORMAT,
             'value'     => Config::get(self::OPTIONS_VARIATION_NAME_FORMAT),
             'options'   => [
@@ -914,6 +920,35 @@ final class JtlConnectorAdmin
             ],
             'helpBlock' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
         ];
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && !version_compare(
+                (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                '1.0.3',
+                '>'
+            )
+        ) {
+            $customerGroups = (new CustomerGroupModel)->pullData();
+            $options = [];
+            
+            /** @var CustomerGroupModel $customerGroup */
+            foreach ($customerGroups as $key => $customerGroup) {
+                if (count($customerGroup->getI18ns()) > 0) {
+                    /** @var CustomerGroupI18nModel $i18n */
+                    $i18n = $customerGroup->getI18ns()[0];
+                    $options[$customerGroup->getId()->getEndpoint()] = $i18n->getName();
+                }
+            }
+            
+            $fields[] = [
+                'title'     => __('B2B-Market/WooCommerce default customer group', JTLWCC_TEXT_DOMAIN),
+                'type'      => 'jtl_connector_select',
+                'id'        => self::OPTIONS_DEFAULT_CUSTOMER_GROUP,
+                'value'     => Config::get(self::OPTIONS_DEFAULT_CUSTOMER_GROUP),
+                'options'   => $options,
+                'helpBlock' => __('Define which customer group is default.', JTLWCC_TEXT_DOMAIN),
+            ];
+        }
         
         //Add sectionend
         $fields[] = [
@@ -1428,7 +1463,7 @@ final class JtlConnectorAdmin
         <?php
     }
     
-    public static function variation_name_select(array $field)
+    public static function jtl_connector_select(array $field)
     {
         ?>
         <div class="form-group row">
@@ -1438,7 +1473,7 @@ final class JtlConnectorAdmin
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
                         ?>
-                        <option value="<?php print $key; ?>" <?php if ($key === $field['value']) {
+                        <option value="<?php print $key; ?>" <?php if ((string)$key === $field['value']) {
                             print 'selected';
                         } ?>><?php print $ovalue; ?></option> <?php
                     }
@@ -1633,12 +1668,50 @@ final class JtlConnectorAdmin
                         break;
                 }
                 
+                if ($key === self::OPTIONS_DEFAULT_CUSTOMER_GROUP) {
+                    if ($value === CustomerGroupModel::DEFAULT_GROUP
+                        && version_compare(
+                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                            '1.0.3',
+                            '>'
+                        )) {
+                        $customerGroups = (new CustomerGroupModel)->pullData();
+                        
+                        /** @var CustomerGroupModel $customerGroup */
+                        foreach ($customerGroups as $ckey => $customerGroup) {
+                            if ($value !== CustomerGroupModel::DEFAULT_GROUP) {
+                                $value = $customerGroup->getId()->getEndpoint();
+                            }
+                        }
+                    }
+                }
+                
                 Config::set($key, $value);
             }
             
             if (!Config::has($key) && is_null($option)) {
-                add_option($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
-                Config::set($key, self::JTLWCC_CONFIG_DEFAULTS[$key]);
+                
+                if ($key === self::OPTIONS_DEFAULT_CUSTOMER_GROUP
+                    && version_compare(
+                        (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                        '1.0.3',
+                        '>'
+                    )
+                ) {
+                    $customerGroups = (new CustomerGroupModel)->pullData();
+                    
+                    /** @var CustomerGroupModel $customerGroup */
+                    foreach ($customerGroups as $ckey => $customerGroup) {
+                        if ($value !== CustomerGroupModel::DEFAULT_GROUP) {
+                            $value = $customerGroup->getId()->getEndpoint();
+                        }
+                    }
+                } else {
+                    $value = self::JTLWCC_CONFIG_DEFAULTS[$key];
+                }
+                
+                add_option($key, $value);
+                Config::set($key, $value);
             }
         }
     }
@@ -1718,15 +1791,15 @@ final class JtlConnectorAdmin
             case '1.8.0.13':
                 //hotfix
             case '1.8.0.14':
-            //hotfix
+                //hotfix
             case '1.8.0.15':
-            //hotfix
+                //hotfix
             case '1.8.0.16':
-            //hotfix
+                //hotfix
             case '1.8.0.17':
-            //hotfix
+                //hotfix
             case '1.8.0.18':
-            //hotfix
+                //hotfix
             case '1.8.0.19':
                 //hotfix
             case '1.8.0':

@@ -25,19 +25,24 @@ class CustomerGroup
     {
         $customerGroups = [];
         $langIso = Util::getInstance()->getWooCommerceLanguage();
+        $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
+        $version = '1.0.4-support';
         
-        //Default
-        $defaultGroup = (new CustomerGroupModel)
-            ->setId(new Identity(self::DEFAULT_GROUP))
-            ->setIsDefault(true);
-        
-        $defaultI18n = (new CustomerGroupI18n)
-            ->setCustomerGroupId($defaultGroup->getId())
-            ->setName(__('Customer', 'woocommerce'))
-            ->setLanguageISO($langIso);
-        
-        $defaultGroup->addI18n($defaultI18n);
-        $customerGroups[] = $defaultGroup;
+        if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && version_compare($version, '1.0.3', '<='))) {
+            //Default
+            $defaultGroup = (new CustomerGroupModel)
+                ->setId(new Identity(self::DEFAULT_GROUP))
+                ->setIsDefault(true);
+            
+            $defaultI18n = (new CustomerGroupI18n)
+                ->setCustomerGroupId($defaultGroup->getId())
+                ->setName(__('Customer', 'woocommerce'))
+                ->setLanguageISO($langIso);
+            
+            $defaultGroup->addI18n($defaultI18n);
+            $customerGroups[] = $defaultGroup;
+        }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $result = Db::getInstance()->query(SqlHelper::customerGroupPull());
@@ -45,8 +50,8 @@ class CustomerGroup
             if (count($result) > 0) {
                 foreach ($result as $group) {
                     $allProductsKey = 'bm_all_products';
-                   /* $allConditionalProductsKey = 'bm_conditional_all_products';*/
-                  
+                    /* $allConditionalProductsKey = 'bm_conditional_all_products';*/
+                    
                     \update_post_meta(
                         $group['ID'],
                         $allProductsKey,
@@ -54,12 +59,12 @@ class CustomerGroup
                         \get_post_meta($group['ID'], $allProductsKey, true)
                     );
                     
-                  /*  \update_post_meta(
-                        $group['ID'],
-                        $allConditionalProductsKey,
-                        'on',
-                        \get_post_meta($group['ID'], $allConditionalProductsKey, true)
-                    );*/
+                    /*  \update_post_meta(
+                          $group['ID'],
+                          $allConditionalProductsKey,
+                          'on',
+                          \get_post_meta($group['ID'], $allConditionalProductsKey, true)
+                      );*/
                     
                     $meta = \get_post_meta($group['ID']);
                     
@@ -88,11 +93,18 @@ class CustomerGroup
         return $customerGroups;
     }
     
-    public function getSlugById($customerId){
+    /**
+     * @param $customerId
+     *
+     * @return bool|string
+     */
+    public function getSlugById($customerId)
+    {
         $group = \get_post($customerId);
-        if ($group instanceof \WP_Post){
+        if ($group instanceof \WP_Post) {
             return $group->post_name;
         }
+        
         return false;
     }
 }

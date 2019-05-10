@@ -76,10 +76,15 @@ class Customer extends BaseController
             } else {
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
-
+    
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+            }
+    
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                $uid = \get_user_meta($customerId, 'b2b_uid', true);
+                $customer->setVatNumber($uid);
             }
 
             $customers[] = $customer;

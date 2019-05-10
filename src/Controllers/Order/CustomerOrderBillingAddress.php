@@ -58,6 +58,11 @@ class CustomerOrderBillingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
+    
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_user_meta($order->get_user_id(), 'b2b_uid', true);
+            $address->setVatNumber($uid);
+        }
         
         return $address;
     }

@@ -174,6 +174,18 @@ final class SupportedPlugins
         return $active;
     }
     
+    public static function getVersionOf($pluginName = 'WooCommerce'){
+        $plArray = self::getInstalledAndActivated();
+        
+        foreach ($plArray as $plugin) {
+            if (strcmp($pluginName, $plugin['Name']) === 0) {
+                return $plugin['Version'];
+            }
+        }
+        
+        return null;
+    }
+    
     /**
      * @param string $name
      *

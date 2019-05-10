@@ -47,8 +47,16 @@ class ProductSpecialPrice extends BaseController
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
-                
-                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP) {
+    
+                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
+                    !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                    || ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
+                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                        && version_compare(
+                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                            '1.0.3',
+                            '<='))
+                ) {
                     $salePrice = $product->get_sale_price();
                     
                     if (!empty($salePrice)) {
@@ -172,7 +180,13 @@ class ProductSpecialPrice extends BaseController
                         continue;
                     }
                     
-                    if ($endpoint === CustomerGroup::DEFAULT_GROUP) {
+                    if ((CustomerGroup::DEFAULT_GROUP &&
+                        !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) || ($endpoint === CustomerGroup::DEFAULT_GROUP &&
+                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                        && version_compare(
+                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                            '1.0.3',
+                            '<='))) {
                         $salePriceMetaKey = '_sale_price';
                         $salePriceDatesToKey = '_sale_price_dates_to';
                         $salePriceDatesFromKey = '_sale_price_dates_from';
@@ -210,7 +224,8 @@ class ProductSpecialPrice extends BaseController
                             );
                         }
                         
-                    } elseif (is_int((int)$endpoint)) {
+                    }
+                    elseif (is_int((int)$endpoint)) {
                         if ($productType !== 'variable') {
                             if ($pd > 4) {
                                 $pd = 3;
