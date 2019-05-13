@@ -39,7 +39,7 @@ class ProductSpecialPrice extends BaseController
                     ->addItem((new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                        ->setPriceNet($this->getPriceNet($product->get_sale_price(), $product)
+                        ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product)
                         )
                     );
             }
@@ -65,7 +65,7 @@ class ProductSpecialPrice extends BaseController
                         $items [] = (new ProductSpecialPriceItemModel())
                             ->setProductSpecialPriceId(new Identity($product->get_id()))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                            ->setPriceNet($this->getPriceNet($salePrice, $product));
+                            ->setPriceNet((float)$this->getPriceNet($salePrice, $product));
                     }
                 } else {
                     $groupSlug = $groupController->getSlugById($customerGroup->getId()->getEndpoint());
@@ -96,7 +96,7 @@ class ProductSpecialPrice extends BaseController
                     $items [] = (new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId($customerGroup->getId())
-                        ->setPriceNet($specialPrice);
+                        ->setPriceNet((float)$specialPrice);
                 }
                 
                 $specialPrices[] = (new ProductSpecialPriceModel())
@@ -169,7 +169,7 @@ class ProductSpecialPrice extends BaseController
                         $specialPrice->addItem((new ProductSpecialPriceItemModel())
                             ->setProductSpecialPriceId(new Identity('customer'))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                            ->setPriceNet($item->getPriceNet()
+                            ->setPriceNet((float)$item->getPriceNet()
                             )
                         );
                     }
@@ -190,7 +190,7 @@ class ProductSpecialPrice extends BaseController
                             $specialPrice->addItem((new ProductSpecialPriceItemModel())
                                 ->setProductSpecialPriceId(new Identity('customer'))
                                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                                ->setPriceNet($item->getPriceNet()
+                                ->setPriceNet((float)$item->getPriceNet()
                                 )
                             );
                         }
