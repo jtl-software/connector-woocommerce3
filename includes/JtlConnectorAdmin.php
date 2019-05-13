@@ -922,7 +922,7 @@ final class JtlConnectorAdmin
         ];
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && !version_compare(
+            && version_compare(
                 (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
                 '1.0.3',
                 '>'

@@ -26,7 +26,6 @@ class CustomerGroup
         $customerGroups = [];
         $langIso = Util::getInstance()->getWooCommerceLanguage();
         $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
-        $version = '1.0.4-support';
         
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && version_compare($version, '1.0.3', '<='))) {

@@ -10,9 +10,10 @@ use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem;
+use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -30,7 +31,7 @@ class ProductPrice extends BaseController
                 ->setId(new Identity($product->get_id()))
                 ->setProductId(new Identity($product->get_id()))
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                ->addItem((new ProductPriceItem())
+                ->addItem((new ProductPriceItemModel())
                     ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity(1)
                     ->setNetPrice($this->netPrice($product)));
@@ -51,7 +52,7 @@ class ProductPrice extends BaseController
                             '1.0.3',
                             '<='))
                 ) {
-                    $items [] = (new ProductPriceItem())
+                    $items [] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
@@ -67,7 +68,7 @@ class ProductPrice extends BaseController
                     }
                     
                     $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
-                    $items [] = (new ProductPriceItem())
+                    $items [] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice((float)$price);
@@ -110,7 +111,7 @@ class ProductPrice extends BaseController
         foreach ($bulkPrices as $bulkPrice) {
             if ($bulkPrice['bulk_price_type'] === 'fix') {
                 
-                $items[] = (new ProductPriceItem())
+                $items[] = (new ProductPriceItemModel())
                     ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity((int)$bulkPrice['bulk_price_from'])
                     ->setNetPrice((float)$bulkPrice['bulk_price']);
@@ -145,6 +146,20 @@ class ProductPrice extends BaseController
         
         foreach ($product->getPrices() as &$price) {
             $endpoint = $price->getCustomerGroupId()->getEndpoint();
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && version_compare(
+                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                    '1.0.3',
+                    '>')) {
+                /** @var ProductPriceModel $productPrice */
+                if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
+                    $productPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
+                        ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                        ->setProductId($product->getId())
+                        ->setItems($price->getItems());
+                }
+            }
             
             if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
