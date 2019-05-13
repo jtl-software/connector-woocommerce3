@@ -1764,6 +1764,8 @@ final class JtlConnectorAdmin
             case '1.7.0':
             case '1.7.1':
                 self::createManufacturerLinkingTable();
+            case '1.8.0':
+                self::activate_linking();
             case '1.8.0.1':
                 //hotfix
             case '1.8.0.2':
@@ -1802,8 +1804,7 @@ final class JtlConnectorAdmin
                 //hotfix
             case '1.8.0.19':
                 //hotfix
-            case '1.8.0':
-                self::activate_linking();
+            case '1.8.1':
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,

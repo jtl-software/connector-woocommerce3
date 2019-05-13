@@ -6,7 +6,7 @@ Tested up to: 5.2
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.6
-Stable tag: 1.8.0.19
+Stable tag: 1.8.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,25 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.8.1 =
+* Fix - CO-507 - variable product seems to be simple product bug
+* Enhancement - Wordpress 5.2 Support
+* Enhancement - Adjust recommend settings
+* Enhancement - Add info content on settings
+* Fix - CO-462 - set correct tax for orders and additional costs
+* Enhancement - Change german market ppu handling
+* Enhancement - Prevent missing prices bug
+* Fix - germanized prices bug
+* Fix - German Market free shipping bug
+* Fix - Special prices bug
+* Enhancement - Update special prices handling
+* Fix - Net bugs on unit price germanized
+* Fix - special price not removed bug
+* Fix - wrong seo post update
+* Enhancement - Refactor some code on product push sequence
+* Fix - Warning blocks sync bug
+* Enchancement - Preparations B2B-Market 1.0.4 CG Pull / Prices Pull/Push / Special Prices Pull/Push
 
 = 1.8.0 =
 * Enhancement - Support of HTML-TEXT in descriptions
