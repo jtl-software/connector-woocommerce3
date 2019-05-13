@@ -10,6 +10,7 @@ use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice as MainProductPrice;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -52,6 +53,53 @@ class ProductPrice extends BaseController
         }
         
         $customerGroupId = $productPrice->getCustomerGroupId()->getEndpoint();
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && version_compare(
+                (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                '1.0.3',
+                '>')) {
+            /** @var ProductPriceModel $productPrice */
+            if ((string)$customerGroupId === Config::get('jtlconnector_default_customer_group')) {
+                
+                $salePriceKey = '_sale_price';
+                $priceKey = '_price';
+                $regularPriceKey = '_regular_price';
+                $productId = $product->get_id();
+                foreach ($productPrice->getItems() as $item) {
+                    if (\wc_prices_include_tax()) {
+                        $newPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    } else {
+                        $newPrice = $item->getNetPrice();
+                        $newPrice = Util::getNetPriceCutted($newPrice, $pd);
+                    }
+                    
+                    if ($item->getQuantity() === 0) {
+                        $sellPriceIdForGet = $product->get_id();
+                        
+                        $salePrice = \get_post_meta($sellPriceIdForGet, $salePriceKey, true);
+                        $oldPrice = \get_post_meta($productId, $priceKey, true);
+                        $oldRegularPrice = \get_post_meta($productId, $regularPriceKey, true);
+                        
+                        if (empty($salePrice) || $salePrice !== $oldPrice) {
+                            \update_post_meta(
+                                $productId,
+                                $priceKey,
+                                \wc_format_decimal($newPrice, $pd),
+                                $oldPrice
+                            );
+                        }
+                        
+                        \update_post_meta(
+                            $productId,
+                            $regularPriceKey,
+                            \wc_format_decimal($newPrice, $pd),
+                            $oldRegularPrice
+                        );
+                    }
+                }
+            }
+        }
         
         if ($customerGroupId === '') {
             $customerGroupId = MainProductPrice::GUEST_CUSTOMER_GROUP;
@@ -143,6 +191,7 @@ class ProductPrice extends BaseController
                     ];
                 }
             }
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 if (count($bulkPrices) > 0) {
                     

@@ -12,6 +12,7 @@ use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderItem extends BaseController
 {
@@ -42,6 +43,12 @@ class CustomerOrderItem extends BaseController
      */
     public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
     {
+        $pd = \wc_get_price_decimals();
+    
+        if ($pd < 4) {
+            $pd = 4;
+        }
+    
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
@@ -98,29 +105,23 @@ class CustomerOrderItem extends BaseController
             } else {
                 $priceNet = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, false);
-                
-                // changed  get_item_total to get_item_subtotal because discount problems
-                /* $netPrice = $order->get_item_total($item, false, false);
-                 $priceGross = $order->get_item_total($item, true, false);*/
             }
             
-            //Removed 1.5.7
-            /*if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
-                $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
-            } else {
-                $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
-                self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
-            }*/
             $vat = 0;
             
             if ($priceNet != $priceGross) {
                 $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
             }
             
-            $orderItem
+/*            $orderItem
                 ->setVat($vat)
                 ->setPrice(round($priceNet, self::PRICE_DECIMALS))
-                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
+                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));*/
+            
+            $orderItem
+                ->setVat($vat)
+                ->setPrice((float)Util::getNetPriceCutted($priceNet, $pd))
+                ->setPriceGross((float)Util::getNetPriceCutted($priceGross, $pd));
             
             $customerOrderItems[] = $orderItem;
         }

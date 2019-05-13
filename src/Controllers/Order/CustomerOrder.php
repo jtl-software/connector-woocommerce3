@@ -13,7 +13,6 @@ use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
-use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -53,7 +52,12 @@ class CustomerOrder extends BaseController
             if (!$order instanceof \WC_Order) {
                 continue;
             }
-            
+            $pd = \wc_get_price_decimals();
+            $total = $order->get_total();
+            $totalTax = $order->get_total_tax();
+            $totalSum = round($total - $totalTax, $pd);
+            $totalGross = round($total, $pd);
+                
             $customerOrder = (new CustomerOrderModel())
                 ->setId(new Identity($order->get_id()))
                 ->setCreationDate($order->get_date_created())
@@ -68,8 +72,8 @@ class CustomerOrder extends BaseController
                 ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
                 ->setPaymentStatus($this->paymentStatus($order))
                 ->setStatus($this->status($order))
-                ->setTotalSum(round($order->get_total() - $order->get_total_tax(), \wc_get_price_decimals()))
-                ->setTotalSumGross(round($order->get_total(), \wc_get_price_decimals()));
+                ->setTotalSum($totalSum)
+                ->setTotalSumGross($totalGross);
             
             $customerOrder
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))
@@ -87,7 +91,6 @@ class CustomerOrder extends BaseController
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                 $this->setGermanMarketPaymentInfo($customerOrder);
             }
-            
             
             $orders[] = $customerOrder;
         }

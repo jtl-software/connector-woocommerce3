@@ -13,6 +13,11 @@ use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
+/**
+ * Class Util
+ *
+ * @package JtlWooCommerceConnector\Utilities
+ */
 final class Util extends Singleton
 {
     const TO_SYNC = 'jtlconnector_master_products_to_sync';
@@ -34,6 +39,11 @@ final class Util extends Singleton
         ];
     }
     
+    /**
+     * @param $controller
+     *
+     * @return string
+     */
     public function getControllerNamespace($controller)
     {
         if (isset($this->namespaceMapping[$controller])) {
@@ -43,16 +53,30 @@ final class Util extends Singleton
         return Constants::CONTROLLER_NAMESPACE . $controller;
     }
     
+    /**
+     * @return false|int|mixed|string|null
+     */
     public function getWooCommerceLanguage()
     {
         return $this->locale;
     }
     
+    /**
+     * @param $language
+     *
+     * @return bool
+     */
     public function isWooCommerceLanguage($language)
     {
         return $language === self::getWooCommerceLanguage();
     }
     
+    /**
+     * @param                $taxClass
+     * @param \WC_Order|null $order
+     *
+     * @return float
+     */
     public function getTaxRateByTaxClass($taxClass, \WC_Order $order = null)
     {
         $countryIso = \get_option('woocommerce_default_country');
@@ -81,6 +105,13 @@ final class Util extends Singleton
         return 0.0;
     }
     
+    /**
+     * @param      $stockLevel
+     * @param      $backorders
+     * @param bool $managesStock
+     *
+     * @return string
+     */
     public function getStockStatus($stockLevel, $backorders, $managesStock = false)
     {
         $stockStatus = $stockLevel > 0;
@@ -92,8 +123,14 @@ final class Util extends Singleton
         return $stockStatus || !$managesStock ? 'instock' : 'outofstock';
     }
     
+    /**
+     * @param $price
+     * @param $pd
+     *
+     * @return bool|string
+     */
     public static function getNetPriceCutted($price, $pd){
-        $position = strrpos($price,'.');
+        $position = strrpos((string)$price,'.');
     
         if($position > 0){
             $cut = substr($price,0,$position + 1 + $pd);
@@ -101,8 +138,13 @@ final class Util extends Singleton
         }
         
         return $price;
-}
+    }
     
+    /**
+     * @param $group
+     *
+     * @return bool
+     */
     public function isValidCustomerGroup($group)
     {
         $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
@@ -123,6 +165,9 @@ final class Util extends Singleton
         return $result;
     }
     
+    /**
+     * @param $productId
+     */
     public function addMasterProductToSync($productId)
     {
         $masterProductsToSyncCount = (int)\get_option(self::TO_SYNC_COUNT, 0);
@@ -133,6 +178,9 @@ final class Util extends Singleton
         \update_option(self::TO_SYNC . '_' . $page, array_unique($masterProductsToSync));
     }
     
+    /**
+     *
+     */
     public function syncMasterProducts()
     {
         $masterProductsToSyncCount = (int)\get_option(self::TO_SYNC_COUNT, 0);
@@ -156,6 +204,9 @@ final class Util extends Singleton
         }
     }
     
+    /**
+     *
+     */
     public function countCategories()
     {
         $offset = 0;
@@ -175,6 +226,9 @@ final class Util extends Singleton
         }
     }
     
+    /**
+     * ???
+     */
     public function countProductTags()
     {
         $offset = 0;
@@ -192,6 +246,11 @@ final class Util extends Singleton
         }
     }
     
+    /**
+     * @param $locale
+     *
+     * @return false|int|mixed|string|null
+     */
     public function mapLanguageIso($locale)
     {
         $result = null;
@@ -216,6 +275,11 @@ final class Util extends Singleton
         }
     }
     
+    /**
+     * @param \WC_Order $order
+     *
+     * @return string
+     */
     public function mapPaymentModuleCode(\WC_Order $order)
     {
         switch ($order->get_payment_method()) {
@@ -240,6 +304,11 @@ final class Util extends Singleton
         }
     }
     
+    /**
+     * @param $name
+     *
+     * @return int
+     */
     public static function getAttributeTaxonomyIdByName($name)
     {
         $name = str_replace('pa_', '', $name);
@@ -248,6 +317,11 @@ final class Util extends Singleton
         return isset($taxonomies[$name]) ? (int)$taxonomies[$name] : 0;
     }
     
+    /**
+     * @param $str
+     *
+     * @return string
+     */
     public static function removeSpecialchars($str)
     {
         return strtr($str, [
@@ -260,6 +334,9 @@ final class Util extends Singleton
         ]);
     }
     
+    /**
+     * @return bool
+     */
     public static function sendCustomPropertiesEnabled()
     {
         if (Config::has(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES)) {
@@ -272,6 +349,9 @@ final class Util extends Singleton
         return $result;
     }
     
+    /**
+     * @return bool
+     */
     public static function useGtinAsEanEnabled()
     {
         if (Config::has(JtlConnectorAdmin::OPTIONS_USE_GTIN_FOR_EAN)) {
@@ -284,6 +364,9 @@ final class Util extends Singleton
         return $result;
     }
     
+    /**
+     * @return bool
+     */
     public static function showVariationSpecificsOnProductPageEnabled()
     {
         if (Config::has(JtlConnectorAdmin::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE)) {

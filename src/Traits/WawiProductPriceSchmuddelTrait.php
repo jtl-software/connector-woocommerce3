@@ -76,7 +76,7 @@ trait WawiProductPriceSchmuddelTrait
             
             if (!$hasRegularPrice) {
                 $productPrice->addItem((new ProductPriceItemModel())
-                    ->setNetPrice($defaultPriceNet)
+                    ->setNetPrice((float)$defaultPriceNet)
                     ->setQuantity(0)
                 );
             }

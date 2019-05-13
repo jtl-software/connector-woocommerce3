@@ -10,14 +10,28 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
+use JtlWooCommerceConnector\Utilities\Util;
 
+/**
+ * Class ProductGermanizedFields
+ *
+ * @package JtlWooCommerceConnector\Controllers\Product
+ */
 class ProductGermanizedFields extends BaseController
 {
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product  $wcProduct
+     */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
         $this->setGermanizedAttributes($product, $wcProduct);
     }
     
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product  $wcProduct
+     */
     private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct)
     {
         $units = new \WC_GZD_Units();
@@ -53,49 +67,75 @@ class ProductGermanizedFields extends BaseController
         }
     }
     
+    /**
+     * @param ProductModel $product
+     */
     public function pushData(ProductModel $product)
     {
         $this->updateGermanizedAttributes($product);
     }
     
+    /**
+     * @param ProductModel $product
+     */
     private function updateGermanizedAttributes(ProductModel &$product)
     {
         $id = $product->getId()->getEndpoint();
         $this->updateGermanizedBasePriceAndUnits($product, $id);
     }
     
+    /**
+     * @param ProductModel $product
+     * @param              $id
+     */
     private function updateGermanizedBasePriceAndUnits(ProductModel $product, $id)
     {
         if ($product->getConsiderBasePrice()) {
             $pd = \wc_get_price_decimals();
+            
+            if ($pd < 4) {
+                $pd = 4;
+            }
+            
             \update_post_meta($id, '_unit_base', $product->getBasePriceQuantity());
             
             if ($product->getBasePriceDivisor() != 0) {
-                $divisor = $product->getBasePriceDivisor();
-                \update_post_meta($id, '_unit_price',
-                    round((float)\get_post_meta($id, '_price', true) / $divisor, $pd));
-                \update_post_meta($id, '_unit_price_regular',
-                    round((float)\get_post_meta($id, '_regular_price', true) / $divisor, $pd));
+                $divisor      = $product->getBasePriceDivisor();
+                $currentPrice = (float)\get_post_meta($id, '_price', true);
+                $basePrice    = $currentPrice / $divisor;
+                $basePrice    = Util::getNetPriceCutted($basePrice, $pd);
+                
+                \update_post_meta($id, '_unit_price', (float)$basePrice);
+                \update_post_meta($id, '_unit_price_regular', (float)$basePrice);
             }
             
             $salePrice = \get_post_meta($id, '_sale_price', true);
             
-            if (!empty($salePrice)) {
+            if ( ! empty($salePrice)) {
                 if ($product->getBasePriceDivisor() !== 0) {
                     $unitSale = (float)$salePrice / $product->getBasePriceDivisor();
-                    \update_post_meta($id, '_unit_price_sale', round($unitSale, $pd));
+                    $unitSale = Util::getNetPriceCutted($unitSale, $pd);
+                    
+                    \update_post_meta($id, '_unit_price_sale', (float)$unitSale);
                     
                     if (\get_post_meta($id, '_price', true) === $salePrice) {
-                        \update_post_meta($id, '_unit_price', round($unitSale, $pd));
+                        \update_post_meta($id, '_unit_price', (float)$unitSale);
                     }
                 }
             }
-        }
-        
-        \update_post_meta($id, '_unit', $product->getBasePriceUnitName());
-        
-        if ($product->getMeasurementQuantity() !== 0) {
-            \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
+            
+            
+            \update_post_meta($id, '_unit', $product->getBasePriceUnitName());
+            
+            if ($product->getMeasurementQuantity() !== 0) {
+                \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
+            }
+        }else{
+            \delete_post_meta($id, '_unit_product');
+            \delete_post_meta($id, '_unit_price');
+            \delete_post_meta($id, '_unit_price_sale');
+            \delete_post_meta($id, '_unit_price_regular');
+            \delete_post_meta($id, '_unit_base');
         }
     }
 }

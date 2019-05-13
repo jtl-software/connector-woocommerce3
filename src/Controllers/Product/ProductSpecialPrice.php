@@ -7,14 +7,14 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductSpecialPrice as ProductSpecialPriceModel;
-use jtl\Connector\Model\ProductSpecialPriceItem;
+use jtl\Connector\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -36,7 +36,7 @@ class ProductSpecialPrice extends BaseController
                     ->setConsiderDateLimit(!is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
-                    ->addItem((new ProductSpecialPriceItem())
+                    ->addItem((new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                         ->setPriceNet($this->getPriceNet($product->get_sale_price(), $product)
@@ -50,11 +50,19 @@ class ProductSpecialPrice extends BaseController
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
                 
-                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP) {
+                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
+                    !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                    || ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
+                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                        && version_compare(
+                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                            '1.0.3',
+                            '<='))
+                ) {
                     $salePrice = $product->get_sale_price();
                     
                     if (!empty($salePrice)) {
-                        $items [] = (new ProductSpecialPriceItem())
+                        $items [] = (new ProductSpecialPriceItemModel())
                             ->setProductSpecialPriceId(new Identity($product->get_id()))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                             ->setPriceNet($this->getPriceNet($salePrice, $product));
@@ -85,7 +93,7 @@ class ProductSpecialPrice extends BaseController
                         continue;
                     }
                     
-                    $items [] = (new ProductSpecialPriceItem())
+                    $items [] = (new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId($customerGroup->getId())
                         ->setPriceNet($specialPrice);
@@ -108,11 +116,17 @@ class ProductSpecialPrice extends BaseController
     protected function getPriceNet($priceNet, \WC_Product $product)
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
+        $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
         
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = ((float)$priceNet) / ($taxRate + 100) * 100;
         } else {
-            $netPrice = round((float)$priceNet, \wc_get_price_decimals());
+            $netPrice = (float)$priceNet;
+            $netPrice = Util::getNetPriceCutted($netPrice, $pd);
         }
         
         return $netPrice;
@@ -138,11 +152,52 @@ class ProductSpecialPrice extends BaseController
         if ($pd < 4) {
             $pd = 4;
         }
+        
         $productId = $product->getId()->getEndpoint();
         $masterProductId = $product->getMasterProductId();
         $specialPrices = $product->getSpecialPrices();
         
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && version_compare(
+                (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                '1.0.3',
+                '>')) {
+            foreach ($specialPrices as $specialPrice) {
+                foreach ($specialPrice->getItems() as $item) {
+                    $endpoint = $item->getCustomerGroupId()->getEndpoint();
+                    if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
+                        $specialPrice->addItem((new ProductSpecialPriceItemModel())
+                            ->setProductSpecialPriceId(new Identity('customer'))
+                            ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                            ->setPriceNet($item->getPriceNet()
+                            )
+                        );
+                    }
+                }
+            }
+        }
+        
         if (count($specialPrices) > 0) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && version_compare(
+                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                    '1.0.3',
+                    '>')) {
+                foreach ($specialPrices as $specialPrice) {
+                    foreach ($specialPrice->getItems() as $item) {
+                        $endpoint = $item->getCustomerGroupId()->getEndpoint();
+                        if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
+                            $specialPrice->addItem((new ProductSpecialPriceItemModel())
+                                ->setProductSpecialPriceId(new Identity('customer'))
+                                ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                                ->setPriceNet($item->getPriceNet()
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+            
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -161,13 +216,14 @@ class ProductSpecialPrice extends BaseController
                         $salePrice = $item->getPriceNet() * (1 + $product->getVat() / 100);
                     } else {
                         $salePrice = $item->getPriceNet();
+                        $salePrice = Util::getNetPriceCutted($salePrice, $pd);
                     }
                     
                     if (!Util::getInstance()->isValidCustomerGroup((string)$endpoint)) {
                         continue;
                     }
                     
-                    if ($endpoint === CustomerGroup::DEFAULT_GROUP) {
+                    if ((CustomerGroup::DEFAULT_GROUP === $endpoint)) {
                         $salePriceMetaKey = '_sale_price';
                         $salePriceDatesToKey = '_sale_price_dates_to';
                         $salePriceDatesFromKey = '_sale_price_dates_from';
@@ -186,9 +242,7 @@ class ProductSpecialPrice extends BaseController
                         if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom && isset($priceMetaKey)) {
                             \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($salePrice, $pd),
                                 \get_post_meta($productId, $priceMetaKey, true));
-                        }
-                        
-                        if ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                        } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
                             \update_post_meta(
                                 $productId,
                                 $priceMetaKey,
@@ -328,9 +382,7 @@ class ProductSpecialPrice extends BaseController
                                         );
                                     }
                                 }
-                            }
-                            
-                            if ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                            } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
                                 \update_post_meta(
                                     $productId,
                                     $priceMetaKey,
@@ -458,18 +510,39 @@ class ProductSpecialPrice extends BaseController
             }
         } else {
             
-            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            $customerGroups = (new CustomerGroup)->pullData();
             $productType = (new Product)->getType($product);
             
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && version_compare(
+                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                    '1.0.3',
+                    '>')) {
+                foreach ($customerGroups as $customerGroup) {
+                    $endpoint = $customerGroup->getId()->getEndpoint();
+                    if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
+                        $customerGroups[] = (new CustomerGroupModel())
+                            ->setId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                            ->addI18n((new CustomerGroupI18nModel)
+                                ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
+                                ->setName('Customer'));
+                    }
+                }
+            }
+            
+            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $groupKey => $customerGroup) {
-                if (is_int((int)$customerGroup['ID'])) {
+                $customerGroupId = $customerGroup->getId()->getEndpoint();
+                $post = \get_post($customerGroupId);
+                if (!is_null($post) && $post instanceof \WP_Post && is_int((int)$customerGroupId)) {
+                    //$post = \get_post($customerGroupId);
                     $priceMetaKey = sprintf(
                         'bm_%s_price',
-                        $customerGroup['post_name']
+                        $post->post_name
                     );
                     $regularPriceMetaKey = sprintf(
                         '_jtlwcc_bm_%s_regular_price',
-                        $customerGroup['post_name']
+                        $post->post_name
                     );
                     
                     $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
@@ -483,25 +556,25 @@ class ProductSpecialPrice extends BaseController
                     if ($productType === 'product_variation') {
                         $COPpriceMetaKey = sprintf(
                             'bm_%s_%s_price',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPpriceTypeMetaKey = sprintf(
                             'bm_%s_%s_price_type',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceMetaKey = sprintf(
                             '_jtlwcc_bm_%s_%s_sale_price',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
-                            $customerGroup['post_name'],
+                            $post->post_name,
                             $productId
                         );
                         
@@ -514,15 +587,15 @@ class ProductSpecialPrice extends BaseController
                     } else {
                         $salePriceMetaKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         $salePriceDatesToKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_to',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         $salePriceDatesFromKey = sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_from',
-                            $customerGroup['post_name']
+                            $post->post_name
                         );
                         \delete_post_meta($productId, $salePriceMetaKey,
                             \get_post_meta($productId, $salePriceMetaKey, true));
@@ -534,7 +607,7 @@ class ProductSpecialPrice extends BaseController
                     
                     $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
                     
-                } elseif ($customerGroup['ID'] === CustomerGroup::DEFAULT_GROUP) {
+                } elseif (is_null($post) && $customerGroupId === CustomerGroup::DEFAULT_GROUP) {
                     $salePriceMetaKey = '_sale_price';
                     $salePriceDatesToKey = '_sale_price_dates_to';
                     $salePriceDatesFromKey = '_sale_price_dates_from';
