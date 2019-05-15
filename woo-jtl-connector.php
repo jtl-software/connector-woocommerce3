@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.8.1
+ * Version: 1.8.1.4
  * WC tested up to: 3.6
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
@@ -18,11 +18,12 @@ define('JTLWCC_TEXT_DOMAIN', 'woo-jtl-connector');
 define('JTLWCC_WOOCOMMERCE_PLUGIN_FILE', 'woocommerce/woocommerce.php');
 define('JTLWCC_DS', DIRECTORY_SEPARATOR);
 define('JTLWCC_CONNECTOR_DIR', __DIR__);
+define('JTLWCC_EXT_CONNECTOR_PLUGIN_DIR', dirname(__DIR__) . '/' . JTLWCC_TEXT_DOMAIN . '-custom-plugins');
 define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAIN);
 define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -33,10 +34,16 @@ try {
         if (is_writable(sys_get_temp_dir())) {
             $loader = require('phar://' . JTLWCC_CONNECTOR_DIR . '/connector.phar/vendor/autoload.php');
             $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
+            if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
+                $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
+            }
         }
     } else {
         $loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
         $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
+        if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
+            $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
+        }
     }
 } catch (\Exception $e) {
 
@@ -52,14 +59,26 @@ if (jtlwcc_rewriting_disabled()) {
     require_once JTLWCC_INCLUDES_DIR . 'JtlConnector.php';
     require_once JTLWCC_INCLUDES_DIR . 'JtlConnectorAdmin.php';
     
-    register_activation_hook(__FILE__, ['JtlConnectorAdmin', 'plugin_activation']);
-    register_deactivation_hook(__FILE__, ['JtlConnectorAdmin', 'plugin_deactivation']);
+    register_activation_hook(__FILE__, [
+        'JtlConnectorAdmin',
+        'plugin_activation',
+    ]);
+    register_deactivation_hook(__FILE__, [
+        'JtlConnectorAdmin',
+        'plugin_deactivation',
+    ]);
     
     add_action('parse_request', 'JtlConnector::capture_request', 1);
     
     if (is_admin()) {
-        add_action('init', ['JtlConnectorAdmin', 'init']);
-        add_filter('plugin_action_links_' . plugin_basename(__FILE__), ['JtlConnectorAdmin', 'settings_link']);
+        add_action('init', [
+            'JtlConnectorAdmin',
+            'init',
+        ]);
+        add_filter('plugin_action_links_' . plugin_basename(__FILE__), [
+            'JtlConnectorAdmin',
+            'settings_link',
+        ]);
         add_action('admin_footer', 'woo_jtl_connector_settings_javascript', PHP_INT_MAX);
         add_action('wp_ajax_downloadJTLLogs', 'downloadJTLLogs', PHP_INT_MAX);
         add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
@@ -125,9 +144,9 @@ function woo_jtl_connector_settings_javascript()
 
 function downloadJTLLogs()
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
-    $url      = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
+    $url = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
     
     // Get real path for our folder
     $rootPath = $logDir;
@@ -138,7 +157,7 @@ function downloadJTLLogs()
     
     // Create recursive directory iterator
     /** @var SplFileInfo[] $files */
-    $files        = new RecursiveIteratorIterator(
+    $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($rootPath),
         RecursiveIteratorIterator::LEAVES_ONLY
     );
@@ -150,9 +169,9 @@ function downloadJTLLogs()
         }
         
         // Skip directories (they would be added automatically)
-        if ( ! $file->isDir()) {
+        if (!$file->isDir()) {
             // Get real and relative path for current file
-            $filePath     = $file->getRealPath();
+            $filePath = $file->getRealPath();
             $relativePath = substr($filePath, strlen($rootPath) + 1);
             
             // Add current file to archive
@@ -170,7 +189,10 @@ function downloadJTLLogs()
         print json_encode($url);
     } else {
         header('HTTP/1.1 451 Internal Server Booboo');
-        die(json_encode(['message' => 'Keine Logs Vorhanden!', 'code' => 451]));
+        die(json_encode([
+            'message' => 'Keine Logs Vorhanden!',
+            'code'    => 451,
+        ]));
     }
     
     wp_die();
@@ -179,7 +201,7 @@ function downloadJTLLogs()
 
 function clearJTLLogs()
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
     
     if (file_exists($zip_file)) {
@@ -197,7 +219,7 @@ function clearJTLLogs()
             continue;
         }
         
-        if ( ! $file->isDir()) {
+        if (!$file->isDir()) {
             $filePath = $file->getRealPath();
             
             if (file_exists($filePath)) {
@@ -247,7 +269,7 @@ function jtlwcc_deactivate_plugin()
  */
 function jtlwcc_woocommerce_deactivated()
 {
-    return ! in_array(JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
+    return !in_array(JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
         apply_filters('active_plugins', get_option('active_plugins')));
 }
 
