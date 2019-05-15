@@ -192,6 +192,12 @@ class CustomerOrderItem extends BaseController
      */
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
+        $pd = \wc_get_price_decimals();
+    
+        if ($pd < 4) {
+            $pd = 4;
+        }
+    
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
             return $vat !== 0;
@@ -231,8 +237,8 @@ class CustomerOrderItem extends BaseController
                         
                         $fees = $costs * $factor;
                         
-                        $netPrice = round($fees, self::PRICE_DECIMALS);
-                        $priceGross = round($fees + $taxAmount, self::PRICE_DECIMALS);
+                        $netPrice = (float)Util::getNetPriceCutted($fees, $pd);
+                        $priceGross = (float)Util::getNetPriceCutted($fees + $taxAmount, $pd);
                     }
                     
                     $customerOrderItem->setPrice($netPrice);
@@ -257,8 +263,8 @@ class CustomerOrderItem extends BaseController
                     }
                     
                     $customerOrderItem->setVat((double)$vat);
-                    $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
-                    $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
+                    $customerOrderItem->setPrice((float)Util::getNetPriceCutted($total, $pd));
+                    $customerOrderItem->setPriceGross((float)Util::getNetPriceCutted($total + $totalTax, $pd));
                 }
                 
                 $customerOrderItems[] = $customerOrderItem;
@@ -284,9 +290,8 @@ class CustomerOrderItem extends BaseController
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
-                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(),
-                        self::PRICE_DECIMALS))
+                ->setPrice(-1 * (float)Util::getNetPriceCutted((float)$item->get_discount(), $pd))
+                ->setPriceGross(-1 * (float)Util::getNetPriceCutted((float)$item->get_discount() + (float)$item->get_discount_tax(), $pd))
                 ->setQuantity(1);
         }
     }
