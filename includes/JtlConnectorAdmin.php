@@ -1807,6 +1807,13 @@ final class JtlConnectorAdmin
             case '1.8.1':
             //hotfix
             case '1.8.1.1':
+            //hotfix
+            case '1.8.1.2':
+            //hotfix
+            case '1.8.1.3':
+            //hotfix
+            case '1.8.1.4':
+            //default:
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,

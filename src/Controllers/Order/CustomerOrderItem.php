@@ -104,7 +104,7 @@ class CustomerOrderItem extends BaseController
                 $priceNet = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
                 $priceNet = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, false);
+                $priceGross = $order->get_item_subtotal($item, true, true);
             }
             
             $vat = 0;
