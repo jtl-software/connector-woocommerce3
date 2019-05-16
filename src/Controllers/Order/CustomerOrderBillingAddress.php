@@ -32,7 +32,10 @@ class CustomerOrderBillingAddress extends BaseController
             ->setPhone($order->get_billing_phone())
             ->setCustomerId(new Identity($order->get_customer_id() !== 0
                 ? $order->get_customer_id()
-                : Id::link([Id::GUEST_PREFIX, $order->get_id()])));
+                : Id::link([
+                    Id::GUEST_PREFIX,
+                    $order->get_id(),
+                ])));
         
         if (strcmp($address->getCity(), '') === 0) {
             $address->setCity(get_option('woocommerce_store_city'));
@@ -58,10 +61,13 @@ class CustomerOrderBillingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
-    
+        
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $uid = \get_user_meta($order->get_user_id(), 'b2b_uid', true);
-            $address->setVatNumber($uid);
+            if (is_bool($uid)) {
+                $uid = '';
+            }
+            $address->setVatNumber((string)$uid);
         }
         
         return $address;

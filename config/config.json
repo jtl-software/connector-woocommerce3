@@ -1,6 +1,6 @@
 {
   "connector_password": "E285AEA1-E828-4764-B27E-59BD5FE09AE0",
-  "connector_version": "1.8.1.5",
+  "connector_version": "1.8.1.6",
   "jtlconnector_show_variation_specifics_on_product_page": true,
   "jtlconnector_send_custom_properties": true,
   "jtlconnector_variation_name_format": "brackets",
