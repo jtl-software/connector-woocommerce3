@@ -52,6 +52,7 @@ class ProductAttr extends BaseController
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
         $downloadable = false;
+        $soldIndividual = false;
         $payable = false;
         $nosearch = false;
         $fbStatusCode = false;
@@ -242,6 +243,26 @@ class ProductAttr extends BaseController
                         $downloadable = true;
                     }
                     
+                    if (strcmp($attrName, ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR) === 0) {
+                        $value = strcmp(trim($i18n->getValue()), 'true') === 0;
+                        $value = $value ? 'yes' : 'no';
+                        
+                        if (!add_post_meta(
+                            $productId,
+                            substr($attrName, 2),
+                            $value,
+                            true
+                        )) {
+                            update_post_meta(
+                                $productId,
+                                substr($attrName, 2),
+                                $value,
+                                \get_post_meta($productId, substr($attrName, 2), true)
+                            );
+                        }
+                        $soldIndividual = true;
+                    }
+                    
                     if (strcmp($attrName, ProductVaSpeAttrHandler::VIRTUAL_ATTR) === 0) {
                         $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                         $value = $value ? 'yes' : 'no';
@@ -338,6 +359,22 @@ class ProductAttr extends BaseController
                     '_downloadable',
                     'no',
                     \get_post_meta($productId, '_downloadable', true)
+                );
+            }
+        }
+        
+        if (!$soldIndividual) {
+            if (!\add_post_meta(
+                $productId,
+                substr(ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR, 2),
+                'no',
+                true
+            )) {
+                \update_post_meta(
+                    $productId,
+                    substr(ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR, 2),
+                    'no',
+                    \get_post_meta($productId, substr(ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR, 2), true)
                 );
             }
         }

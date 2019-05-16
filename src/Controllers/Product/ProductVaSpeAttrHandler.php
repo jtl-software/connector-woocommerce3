@@ -33,6 +33,7 @@ class ProductVaSpeAttrHandler extends BaseController
     const NOSEARCH_ATTR = 'wc_nosearch';
     const VIRTUAL_ATTR = 'wc_virtual';
     const PURCHASE_NOTE_ATTR = 'wc_purchase_note';
+    const PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually';
     
     //GERMAN MARKET
     const GM_DIGITAL_ATTR = 'wc_gm_digital';
@@ -369,6 +370,10 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             ),
+            $this->getOnlyOneFunctionAttribute(
+                $product,
+                $languageIso
+            ),
             $this->getPayableFunctionAttribute(
                 $product,
                 $languageIso
@@ -440,6 +445,24 @@ class ProductVaSpeAttrHandler extends BaseController
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::DOWNLOADABLE_ATTR))
             ->setName(self::DOWNLOADABLE_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+        
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getOnlyOneFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $value = $product->is_sold_individually() ? 'true' : 'false';
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_ONLY_ONE_ATTR))
+            ->setName(self::PURCHASE_ONLY_ONE_ATTR)
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
         

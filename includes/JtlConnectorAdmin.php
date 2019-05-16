@@ -1813,6 +1813,7 @@ final class JtlConnectorAdmin
             case '1.8.1.3':
             //hotfix
             case '1.8.1.4':
+            case '1.8.1.5':
             //default:
         }
         
