@@ -23,8 +23,8 @@ trait CustomerOrderTrait {
 		}
 		
 		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-		
-		if ( \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes' ) === 'yes' ) {
+  
+		if (   \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, '1' ) === '1' ) {
 			$status .= ", 'wc-completed'";
 		}
 		

@@ -84,7 +84,7 @@ class CustomerOrder extends BaseController
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
             
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED) || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
                 $this->setGermanizedPaymentInfo($customerOrder);
             }
             
