@@ -74,7 +74,9 @@ class Product extends BaseController
             if (Util::useGtinAsEanEnabled()) {
                 $ean = '';
                 
-                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                     $ean = get_post_meta($product->get_id(), '_ts_gtin');
                     
                     if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
@@ -100,27 +102,34 @@ class Product extends BaseController
                 ->setSpecialPrices($specialPrices)
                 ->setCategories(Product2Category::getInstance()->pullData($product));
             
-            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)->pullData($product,
-                $productModel);
-            // Simple or father articles
-            if ($product->is_type('variable') || $product->is_type('simple')) {
-                if ($product->is_type('variable')) {
-                    $productModel->setVariations($productVariationSpecificAttribute['productVariation']);
-                }
-                $productModel->setAttributes($productVariationSpecificAttribute['productAttributes'])
-                    ->setSpecifics($productVariationSpecificAttribute['productSpecifics']);
+            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)
+                ->pullData($product, $productModel);
+            
+            // Var parent or child articles
+            if ($product instanceof \WC_Product_Variable
+                || $product instanceof \WC_Product_Variation
+            ) {
+                $productModel->setVariations($productVariationSpecificAttribute['productVariation']);
             }
             
+            $productModel->setAttributes($productVariationSpecificAttribute['productAttributes'])
+                ->setSpecifics($productVariationSpecificAttribute['productSpecifics']);
             if ($product->managing_stock()) {
                 $productModel->setStockLevel((new ProductStockLevel)->pullData($product));
             }
             
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED) || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 (new ProductGermanizedFields)->pullData($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                 (new ProductGermanMarketFields)->pullData($productModel, $product);
+            }
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+                (new ProductB2BMarketFields)->pullData($productModel, $product);
             }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
@@ -236,12 +245,18 @@ class Product extends BaseController
         
         $this->onProductInserted($product, $tmpI18n);
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
             (new ProductGermanizedFields)->pushData($product);
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             (new ProductGermanMarketFields)->pushData($product);
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            (new ProductB2BMarketFields)->pushData($product);
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -330,7 +345,8 @@ class Product extends BaseController
         $wcProduct->set_weight($product->getShippingWeight());
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
             $productId = $product->getId()->getEndpoint();
             if (Util::useGtinAsEanEnabled()) {
                 \update_post_meta(
