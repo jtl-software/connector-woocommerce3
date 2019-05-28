@@ -278,6 +278,11 @@ class CustomerOrderItem extends BaseController
      */
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
+        $pd = \wc_get_price_decimals();
+    
+        if ($pd < 4) {
+            $pd = 4;
+        }
         /**
          * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item

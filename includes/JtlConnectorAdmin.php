@@ -1817,6 +1817,8 @@ final class JtlConnectorAdmin
             case '1.8.1.6':
             case '1.8.1.7':
             case '1.8.1.8':
+            case '1.8.1.9':
+            case '1.8.2':
             //default:
         }
         
