@@ -28,7 +28,6 @@ class ProductGermanMarketFields extends BaseController
     public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
         $this->setBasePriceProperties($product, $wcProduct);
-        $this->setRRPProperty($product, $wcProduct);
     }
     
     /**
@@ -188,15 +187,9 @@ class ProductGermanMarketFields extends BaseController
         }
     }
     
-    private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct)
-    {
-        $rrp = get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== '' && !is_null($rrp) && !empty($rrp)) {
-            $product->setRecommendedRetailPrice((float)$rrp);
-        }
-    }
-    
     /**
+     * @param bool $isMaster
+     *
      * @return array
      */
     private function getGermanMarketMetaKeys($isMaster = false)
@@ -350,7 +343,6 @@ class ProductGermanMarketFields extends BaseController
     public function pushData(ProductModel $product)
     {
         $this->updateGermanMarketPPU($product);
-        $this->updateRRP($product);
     }
     
     /**
@@ -529,40 +521,5 @@ class ProductGermanMarketFields extends BaseController
             0,
             $metaData[$metaKeys['usedCustomPPUKey']]
         );
-    }
-    
-    /**
-     * @param ProductModel $product
-     */
-    private function updateRRP(ProductModel $product)
-    {
-        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
-        $rrp = $product->getRecommendedRetailPrice();
-        $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== 0) {
-            if ($rrp !== $oldValue) {
-                if (!$product->getMasterProductId()->getHost() === 0) {
-                    $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
-                    \update_post_meta(
-                        $wcProduct->get_parent_id(),
-                        $vKey,
-                        $rrp,
-                        \get_post_meta($wcProduct->get_parent_id(), $vKey, true)
-                    );
-                }
-                \update_post_meta(
-                    $wcProduct->get_id(),
-                    'bm_rrp',
-                    $rrp,
-                    \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
-                );
-            }
-        } else {
-            if (!$product->getMasterProductId()->getHost() === 0) {
-                $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
-                \delete_post_meta($wcProduct->get_parent_id(), $vKey);
-            }
-            \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
-        }
     }
 }

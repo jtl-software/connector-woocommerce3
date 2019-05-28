@@ -21,24 +21,24 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 class Customer extends BaseController
 {
     use PullTrait, PushTrait, StatsTrait;
-
+    
     public function pullData($limit)
     {
         $customers = $this->pullCustomers($limit);
         $guests = $this->pullGuests($limit - count($customers));
-
+        
         return array_merge($customers, $guests);
     }
-
+    
     protected function pullCustomers($limit)
     {
         $customers = [];
-
+        
         $customerIds = $this->database->queryList(SqlHelper::customerNotLinked($limit));
-
+        
         foreach ($customerIds as $customerId) {
             $wcCustomer = new \WC_Customer($customerId);
-
+            
             $customer = (new CustomerModel)
                 ->setId(new Identity($customerId))
                 ->setCustomerNumber($customerId)
@@ -55,56 +55,64 @@ class Customer extends BaseController
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(true)
                 ->setHasCustomerAccount(true);
-
+            
             $firstName = $wcCustomer->get_first_name();
             if (!empty($firstName)) {
                 $customer->setFirstName($wcCustomer->get_first_name());
             } else {
                 $customer->setFirstName($wcCustomer->get_billing_first_name());
             }
-
+            
             $lastName = $wcCustomer->get_last_name();
             if (!empty($lastName)) {
                 $customer->setLastName($wcCustomer->get_last_name());
             } else {
                 $customer->setLastName($wcCustomer->get_billing_last_name());
             }
-
+            
             $email = $wcCustomer->get_email();
             if (!empty($email)) {
                 $customer->setEMail($wcCustomer->get_email());
             } else {
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
-    
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
-    
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                 $uid = \get_user_meta($customerId, 'b2b_uid', true);
-                $customer->setVatNumber($uid);
+                $customer->setVatNumber((string)$uid);
             }
-
+            
             $customers[] = $customer;
         }
-
+        
         return $customers;
     }
-
+    
     private function pullGuests($limit)
     {
         $customers = [];
-
+        
         $guests = $this->database->queryList(SqlHelper::guestNotLinked($limit));
-
+        
         foreach ($guests as $guest) {
             $order = new \WC_Order((Id::unlink($guest)[1]));
-
+            
             $customer = (new CustomerModel)
-                ->setId(new Identity(Id::link([Id::GUEST_PREFIX, $order->get_id()])))
-                ->setCustomerNumber(Id::link([Id::GUEST_PREFIX, $order->get_id()]))
+                ->setId(new Identity(Id::link([
+                    Id::GUEST_PREFIX,
+                    $order->get_id(),
+                ])))
+                ->setCustomerNumber(Id::link([
+                    Id::GUEST_PREFIX,
+                    $order->get_id(),
+                ]))
                 ->setFirstName($order->get_billing_first_name())
                 ->setLastName($order->get_billing_last_name())
                 ->setCompany($order->get_billing_company())
@@ -120,25 +128,27 @@ class Customer extends BaseController
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->setIsActive(false)
                 ->setHasCustomerAccount(false);
-
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+            
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
-
+            
             $customers[] = $customer;
         }
-
+        
         return $customers;
     }
-
+    
     public function pushData(CustomerModel $customer)
     {
         // Only registered customers data can be updated
         if (!$customer->getHasCustomerAccount()) {
             return $customer;
         }
-
+        
         try {
             $wcCustomer = new \WC_Customer((int)$customer->getId()->getEndpoint());
             $wcCustomer->set_first_name($customer->getFirstName());
@@ -159,15 +169,15 @@ class Customer extends BaseController
         } catch (\Exception $exception) {
             WooCommerceLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
-
+        
         return $customer;
     }
-
+    
     public function getStats()
     {
         $customers = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
         $customers += (int)$this->database->queryOne(SqlHelper::guestNotLinked(null));
-
+        
         return $customers;
     }
 }

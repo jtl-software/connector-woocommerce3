@@ -2,6 +2,15 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.8.2
+* Fix - custom property always sent
+* Fix - completed orders never included in import
+* Enhancement - CO-511 - control sell only one of this item in each order
+* Fix - round bug on order item price gross
+* Fix - round bug on order item net
+* Fix - casting bugs on sevreal germainzed classes
+* Enhancement - Prepare for B2B-Market 1.0.4
+
 ## 1.8.1
 * Fix - CO-507 - variable product seems to be simple product bug 
 * Enhancement - Wordpress 5.2 Support

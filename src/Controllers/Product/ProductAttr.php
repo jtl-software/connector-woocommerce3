@@ -10,7 +10,9 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
+use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -77,8 +79,7 @@ class ProductAttr extends BaseController
                     || in_array($attrName, [
                         'nosearch',
                         'payable',
-                    ])
-                ) {
+                    ])) {
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
                         
                         if (strcmp($attrName, ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR) === 0) {
@@ -120,28 +121,48 @@ class ProductAttr extends BaseController
                              $fbVisibility = true;
                          }*/
                     }
+    
+                    if (
+                        preg_match(
+                            '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
+                            $attrName
+                        )
+                        && $product->getMasterProductId()->getHost() === 0
+                    ) {
+                        $attrName = substr($attrName, 18);
+        
+                        $term = \get_term_by(
+                            'slug',
+                            wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
+                            'pa_' . $attrName
+                        );
+        
+                        if ($term instanceof \WP_Term) {
+                            $variationPreselect[$term->taxonomy] = $term->slug;
+                        }
+                    }
+    
+                    if (
+                        preg_match(
+                            '/^(wc_v_preselect_)[a-zA-Z\_]+$/',
+                            $attrName
+                        )
+                        && $product->getMasterProductId()->getHost() === 0
+                    ) {
+                        $attrName = substr($attrName, 15);
+        
+                        $term = \get_term_by(
+                            'slug',
+                            wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
+                            'pa_' . $attrName
+                        );
+        
+                        if ($term instanceof \WP_Term) {
+                            $variationPreselect[$term->taxonomy] = $term->slug;
+                        }
+                    }
                     
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                        
-                        if (
-                            preg_match(
-                                '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
-                                $attrName
-                            )
-                            && $product->getMasterProductId()->getHost() === 0
-                        ) {
-                            $attrName = substr($attrName, 18);
-                            
-                            $term = \get_term_by(
-                                'slug',
-                                wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
-                                'pa_' . $attrName
-                            );
-                            
-                            if ($term instanceof \WP_Term) {
-                                $variationPreselect[$term->taxonomy] = $term->slug;
-                            }
-                        }
                         
                         if (strcmp($attrName, ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) === 0) {
                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
@@ -509,7 +530,7 @@ class ProductAttr extends BaseController
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             $result = null;
-            if (!Util::sendCustomPropertiesEnabled() && $attribute->getIsCustomProperty() === true) {
+            if (!(bool)Config::get(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES) && $attribute->getIsCustomProperty() === true) {
                 continue;
             }
             

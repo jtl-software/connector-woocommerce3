@@ -6,7 +6,7 @@ Tested up to: 5.2
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.6
-Stable tag: 1.8.1.5
+Stable tag: 1.8.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,15 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.8.2 =
+* Fix - custom property always sent
+* Fix - completed orders never included in import
+* Enhancement - CO-511 - control sell only one of this item in each order
+* Fix - round bug on order item price gross
+* Fix - round bug on order item net
+* Fix - casting bugs on sevreal germainzed classes
+* Enhancement - Prepare for B2B-Market 1.0.4
 
 = 1.8.1 =
 * Fix - CO-507 - variable product seems to be simple product bug

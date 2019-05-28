@@ -17,6 +17,8 @@ final class SupportedPlugins
     const PLUGIN_FB_FOR_WOO = 'Facebook for WooCommerce';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
+    const PLUGIN_WOOCOMMERCE_GERMANIZED2 = 'Germanized for WooCommerce';
+    const PLUGIN_WOOCOMMERCE_GERMANIZEDPRO = 'Germanized for WooCommerce Pro'; //TODO: CHECK THAT
     const PLUGIN_WOOCOMMERCE_BLOCKS = 'WooCommerce Blocks';
     const PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS = 'Atomion WooCommerce Blocks';
     const PLUGIN_WOOF_WC_PRODUCT_FILTER = 'WOOF - WooCommerce Products Filter';
@@ -41,6 +43,8 @@ final class SupportedPlugins
         self::PLUGIN_FB_FOR_WOO,
         self::PLUGIN_WOOCOMMERCE,
         self::PLUGIN_WOOCOMMERCE_GERMANIZED,
+        self::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+        self::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
         self::PLUGIN_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS,
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,

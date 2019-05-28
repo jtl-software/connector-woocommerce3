@@ -44,14 +44,23 @@ class GlobalData extends BaseController
             \update_option('woocommerce_weight_unit', 'kg', true);*/
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+        if (
+            (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+            )
             && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanizedData());
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
-            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
-            
+            && !(
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+            )
+        ) {
             if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
                 //LIEFERZEITEN
                 update_option('woocommerce_global_lieferzeit', '-1', true);
