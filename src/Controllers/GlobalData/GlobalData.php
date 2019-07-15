@@ -81,6 +81,9 @@ class GlobalData extends BaseController
                 update_option('german_market_product_images_in_order', 'on', true);
                 update_option('german_market_product_images_in_cart', 'on', true);
                 
+                update_option('gm_gtin_activation', 'on', true);
+                update_option('gm_gtin_product_pages', 'on', true);
+                
                 update_option('woocommerce_de_show_price_per_unit', 'on', true);
                 update_option('woocommerce_de_automatic_calculation_ppu', 'on', true);
                 update_option('woocommerce_de_automatic_calculation_use_wc_weight', 'off', true);

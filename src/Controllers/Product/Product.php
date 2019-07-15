@@ -86,6 +86,16 @@ class Product extends BaseController
                     }
                 }
                 
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                    $ean = get_post_meta($product->get_id(), '_gm_gtin');
+                    
+                    if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
+                        $ean = $ean[0];
+                    } else {
+                        $ean = '';
+                    }
+                }
+                
                 $productModel->setEan($ean);
             }
             
@@ -361,6 +371,26 @@ class Product extends BaseController
                     '_ts_gtin',
                     '',
                     \get_post_meta($productId, '_ts_gtin', true)
+                );
+            }
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $productId = $product->getId()->getEndpoint();
+            
+            if (Util::useGtinAsEanEnabled()) {
+                \update_post_meta(
+                    $productId,
+                    '_gm_gtin',
+                    (string)$product->getEan(),
+                    \get_post_meta($productId, '_gm_gtin', true)
+                );
+            } else {
+                \update_post_meta(
+                    $productId,
+                    '_gm_gtin',
+                    '',
+                    \get_post_meta($productId, '_gm_gtin', true)
                 );
             }
         }

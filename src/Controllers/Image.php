@@ -61,11 +61,11 @@ class Image extends BaseController
             $imgSrc = \wp_get_attachment_image_src($image['ID'], 'full');
             $model  = (new ImageModel())
                 ->setId(new Identity($image['id']))
-                ->setName($image['post_name'])
+                ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl(isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
+                ->setRemoteUrl((string)isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
                 ->setSort((int)$image['sort'])
-                ->setFilename(\wc_get_filename_from_url($image['guid']));
+                ->setFilename((string)\wc_get_filename_from_url($image['guid']));
             
             if ($model instanceof ImageModel) {
                 $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
@@ -75,7 +75,7 @@ class Image extends BaseController
                     ->addI18n((new ImageI18n())
                         ->setId(new Identity($image['id']))
                         ->setImageId(new Identity($image['id']))
-                        ->setAltText(substr($altText !== false ? $altText : '', 0, 254 ))
+                        ->setAltText((string)substr($altText !== false ? $altText : '', 0, 254 ))
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                     );
                 

@@ -1158,14 +1158,16 @@ final class JtlConnectorAdmin
                                       
                                       <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels in Shop: "Off" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Sale Labels > Show Sale Labels on Product Pages: "Off" (Dont change this!)</li>
-                                      
-                                      
+                                  
                                       <li class="list-group-item bg-transparent">Products > Product Attributes in product name: "Off" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Show Single Price of Order Items in Orders: "On"</li>
                                       <li class="list-group-item bg-transparent">Products > Show Product Attributes not used for Variations: "Off" (Dont change this!)</li>
                                       
                                       <li class="list-group-item bg-transparent">Products > Product Images on Cart Page: "On"</li>
                                       <li class="list-group-item bg-transparent">Products > Product Images for Order Summaries: "On"</li>
+                                      
+                                      <li class="list-group-item bg-transparent">Products > Activate GTIN: "On"</li>
+                                      <li class="list-group-item bg-transparent">Products > Show GTIN on Product Pages: "On"</li>
                                       
                                       <li class="list-group-item bg-transparent">Products > Show Price per Unit: "On" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Products > Automatic Calculation: "On" (Dont change this!)</li>
@@ -1813,12 +1815,22 @@ final class JtlConnectorAdmin
             case '1.8.1.3':
             //hotfix
             case '1.8.1.4':
+            //hotfix
             case '1.8.1.5':
+            //hotfix
             case '1.8.1.6':
+            //hotfix
             case '1.8.1.7':
+            //hotfix
             case '1.8.1.8':
+            //hotfix
             case '1.8.1.9':
+            //hotfix
             case '1.8.2':
+            case '1.8.2.1':
+            //hotfix
+            case '1.8.2.2':
+            //hotfix
             //default:
         }
         
