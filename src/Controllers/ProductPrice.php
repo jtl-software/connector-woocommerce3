@@ -178,6 +178,7 @@ class ProductPrice extends BaseController
                         $oldRegularPrice
                     );
                 }
+                
                 $var1 = $item->getQuantity() > 0;
                 $var2 = !is_null($customerGroup);
                 $var3 = SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET);
@@ -185,7 +186,7 @@ class ProductPrice extends BaseController
                 if ($var1 && $var2 && $var3) {
                     $bulkPrices[] = [
                         'bulk_price'      => (string)$newPrice,
-                        'bulk_price_from' => (string)$newPrice,
+                        'bulk_price_from' => (string)$item->getQuantity(),
                         'bulk_price_to'   => '',
                         'bulk_price_type' => 'fix',
                     ];

@@ -372,7 +372,7 @@ class ProductGermanMarketFields extends BaseController
             $productQuantityCode = $product->getMeasurementUnitCode(); //g
             
             $basePrice = null;
-            $currenPrice = \get_post_meta($productId, '_price', true);
+            $currentPrice = \get_post_meta($productId, '_price', true);
             $baseUnit = null;
             
             switch ($ppuType) {
@@ -389,7 +389,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcWeightOption;
                     break;
                 case 'length':
@@ -405,7 +405,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcLengthOption;
                     break;
                 case 'volume':
@@ -421,7 +421,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcVolumeOption;
                     break;
                 case 'surface':
@@ -440,7 +440,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = str_replace('^2', '2', $wcSquareOption);;
                     break;
                 default:
