@@ -121,7 +121,7 @@ class ProductAttr extends BaseController
                              $fbVisibility = true;
                          }*/
                     }
-    
+                    
                     if (
                         preg_match(
                             '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
@@ -130,18 +130,18 @@ class ProductAttr extends BaseController
                         && $product->getMasterProductId()->getHost() === 0
                     ) {
                         $attrName = substr($attrName, 18);
-        
+                        
                         $term = \get_term_by(
                             'slug',
                             wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
                             'pa_' . $attrName
                         );
-        
+                        
                         if ($term instanceof \WP_Term) {
                             $variationPreselect[$term->taxonomy] = $term->slug;
                         }
                     }
-    
+                    
                     if (
                         preg_match(
                             '/^(wc_v_preselect_)[a-zA-Z\_]+$/',
@@ -150,13 +150,13 @@ class ProductAttr extends BaseController
                         && $product->getMasterProductId()->getHost() === 0
                     ) {
                         $attrName = substr($attrName, 15);
-        
+                        
                         $term = \get_term_by(
                             'slug',
                             wc_sanitize_taxonomy_name(substr(trim($i18n->getValue()), 0, 27)),
                             'pa_' . $attrName
                         );
-        
+                        
                         if ($term instanceof \WP_Term) {
                             $variationPreselect[$term->taxonomy] = $term->slug;
                         }
@@ -340,16 +340,14 @@ class ProductAttr extends BaseController
             }
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            \update_post_meta(
-                $productId,
+        \update_post_meta(
+            $productId,
+            '_default_attributes',
+            $variationPreselect,
+            \get_post_meta($productId,
                 '_default_attributes',
-                $variationPreselect,
-                \get_post_meta($productId,
-                    '_default_attributes',
-                    true)
-            );
-        }
+                true)
+        );
         
         //Revert
         if (!$virtual) {

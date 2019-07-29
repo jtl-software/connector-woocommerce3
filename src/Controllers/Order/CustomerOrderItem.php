@@ -44,11 +44,11 @@ class CustomerOrderItem extends BaseController
     public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
     {
         $pd = \wc_get_price_decimals();
-    
+        
         if ($pd < 4) {
             $pd = 4;
         }
-    
+        
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
@@ -113,10 +113,10 @@ class CustomerOrderItem extends BaseController
                 $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
             }
             
-/*            $orderItem
-                ->setVat($vat)
-                ->setPrice(round($priceNet, self::PRICE_DECIMALS))
-                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));*/
+            /*            $orderItem
+                            ->setVat($vat)
+                            ->setPrice(round($priceNet, self::PRICE_DECIMALS))
+                            ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));*/
             
             $orderItem
                 ->setVat($vat)
@@ -193,11 +193,11 @@ class CustomerOrderItem extends BaseController
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
         $pd = \wc_get_price_decimals();
-    
+        
         if ($pd < 4) {
             $pd = 4;
         }
-    
+        
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
             return $vat !== 0;
@@ -279,10 +279,12 @@ class CustomerOrderItem extends BaseController
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
         $pd = \wc_get_price_decimals();
-    
+        
         if ($pd < 4) {
             $pd = 4;
         }
+        
+        $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
         /**
          * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item
@@ -290,13 +292,25 @@ class CustomerOrderItem extends BaseController
         foreach ($order->get_items('coupon') as $itemId => $item) {
             $itemName = $item->get_name();
             
+            $total = (float)$item->get_discount();
+            $totalTax = (float)$item->get_discount() + (float)$item->get_discount_tax();
+            $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+            $vat = 0.0;
+            
+            foreach ($taxRates as $taxRate) {
+                if ($taxRate['tax_rate'] !== '0.0000' && $tmpVat >= $taxRate['tax_rate']) {
+                    $vat = $taxRate['tax_rate'];
+                }
+            }
+            
             $customerOrderItems[] = (new CustomerOrderItemModel())
                 ->setId(new Identity($itemId))
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * (float)Util::getNetPriceCutted((float)$item->get_discount(), $pd))
-                ->setPriceGross(-1 * (float)Util::getNetPriceCutted((float)$item->get_discount() + (float)$item->get_discount_tax(), $pd))
+                ->setPrice(-1 * (float)Util::getNetPriceCutted((float)$total, $pd))
+                ->setPriceGross(-1 * (float)Util::getNetPriceCutted((float)$totalTax, $pd))
+                ->setVat((double)$vat)
                 ->setQuantity(1);
         }
     }

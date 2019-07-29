@@ -280,6 +280,7 @@ class ProductVaSpeAttrHandler extends BaseController
             /** @var ProductVariationI18nModel $variationI18n */
             foreach ($variation->getI18ns() as $variationI18n) {
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
+                $customSort = false;
                 
                 if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                     continue;
@@ -288,10 +289,19 @@ class ProductVaSpeAttrHandler extends BaseController
                 $values = [];
                 
                 $this->values = $variation->getValues();
-                usort($this->values, [
-                    $this,
-                    'sortI18nValues',
-                ]);
+                
+                foreach ($this->values as $vv) {
+                    if ($vv->getSort() !== 0) {
+                        $customSort = true;
+                    }
+                }
+                
+                if ($customSort) {
+                    usort($this->values, [
+                        $this,
+                        'sortI18nValues',
+                    ]);
+                }
                 
                 foreach ($this->values as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
@@ -659,6 +669,10 @@ class ProductVaSpeAttrHandler extends BaseController
         $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
         
         if (count($val) === 0) {
+            $val = $this->database->query(SqlHelper::getSpecificValueIdBySlug($slug, $value));
+        }
+        
+        if (count($val) === 0) {
             $result = (new Identity);
         } else {
             $result = isset($val[0]['endpoint_id'])
@@ -677,25 +691,7 @@ class ProductVaSpeAttrHandler extends BaseController
         ProductVariationValueModel $a,
         ProductVariationValueModel $b
     ) {
-        if ($a->getSort() === $b->getSort()) {
-            if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
-                return 0;
-            } else {
-                $indexA = $indexB = 0;
-                
-                foreach ($this->values as $index => $value) {
-                    if ($value->getId() === $a->getId()) {
-                        $indexA = $index;
-                    } elseif ($value->getId() === $b->getId()) {
-                        $indexB = $index;
-                    }
-                }
-                
-                return ($indexA < $indexB) ? -1 : 1;
-            }
-        }
-        
-        return ($a->getSort() < $b->getSort()) ? -1 : 1;
+        return ($a->getSort() - $b->getSort());
     }
     
     private function mergeAttributes(array &$newProductAttributes, array $attributes)
