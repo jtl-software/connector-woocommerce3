@@ -209,7 +209,7 @@ class CustomerOrderItem extends BaseController
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
-            $costs = (float)$order->get_item_total($shippingItem, false, true);
+            $costs = (float)$order->get_item_total($shippingItem, false, false);
             
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
