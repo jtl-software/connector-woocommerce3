@@ -209,7 +209,7 @@ class CustomerOrderItem extends BaseController
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
-            $costs = (float)$order->get_item_total($shippingItem, false, false);
+            $costs = (float)$order->get_item_total($shippingItem, false, true);
             
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
@@ -252,13 +252,18 @@ class CustomerOrderItem extends BaseController
                 
                 if ($total != 0) {
                     
-                    $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+                    $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 2);
                     $vat = 0.0;
                     $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
                     
                     foreach ($taxRates as $taxrate) {
-                        if ($taxrate['tax_rate'] !== '0.0000' && $tmpVat >= $taxrate['tax_rate']) {
+                        if (
+                            $taxrate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                            && $tmpVat >= $taxrate['tax_rate']
+                            && $tmpVat - $taxrate['tax_rate'] < 0.1
+                        ) {
                             $vat = $taxrate['tax_rate'];
+                            break;
                         }
                     }
                     
@@ -298,8 +303,13 @@ class CustomerOrderItem extends BaseController
             $vat = 0.0;
             
             foreach ($taxRates as $taxRate) {
-                if ($taxRate['tax_rate'] !== '0.0000' && $tmpVat >= $taxRate['tax_rate']) {
+                if (
+                    $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                    && $tmpVat >= $taxRate['tax_rate']
+                    && $tmpVat - $taxRate['tax_rate'] < 0.1
+                ) {
                     $vat = $taxRate['tax_rate'];
+                    break;
                 }
             }
             
