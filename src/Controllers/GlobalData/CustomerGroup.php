@@ -101,7 +101,7 @@ class CustomerGroup
      */
     public function getSlugById($customerId)
     {
-        $group = \get_post($customerId);
+        $group = \get_post((int)$customerId);
         if ($group instanceof \WP_Post) {
             return $group->post_name;
         }
