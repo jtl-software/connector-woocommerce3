@@ -251,6 +251,8 @@ final class JtlConnectorAdmin
                     self::activate_checksum($prefix);
                 } elseif (strcmp($table, 'customer') === 0) {
                     self::createCustomerLinkingTable();
+                } elseif (strcmp($table, 'customer_group') === 0) {
+                    self::createCustomerGroupLinkingTable();
                 } elseif (strcmp($table, 'image') === 0) {
                     self::createImageLinkingTable();
                 } elseif (strcmp($table, 'manufacturer') === 0) {
@@ -313,6 +315,20 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`, `is_guest`),
                 INDEX (`host_id`, `is_guest`),
                 INDEX (`endpoint_id`, `is_guest`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
+        );
+    }
+    
+    private static function createCustomerGroupLinkingTable()
+    {
+        global $wpdb;
+        $wpdb->query('
+            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer_group` (
+                `endpoint_id` VARCHAR(255) NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
     }
@@ -1722,6 +1738,8 @@ final class JtlConnectorAdmin
     // <editor-fold defaultstate="collapsed" desc="Update">
     private static function update()
     {
+        global $wpdb;
+        
         $installed_version = \get_option(self::OPTIONS_INSTALLED_VERSION, '');
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
         
@@ -1767,7 +1785,6 @@ final class JtlConnectorAdmin
             case '1.7.1':
                 self::createManufacturerLinkingTable();
             case '1.8.0':
-                self::activate_linking();
             case '1.8.0.1':
                 //hotfix
             case '1.8.0.2':
@@ -1833,7 +1850,13 @@ final class JtlConnectorAdmin
                 //hotfix
             case '1.8.2.3':
                 //hotfix
-                //default:
+            case '1.8.2.4':
+                //hotfix
+                $dropOldQuery = 'DROP TABLE IF EXISTS `%s`;';
+                $wpdb->query(sprintf($dropOldQuery, $wpdb->prefix . 'jtl_connector_link_customer_group'));
+                self::createCustomerGroupLinkingTable();
+            default:
+                self::activate_linking();
         }
         
         \update_option(self::OPTIONS_INSTALLED_VERSION,

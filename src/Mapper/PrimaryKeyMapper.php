@@ -32,7 +32,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostCustomer($endpointId, $isGuest),
                 false);
-        } else {
+        } elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
+            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostString($endpointId, $tableName), false);
+        }else {
             $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostInteger($endpointId, $tableName),
                 false);
         }
@@ -89,6 +91,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
+                false);
+        }elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
+            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveString($endpointId, $hostId, $tableName),
                 false);
         } else {
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName),

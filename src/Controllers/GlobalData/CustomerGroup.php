@@ -27,7 +27,8 @@ class CustomerGroup
         $langIso = Util::getInstance()->getWooCommerceLanguage();
         $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
         
-        if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+        if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && version_compare($version, '1.0.3', '<='))) {
             //Default
             $defaultGroup = (new CustomerGroupModel)
@@ -44,7 +45,8 @@ class CustomerGroup
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $result = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            $sql = SqlHelper::customerGroupPull();
+            $result = Db::getInstance()->query($sql);
             
             if (count($result) > 0) {
                 foreach ($result as $group) {
