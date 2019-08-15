@@ -806,7 +806,20 @@ final class JtlConnectorAdmin
             'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".',
                 JTLWCC_TEXT_DOMAIN),
             'id'        => 'connector_url',
-            'value'     => get_bloginfo('url') . '/index.php/jtlconnector/',
+            'value'     => sprintf('%s%s%s',
+                $protocol = isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
+                isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' ? 'https://' : 'http://',
+                str_replace(
+                        'http://',
+                        '',
+                        str_replace(
+                                'https://',
+                                '',
+                                get_bloginfo('url')
+                        )
+                ),
+                '/index.php/jtlconnector/'
+            ),
         ];
         
         //Add connector password field
