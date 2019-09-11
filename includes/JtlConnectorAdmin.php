@@ -1868,6 +1868,8 @@ final class JtlConnectorAdmin
                 $dropOldQuery = 'DROP TABLE IF EXISTS `%s`;';
                 $wpdb->query(sprintf($dropOldQuery, $wpdb->prefix . 'jtl_connector_link_customer_group'));
                 self::createCustomerGroupLinkingTable();
+            case '1.8.2.5':
+                //hotfix
             default:
                 self::activate_linking();
         }
