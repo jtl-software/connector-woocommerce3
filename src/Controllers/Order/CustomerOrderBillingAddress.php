@@ -66,8 +66,22 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $uid = \get_user_meta($order->get_user_id(), 'b2b_uid', true);
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'billing_vat';
+        } else {
+            $marketPressKey = 'b2b_uid';
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_user_meta($order->get_user_id(), $marketPressKey, true);
             if (is_bool($uid)) {
                 $uid = '';
             }
