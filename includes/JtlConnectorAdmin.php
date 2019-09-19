@@ -1870,6 +1870,8 @@ final class JtlConnectorAdmin
                 self::createCustomerGroupLinkingTable();
             case '1.8.2.5':
                 //hotfix
+            case '1.8.2.6':
+                //hotfix
             default:
                 self::activate_linking();
         }
