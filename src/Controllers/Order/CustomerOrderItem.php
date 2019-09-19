@@ -225,7 +225,7 @@ class CustomerOrderItem extends BaseController
                     }
                     
                     $customerOrderItem->setVat($taxRate);
-                    
+                   
                     if ($taxRate === 0.0) {
                         continue;
                     } else {
@@ -256,13 +256,14 @@ class CustomerOrderItem extends BaseController
                     $vat = 0.0;
                     $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
                     
-                    foreach ($taxRates as $taxrate) {
+                    foreach ($taxRates as $taxRate) {
+                        $tmpValue = $tmpVat - $taxRate['tax_rate'];
+                  
                         if (
-                            $taxrate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
-                            && $tmpVat >= $taxrate['tax_rate']
-                            && $tmpVat - $taxrate['tax_rate'] < 0.1
+                            $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                            && abs($tmpValue) < 0.1
                         ) {
-                            $vat = $taxrate['tax_rate'];
+                            $vat = $taxRate['tax_rate'];
                             break;
                         }
                     }
@@ -303,10 +304,10 @@ class CustomerOrderItem extends BaseController
             $vat = 0.0;
             
             foreach ($taxRates as $taxRate) {
+                $tmpValue = $tmpVat - $taxRate['tax_rate'];
                 if (
                     $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
-                    && $tmpVat >= $taxRate['tax_rate']
-                    && $tmpVat - $taxRate['tax_rate'] < 0.1
+                    && abs($tmpValue) < 0.1
                 ) {
                     $vat = $taxRate['tax_rate'];
                     break;

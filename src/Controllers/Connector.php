@@ -30,20 +30,21 @@ class Connector extends Controller
 
         $returnMegaBytes = function ($value) {
             $value = trim($value);
+            $res = (int)substr($value,0, -1);
             $unit = strtolower($value[strlen($value) - 1]);
             switch ($unit) {
                 case 'g':
-                    $value *= 1024;
+                    $res *= 1024;
             }
 
-            return (int)$value;
+            return (int)$res;
         };
-
+        
         $serverInfo = new ConnectorServerInfo();
-        $serverInfo->setMemoryLimit($returnMegaBytes(ini_get('memory_limit')))
+        $serverInfo->setMemoryLimit((int)$returnMegaBytes(ini_get('memory_limit')))
             ->setExecutionTime((int)ini_get('max_execution_time'))
-            ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
-            ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
+            ->setPostMaxSize((int)$returnMegaBytes(ini_get('post_max_size')))
+            ->setUploadMaxFilesize((int)$returnMegaBytes(ini_get('upload_max_filesize')));
 
         $identification = new ConnectorIdentification();
         $identification->setPlatformName('WooCommerce')
