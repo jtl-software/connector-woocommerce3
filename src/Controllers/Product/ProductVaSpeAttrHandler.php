@@ -19,7 +19,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
 use JtlWooCommerceConnector\Utilities\Util;
 
-if (defined('WC_DELIMITER')) {
+if (!defined('WC_DELIMITER')) {
     define('WC_DELIMITER', '|');
 }
 
@@ -33,6 +33,7 @@ class ProductVaSpeAttrHandler extends BaseController
     const NOSEARCH_ATTR = 'wc_nosearch';
     const VIRTUAL_ATTR = 'wc_virtual';
     const PURCHASE_NOTE_ATTR = 'wc_purchase_note';
+    const PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually';
     
     //GERMAN MARKET
     const GM_DIGITAL_ATTR = 'wc_gm_digital';
@@ -279,6 +280,7 @@ class ProductVaSpeAttrHandler extends BaseController
             /** @var ProductVariationI18nModel $variationI18n */
             foreach ($variation->getI18ns() as $variationI18n) {
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
+                $customSort = false;
                 
                 if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                     continue;
@@ -287,10 +289,19 @@ class ProductVaSpeAttrHandler extends BaseController
                 $values = [];
                 
                 $this->values = $variation->getValues();
-                usort($this->values, [
-                    $this,
-                    'sortI18nValues',
-                ]);
+                
+                foreach ($this->values as $vv) {
+                    if ($vv->getSort() !== 0) {
+                        $customSort = true;
+                    }
+                }
+                
+                if ($customSort) {
+                    usort($this->values, [
+                        $this,
+                        'sortI18nValues',
+                    ]);
+                }
                 
                 foreach ($this->values as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
@@ -369,6 +380,10 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             ),
+            $this->getOnlyOneFunctionAttribute(
+                $product,
+                $languageIso
+            ),
             $this->getPayableFunctionAttribute(
                 $product,
                 $languageIso
@@ -440,6 +455,24 @@ class ProductVaSpeAttrHandler extends BaseController
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::DOWNLOADABLE_ATTR))
             ->setName(self::DOWNLOADABLE_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+        
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+        
+        return $attribute;
+    }
+    
+    private function getOnlyOneFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $value = $product->is_sold_individually() ? 'true' : 'false';
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_ONLY_ONE_ATTR))
+            ->setName(self::PURCHASE_ONLY_ONE_ATTR)
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
         
@@ -636,6 +669,10 @@ class ProductVaSpeAttrHandler extends BaseController
         $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
         
         if (count($val) === 0) {
+            $val = $this->database->query(SqlHelper::getSpecificValueIdBySlug($slug, $value));
+        }
+        
+        if (count($val) === 0) {
             $result = (new Identity);
         } else {
             $result = isset($val[0]['endpoint_id'])
@@ -654,25 +691,7 @@ class ProductVaSpeAttrHandler extends BaseController
         ProductVariationValueModel $a,
         ProductVariationValueModel $b
     ) {
-        if ($a->getSort() === $b->getSort()) {
-            if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
-                return 0;
-            } else {
-                $indexA = $indexB = 0;
-                
-                foreach ($this->values as $index => $value) {
-                    if ($value->getId() === $a->getId()) {
-                        $indexA = $index;
-                    } elseif ($value->getId() === $b->getId()) {
-                        $indexB = $index;
-                    }
-                }
-                
-                return ($indexA < $indexB) ? -1 : 1;
-            }
-        }
-        
-        return ($a->getSort() < $b->getSort()) ? -1 : 1;
+        return ($a->getSort() - $b->getSort());
     }
     
     private function mergeAttributes(array &$newProductAttributes, array $attributes)

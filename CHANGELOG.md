@@ -2,6 +2,34 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.8.2
+* Fix - custom property always sent
+* Fix - completed orders never included in import
+* Enhancement - CO-511 - control sell only one of this item in each order
+* Fix - round bug on order item price gross
+* Fix - round bug on order item net
+* Fix - casting bugs on sevreal germainzed classes
+* Enhancement - Prepare for B2B-Market 1.0.4
+
+## 1.8.1
+* Fix - CO-507 - variable product seems to be simple product bug 
+* Enhancement - Wordpress 5.2 Support
+* Enhancement - Adjust recommend settings
+* Enhancement - Add info content on settings
+* Fix - CO-462 - set correct tax for orders and additional costs
+* Enhancement - Change german market ppu handling
+* Enhancement - Prevent missing prices bug
+* Fix - germanized prices bug
+* Fix - German Market free shipping bug
+* Fix - Special prices bug
+* Enhancement - Update special prices handling
+* Fix - Net bugs on unit price germanized
+* Fix - special price not removed bug
+* Fix - wrong seo post update
+* Enhancement - Refactor some code on product push sequence
+* Fix - Warning blocks sync bug
+* Enchancement - Preparations B2B-Market 1.0.4 CG Pull / Prices Pull/Push / Special Prices Pull/Push
+
 ## 1.8.0
 * Enhancement - Support of HTML-TEXT in descriptions
 * Enhancement - Separate menu for all JTL-Connector settings

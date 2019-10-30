@@ -10,6 +10,7 @@ use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice as MainProductPrice;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -45,7 +46,60 @@ class ProductPrice extends BaseController
      */
     public function updateProductPrice(\WC_Product $product, ProductPriceModel $productPrice, $vat)
     {
+        $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
+        
         $customerGroupId = $productPrice->getCustomerGroupId()->getEndpoint();
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && version_compare(
+                (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                '1.0.3',
+                '>')) {
+            /** @var ProductPriceModel $productPrice */
+            if ((string)$customerGroupId === Config::get('jtlconnector_default_customer_group')) {
+                
+                $salePriceKey = '_sale_price';
+                $priceKey = '_price';
+                $regularPriceKey = '_regular_price';
+                $productId = $product->get_id();
+                foreach ($productPrice->getItems() as $item) {
+                    if (\wc_prices_include_tax()) {
+                        $newPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    } else {
+                        $newPrice = $item->getNetPrice();
+                        $newPrice = Util::getNetPriceCutted($newPrice, $pd);
+                    }
+                    
+                    if ($item->getQuantity() === 0) {
+                        $sellPriceIdForGet = $product->get_id();
+                        
+                        $salePrice = \get_post_meta($sellPriceIdForGet, $salePriceKey, true);
+                        $oldPrice = \get_post_meta($productId, $priceKey, true);
+                        $oldRegularPrice = \get_post_meta($productId, $regularPriceKey, true);
+                        
+                        if (empty($salePrice) || $salePrice !== $oldPrice) {
+                            \update_post_meta(
+                                $productId,
+                                $priceKey,
+                                \wc_format_decimal($newPrice, $pd),
+                                $oldPrice
+                            );
+                        }
+                        
+                        \update_post_meta(
+                            $productId,
+                            $regularPriceKey,
+                            \wc_format_decimal($newPrice, $pd),
+                            $oldRegularPrice
+                        );
+                    }
+                }
+            }
+        }
         
         if ($customerGroupId === '') {
             $customerGroupId = MainProductPrice::GUEST_CUSTOMER_GROUP;
@@ -67,6 +121,10 @@ class ProductPrice extends BaseController
             $productType = $product->get_type();
             $customerGroup = \get_post($customerGroupId);
             
+            if ($pd > 3) {
+                $pd = 3;
+            }
+            
             if ($productType !== 'variable') {
                 $parentProduct = \wc_get_product($product->get_parent_id());
                 
@@ -85,7 +143,7 @@ class ProductPrice extends BaseController
         }
         
         if ($product !== false) {
-            $pd = \wc_get_price_decimals();
+            
             $bulkPrices = [];
             
             foreach ($productPrice->getItems() as $item) {
@@ -94,6 +152,7 @@ class ProductPrice extends BaseController
                     $newPrice = $item->getNetPrice() * (1 + $vat / 100);
                 } else {
                     $newPrice = $item->getNetPrice();
+                    $newPrice = Util::getNetPriceCutted($newPrice, $pd);
                 }
                 
                 if ($item->getQuantity() === 0) {
@@ -119,6 +178,7 @@ class ProductPrice extends BaseController
                         $oldRegularPrice
                     );
                 }
+                
                 $var1 = $item->getQuantity() > 0;
                 $var2 = !is_null($customerGroup);
                 $var3 = SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET);
@@ -126,12 +186,13 @@ class ProductPrice extends BaseController
                 if ($var1 && $var2 && $var3) {
                     $bulkPrices[] = [
                         'bulk_price'      => (string)$newPrice,
-                        'bulk_price_from' => (string)$newPrice,
+                        'bulk_price_from' => (string)$item->getQuantity(),
                         'bulk_price_to'   => '',
                         'bulk_price_type' => 'fix',
                     ];
                 }
             }
+            
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 if (count($bulkPrices) > 0) {
                     

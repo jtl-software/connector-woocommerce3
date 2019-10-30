@@ -70,14 +70,22 @@ trait PrimaryKeyMappingTrait {
 		return "INSERT INTO {$jclc} (endpoint_id, host_id, is_guest)
                 VALUES ('{$endpointId}', {$hostId}, {$isGuest})";
 	}
-	
-	public static function primaryKeyMappingSaveInteger( $endpointId, $hostId, $tableName ) {
-		global $wpdb;
-		$jcl = $wpdb->prefix . $tableName;
-		
-		return "INSERT INTO {$jcl} (endpoint_id, host_id)
+    
+    public static function primaryKeyMappingSaveInteger( $endpointId, $hostId, $tableName ) {
+        global $wpdb;
+        $jcl = $wpdb->prefix . $tableName;
+        
+        return "INSERT INTO {$jcl} (endpoint_id, host_id)
                 VALUES ({$endpointId}, {$hostId})";
-	}
+    }
+    
+    public static function primaryKeyMappingSaveString( $endpointId, $hostId, $tableName ) {
+        global $wpdb;
+        $jcl = $wpdb->prefix . $tableName;
+        
+        return "INSERT INTO {$jcl} (endpoint_id, host_id)
+                VALUES ('{$endpointId}', {$hostId})";
+    }
 	
 	public static function primaryKeyMappingDelete( $where, $tableName ) {
 		global $wpdb;
@@ -90,16 +98,21 @@ trait PrimaryKeyMappingTrait {
 		global $wpdb;
 		$tables = [
 			"jtl_connector_link_category",
-			"jtl_connector_link_customer",
-			"jtl_connector_link_product",
-			"jtl_connector_link_image",
-			"jtl_connector_link_order",
-			"jtl_connector_link_payment",
 			"jtl_connector_link_crossselling",
+			"jtl_connector_link_currency",
+			"jtl_connector_link_customer",
+			"jtl_connector_link_customer_group",
+            "jtl_connector_link_image",
+			"jtl_connector_link_language",
+            "jtl_connector_link_manufacturer",
+            "jtl_connector_link_manufacturer_unit",
+            "jtl_connector_link_order",
+            "jtl_connector_link_payment",
+            "jtl_connector_link_product",
 			"jtl_connector_link_shipping_class",
+			"jtl_connector_link_shipping_method",
 			"jtl_connector_link_specific",
 			"jtl_connector_link_specific_value",
-            "jtl_connector_link_manufacturer"
 		];
 		$arr    = [];
 		

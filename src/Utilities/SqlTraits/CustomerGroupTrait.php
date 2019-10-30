@@ -19,7 +19,7 @@ trait CustomerGroupTrait
             SELECT p.ID, p.post_title, p.post_name
              FROM `{$wpdb->posts}` p
             LEFT JOIN {$jclcg} l
-            ON l.endpoint_id = p.ID
+            ON l.endpoint_id = 'p.ID'
             WHERE l.host_id IS NULL
             AND p.post_type = 'customer_groups'
         ";

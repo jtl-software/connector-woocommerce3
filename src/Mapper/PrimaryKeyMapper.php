@@ -32,7 +32,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostCustomer($endpointId, $isGuest),
                 false);
-        } else {
+        } elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
+            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostString($endpointId, $tableName), false);
+        }else {
             $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostInteger($endpointId, $tableName),
                 false);
         }
@@ -89,6 +91,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
+                false);
+        }elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
+            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveString($endpointId, $hostId, $tableName),
                 false);
         } else {
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName),
@@ -151,20 +156,20 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_category';
             case IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
-            case IdentityLinker::TYPE_CURRENCY:
-                return 'jtl_connector_link_currency';
+           /* case IdentityLinker::TYPE_CURRENCY:
+                return 'jtl_connector_link_currency';*/
             case IdentityLinker::TYPE_CUSTOMER:
                 return 'jtl_connector_link_customer';
             case IdentityLinker::TYPE_CUSTOMER_GROUP:
                 return 'jtl_connector_link_customer_group';
             case IdentityLinker::TYPE_IMAGE:
                 return 'jtl_connector_link_image';
-            case IdentityLinker::TYPE_LANGUAGE:
-                return 'jtl_connector_link_language';
+            /*case IdentityLinker::TYPE_LANGUAGE:
+                return 'jtl_connector_link_language';*/
             case IdentityLinker::TYPE_MANUFACTURER:
                 return 'jtl_connector_link_manufacturer';
-            case IdentityLinker::TYPE_MEASUREMENT_UNIT:
-                return 'jtl_connector_link_measurement_unit';
+        /*    case IdentityLinker::TYPE_MEASUREMENT_UNIT:
+                return 'jtl_connector_link_measurement_unit';*/
             case IdentityLinker::TYPE_CUSTOMER_ORDER:
                 return 'jtl_connector_link_order';
             case IdentityLinker::TYPE_PAYMENT:
@@ -173,8 +178,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_product';
             case IdentityLinker::TYPE_SHIPPING_CLASS:
                 return 'jtl_connector_link_shipping_class';
-            case IdentityLinker::TYPE_SHIPPING_METHOD:
-                return 'jtl_connector_link_shipping_method';
+        /*    case IdentityLinker::TYPE_SHIPPING_METHOD:
+                return 'jtl_connector_link_shipping_method';*/
             case IdentityLinker::TYPE_SPECIFIC:
                 return 'jtl_connector_link_specific';
             case IdentityLinker::TYPE_SPECIFIC_VALUE:

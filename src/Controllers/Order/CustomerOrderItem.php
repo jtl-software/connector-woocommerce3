@@ -12,6 +12,7 @@ use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderItem extends BaseController
 {
@@ -42,6 +43,12 @@ class CustomerOrderItem extends BaseController
      */
     public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
     {
+        $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
+        
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
@@ -97,30 +104,24 @@ class CustomerOrderItem extends BaseController
                 $priceNet = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
                 $priceNet = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, false);
-                
-                // changed  get_item_total to get_item_subtotal because discount problems
-                /* $netPrice = $order->get_item_total($item, false, false);
-                 $priceGross = $order->get_item_total($item, true, false);*/
+                $priceGross = $order->get_item_subtotal($item, true, true);
             }
             
-            //Removed 1.5.7
-            /*if (isset(self::$taxClassRateCache[$item->get_tax_class()])) {
-                $taxRate = self::$taxClassRateCache[$item->get_tax_class()];
-            } else {
-                $taxRate = Util::getInstance()->getTaxRateByTaxClass($item->get_tax_class(), $order);
-                self::$taxClassRateCache[$item->get_tax_class()] = $taxRate;
-            }*/
             $vat = 0;
             
             if ($priceNet != $priceGross) {
                 $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
             }
             
+            /*            $orderItem
+                            ->setVat($vat)
+                            ->setPrice(round($priceNet, self::PRICE_DECIMALS))
+                            ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));*/
+            
             $orderItem
                 ->setVat($vat)
-                ->setPrice(round($priceNet, self::PRICE_DECIMALS))
-                ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));
+                ->setPrice((float)Util::getNetPriceCutted($priceNet, $pd))
+                ->setPriceGross((float)Util::getNetPriceCutted($priceGross, $pd));
             
             $customerOrderItems[] = $orderItem;
         }
@@ -191,6 +192,12 @@ class CustomerOrderItem extends BaseController
      */
     private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
     {
+        $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
+        
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
             return $vat !== 0;
@@ -218,7 +225,7 @@ class CustomerOrderItem extends BaseController
                     }
                     
                     $customerOrderItem->setVat($taxRate);
-                    
+                   
                     if ($taxRate === 0.0) {
                         continue;
                     } else {
@@ -230,8 +237,8 @@ class CustomerOrderItem extends BaseController
                         
                         $fees = $costs * $factor;
                         
-                        $netPrice = round($fees, self::PRICE_DECIMALS);
-                        $priceGross = round($fees + $taxAmount, self::PRICE_DECIMALS);
+                        $netPrice = (float)Util::getNetPriceCutted($fees, $pd);
+                        $priceGross = (float)Util::getNetPriceCutted($fees + $taxAmount, $pd);
                     }
                     
                     $customerOrderItem->setPrice($netPrice);
@@ -245,19 +252,25 @@ class CustomerOrderItem extends BaseController
                 
                 if ($total != 0) {
                     
-                    $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+                    $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 2);
                     $vat = 0.0;
                     $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
                     
-                    foreach ($taxRates as $taxrate) {
-                        if ($taxrate['tax_rate'] !== '0.0000' && $tmpVat >= $taxrate['tax_rate']) {
-                            $vat = $taxrate['tax_rate'];
+                    foreach ($taxRates as $taxRate) {
+                        $tmpValue = $tmpVat - $taxRate['tax_rate'];
+                  
+                        if (
+                            $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                            && abs($tmpValue) < 0.1
+                        ) {
+                            $vat = $taxRate['tax_rate'];
+                            break;
                         }
                     }
                     
                     $customerOrderItem->setVat((double)$vat);
-                    $customerOrderItem->setPrice(round($total, self::PRICE_DECIMALS));
-                    $customerOrderItem->setPriceGross(round($total + $totalTax, self::PRICE_DECIMALS));
+                    $customerOrderItem->setPrice((float)Util::getNetPriceCutted($total, $pd));
+                    $customerOrderItem->setPriceGross((float)Util::getNetPriceCutted($total + $totalTax, $pd));
                 }
                 
                 $customerOrderItems[] = $customerOrderItem;
@@ -271,6 +284,13 @@ class CustomerOrderItem extends BaseController
      */
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
+        $pd = \wc_get_price_decimals();
+        
+        if ($pd < 4) {
+            $pd = 4;
+        }
+        
+        $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
         /**
          * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item
@@ -278,14 +298,30 @@ class CustomerOrderItem extends BaseController
         foreach ($order->get_items('coupon') as $itemId => $item) {
             $itemName = $item->get_name();
             
+            $total = (float)$item->get_discount();
+            $totalTax = (float)$item->get_discount() + (float)$item->get_discount_tax();
+            $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+            $vat = 0.0;
+            
+            foreach ($taxRates as $taxRate) {
+                $tmpValue = $tmpVat - $taxRate['tax_rate'];
+                if (
+                    $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                    && abs($tmpValue) < 0.1
+                ) {
+                    $vat = $taxRate['tax_rate'];
+                    break;
+                }
+            }
+            
             $customerOrderItems[] = (new CustomerOrderItemModel())
                 ->setId(new Identity($itemId))
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * round((float)$item->get_discount(), self::PRICE_DECIMALS))
-                ->setPriceGross(-1 * round((float)$item->get_discount() + (float)$item->get_discount_tax(),
-                        self::PRICE_DECIMALS))
+                ->setPrice(-1 * (float)Util::getNetPriceCutted((float)$total, $pd))
+                ->setPriceGross(-1 * (float)Util::getNetPriceCutted((float)$totalTax, $pd))
+                ->setVat((double)$vat)
                 ->setQuantity(1);
         }
     }

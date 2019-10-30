@@ -32,7 +32,10 @@ class CustomerOrderBillingAddress extends BaseController
             ->setPhone($order->get_billing_phone())
             ->setCustomerId(new Identity($order->get_customer_id() !== 0
                 ? $order->get_customer_id()
-                : Id::link([Id::GUEST_PREFIX, $order->get_id()])));
+                : Id::link([
+                    Id::GUEST_PREFIX,
+                    $order->get_id(),
+                ])));
         
         if (strcmp($address->getCity(), '') === 0) {
             $address->setCity(get_option('woocommerce_store_city'));
@@ -54,9 +57,35 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setCountryIso(get_option('woocommerce_default_country'));
         }
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)) {
+        if (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+        ) {
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'billing_vat';
+        } else {
+            $marketPressKey = 'b2b_uid';
+        }
+        
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_user_meta($order->get_user_id(), $marketPressKey, true);
+            if (is_bool($uid)) {
+                $uid = '';
+            }
+            $address->setVatNumber((string)$uid);
         }
         
         return $address;

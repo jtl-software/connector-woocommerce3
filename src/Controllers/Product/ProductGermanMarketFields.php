@@ -28,7 +28,6 @@ class ProductGermanMarketFields extends BaseController
     public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
         $this->setBasePriceProperties($product, $wcProduct);
-        $this->setRRPProperty($product, $wcProduct);
     }
     
     /**
@@ -175,43 +174,6 @@ class ProductGermanMarketFields extends BaseController
                     break;
             }
             
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularUnitKey'],
-                $code,
-                $metaData[$metaKeys['unitRegularUnitKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularMultiplikatorKey'],
-                $baseQuantity,
-                $metaData[$metaKeys['unitRegularMultiplikatorKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitRegularKey'],
-                $basePrice,
-                $metaData[$metaKeys['unitRegularKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSaleUnitKey'],
-                $code,
-                $metaData[$metaKeys['unitSaleUnitKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSaleMultiplikatorKey'],
-                $baseQuantity,
-                $metaData[$metaKeys['unitSaleMultiplikatorKey']]
-            );
-            \update_post_meta(
-                $wcProduct->get_id(),
-                $metaKeys['unitSalePriceKey'],
-                $basePrice,
-                $metaData[$metaKeys['unitSalePriceKey']]
-            );
-            
             $id = new Identity($code);
             
             $product->setMeasurementQuantity((float)$productQuantity);
@@ -225,36 +187,29 @@ class ProductGermanMarketFields extends BaseController
         }
     }
     
-    private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct)
-    {
-        $rrp = get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== '' && !is_null($rrp) && !empty($rrp)) {
-            $product->setRecommendedRetailPrice((float)$rrp);
-        }
-    }
-    
     /**
+     * @param bool $isMaster
+     *
      * @return array
      */
     private function getGermanMarketMetaKeys($isMaster = false)
     {
         $result = [
             //Price
-            'priceKey'     => '_price',
+            'priceKey'         => '_price',
             //meta keys vars
-            'weightKey'    => '_weight',
-            'lengthKey'    => '_length',
-            'widthKey'     => '_width',
-            'heightKey'    => '_height',
-            'jtlwccStkKey' => '_jtlwcc_stk',
+            'weightKey'        => '_weight',
+            'lengthKey'        => '_length',
+            'widthKey'         => '_width',
+            'heightKey'        => '_height',
+            'jtlwccStkKey'     => '_jtlwcc_stk',
+            'usedCustomPPUKey' => '_v_used_setting_ppu',
         ];
+        
         $keys = [  //meta keys PPU vars
-                   'unitRegularUnitKey'          => '_unit_regular_price_per_unit',
-                   'unitRegularMultiplikatorKey' => '_unit_regular_price_per_unit_mult',
-                   'unitRegularKey'              => '_regular_price_per_unit',
-                   'unitSaleUnitKey'             => '_unit_sale_price_per_unit',
-                   'unitSaleMultiplikatorKey'    => '_unit_sale_price_per_unit_mult',
-                   'unitSalePriceKey'            => '_sale_price_per_unit',
+                   'unitRegularUnitKey'                => '_unit_regular_price_per_unit',
+                   'unitRegularMultiplikatorKey'       => '_unit_regular_price_per_unit_mult',
+                   'unitRegularAutoPPUProductQuantity' => '_auto_ppu_complete_product_quantity',
         ];
         
         foreach ($keys as $key => $value) {
@@ -388,7 +343,6 @@ class ProductGermanMarketFields extends BaseController
     public function pushData(ProductModel $product)
     {
         $this->updateGermanMarketPPU($product);
-        $this->updateRRP($product);
     }
     
     /**
@@ -418,7 +372,7 @@ class ProductGermanMarketFields extends BaseController
             $productQuantityCode = $product->getMeasurementUnitCode(); //g
             
             $basePrice = null;
-            $currenPrice = \get_post_meta($productId, '_price', true);
+            $currentPrice = \get_post_meta($productId, '_price', true);
             $baseUnit = null;
             
             switch ($ppuType) {
@@ -435,7 +389,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcWeightOption;
                     break;
                 case 'length':
@@ -451,7 +405,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcLengthOption;
                     break;
                 case 'volume':
@@ -467,7 +421,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = $wcVolumeOption;
                     break;
                 case 'surface':
@@ -486,7 +440,7 @@ class ProductGermanMarketFields extends BaseController
                     
                     $divisor = $productQuantity / $baseQuantity;
                     
-                    $basePrice = $currenPrice / $divisor;
+                    $basePrice = $currentPrice / $divisor;
                     $baseUnit = str_replace('^2', '2', $wcSquareOption);;
                     break;
                 default:
@@ -499,11 +453,8 @@ class ProductGermanMarketFields extends BaseController
             } else {
                 $unitCodeKey = $metaKeys['unitRegularUnitKey'];
                 $unitMultiplikatorKey = $metaKeys['unitRegularMultiplikatorKey'];
-                $basePriceKey = $metaKeys['unitRegularKey'];
-                
-                $unitSaleCode = $metaKeys['unitSaleUnitKey'];
-                $unitSaleMultiplikatorKey = $metaKeys['unitSaleMultiplikatorKey'];
-                $baseSalePriceKey = $metaKeys['unitSalePriceKey'];
+                $unitRegularAutoPPUProductQuantity = $metaKeys['unitRegularAutoPPUProductQuantity'];
+                $usedCustomPPU = $metaKeys['usedCustomPPUKey'];
                 
                 \update_post_meta(
                     $productId,
@@ -519,28 +470,15 @@ class ProductGermanMarketFields extends BaseController
                 );
                 \update_post_meta(
                     $productId,
-                    $basePriceKey,
-                    round($basePrice, 4),
-                    $metaData[$basePriceKey]
-                );
-                
-                \update_post_meta(
-                    $productId,
-                    $unitSaleCode,
-                    $baseUnit,
-                    $metaData[$unitSaleCode]
+                    $unitRegularAutoPPUProductQuantity,
+                    $productQuantity,
+                    $metaData[$unitRegularAutoPPUProductQuantity]
                 );
                 \update_post_meta(
                     $productId,
-                    $unitSaleMultiplikatorKey,
-                    $baseQuantity,
-                    $metaData[$unitSaleMultiplikatorKey]
-                );
-                \update_post_meta(
-                    $productId,
-                    $baseSalePriceKey,
-                    round($basePrice, 4),
-                    $metaData[$baseSalePriceKey]
+                    $usedCustomPPU,
+                    1,
+                    $metaData[$usedCustomPPU]
                 );
             }
         } else {
@@ -561,62 +499,27 @@ class ProductGermanMarketFields extends BaseController
         );
         \update_post_meta(
             $productId,
+            $metaKeys['unitRegularUnitKey'],
+            '',
+            $metaData[$metaKeys['unitRegularUnitKey']]
+        );
+        \update_post_meta(
+            $productId,
             $metaKeys['unitRegularMultiplikatorKey'],
             '',
             $metaData[$metaKeys['unitRegularMultiplikatorKey']]
         );
         \update_post_meta(
             $productId,
-            $metaKeys['unitRegularKey'],
+            $metaKeys['unitRegularAutoPPUProductQuantity'],
             '',
-            $metaData[$metaKeys['unitRegularKey']]
+            $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
         );
         \update_post_meta(
             $productId,
-            $metaKeys['unitSaleMultiplikatorKey'],
-            '',
-            $metaData[$metaKeys['unitSaleMultiplikatorKey']]
+            $metaKeys['usedCustomPPUKey'],
+            0,
+            $metaData[$metaKeys['usedCustomPPUKey']]
         );
-        \update_post_meta(
-            $productId,
-            $metaKeys['unitSalePriceKey'],
-            '',
-            $metaData[$metaKeys['unitSalePriceKey']]
-        );
-    }
-    
-    /**
-     * @param ProductModel $product
-     */
-    private function updateRRP(ProductModel $product)
-    {
-        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
-        $rrp = $product->getRecommendedRetailPrice();
-        $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== 0) {
-            if ($rrp !== $oldValue) {
-                if (!$product->getMasterProductId()->getHost() === 0) {
-                    $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
-                    \update_post_meta(
-                        $wcProduct->get_parent_id(),
-                        $vKey,
-                        $rrp,
-                        \get_post_meta($wcProduct->get_parent_id(), $vKey, true)
-                    );
-                }
-                \update_post_meta(
-                    $wcProduct->get_id(),
-                    'bm_rrp',
-                    $rrp,
-                    \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
-                );
-            }
-        } else {
-            if (!$product->getMasterProductId()->getHost() === 0) {
-                $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
-                \delete_post_meta($wcProduct->get_parent_id(), $vKey);
-            }
-            \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
-        }
     }
 }

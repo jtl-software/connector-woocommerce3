@@ -19,14 +19,17 @@ final class JtlConnector
     public static function capture_request()
     {
         global $wp;
+        
         if (!empty($wp->request) && ($wp->request === 'jtlconnector' || $wp->request === 'index.php/jtlconnector')) {
             $application = null;
             if (session_status() === PHP_SESSION_ACTIVE) {
                 session_destroy();
             }
+            
             if (!get_magic_quotes_gpc()) {
                 self::unslash_gpc();
             }
+            
             try {
                 if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
                     if (is_writable(sys_get_temp_dir())) {
