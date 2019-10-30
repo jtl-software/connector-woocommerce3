@@ -147,7 +147,7 @@
     },
     "DeliveryNote": {
       "pull": false,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "DeliveryNoteItem": {
