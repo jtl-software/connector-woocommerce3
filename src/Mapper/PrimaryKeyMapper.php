@@ -61,6 +61,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 case ImageRelationType::TYPE_CATEGORY:
                     $relationType = IdentityLinker::TYPE_CATEGORY;
                     break;
+                case ImageRelationType::TYPE_MANUFACTURER:
+                    $relationType = IdentityLinker::TYPE_MANUFACTURER;
+                    break;
             }
             
             $clause = "AND type = {$relationType}";
