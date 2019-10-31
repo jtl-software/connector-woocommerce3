@@ -37,11 +37,15 @@ class DeliveryNote extends BaseController
                 $trackingInfoItem = [];
                 $trackingInfoItem['data_shipped'] = $deliveryNote->getCreationDate()->format("Y-m-d");
 
-                $providerSlug = $this->findTrackingProviderSlug($trackingList->getName(),$shipmentTrackingActions);
-                if($providerSlug !== null){
+                $trackingProviders = $shipmentTrackingActions->get_providers();
+
+                $shippingProviderName = trim($trackingList->getName());
+
+                $providerSlug = $this->findTrackingProviderSlug($shippingProviderName, is_array($trackingProviders) ? $trackingProviders : []);
+                if ($providerSlug !== null) {
                     $trackingInfoItem['tracking_provider'] = $providerSlug;
                 } else {
-                    $trackingInfoItem['custom_tracking_provider'] = $trackingList->getName();
+                    $trackingInfoItem['custom_tracking_provider'] = $shippingProviderName;
                 }
 
                 foreach ($trackingList->getCodes() as $trackingCode) {
@@ -55,22 +59,39 @@ class DeliveryNote extends BaseController
     }
 
     /**
-     * @param $providerName
-     * @param $shipmentTrackingActions
+     * @param string $shippingMethodName
+     * @param array $trackingProviders
      * @return string|null
      */
-    private function findTrackingProviderSlug($providerName,$shipmentTrackingActions)
+    private function findTrackingProviderSlug($shippingMethodName, $trackingProviders)
     {
-        $providers = $shipmentTrackingActions->get_providers();
+        $searchResultSlug = null;
+        $searchResultLength  = 0;
+        $sameSearchResultQuantity = 0;
 
-        $trackingProviderSlug = null;
-        foreach($providers as $providerSlug => $provider){
-            if(stripos($providerName,$provider['provider_name'])!==false){
-                $trackingProviderSlug = (string) $providerSlug;
-                break;
+        foreach($trackingProviders as $trackingProviderSlug => $trackingProvider){
+
+            $providerName = $trackingProvider['provider_name'];
+            $providerNameLength = strlen($providerName);
+
+            $shippingMethodNameStartsWithProviderName
+                = substr($shippingMethodName,0,$providerNameLength) === $providerName;
+            $newResultIsMoreSimilarThanPrevious = $providerNameLength > $searchResultLength;
+            $newResultHasSameLengthAsPrevious = $providerNameLength === $searchResultLength;
+
+            if($shippingMethodNameStartsWithProviderName){
+                if($newResultIsMoreSimilarThanPrevious){
+                    $searchResultSlug = (string) $trackingProviderSlug;
+                    $searchResultLength = $providerNameLength;
+                    $sameSearchResultQuantity = 0;
+                }
+                elseif($newResultHasSameLengthAsPrevious){
+                    $searchResultSlug = null;
+                    $sameSearchResultQuantity++;
+                }
             }
         }
 
-        return $trackingProviderSlug;
+        return $sameSearchResultQuantity > 1 ? null : $searchResultSlug;
     }
 }
