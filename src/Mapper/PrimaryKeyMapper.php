@@ -117,12 +117,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         
         PrimaryKeyMappingLogger::getInstance()->delete($endpointId, $hostId, $type);
         
-        if ($type === IdentityLinker::TYPE_IMAGE || $type === IdentityLinker::TYPE_CUSTOMER) {
-            $endpoint = "'{$endpointId}'";
-        } else {
-            $endpoint = "{$endpointId}";
-        }
-        
+        $endpoint = "'{$endpointId}'";
+
         if ($endpointId !== null && $hostId !== null) {
             $where = "WHERE endpoint_id = {$endpoint} AND host_id = {$hostId}";
         } elseif ($endpointId !== null) {
