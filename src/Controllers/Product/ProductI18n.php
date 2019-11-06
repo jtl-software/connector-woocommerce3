@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -27,8 +28,8 @@ class ProductI18n extends BaseController
         if ((SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
-            && $product->gzd_product->has_product_units()) {
-            $i18n->setMeasurementUnitName($product->gzd_product->unit);
+            && Germanized::getInstance()->hasUnitProduct($product)) {
+            $i18n->setMeasurementUnitName(Germanized::getInstance()->getUnit($product));
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)

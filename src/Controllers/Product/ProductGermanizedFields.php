@@ -35,26 +35,25 @@ class ProductGermanizedFields extends BaseController
     private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct)
     {
         $units = new \WC_GZD_Units();
-        
-        if ($wcProduct->gzd_product->has_product_units()) {
+        $germanizedUtils = Germanized::getInstance();
+        if ($germanizedUtils->hasUnitProduct($wcProduct)) {
             $plugin = \get_plugin_data(WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
             
             if (isset($plugin['Version']) && version_compare($plugin['Version'], '1.6.0') < 0) {
                 $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
             } else {
-                $unitObject = \get_term_by('slug', $wcProduct->gzd_product->unit, 'product_unit');
+                $unit = $germanizedUtils->getUnit($wcProduct);
+                $unitObject = \get_term_by('slug', $unit, 'product_unit');
             }
             
-            $code = Germanized::getInstance()->parseUnit($unitObject->slug);
-            
-            $productQuantity = (double)$wcProduct->gzd_product->unit_product;
+            $code = $germanizedUtils->parseUnit($unitObject->slug);
+            $productQuantity = (double)$germanizedUtils->getUnitProduct($wcProduct);
             $product->setMeasurementQuantity($productQuantity);
             $product->setMeasurementUnitId(new Identity($unitObject->term_id));
             $product->setMeasurementUnitCode($code);
             
             $product->setConsiderBasePrice(true);
-            
-            $baseQuantity = (double)$wcProduct->gzd_product->unit_base;
+            $baseQuantity = (double)$germanizedUtils->getUnitBase($wcProduct);
             
             if ($baseQuantity !== 0.0) {
                 $product->setBasePriceDivisor($productQuantity / $baseQuantity);

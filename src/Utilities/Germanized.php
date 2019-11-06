@@ -58,4 +58,78 @@ final class Germanized extends Singleton
     {
         return parent::getInstance();
     }
+
+    /**
+     * Backward compatibility method
+     *
+     * @param $wcProduct
+     * @return bool
+     */
+    public function hasUnitProduct($wcProduct)
+    {
+        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
+            return wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
+        }
+        return $wcProduct->gzd_product->has_product_units();
+    }
+
+    /**
+     * Backward compatibility method
+     *
+     * @param $wcProduct
+     * @return bool|mixed|void
+     */
+    public function getUnit($wcProduct)
+    {
+        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
+            return wc_gzd_get_gzd_product($wcProduct)->get_unit();
+        }
+        return $wcProduct->gzd_product->unit;
+    }
+
+    /**
+     * Backward compatibility method
+     *
+     * @param $wcProduct
+     * @return bool|mixed|void
+     */
+    public function getUnitProduct($wcProduct)
+    {
+        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
+            return wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
+        }
+        return $wcProduct->gzd_product->unit_product;
+    }
+
+    /**
+     * Backward compatibility method
+     *
+     * @param $wcProduct
+     * @return bool|mixed|void
+     */
+    public function getUnitBase($wcProduct)
+    {
+        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
+            return wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
+        }
+        return $wcProduct->gzd_product->unit_base;
+    }
+
+    /**
+     * @param $versionToCompare
+     * @return bool
+     */
+    public function pluginVersionIsGreaterOrEqual($versionToCompare)
+    {
+        $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED);
+        if(is_null($currentVersion)){
+            $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2);
+        }
+
+        if(version_compare($currentVersion,$versionToCompare,'>=')){
+            return true;
+        }
+        return false;
+    }
+
 }
