@@ -39,6 +39,9 @@ class ProductVaSpeAttrHandler extends BaseController
     const GM_DIGITAL_ATTR = 'wc_gm_digital';
     const GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note';
     const GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice';
+
+    //GERMANIZED
+    const GZD_IS_SERVICE = 'wc_gzd_is_service';
     
     private $productData = [
         'productVariation'  => [],
@@ -409,6 +412,15 @@ class ProductVaSpeAttrHandler extends BaseController
                 $languageIso
             );
         }
+        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)){
+            $gzdProduct = wc_gzd_get_product($product);
+            if($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_service')) {
+                $functionAttributes[] = $this->getIsServiceFunctionAttribute(
+                    $gzdProduct,
+                    $languageIso
+                );
+            }
+        }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $functionAttributes[] = $this->getDigitalFunctionAttribute(
@@ -466,7 +478,26 @@ class ProductVaSpeAttrHandler extends BaseController
         
         return $attribute;
     }
-    
+
+    private function getIsServiceFunctionAttribute(\WC_GZD_Product $product, $languageIso = '')
+    {
+        $value = $product->get_service() === true ? 'yes' : 'no';
+
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() .'_'. self::GZD_IS_SERVICE))
+            ->setName(self::GZD_IS_SERVICE)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+
+        return $attribute;
+    }
+
     private function getOnlyOneFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
         $value = $product->is_sold_individually() ? 'true' : 'false';
