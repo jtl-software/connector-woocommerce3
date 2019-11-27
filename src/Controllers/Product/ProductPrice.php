@@ -175,6 +175,13 @@ class ProductPrice extends BaseController
             if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
                     $endpoint = self::GUEST_CUSTOMER_GROUP;
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                        && version_compare(
+                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
+                            '1.0.3',
+                            '>')) {
+                        $endpoint = CustomerGroup::DEFAULT_GROUP;
+                    }
                 }
                 $price->setProductId($product->getId());
                 $productPrices[$endpoint] = $price;
