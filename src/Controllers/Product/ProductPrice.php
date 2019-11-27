@@ -38,6 +38,20 @@ class ProductPrice extends BaseController
         } else {
             $customerGroups = $groupController->pullData();
 
+            $b2bMarketVersion = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
+
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && version_compare($b2bMarketVersion, '1.0.3', '>')) {
+                $prices[] = (new ProductPriceModel())
+                    ->setId(new Identity($product->get_id()))
+                    ->setProductId(new Identity($product->get_id()))
+                    ->setCustomerGroupId(new Identity(""))
+                    ->addItem((new ProductPriceItemModel())
+                        ->setProductPriceId(new Identity($product->get_id()))
+                        ->setQuantity(1)
+                        ->setNetPrice($this->netPrice($product)));
+            }
+
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
 
@@ -47,10 +61,7 @@ class ProductPrice extends BaseController
                     !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
                     || ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                        && version_compare(
-                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                            '1.0.3',
-                            '<='))
+                        && version_compare($b2bMarketVersion, '1.0.3', '<='))
                 ) {
                     $items [] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
