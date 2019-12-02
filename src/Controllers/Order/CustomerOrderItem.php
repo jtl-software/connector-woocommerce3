@@ -260,7 +260,7 @@ class CustomerOrderItem extends BaseController
                         $tmpValue = $tmpVat - $taxRate['tax_rate'];
                   
                         if (
-                            $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                            $taxRate['tax_rate'] !== '0.0000'
                             && abs($tmpValue) < 0.1
                         ) {
                             $vat = $taxRate['tax_rate'];
@@ -306,7 +306,7 @@ class CustomerOrderItem extends BaseController
             foreach ($taxRates as $taxRate) {
                 $tmpValue = $tmpVat - $taxRate['tax_rate'];
                 if (
-                    $taxRate['tax_rate'] !== '0.0000'     //WARTE AUF FLAME DER KUNDEN
+                    $taxRate['tax_rate'] !== '0.0000'
                     && abs($tmpValue) < 0.1
                 ) {
                     $vat = $taxRate['tax_rate'];

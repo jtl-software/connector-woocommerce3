@@ -121,6 +121,20 @@ class ProductAttr extends BaseController
                              $fbVisibility = true;
                          }*/
                     }
+                    if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)){
+                        if($i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
+                            $value = $i18n->getValue();
+                            if (in_array($value, ['yes', 'no'])) {
+                                $metaKey = '_service';
+
+                                if (!add_post_meta($productId, $metaKey, $value, true)) {
+                                    update_post_meta($productId, $metaKey, $value,
+                                        \get_post_meta($productId, $metaKey, true)
+                                    );
+                                }
+                            }
+                        }
+                    }
                     
                     if (
                         preg_match(

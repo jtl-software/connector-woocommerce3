@@ -39,7 +39,13 @@ class ProductVaSpeAttrHandler extends BaseController
     const GM_DIGITAL_ATTR = 'wc_gm_digital';
     const GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note';
     const GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice';
-    
+
+    //GERMANIZED
+    const GZD_IS_SERVICE = 'wc_gzd_is_service';
+
+    const VALUE_TRUE = 'true';
+    const VALUE_FALSE = 'false';
+
     private $productData = [
         'productVariation'  => [],
         'productAttributes' => [],
@@ -353,7 +359,7 @@ class ProductVaSpeAttrHandler extends BaseController
                     ->setProductAttrId(new Identity(self::PAYABLE_ATTR))
                     ->setLanguageISO($languageIso)
                     ->setName(self::PAYABLE_ATTR)
-                    ->setValue('false');
+                    ->setValue(self::VALUE_FALSE);
                 
                 $this->productData['productAttributes'][] = (new ProductAttrModel)
                     ->setId(new Identity(self::PAYABLE_ATTR))
@@ -409,6 +415,15 @@ class ProductVaSpeAttrHandler extends BaseController
                 $languageIso
             );
         }
+        if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)){
+            $gzdProduct = wc_gzd_get_product($product);
+            if($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_service')) {
+                $functionAttributes[] = $this->getIsServiceFunctionAttribute(
+                    $gzdProduct,
+                    $languageIso
+                );
+            }
+        }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $functionAttributes[] = $this->getDigitalFunctionAttribute(
@@ -451,7 +466,7 @@ class ProductVaSpeAttrHandler extends BaseController
     
     private function getDownloadableFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = $product->is_downloadable() ? 'true' : 'false';
+        $value = $product->is_downloadable() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::DOWNLOADABLE_ATTR))
             ->setName(self::DOWNLOADABLE_ATTR)
@@ -466,10 +481,29 @@ class ProductVaSpeAttrHandler extends BaseController
         
         return $attribute;
     }
-    
+
+    private function getIsServiceFunctionAttribute(\WC_GZD_Product $product, $languageIso = '')
+    {
+        $value = $product->get_service() === true ? self::VALUE_TRUE : self::VALUE_FALSE;
+
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() .'_'. self::GZD_IS_SERVICE))
+            ->setName(self::GZD_IS_SERVICE)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+
+        return $attribute;
+    }
+
     private function getOnlyOneFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = $product->is_sold_individually() ? 'true' : 'false';
+        $value = $product->is_sold_individually() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_ONLY_ONE_ATTR))
             ->setName(self::PURCHASE_ONLY_ONE_ATTR)
@@ -490,9 +524,9 @@ class ProductVaSpeAttrHandler extends BaseController
         $digital = get_post_meta($product->get_id(), '_digital');
         
         if (count($digital) > 0 && strcmp($digital[0], 'yes') === 0) {
-            $value = 'true';
+            $value = self::VALUE_TRUE;
         } else {
-            $value = 'false';
+            $value = self::VALUE_FALSE;
         }
         
         $i18n = (new ProductAttrI18nModel)
@@ -515,9 +549,9 @@ class ProductVaSpeAttrHandler extends BaseController
         $value = \get_post_meta($product->get_id(), '_suppress_shipping_notice', true);
         
         if (strcmp($value, 'on') === 0) {
-            $value = 'true';
+            $value = self::VALUE_TRUE;
         } else {
-            $value = 'false';
+            $value = self::VALUE_FALSE;
         }
         
         $i18n = (new ProductAttrI18nModel)
@@ -575,7 +609,7 @@ class ProductVaSpeAttrHandler extends BaseController
     
     private function getPayableFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = strcmp(get_post_status($product->get_id()), 'private') !== 0 ? 'true' : 'false';
+        $value = strcmp(get_post_status($product->get_id()), 'private') !== 0 ? self::VALUE_TRUE : self::VALUE_FALSE;
         
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
@@ -597,9 +631,9 @@ class ProductVaSpeAttrHandler extends BaseController
         $visibility = get_post_meta($product->get_id(), '_visibility');
         
         if (count($visibility) > 0 && strcmp($visibility[0], 'catalog') === 0) {
-            $value = 'true';
+            $value = self::VALUE_TRUE;
         } else {
-            $value = 'false';
+            $value = self::VALUE_FALSE;
         }
         
         $i18n = (new ProductAttrI18nModel)
@@ -619,7 +653,7 @@ class ProductVaSpeAttrHandler extends BaseController
     
     private function getVirtualFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = $product->is_virtual() ? 'true' : 'false';
+        $value = $product->is_virtual() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::VIRTUAL_ATTR))
             ->setName(self::VIRTUAL_ATTR)
@@ -637,11 +671,11 @@ class ProductVaSpeAttrHandler extends BaseController
     
     private function getFacebookSyncStatusFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = 'false';
+        $value = self::VALUE_FALSE;
         $status = get_post_meta($product->get_id(), 'fb_sync_status');
         
         if (count($status) > 0 && strcmp($status[0], '1') === 0) {
-            $value = 'true';
+            $value = self::VALUE_TRUE;
         }
         
         $i18n = (new ProductAttrI18nModel)
