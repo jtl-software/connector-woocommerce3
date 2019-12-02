@@ -10,6 +10,7 @@ use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\CustomerGroupI18n;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -24,9 +25,10 @@ class CustomerGroup
     public function pullData()
     {
         $customerGroups = [];
+        $isDefaultGroupSet = false;
         $langIso = Util::getInstance()->getWooCommerceLanguage();
         $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
-        
+
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && version_compare($version, '1.0.3', '<='))) {
@@ -39,7 +41,8 @@ class CustomerGroup
                 ->setCustomerGroupId($defaultGroup->getId())
                 ->setName(__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
-            
+
+            $isDefaultGroupSet = true;
             $defaultGroup->addI18n($defaultI18n);
             $customerGroups[] = $defaultGroup;
         }
@@ -68,7 +71,10 @@ class CustomerGroup
                       );*/
                     
                     $meta = \get_post_meta($group['ID']);
-                    
+
+                    $isDefaultGroup = $isDefaultGroupSet === false &&
+                        (string) $group['ID'] === Config::get('jtlconnector_default_customer_group');
+
                     $customerGroup = (new CustomerGroupModel)
                         ->setApplyNetPrice(
                             isset($meta['bm_vat_type'])
@@ -78,7 +84,7 @@ class CustomerGroup
                                 : false
                         )
                         ->setId(new Identity($group['ID']))
-                        ->setIsDefault(false);
+                        ->setIsDefault($isDefaultGroup);
                     
                     $i18n = (new CustomerGroupI18n)
                         ->setCustomerGroupId($customerGroup->getId())
