@@ -7,16 +7,19 @@
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
+use jtl\Connector\Model\CustomerOrderAttr;
 use jtl\Connector\Model\CustomerOrderPaymentInfo;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
+use JtlWooCommerceConnector\Delivery\PreferredDelivery;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use TheIconic\NameParser\Parser;
 
 class CustomerOrder extends BaseController
 {
@@ -93,6 +96,13 @@ class CustomerOrder extends BaseController
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                 $this->setGermanMarketPaymentInfo($customerOrder);
             }
+
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+
+                $dhlPreferredDeliveryOptions = get_post_meta( $orderId, '_pr_shipment_dhl_label_items', true );
+
+                $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
+            }
             
             $orders[] = $customerOrder;
         }
@@ -150,6 +160,99 @@ class CustomerOrder extends BaseController
                 $customerOrder->setPui($settings['instructions']);
             }
         }
+    }
+
+    protected function setPreferredDeliveryOptions(CustomerOrderModel &$customerOrder,$dhlPreferredDeliveryOptions = [])
+    {
+        $customerOrder->addAttribute(
+            (new CustomerOrderAttr())
+                ->setKey('dhl_wunschpaket_feeder_system')
+                ->setValue('woocommerce')
+        );
+
+        //foreach each item mach
+        foreach($dhlPreferredDeliveryOptions as $optionName=>$optionValue){
+            switch($optionName){
+                case 'pr_dhl_preferred_day':
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_day')
+                            ->setValue($optionValue)
+                    );
+                    break;
+                case 'pr_dhl_preferred_location':
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_location')
+                            ->setValue($optionValue)
+                    );
+                    break;
+                case 'pr_dhl_preferred_time':
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_time')
+                            ->setValue($optionValue)
+                    );
+                    break;
+                case 'pr_dhl_preferred_neighbour_address':
+                    $parts = array_map('trim', explode(',', $optionValue, 2));
+                    $streetParts = [];
+                    $pattern = '/^(?P<street>\d*\D+[^A-Z]) (?P<number>[^a-z]?\D*\d+.*)$/';
+                    preg_match($pattern, $parts[0], $streetParts);
+
+                    if (isset($streetParts['street'])) {
+                        $customerOrder->addAttribute(
+                            (new CustomerOrderAttr())
+                                ->setKey('dhl_wunschpaket_neighbour_street')
+                                ->setValue($streetParts['street'])
+                        );
+                    }
+                    if (isset($streetParts['number'])) {
+                        $customerOrder->addAttribute(
+                            (new CustomerOrderAttr())
+                                ->setKey('dhl_wunschpaket_neighbour_house_number')
+                                ->setValue($streetParts['number'])
+                        );
+                    }
+                    if (isset($parts[1])) {
+                        $customerOrder->addAttribute(
+                            (new CustomerOrderAttr())
+                                ->setKey('dhl_wunschpaket_neighbour_address_addition')
+                                ->setValue($parts[1])
+                        );
+                    }
+                    break;
+                case 'pr_dhl_preferred_neighbour_name':
+                    $name = (new Parser())->parse($optionValue);
+
+                    $salutation = $name->getSalutation();
+                    $firstName  = $name->getFirstname();
+
+                    if(preg_match("/(herr|frau)/i",$firstName)){
+                        $salutation = ucfirst(mb_strtolower($firstName));
+                        $firstName = $name->getMiddlename();
+                    }
+
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_neighbour_salutation')
+                            ->setValue($salutation)
+                    );
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_neighbour_first_name')
+                            ->setValue($firstName)
+                    );
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_neighbour_last_name')
+                            ->setValue($name->getLastname())
+                    );
+                    break;
+            }
+        }
+
+
     }
     
     protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder)
