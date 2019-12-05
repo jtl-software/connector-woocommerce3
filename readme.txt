@@ -153,6 +153,12 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.8.3 =
+* Enhancement - CO-628 - Support for shipment tracking numbers (Required plugin: Advanced Shipment Tracking for WooCommerce)
+* Enhancement - CO-695 - Support for dhl "wunschpaket" service (Required plugin: DHL for WooCommerce)
+* Fix - CO-726 - Regular price import missing (B2B plugin)
+* Enhancement - CO-729 - Product as service attribute (Germanized plugin)
+
 = 1.8.2 =
 * Fix - custom property always sent
 * Fix - completed orders never included in import
