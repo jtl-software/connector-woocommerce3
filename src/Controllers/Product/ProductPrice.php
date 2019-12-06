@@ -326,7 +326,7 @@ class ProductPrice extends BaseController
                     } else {
                         $bulkPrices[] = [
                             'bulk_price' => (string)$regularPrice,
-                            'bulk_price_from' => (string)$regularPrice,
+                            'bulk_price_from' => (string)$item->getQuantity(),
                             'bulk_price_to' => '',
                             'bulk_price_type' => 'fix',
                         ];
