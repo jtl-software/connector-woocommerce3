@@ -60,7 +60,10 @@ class ProductPrice extends BaseController
                 '1.0.3',
                 '>')) {
             /** @var ProductPriceModel $productPrice */
-            if ((string)$customerGroupId === Config::get('jtlconnector_default_customer_group')) {
+            if (
+                (string)$customerGroupId === Config::get('jtlconnector_default_customer_group') ||
+                (string)$customerGroupId === ""
+            ) {
                 
                 $salePriceKey = '_sale_price';
                 $priceKey = '_price';
