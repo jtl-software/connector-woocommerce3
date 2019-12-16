@@ -1883,6 +1883,8 @@ final class JtlConnectorAdmin
             case '1.8.3':
             case '1.8.3.1':
                 //hotfix
+            case '1.8.3.2':
+                //hotfix
             default:
                 self::activate_linking();
         }
