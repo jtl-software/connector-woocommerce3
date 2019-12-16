@@ -99,6 +99,7 @@ trait PrimaryKeyMappingTrait {
 		$tables = [
 			"jtl_connector_link_category",
 			"jtl_connector_link_crossselling",
+			"jtl_connector_link_crossselling_group",
 			"jtl_connector_link_currency",
 			"jtl_connector_link_customer",
 			"jtl_connector_link_customer_group",

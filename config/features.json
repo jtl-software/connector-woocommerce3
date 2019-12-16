@@ -61,7 +61,7 @@
       "delete": true
     },
     "CrossSellingGroup": {
-      "pull": false,
+      "pull": true,
       "push": false,
       "delete": false
     },
