@@ -17,6 +17,7 @@ use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 
 class Customer extends BaseController
 {
@@ -83,11 +84,7 @@ class Customer extends BaseController
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
-            
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                $uid = \get_user_meta($customerId, 'b2b_uid', true);
-                $customer->setVatNumber((string)$uid);
-            }
+            $customer->setVatNumber((string) Util::getCustomerVatMetaKey($customerId));
             
             $customers[] = $customer;
         }
@@ -177,7 +174,7 @@ class Customer extends BaseController
     {
         $customers = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
         $customers += (int)$this->database->queryOne(SqlHelper::guestNotLinked(null));
-        
+
         return $customers;
     }
 }

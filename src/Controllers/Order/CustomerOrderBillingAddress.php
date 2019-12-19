@@ -12,6 +12,7 @@ use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderBillingAddress extends BaseController
 {
@@ -65,29 +66,9 @@ class CustomerOrderBillingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
-        
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'b2b_uid';
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'b2b_uid';
-        } elseif (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'billing_vat';
-        } else {
-            $marketPressKey = 'b2b_uid';
-        }
-        
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $uid = \get_user_meta($order->get_user_id(), $marketPressKey, true);
-            if (is_bool($uid)) {
-                $uid = '';
-            }
-            $address->setVatNumber((string)$uid);
-        }
-        
+
+        $address->setVatNumber((string) Util::getCustomerVatMetaKey($order->get_user_id()));
+
         return $address;
     }
 }

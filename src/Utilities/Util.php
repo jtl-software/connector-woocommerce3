@@ -104,7 +104,38 @@ final class Util extends Singleton
         
         return 0.0;
     }
-    
+
+    /**
+     * @param $wooCommerceCustomerId int
+     * @return mixed|string
+     */
+    public static function getCustomerVatMetaKey($wooCommerceCustomerId)
+    {
+        $uid = '';
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'b2b_uid';
+        } elseif (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $marketPressKey = 'billing_vat';
+        } else {
+            $marketPressKey = 'b2b_uid';
+        }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_user_meta($wooCommerceCustomerId, $marketPressKey, true);
+            if (is_bool($uid)) {
+                $uid = '';
+            }
+        }
+        return $uid;
+    }
+
     /**
      * @param      $stockLevel
      * @param      $backorders
