@@ -19,13 +19,22 @@ class TaxRate
     public function pullData()
     {
         $return = [];
+        $uniqueRates = [];
 
         $result = Db::getInstance()->query(SqlHelper::taxRatePull());
 
         foreach ($result as $row) {
+
+            $taxRate = (float)$row['tax_rate'];
+
+            if (in_array($taxRate, $uniqueRates)) {
+                continue;
+            }
+            $uniqueRates[] = $taxRate;
+
             $return[] = (new TaxRateModel)
                 ->setId(new Identity($row['tax_rate_id']))
-                ->setRate((float)$row['tax_rate']);
+                ->setRate($taxRate);
         }
 
         return $return;
