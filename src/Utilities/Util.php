@@ -106,13 +106,10 @@ final class Util extends Singleton
     }
 
     /**
-     * @param $wooCommerceCustomerId int
-     * @return mixed|string
+     * @return string
      */
-    public static function getCustomerVatMetaKey($wooCommerceCustomerId)
+    public static function getVatMetaKey()
     {
-        $uid = '';
-
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $marketPressKey = 'b2b_uid';
@@ -126,14 +123,7 @@ final class Util extends Singleton
             $marketPressKey = 'b2b_uid';
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $uid = \get_user_meta($wooCommerceCustomerId, $marketPressKey, true);
-            if (is_bool($uid)) {
-                $uid = '';
-            }
-        }
-        return $uid;
+        return $marketPressKey;
     }
 
     /**

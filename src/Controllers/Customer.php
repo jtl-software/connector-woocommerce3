@@ -84,8 +84,17 @@ class Customer extends BaseController
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
-            $customer->setVatNumber((string) Util::getCustomerVatMetaKey($customerId));
-            
+
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                $marketPressKey = Util::getVatMetaKey();
+                $uid = \get_user_meta($customerId, $marketPressKey, true);
+                if (is_bool($uid)) {
+                    $uid = '';
+                }
+                $customer->setVatNumber((string) $uid);
+            }
+
             $customers[] = $customer;
         }
         
