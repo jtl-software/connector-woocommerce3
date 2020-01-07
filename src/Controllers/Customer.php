@@ -85,10 +85,8 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                $marketPressKey = Util::getVatMetaKey();
-                $uid = \get_user_meta($customerId, $marketPressKey, true);
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+                $uid = \get_user_meta($customerId, 'b2b_uid', true);
                 if (is_bool($uid)) {
                     $uid = '';
                 }

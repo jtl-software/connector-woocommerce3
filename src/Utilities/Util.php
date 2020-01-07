@@ -106,27 +106,6 @@ final class Util extends Singleton
     }
 
     /**
-     * @return string
-     */
-    public static function getVatMetaKey()
-    {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'b2b_uid';
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'b2b_uid';
-        } elseif (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = 'billing_vat';
-        } else {
-            $marketPressKey = 'b2b_uid';
-        }
-
-        return $marketPressKey;
-    }
-
-    /**
      * @param      $stockLevel
      * @param      $backorders
      * @param bool $managesStock

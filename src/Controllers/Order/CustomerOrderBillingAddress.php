@@ -67,10 +67,8 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $marketPressKey = Util::getVatMetaKey();
-            $uid = \get_post_meta($order->get_id(), $marketPressKey, true);
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_post_meta($order->get_id(), 'billing_vat', true);
             if (is_bool($uid)) {
                 $uid = '';
             }
