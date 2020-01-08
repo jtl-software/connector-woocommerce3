@@ -107,7 +107,7 @@
     },
     "CustomerGroupPackagingQuantity": {
       "pull": false,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "CustomerOrder": {
