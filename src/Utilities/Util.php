@@ -104,7 +104,7 @@ final class Util extends Singleton
         
         return 0.0;
     }
-    
+
     /**
      * @param      $stockLevel
      * @param      $backorders
