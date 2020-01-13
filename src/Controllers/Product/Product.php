@@ -164,26 +164,6 @@ class Product extends BaseController
             \update_option('woocommerce_tax_display_shop', 'incl', true);
             //Preise im Cart mit hinterlegter Steuer
             \update_option('woocommerce_tax_display_cart', 'incl', true);
-            
-            /* $taxRateClasses = \get_option('woocommerce_tax_classes');
-             $splittedTaxRateClasses = preg_split('/\n|\r\n?/', $taxRateClasses);
-             $newTaxClasses = [];
-             
-             foreach ($splittedTaxRateClasses as $key => $taxRateClass) {
-                 if ($key === 0) {
-                     $newTaxClasses[] = 'Reduced Rate';
-                 } elseif ($key === 1) {
-                     $newTaxClasses[] = 'Zero Rate';
-                 } else {
-                     $newTaxClasses[] = $taxRateClass;
-                 }
-             }
-             
-             $newTaxClasses = implode("\r\n", $newTaxClasses);
-             
-             if (strcmp($taxRateClasses, $newTaxClasses) !== 0) {
-                 \update_option('woocommerce_tax_classes', $newTaxClasses, true);
-             }*/
         }
         
         $tmpI18n = null;
