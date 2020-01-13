@@ -26,6 +26,7 @@ class GlobalData extends BaseController
             ->setProductTypes((new ProductType())->pullData())
             ->setShippingClasses((new ShippingClass())->pullData())
             ->setShippingMethods((new ShippingMethod())->pullData())
+            ->setCrossSellingGroups((new CrossSellingGroups())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
         
         foreach ((new CustomerGroup)->pullData() as $group) {

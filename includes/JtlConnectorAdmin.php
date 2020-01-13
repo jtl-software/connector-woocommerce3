@@ -204,6 +204,7 @@ final class JtlConnectorAdmin
             'category',
             'category_level',
             'crossselling',
+            'crossselling_group',
             'currency',
             //not implemented yet
             'customer',
@@ -1885,6 +1886,7 @@ final class JtlConnectorAdmin
                 //hotfix
             case '1.8.3.2':
                 //hotfix
+            case '1.8.4':
             default:
                 self::activate_linking();
         }
