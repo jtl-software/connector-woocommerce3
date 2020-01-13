@@ -155,6 +155,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_category';
             case IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
+            case IdentityLinker::TYPE_CROSSSELLING_GROUP:
+                return 'jtl_connector_link_crossselling_group';
            /* case IdentityLinker::TYPE_CURRENCY:
                 return 'jtl_connector_link_currency';*/
             case IdentityLinker::TYPE_CUSTOMER:

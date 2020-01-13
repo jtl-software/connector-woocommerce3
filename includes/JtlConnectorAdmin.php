@@ -204,6 +204,7 @@ final class JtlConnectorAdmin
             'category',
             'category_level',
             'crossselling',
+            'crossselling_group',
             'currency',
             //not implemented yet
             'customer',

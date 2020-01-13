@@ -16,11 +16,13 @@ trait CrossSellingTrait {
 		$limitQuery = is_null( $limit ) ? '' : 'LIMIT ' . $limit;
 		
 		return "
-            SELECT pm.post_id, pm.meta_value
+            SELECT pm.post_id, pm.meta_value, pm.meta_key
             FROM `{$wpdb->posts}` p
             LEFT JOIN `{$wpdb->postmeta}` pm ON p.ID = pm.post_id
             LEFT JOIN {$jclc} l ON p.ID = l.endpoint_id
-            WHERE p.post_type = 'product' AND pm.meta_key = '_crosssell_ids' AND l.host_id IS NULL
+            WHERE p.post_type = 'product' 
+            AND (pm.meta_key = '_crosssell_ids' OR pm.meta_key = '_upsell_ids') 
+            AND l.host_id IS NULL
             {$limitQuery}";
 	}
 }
