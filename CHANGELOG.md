@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.8.4
+* Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed
+* Enhancement - CO-773 - Customer Vat number is now correctly transferred on pull 
+* Enhancement - CO-780 - Support for minimum order quantity push (B2B plugin)
+
 ## 1.8.3
 * Enhancement - CO-628 - Support for shipment tracking numbers (Required plugin: Advanced Shipment Tracking for WooCommerce)
 * Enhancement - CO-695 - Support for dhl "wunschpaket" service (Required plugin: DHL for WooCommerce)

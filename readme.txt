@@ -6,7 +6,7 @@ Tested up to: 5.2
 Requires PHP: 5.6.4
 WC requires at least: 3.4
 WC tested up to: 3.6
-Stable tag: 1.8.3.2
+Stable tag: 1.8.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,11 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.8.4 =
+* Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed
+* Enhancement - CO-773 - Customer Vat number is now correctly transferred on pull
+* Enhancement - CO-780 - Support for minimum order quantity push (B2B plugin)
 
 = 1.8.3 =
 * Enhancement - CO-628 - Support for shipment tracking numbers (Required plugin: Advanced Shipment Tracking for WooCommerce)
