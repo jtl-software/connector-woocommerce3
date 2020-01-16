@@ -14,7 +14,6 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
-use JtlWooCommerceConnector\Overwrite\JtlWooProduct;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
@@ -24,18 +23,6 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 class CrossSelling extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-
-    /**
-     * CrossSelling constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        add_action('woocommerce_product_class', function(){
-            return JtlWooProduct::class;
-        }, 2000, 3);
-    }
 
     /**
      * @param $limit
@@ -97,8 +84,8 @@ class CrossSelling extends BaseController
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
-        $product->set_cross_sell_ids(array_unique($crossSellingProducts));
-        $product->set_upsell_ids(array_unique($upSellProducts));
+        $product->update_meta_data('_crosssell_ids', serialize($crossSellingProducts));
+        $product->update_meta_data('_upsell_ids', serialize($upSellProducts));
         $product->save();
 
         return $crossSelling;
@@ -112,7 +99,7 @@ class CrossSelling extends BaseController
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
-        if (!$product instanceof JtlWooProduct) {
+        if (!$product instanceof \WC_Product) {
             return $crossSelling;
         }
 
@@ -120,10 +107,10 @@ class CrossSelling extends BaseController
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
         $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
-        $product->set_cross_sell_ids($crossSellIds);
+        $product->update_meta_data('_crosssell_ids', serialize($crossSellIds));
 
         $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
-        $product->set_upsell_ids($upSellIds);
+        $product->update_meta_data('_upsell_ids', serialize($upSellIds));
 
         $product->save();
 
