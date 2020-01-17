@@ -125,7 +125,7 @@ class ProductVaSpeAttrHandler extends BaseController
                     $languageIso
                 );
             if (!is_null($tmp)) {
-                $this->productData['productVariation'][] = $tmp;
+                $this->productData['productVariation'] = $tmp;
             }
             // </editor-fold>
         }
