@@ -24,6 +24,9 @@ class CrossSelling extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
 
+    const CROSSSELLING_META_KEY = '_crosssell_ids';
+    const UPSELLING_META_KEY = '_upsell_ids';
+
     /**
      * @param $limit
      * @return array
@@ -84,18 +87,16 @@ class CrossSelling extends BaseController
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
-        \update_post_meta(
+        $this->updateMetaKey(
             $product->get_id(),
-            '_crosssell_ids',
-            $crossSellingProducts,
-            \get_post_meta($product->get_id(), '_crosssell_ids', true)
+            self::CROSSSELLING_META_KEY,
+            $crossSellingProducts
         );
 
-        \update_post_meta(
+        $this->updateMetaKey(
             $product->get_id(),
-            '_upsell_ids',
-            $upSellProducts,
-            \get_post_meta($product->get_id(), '_upsell_ids', true)
+            self::UPSELLING_META_KEY,
+            $upSellProducts
         );
 
         return $crossSelling;
@@ -119,18 +120,16 @@ class CrossSelling extends BaseController
         $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
         $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
 
-        \update_post_meta(
+        $this->updateMetaKey(
             $product->get_id(),
-            '_crosssell_ids',
-            $crossSellIds,
-            \get_post_meta($product->get_id(), '_crosssell_ids', true)
+            self::CROSSSELLING_META_KEY,
+            $crossSellIds
         );
 
-        \update_post_meta(
+        $this->updateMetaKey(
             $product->get_id(),
-            '_upsell_ids',
-            $upSellIds,
-            \get_post_meta($product->get_id(), '_upsell_ids', true)
+            self::UPSELLING_META_KEY,
+            $upSellIds
         );
 
         return $crossSelling;
@@ -158,6 +157,21 @@ class CrossSelling extends BaseController
         }
 
         return $count;
+    }
+
+    /**
+     * @param $productId
+     * @param $key
+     * @param $value
+     */
+    protected function updateMetaKey($productId, $key, $value)
+    {
+        \update_post_meta(
+            $productId,
+            $key,
+            $value,
+            \get_post_meta($productId, $key, true)
+        );
     }
 
     /**
