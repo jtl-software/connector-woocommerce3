@@ -14,7 +14,6 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
-use JtlWooCommerceConnector\Overwrite\JtlWooProduct;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
@@ -25,17 +24,8 @@ class CrossSelling extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
 
-    /**
-     * CrossSelling constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        add_action('woocommerce_product_class', function(){
-            return JtlWooProduct::class;
-        }, 2000, 3);
-    }
+    const CROSSSELLING_META_KEY = '_crosssell_ids';
+    const UPSELLING_META_KEY = '_upsell_ids';
 
     /**
      * @param $limit
@@ -97,9 +87,17 @@ class CrossSelling extends BaseController
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
-        $product->set_cross_sell_ids(array_unique($crossSellingProducts));
-        $product->set_upsell_ids(array_unique($upSellProducts));
-        $product->save();
+        $this->updateMetaKey(
+            $product->get_id(),
+            self::CROSSSELLING_META_KEY,
+            $crossSellingProducts
+        );
+
+        $this->updateMetaKey(
+            $product->get_id(),
+            self::UPSELLING_META_KEY,
+            $upSellProducts
+        );
 
         return $crossSelling;
     }
@@ -112,7 +110,7 @@ class CrossSelling extends BaseController
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
-        if (!$product instanceof JtlWooProduct) {
+        if (!$product instanceof \WC_Product) {
             return $crossSelling;
         }
 
@@ -120,12 +118,19 @@ class CrossSelling extends BaseController
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
         $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
-        $product->set_cross_sell_ids($crossSellIds);
-
         $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
-        $product->set_upsell_ids($upSellIds);
 
-        $product->save();
+        $this->updateMetaKey(
+            $product->get_id(),
+            self::CROSSSELLING_META_KEY,
+            $crossSellIds
+        );
+
+        $this->updateMetaKey(
+            $product->get_id(),
+            self::UPSELLING_META_KEY,
+            $upSellIds
+        );
 
         return $crossSelling;
     }
@@ -152,6 +157,21 @@ class CrossSelling extends BaseController
         }
 
         return $count;
+    }
+
+    /**
+     * @param $productId
+     * @param $key
+     * @param $value
+     */
+    protected function updateMetaKey($productId, $key, $value)
+    {
+        \update_post_meta(
+            $productId,
+            $key,
+            $value,
+            \get_post_meta($productId, $key, true)
+        );
     }
 
     /**
