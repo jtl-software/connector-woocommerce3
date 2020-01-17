@@ -1,9 +1,9 @@
 name: Deploy to Wordpress
 
 on:
-  create:
-    tags:
-      - "*"
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:
