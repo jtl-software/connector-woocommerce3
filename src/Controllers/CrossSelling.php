@@ -84,9 +84,19 @@ class CrossSelling extends BaseController
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
-        $product->update_meta_data('_crosssell_ids', serialize($crossSellingProducts));
-        $product->update_meta_data('_upsell_ids', serialize($upSellProducts));
-        $product->save();
+        \update_post_meta(
+            $product->get_id(),
+            '_crosssell_ids',
+            $crossSellingProducts,
+            \get_post_meta($product->get_id(), '_crosssell_ids', true)
+        );
+
+        \update_post_meta(
+            $product->get_id(),
+            '_upsell_ids',
+            $upSellProducts,
+            \get_post_meta($product->get_id(), '_upsell_ids', true)
+        );
 
         return $crossSelling;
     }
@@ -107,12 +117,21 @@ class CrossSelling extends BaseController
         $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
         $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
-        $product->update_meta_data('_crosssell_ids', serialize($crossSellIds));
-
         $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
-        $product->update_meta_data('_upsell_ids', serialize($upSellIds));
 
-        $product->save();
+        \update_post_meta(
+            $product->get_id(),
+            '_crosssell_ids',
+            $crossSellIds,
+            \get_post_meta($product->get_id(), '_crosssell_ids', true)
+        );
+
+        \update_post_meta(
+            $product->get_id(),
+            '_upsell_ids',
+            $upSellIds,
+            \get_post_meta($product->get_id(), '_upsell_ids', true)
+        );
 
         return $crossSelling;
     }
