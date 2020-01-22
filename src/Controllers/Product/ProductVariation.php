@@ -82,17 +82,17 @@ class ProductVariation extends BaseController
         
         return $productVariation;
     }
-    
+
     /**
      * @param \WC_Product $product
      * @param ProductModel $model
      * @param string $languageIso
-     * @return ProductVariationModel|null
+     * @return array
      */
     public function pullDataChild(\WC_Product $product, ProductModel $model, $languageIso = '')
     {
         $parentProduct = \wc_get_product($product->get_parent_id());
-        $productVariation = null;
+        $productVariations = [];
         /**
          * @var string $slug
          * @var \WC_Product_Attribute $attribute
@@ -125,7 +125,7 @@ class ProductVariation extends BaseController
                     }
                     
                     $valueId = new Identity(Id::link([$id->getEndpoint(), $term->term_id]));
-                    
+
                     $productVariation->addValue((new ProductVariationValueModel)
                         ->setId($valueId)
                         ->setProductVariationId($id)
@@ -145,7 +145,7 @@ class ProductVariation extends BaseController
                     }
                     
                     $valueId = new Identity(Id::link([$id->getEndpoint(), \sanitize_key($option)]));
-                    
+
                     $productVariation->addValue((new ProductVariationValueModel)
                         ->setId($valueId)
                         ->setProductVariationId($id)
@@ -157,9 +157,11 @@ class ProductVariation extends BaseController
                     );
                 }
             }
+
+            $productVariations[] = $productVariation;
         }
         
-        return $productVariation;
+        return $productVariations;
     }
     
     // </editor-fold>

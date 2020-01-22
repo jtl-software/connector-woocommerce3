@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.8.4
+* Fix - CO-807 - Variable products are not imported correctly
 * Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed
 * Enhancement - CO-773 - Customer Vat number is now correctly transferred on pull 
 * Enhancement - CO-780 - Support for minimum order quantity push (B2B plugin)
