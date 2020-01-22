@@ -297,20 +297,39 @@ class CustomerOrderItem extends BaseController
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
             $itemName = $item->get_name();
-            
+
+            $isPriceWithTax = ($order->get_prices_include_tax() && wc_tax_enabled());
+            $vat = 0.0;
+
+            $couponCalculatedTaxes = \WC_Tax::calc_tax(
+                $item->get_discount(),
+                $vatRate = \WC_Tax::get_rates($item->get_tax_class()), $isPriceWithTax
+            );
+
+            if (
+                is_array($couponCalculatedTaxes) && count($couponCalculatedTaxes) === 1 &&
+                is_array($vatRate) && count($vatRate) == 1
+            ) {
+                if (end($couponCalculatedTaxes) === (float)$item->get_discount_tax()) {
+                    $vat = (float) end($vatRate)['rate'];
+                }
+            }
+
             $total = (float)$item->get_discount();
             $totalTax = (float)$item->get_discount() + (float)$item->get_discount_tax();
-            $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
-            $vat = 0.0;
-            
-            foreach ($taxRates as $taxRate) {
-                $tmpValue = $tmpVat - $taxRate['tax_rate'];
-                if (
-                    $taxRate['tax_rate'] !== '0.0000'
-                    && abs($tmpValue) < 0.1
-                ) {
-                    $vat = $taxRate['tax_rate'];
-                    break;
+
+            if ($vat === 0.0) {
+                $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+
+                foreach ($taxRates as $taxRate) {
+                    $tmpValue = $tmpVat - $taxRate['tax_rate'];
+                    if (
+                        $taxRate['tax_rate'] !== '0.0000'
+                        && abs($tmpValue) < 0.1
+                    ) {
+                        $vat = $taxRate['tax_rate'];
+                        break;
+                    }
                 }
             }
             
