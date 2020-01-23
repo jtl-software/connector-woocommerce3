@@ -280,7 +280,8 @@ class CustomerOrderItem extends BaseController
     
     /**
      * @param \WC_Order $order
-     * @param           $customerOrderItems
+     * @param $customerOrderItems
+     * @throws \Exception
      */
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
@@ -289,30 +290,24 @@ class CustomerOrderItem extends BaseController
         if ($pd < 4) {
             $pd = 4;
         }
-        
+
+        $customerId = (int)$order->get_customer_id();
+        $customer = $customerId === 0 ? null : new \WC_Customer($customerId);
+
         $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
         /**
          * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
-            $itemName = $item->get_name();
 
-            $isPriceWithTax = ($order->get_prices_include_tax() && wc_tax_enabled());
+            $itemName = $item->get_name();
             $vat = 0.0;
 
-            $couponCalculatedTaxes = \WC_Tax::calc_tax(
-                $item->get_discount(),
-                $vatRate = \WC_Tax::get_rates($item->get_tax_class()), $isPriceWithTax
-            );
+            $vatRate = \WC_Tax::get_rates($item->get_tax_class(), $customer);
 
-            if (
-                is_array($couponCalculatedTaxes) && count($couponCalculatedTaxes) === 1 &&
-                is_array($vatRate) && count($vatRate) == 1
-            ) {
-                if (end($couponCalculatedTaxes) === (float)$item->get_discount_tax()) {
-                    $vat = (float) end($vatRate)['rate'];
-                }
+            if (is_array($vatRate) && count($vatRate) === 1) {
+                $vat = (double)end($vatRate)['rate'];
             }
 
             $total = (float)$item->get_discount();
