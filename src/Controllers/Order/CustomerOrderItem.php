@@ -280,7 +280,8 @@ class CustomerOrderItem extends BaseController
     
     /**
      * @param \WC_Order $order
-     * @param           $customerOrderItems
+     * @param $customerOrderItems
+     * @throws \Exception
      */
     public function pullDiscountOrderItems(\WC_Order $order, &$customerOrderItems)
     {
@@ -289,28 +290,41 @@ class CustomerOrderItem extends BaseController
         if ($pd < 4) {
             $pd = 4;
         }
-        
+
+        $customerId = (int)$order->get_customer_id();
+        $customer = $customerId === 0 ? null : new \WC_Customer($customerId);
+
         $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
         /**
          * @var integer               $itemId
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
+
             $itemName = $item->get_name();
-            
+            $vat = 0.0;
+
+            $vatRate = \WC_Tax::get_rates($item->get_tax_class(), $customer);
+
+            if (is_array($vatRate) && count($vatRate) === 1) {
+                $vat = (double)end($vatRate)['rate'];
+            }
+
             $total = (float)$item->get_discount();
             $totalTax = (float)$item->get_discount() + (float)$item->get_discount_tax();
-            $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
-            $vat = 0.0;
-            
-            foreach ($taxRates as $taxRate) {
-                $tmpValue = $tmpVat - $taxRate['tax_rate'];
-                if (
-                    $taxRate['tax_rate'] !== '0.0000'
-                    && abs($tmpValue) < 0.1
-                ) {
-                    $vat = $taxRate['tax_rate'];
-                    break;
+
+            if ($vat === 0.0) {
+                $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 1);
+
+                foreach ($taxRates as $taxRate) {
+                    $tmpValue = $tmpVat - $taxRate['tax_rate'];
+                    if (
+                        $taxRate['tax_rate'] !== '0.0000'
+                        && abs($tmpValue) < 0.1
+                    ) {
+                        $vat = $taxRate['tax_rate'];
+                        break;
+                    }
                 }
             }
             
