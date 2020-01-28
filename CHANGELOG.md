@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.8.4
+* Fix - CO-820 - Coupon vat rate is not set
 * Fix - CO-807 - Variable products are not imported correctly
 * Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed
 * Enhancement - CO-773 - Customer Vat number is now correctly transferred on pull 
