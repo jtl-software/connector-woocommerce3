@@ -78,7 +78,10 @@ class CrossSelling extends BaseController
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
-        if (!$product instanceof \WC_Product) {
+        if (
+            !$product instanceof \WC_Product ||
+            $product instanceof \WC_Product_Variation
+        ) {
             return $crossSelling;
         }
 
