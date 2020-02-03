@@ -154,6 +154,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.8.4 =
+* Fix - DHL for Woocommerce invalid argument fix
 * Fix - CO-820 - Coupon vat rate is not set
 * Fix - CO-807 - Variable products are not imported correctly
 * Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed

@@ -101,7 +101,9 @@ class CustomerOrder extends BaseController
 
                 $dhlPreferredDeliveryOptions = get_post_meta( $orderId, '_pr_shipment_dhl_label_items', true );
 
-                $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
+                if (is_array($dhlPreferredDeliveryOptions)) {
+                    $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
+                }
             }
             
             $orders[] = $customerOrder;
