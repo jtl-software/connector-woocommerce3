@@ -378,6 +378,15 @@ final class Util extends Singleton
         
         return $result;
     }
+
+    /**
+     * @return bool
+     */
+    public static function includeCompletedOrders()
+    {
+        $includeCompletedOrdersOption = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes');
+        return in_array($includeCompletedOrdersOption, ['yes', '1'], true);
+    }
     
     /**
      * @return Singleton|$this

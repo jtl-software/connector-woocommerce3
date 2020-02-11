@@ -9,6 +9,7 @@
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\Util;
 
 trait CustomerTrait {
 	public static function customerNotLinked( $limit ) {
@@ -25,7 +26,7 @@ trait CustomerTrait {
 		
 		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
 		
-		if ( \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes' ) === 'yes' ) {
+		if ( Util::includeCompletedOrders() ) {
 			$status .= ", 'wc-completed'";
 		}
 		
@@ -59,7 +60,7 @@ trait CustomerTrait {
 		
 		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
 		
-		if ( \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes' ) === 'yes' ) {
+		if ( Util::includeCompletedOrders() ) {
 			$status .= ", 'wc-completed'";
 		}
 		
