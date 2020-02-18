@@ -85,13 +85,18 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
+            $uid = '';
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 $uid = \get_user_meta($customerId, 'b2b_uid', true);
-                if (is_bool($uid)) {
-                    $uid = '';
-                }
-                $customer->setVatNumber((string) $uid);
             }
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET) && empty($uid)) {
+                $uid = \get_user_meta($customerId, 'billing_vat', true);
+            }
+            if (!is_string($uid)) {
+                $uid = '';
+            }
+
+            $customer->setVatNumber((string)$uid);
 
             $customers[] = $customer;
         }
