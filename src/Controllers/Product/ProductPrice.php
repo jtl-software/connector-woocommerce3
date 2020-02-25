@@ -338,6 +338,8 @@ class ProductPrice extends BaseController
                     $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
                     $metaProductId = $product->getId()->getEndpoint();
 
+                    $bulkPrices = Util::setBulkPricesQuantityTo($bulkPrices);
+
                     \update_post_meta(
                         $metaProductId,
                         $metaKey,
