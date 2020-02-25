@@ -85,23 +85,41 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
-            $uid = '';
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-                $uid = \get_user_meta($customerId, 'b2b_uid', true);
-            }
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET) && empty($uid)) {
-                $uid = \get_user_meta($customerId, 'billing_vat', true);
-            }
-            if (!is_string($uid)) {
-                $uid = '';
-            }
-
-            $customer->setVatNumber((string)$uid);
+            $customer->setVatNumber((string) $this->getVatId($customerId));
 
             $customers[] = $customer;
         }
-        
+
         return $customers;
+    }
+
+    /**
+     * @param $customerId
+     * @return mixed|string
+     */
+    protected function getVatId($customerId)
+    {
+        $uid = '';
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $uid = \get_user_meta($customerId, 'b2b_uid', true);
+        }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            $uid = \get_user_meta($customerId, 'billing_vat', true);
+        }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+            $uid = \get_user_meta($customerId, 'billing_vat_id', true);
+            if (empty($uid)) {
+                $uid = \get_user_meta($customerId, 'shipping_vat_id', true);
+            }
+        }
+
+        if (is_bool($uid)) {
+            $uid = '';
+        }
+
+        return $uid;
     }
     
     private function pullGuests($limit)
