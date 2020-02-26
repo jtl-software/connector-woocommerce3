@@ -78,22 +78,13 @@ class CustomerOrderBillingAddress extends BaseController
      */
     protected function getVatId($orderId)
     {
-        $uid = '';
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $uid = \get_post_meta($orderId, 'billing_vat', true);
-        }
+        $vatIdPlugins = [
+            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
+            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+        ];
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-            $uid = \get_post_meta($orderId, '_billing_vat_id', true);
-            if (empty($uid)) {
-                $uid = \get_post_meta($orderId, '_shipping_vat_id', true);
-            }
-        }
-
-        if (is_bool($uid)) {
-            $uid = '';
-        }
-
-        return $uid;
+        return Util::findVatId($orderId, $vatIdPlugins, function ($id, $metaKey) {
+            return \get_post_meta($id, $metaKey, true);
+        });
     }
 }

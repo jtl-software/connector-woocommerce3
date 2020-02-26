@@ -99,27 +99,16 @@ class Customer extends BaseController
      */
     protected function getVatId($customerId)
     {
-        $uid = '';
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $uid = \get_user_meta($customerId, 'b2b_uid', true);
-        }
+        $vatIdPlugins = [
+            'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
+            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
+            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+        ];
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $uid = \get_user_meta($customerId, 'billing_vat', true);
-        }
-
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-            $uid = \get_user_meta($customerId, 'billing_vat_id', true);
-            if (empty($uid)) {
-                $uid = \get_user_meta($customerId, 'shipping_vat_id', true);
-            }
-        }
-
-        if (is_bool($uid)) {
-            $uid = '';
-        }
-
-        return $uid;
+        return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
+            return \get_user_meta($id, $metaKey, true);
+        });
     }
     
     private function pullGuests($limit)
