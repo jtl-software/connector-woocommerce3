@@ -410,11 +410,7 @@ class Image extends BaseController
                     }
                 }
             } else {
-                if ( ! empty($image->getName())) {
-                    $altText = $image->getName();
-                } else {
-                    $altText = $image->getFilename();
-                }
+                $altText = $image->getName();
             }
             
             if ( ! is_null($altText)) {
