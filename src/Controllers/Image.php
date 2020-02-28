@@ -418,6 +418,7 @@ class Image extends BaseController
                     && !empty($i18n->getAltText())
                 ) {
                     $altText = $i18n->getAltText();
+                    break;
                 }
             }
         }
