@@ -25,7 +25,7 @@ class TaxRate
 
         foreach ($result as $row) {
 
-            $taxRate = (float)$row['tax_rate'];
+            $taxRate = (float)round($row['tax_rate'], 4);
 
             if (in_array($taxRate, $uniqueRates)) {
                 continue;
