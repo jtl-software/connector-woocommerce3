@@ -299,26 +299,6 @@ class Product extends BaseController
         if ($productType === 'product_variation') {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         }
-        
-        $productTypeTerm = \get_term_by('slug', $productType, 'product_type');
-        $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
-        
-        $removeTerm = null;
-        foreach ($currentProductType as $term) {
-            if ($term instanceof \WP_Term) {
-                $removeTerm = $term->term_id;
-            }
-        }
-        
-        if (!is_null($removeTerm) && is_int($removeTerm)) {
-            \wp_remove_object_terms($wcProduct->get_id(), $removeTerm, 'product_type');
-        }
-        
-        if ($productTypeTerm instanceof \WP_Term) {
-            \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
-        } else {
-            \wp_set_object_terms($wcProduct->get_id(), $productType, 'product_type', false);
-        }
     }
     
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
@@ -448,16 +428,19 @@ class Product extends BaseController
     
     public function getType(ProductModel $product)
     {
-        $variations = $product->getVariations();
+        $type = null;
+
         $productId = (int)$product->getId()->getEndpoint();
-        $type = \get_post_field('post_type', $productId);
+        $productTypeTerms = wc_get_object_terms($productId, 'product_type');
+        if(is_array($productTypeTerms) && count($productTypeTerms) === 1) {
+            $productTypeTerm = end($productTypeTerms);
+            $type = $productTypeTerm->slug;
+        }
         
         $allowedTypes = \wc_get_product_types();
         $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
         
-        if (!empty($variations) && $type === 'product') {
-            return 'variable';
-        } elseif (array_key_exists($type, $allowedTypes)) {
+        if (array_key_exists($type, $allowedTypes)) {
             return $type;
         }
         

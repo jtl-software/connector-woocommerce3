@@ -320,24 +320,27 @@ class ProductAttr extends BaseController
                     }
 
                     if (strcmp($attrName, ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR) === 0) {
-                        $attrName = "_" . ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR;
                         $value = $i18n->getValue();
 
                         $allowedTypes = \wc_get_product_types();
 
                         if(in_array($value, array_keys($allowedTypes))) {
-                            if (!add_post_meta(
-                                $productId,
-                                $attrName,
-                                $value,
-                                true
-                            )) {
-                                update_post_meta(
-                                    $productId,
-                                    $attrName,
-                                    $value,
-                                    \get_post_meta($productId, $attrName, true)
-                                );
+                            $term = get_term_by('slug', wc_sanitize_taxonomy_name(
+                                $value
+                            ), 'product_type');
+
+                            if ($term instanceof \WP_Term) {
+                                $productTypeTerms = wc_get_object_terms($productId, 'product_type');
+                                if(is_array($productTypeTerms) && count($productTypeTerms) === 1){
+                                    $oldProductType = end($productTypeTerms);
+                                    if($oldProductType->term_id !== $term->term_id){
+                                        $removeObjTermsResult = wp_remove_object_terms($productId, [$oldProductType->term_id],
+                                            'product_type');
+                                        if($removeObjTermsResult === true) {
+                                            wp_add_object_terms($productId, [$term->term_id], 'product_type');
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
