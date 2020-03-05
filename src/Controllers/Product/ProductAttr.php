@@ -320,24 +320,26 @@ class ProductAttr extends BaseController
                     }
 
                     if (strcmp($attrName, ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR) === 0) {
-                        $attrName = ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR;
+                        $attrName = "_" . ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR;
                         $value = $i18n->getValue();
 
-                        if (!add_post_meta(
-                            $productId,
-                            $attrName,
-                            $value,
-                            true
-                        )) {
-                            update_post_meta(
+                        $allowedTypes = \wc_get_product_types();
+
+                        if(in_array($value, array_keys($allowedTypes))) {
+                            if (!add_post_meta(
                                 $productId,
                                 $attrName,
                                 $value,
-                                \get_post_meta($productId, $attrName, true)
-                            );
+                                true
+                            )) {
+                                update_post_meta(
+                                    $productId,
+                                    $attrName,
+                                    $value,
+                                    \get_post_meta($productId, $attrName, true)
+                                );
+                            }
                         }
-
-                        $virtual = true;
                     }
                     
                     if ($attrName === ProductVaSpeAttrHandler::PAYABLE_ATTR || $attrName === 'payable') {
