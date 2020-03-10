@@ -153,6 +153,10 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.8.5 =
+* Increased minimum PHP version to 7.1.3
+* Increased versions tested up to WooCommerce: 3.9 and Wordpress: 5.3
+
 = 1.8.4 =
 * Fix - DHL for Woocommerce invalid argument fix
 * Fix - CO-820 - Coupon vat rate is not set

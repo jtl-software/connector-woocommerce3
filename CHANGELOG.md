@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.8.5
+* Increased minimum PHP version to 7.1.3
+* Increased versions tested up to WooCommerce: 3.9 and Wordpress: 5.3
+
 ## 1.8.4
 * Fix - CO-860 - Bulk Prices upper limit "infinite" fix
 * Fix - DHL for Woocommerce invalid argument fix
