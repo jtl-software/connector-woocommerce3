@@ -157,6 +157,7 @@ This section describes how to install the plugin and get it working.
 * Increased minimum PHP version to 7.1.3
 * Increased versions tested up to WooCommerce: 3.9 and Wordpress: 5.3
 * Fix - CO-862 - VAT ID on customer is not always set
+* Fix - CO-707 - Unified tax rates in global data pull
 
 = 1.8.4 =
 * Fix - DHL for Woocommerce invalid argument fix
