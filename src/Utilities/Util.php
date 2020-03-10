@@ -165,6 +165,31 @@ final class Util extends Singleton
     }
 
     /**
+     * @param $id
+     * @param array $vatPluginsPriority
+     * @param callable $getMetaFieldValueFunction
+     * @return string
+     */
+    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction)
+    {
+        $uid = '';
+        foreach ($vatPluginsPriority as $metaKey => $pluginName) {
+            if (SupportedPlugins::isActive($pluginName) === true) {
+                $uid = $getMetaFieldValueFunction($id, $metaKey);
+                if (!empty($uid)) {
+                    break;
+                }
+            }
+        }
+
+        if (is_bool($uid)) {
+            $uid = '';
+        }
+
+        return (string) $uid;
+    }
+
+    /**
      * @param $group
      *
      * @return bool
