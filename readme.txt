@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.3
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 3.9
-Stable tag: 1.8.5
+WC tested up to: 4.0
+Stable tag: 1.9.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,9 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.9.0 =
+* Enhancement - CO-915 - Added compatibility with WooCommerce 4
 
 = 1.8.5 =
 * Increased minimum PHP version to 7.1.3
