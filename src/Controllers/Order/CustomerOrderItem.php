@@ -76,16 +76,12 @@ class CustomerOrderItem extends BaseController
                 
                 if ($product instanceof \WC_Product_Variation) {
                     switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT)) {
+                        case 'space_parent':
                         case 'space':
                             $format = '%s %s';
                             break;
-                        case 'brackets':
-                            $format = '%s (%s)';
-                            break;
-                        case 'space_parent':
-                            $format = '%s %s';
-                            break;
                         case 'brackets_parent':
+                        case 'brackets':
                             $format = '%s (%s)';
                             break;
                         default:
@@ -346,7 +342,7 @@ class CustomerOrderItem extends BaseController
         
         foreach ($customerOrderItems as $item) {
             if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
-                $taxRate = $item->getVat();
+                $taxRate = (string)$item->getVat();
                 
                 if (isset($totalPriceForVats[$taxRate])) {
                     $totalPriceForVats[$taxRate] += $item->getPrice();
