@@ -155,6 +155,8 @@ This section describes how to install the plugin and get it working.
 
 = 1.9.0 =
 * Enhancement - CO-915 - Added compatibility with WooCommerce 4
+* Minor fixes related to code inspections
+* Removed stripslashes_deep call on super globals
 
 = 1.8.5 =
 * Increased minimum PHP version to 7.1.3
