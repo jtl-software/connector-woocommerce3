@@ -14,7 +14,6 @@ use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
-use JtlWooCommerceConnector\Delivery\PreferredDelivery;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
