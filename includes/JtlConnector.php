@@ -25,11 +25,7 @@ final class JtlConnector
             if (session_status() === PHP_SESSION_ACTIVE) {
                 session_destroy();
             }
-            
-            if (!get_magic_quotes_gpc()) {
-                self::unslash_gpc();
-            }
-            
+
             try {
                 if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
                     if (is_writable(sys_get_temp_dir())) {
@@ -47,14 +43,5 @@ final class JtlConnector
                 }
             }
         }
-    }
-
-    private static function unslash_gpc()
-    {
-        $_GET = array_map('stripslashes_deep', $_GET);
-        $_POST = array_map('stripslashes_deep', $_POST);
-        $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
-        $_SERVER = array_map('stripslashes_deep', $_SERVER);
-        $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
     }
 }

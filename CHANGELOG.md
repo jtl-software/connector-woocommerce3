@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.0
+* Enhancement - CO-915 - Added compatibility with WooCommerce 4
+* Minor fixes related to code inspections
+* Removed stripslashes_deep call on super globals
+
 ## 1.8.5
 * Increased minimum PHP version to 7.1.3
 * Increased versions tested up to WooCommerce: 3.9 and Wordpress: 5.3
