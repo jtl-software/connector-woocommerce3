@@ -1904,6 +1904,8 @@ final class JtlConnectorAdmin
                 //wc 4
             case '1.9.0.1':
                 //hotfix
+            case '1.9.0.2':
+                //hotfix
             default:
                 self::activate_linking();
         }
