@@ -437,11 +437,16 @@ class Product extends BaseController
             $type = $productTypeTerm->slug;
         }
         
-        $allowedTypes = \wc_get_product_types();
+        $allowedTypes = wc_get_product_types();
         $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
         
         if (array_key_exists($type, $allowedTypes)) {
             return $type;
+        }
+
+        $postType = get_post_field('post_type', $productId);
+        if (!empty($product->getVariations()) && $postType === 'product') {
+            return 'variable';
         }
         
         return 'simple';
