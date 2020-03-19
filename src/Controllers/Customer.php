@@ -85,18 +85,30 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-                $uid = \get_user_meta($customerId, 'b2b_uid', true);
-                if (is_bool($uid)) {
-                    $uid = '';
-                }
-                $customer->setVatNumber((string) $uid);
-            }
+            $customer->setVatNumber((string) $this->getVatId($customerId));
 
             $customers[] = $customer;
         }
-        
+
         return $customers;
+    }
+
+    /**
+     * @param $customerId
+     * @return mixed|string
+     */
+    protected function getVatId($customerId)
+    {
+        $vatIdPlugins = [
+            'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
+            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
+            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+        ];
+
+        return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
+            return \get_user_meta($id, $metaKey, true);
+        });
     }
     
     private function pullGuests($limit)

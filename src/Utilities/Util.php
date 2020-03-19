@@ -165,6 +165,31 @@ final class Util extends Singleton
     }
 
     /**
+     * @param $id
+     * @param array $vatPluginsPriority
+     * @param callable $getMetaFieldValueFunction
+     * @return string
+     */
+    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction)
+    {
+        $uid = '';
+        foreach ($vatPluginsPriority as $metaKey => $pluginName) {
+            if (SupportedPlugins::isActive($pluginName) === true) {
+                $uid = $getMetaFieldValueFunction($id, $metaKey);
+                if (!empty($uid)) {
+                    break;
+                }
+            }
+        }
+
+        if (is_bool($uid)) {
+            $uid = '';
+        }
+
+        return (string) $uid;
+    }
+
+    /**
      * @param $group
      *
      * @return bool
@@ -307,21 +332,18 @@ final class Util extends Singleton
     public function mapPaymentModuleCode(\WC_Order $order)
     {
         switch ($order->get_payment_method()) {
-            case 'paypal':
-                return PaymentTypes::TYPE_PAYPAL_EXPRESS;
             case 'express_checkout':
+            case 'paypal':
                 return PaymentTypes::TYPE_PAYPAL_EXPRESS;
             case 'cod':
                 return PaymentTypes::TYPE_CASH_ON_DELIVERY;
             case 'bacs':
                 return PaymentTypes::TYPE_BANK_TRANSFER;
+            case 'german_market_sepa_direct_debit':
             case 'direct-debit':
                 return PaymentTypes::TYPE_DIRECT_DEBIT;
-            case 'german_market_purchase_on_account':
-                return PaymentTypes::TYPE_INVOICE;
-            case 'german_market_sepa_direct_debit':
-                return PaymentTypes::TYPE_DIRECT_DEBIT;
             case 'invoice':
+            case 'german_market_purchase_on_account':
                 return PaymentTypes::TYPE_INVOICE;
             default:
                 return $order->get_payment_method_title();

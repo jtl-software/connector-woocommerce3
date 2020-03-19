@@ -105,7 +105,7 @@ class Manufacturer extends BaseController
                 
                 if ($term === false) {
                     //Add term
-                    /** @var WP_Term $newTerm */
+                    /** @var \WP_Term $newTerm */
                     $newTerm = \wp_insert_term(
                         $manufacturer->getName(),
                         'pwb-brand',
@@ -146,9 +146,12 @@ class Manufacturer extends BaseController
                         /** @var ManufacturerI18nModel $i18n */
                         $i18n->getManufacturerId()->setEndpoint($term->term_id);
                     }
-                    
-                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-                        || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+
+                    if (
+                        (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+                            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM))
+                        && (isset($i18n))
+                    ) {
                         $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
                         
                         if ($taxonomySeo === false) {
