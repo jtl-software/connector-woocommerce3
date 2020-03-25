@@ -26,6 +26,7 @@ final class SupportedPlugins
     const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
     const PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE = 'Advanced Shipment Tracking for WooCommerce';
     const PLUGIN_DHL_FOR_WOOCOMMERCE = 'DHL for WooCommerce';
+    const PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE = 'VR pay eCommerce - WooCommerce';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -54,6 +55,7 @@ final class SupportedPlugins
         self::PLUGIN_YOAST_SEO_PREMIUM,
         self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE,
         self::PLUGIN_DHL_FOR_WOOCOMMERCE,
+        self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
     ];
     
     const INCOMPATIBLE_PLUGINS = [
