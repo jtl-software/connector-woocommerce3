@@ -6,7 +6,7 @@ Tested up to: 5.3
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.0
-Stable tag: 1.9.0.2
+Stable tag: 1.9.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,11 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.9.1 =
+* Enhancement - CO-931 - Added support for VR pay eCommerce - WooCommerce plugin
+* Enhancement - added backup plugins compatibility: BackupBuddy, UpdraftPlus - Backup/Restore
+* Info - marked BackWPup as incompatible plugin
 
 = 1.9.0 =
 * Enhancement - CO-915 - Added compatibility with WooCommerce 4

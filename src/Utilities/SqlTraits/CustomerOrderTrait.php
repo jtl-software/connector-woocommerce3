@@ -8,6 +8,7 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 trait CustomerOrderTrait {
 	public static function customerOrderPull( $limit ) {
@@ -23,6 +24,10 @@ trait CustomerOrderTrait {
 		}
 		
 		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+            $status .= ", 'wc-payment-accepted'";
+        }
   
 		if (   \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, '1' ) === '1' ) {
 			$status .= ", 'wc-completed'";

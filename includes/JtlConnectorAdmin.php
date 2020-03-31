@@ -1906,6 +1906,7 @@ final class JtlConnectorAdmin
                 //hotfix
             case '1.9.0.2':
                 //hotfix
+            case '1.9.1':
             default:
                 self::activate_linking();
         }
