@@ -26,6 +26,9 @@ final class SupportedPlugins
     const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
     const PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE = 'Advanced Shipment Tracking for WooCommerce';
     const PLUGIN_DHL_FOR_WOOCOMMERCE = 'DHL for WooCommerce';
+    const PLUGIN_BACKUPBUDDY = 'BackupBuddy';
+    const PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE = 'UpdraftPlus - Backup/Restore';
+    const PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE = 'VR pay eCommerce - WooCommerce';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -37,6 +40,8 @@ final class SupportedPlugins
     const PLUGIN_WP_MULTILANG = 'WP Multilang';
     const PLUGIN_WOODY_AD_SNIPPET = 'Woody ad snippets (PHP snippets | Insert PHP)';
     CONST PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET = 'Schema - All In One Schema Rich Snippets';
+    CONST PLUGIN_BACKWPUP = 'BackWPup';
+
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
@@ -54,6 +59,9 @@ final class SupportedPlugins
         self::PLUGIN_YOAST_SEO_PREMIUM,
         self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE,
         self::PLUGIN_DHL_FOR_WOOCOMMERCE,
+        self::PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE,
+        self::PLUGIN_BACKUPBUDDY,
+        self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
     ];
     
     const INCOMPATIBLE_PLUGINS = [
@@ -66,6 +74,7 @@ final class SupportedPlugins
         self::PLUGIN_THEME_WOODMART_CORE,
         self::PLUGIN_WOODY_AD_SNIPPET,
         self::PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET,
+        self::PLUGIN_BACKWPUP,
     ];
     
     /**

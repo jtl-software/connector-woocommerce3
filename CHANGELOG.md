@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.1
+* Enhancement - added backup plugins compatibility: BackupBuddy, UpdraftPlus - Backup/Restore
+* Info - marked BackWPup as incompatible plugin
+* Enhancement - CO-931 - Added support for VR pay eCommerce - WooCommerce plugin
+
 ## 1.9.0
 * Enhancement - CO-915 - Added compatibility with WooCommerce 4
 * Minor fixes related to code inspections
