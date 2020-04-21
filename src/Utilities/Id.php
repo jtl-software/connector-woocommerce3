@@ -81,6 +81,8 @@ final class Id
             return [$parts, IdentityLinker::TYPE_CATEGORY];
         } elseif ($typePrefix === self::PRODUCT_PREFIX) {
             return [$parts, IdentityLinker::TYPE_PRODUCT];
+        } elseif ($typePrefix === self::MANUFACTURER_PREFIX) {
+            return [$parts, IdentityLinker::TYPE_MANUFACTURER];
         }
         
         return null;

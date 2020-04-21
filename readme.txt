@@ -154,6 +154,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.9.1 =
+* Bugfix - fixed manufacturer image linking
 * Enhancement - CO-931 - Added support for VR pay eCommerce - WooCommerce plugin
 * Enhancement - added backup plugins compatibility: BackupBuddy, UpdraftPlus - Backup/Restore
 * Info - marked BackWPup as incompatible plugin
