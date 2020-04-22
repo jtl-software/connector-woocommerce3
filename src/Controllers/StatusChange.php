@@ -19,6 +19,13 @@ class StatusChange extends BaseController
         $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
 
         if ($order instanceof \WC_Order) {
+
+            if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
+                add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
+                    return false;
+                }, 10, 2);
+            }
+
             $order->set_status($this->mapStatus($statusChange));
             $order->save();
         }
