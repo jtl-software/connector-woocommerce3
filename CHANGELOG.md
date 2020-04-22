@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.2
+* Bugfix - Stock level doubled when canceling order, added 'woocommerce_can_restore_order_stock' in status_change.push to prevent
+* Bugfix - fixed manufacturer image linking, added missing condition
+
 ## 1.9.1
 * Enhancement - added backup plugins compatibility: BackupBuddy, UpdraftPlus - Backup/Restore
 * Info - marked BackWPup as incompatible plugin
