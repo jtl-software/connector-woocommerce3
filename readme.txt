@@ -153,6 +153,9 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.9.3 =
+* Bugfix - CO-975 - Added default salutation 'Herr' if no salutation is present
+
 = 1.9.2 =
 * Bugfix - Stock level doubled when canceling order, added 'woocommerce_can_restore_order_stock' in status_change.push to prevent
 * Bugfix - fixed manufacturer image linking, added missing condition

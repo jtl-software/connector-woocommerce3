@@ -233,6 +233,10 @@ class CustomerOrder extends BaseController
                         $salutation = ucfirst(mb_strtolower($firstName));
                         $firstName = $name->getMiddlename();
                     }
+                    $salutation = trim($salutation);
+                    if (empty($salutation)) {
+                        $salutation = 'Herr';
+                    }
 
                     $customerOrder->addAttribute(
                         (new CustomerOrderAttr())
