@@ -198,6 +198,8 @@ class ProductPrice extends BaseController
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 if (count($bulkPrices) > 0) {
+
+                    $bulkPrices = Util::setBulkPricesQuantityTo($bulkPrices);
                     
                     $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
                     $metaProductId = $product->get_id();

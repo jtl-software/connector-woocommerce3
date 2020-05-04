@@ -2,11 +2,11 @@
 Contributors: papryk, ntbyk, chakratos, drieschel, messtech
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.2
-Requires PHP: 5.6.4
+Tested up to: 5.3
+Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 3.6
-Stable tag: 1.8.4.4
+WC tested up to: 4.0
+Stable tag: 1.9.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -153,7 +153,28 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.9.2 =
+* Bugfix - Stock level doubled when canceling order, added 'woocommerce_can_restore_order_stock' in status_change.push to prevent
+* Bugfix - fixed manufacturer image linking, added missing condition
+
+= 1.9.1 =
+* Enhancement - CO-931 - Added support for VR pay eCommerce - WooCommerce plugin
+* Enhancement - added backup plugins compatibility: BackupBuddy, UpdraftPlus - Backup/Restore
+* Info - marked BackWPup as incompatible plugin
+
+= 1.9.0 =
+* Enhancement - CO-915 - Added compatibility with WooCommerce 4
+* Minor fixes related to code inspections
+* Removed stripslashes_deep call on super globals
+
+= 1.8.5 =
+* Increased minimum PHP version to 7.1.3
+* Increased versions tested up to WooCommerce: 3.9 and Wordpress: 5.3
+* Fix - CO-862 - VAT ID on customer is not always set
+* Fix - CO-707 - Unified tax rates in global data pull
+
 = 1.8.4 =
+* Fix - DHL for Woocommerce invalid argument fix
 * Fix - CO-820 - Coupon vat rate is not set
 * Fix - CO-807 - Variable products are not imported correctly
 * Enhancement - CO-750 - Added product Upsells field to synchronization, Crossselling field fixed

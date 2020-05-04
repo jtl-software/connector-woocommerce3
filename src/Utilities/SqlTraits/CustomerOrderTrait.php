@@ -9,6 +9,7 @@
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Util;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 trait CustomerOrderTrait
 {
@@ -26,6 +27,10 @@ trait CustomerOrderTrait
         }
 
         $status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+            $status .= ", 'wc-payment-accepted'";
+        }
 
         if (Util::includeCompletedOrders()) {
             $status .= ", 'wc-completed'";
