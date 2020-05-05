@@ -22,7 +22,7 @@ class Payment extends BaseController
     {
         $payments = [];
 
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
+        $includeCompletedOrders = Util::includeCompletedOrders();
 
         $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($limit, $includeCompletedOrders));
 
@@ -62,7 +62,7 @@ class Payment extends BaseController
 
     protected function getStats()
     {
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
+        $includeCompletedOrders = Util::includeCompletedOrders();
 
         return (int)$this->database->queryOne(SqlHelper::paymentCompletedPull(null, $includeCompletedOrders));
     }
