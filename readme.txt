@@ -6,7 +6,7 @@ Tested up to: 5.3
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.0
-Stable tag: 1.9.2
+Stable tag: 1.9.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.9.3 =
+* Enhancement - Added default value for 'dhl_wunschpaket_neighbour_address_addition' attribute in format: {shipping address zipcode} {shipping address city}
+* Bugfix - CO-981 - Fixed saving meta fields from B2B market cause variable product type was switched to simple
+* Bugfix - CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
+* Bugfix - CO-855 - Fixed connector setting: 'Abgeschlossene Bestellungen importieren' doesnt't work
 
 = 1.9.2 =
 * Bugfix - Stock level doubled when canceling order, added 'woocommerce_can_restore_order_stock' in status_change.push to prevent

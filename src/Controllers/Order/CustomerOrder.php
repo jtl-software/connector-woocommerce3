@@ -215,13 +215,22 @@ class CustomerOrder extends BaseController
                                 ->setValue($streetParts['number'])
                         );
                     }
+
+                    $addressAddition = sprintf('%s %s',
+                        $customerOrder->getShippingAddress()->getZipCode(),
+                        $customerOrder->getShippingAddress()->getCity()
+                    );
+
                     if (isset($parts[1])) {
-                        $customerOrder->addAttribute(
-                            (new CustomerOrderAttr())
-                                ->setKey('dhl_wunschpaket_neighbour_address_addition')
-                                ->setValue($parts[1])
-                        );
+                        $addressAddition = $parts[1];
                     }
+
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_neighbour_address_addition')
+                            ->setValue($addressAddition)
+                    );
+
                     break;
                 case 'pr_dhl_preferred_neighbour_name':
                     $name = (new Parser())->parse($optionValue);
@@ -232,6 +241,10 @@ class CustomerOrder extends BaseController
                     if(preg_match("/(herr|frau)/i",$firstName)){
                         $salutation = ucfirst(mb_strtolower($firstName));
                         $firstName = $name->getMiddlename();
+                    }
+                    $salutation = trim($salutation);
+                    if (empty($salutation)) {
+                        $salutation = 'Herr';
                     }
 
                     $customerOrder->addAttribute(

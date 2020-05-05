@@ -88,11 +88,20 @@ class ProductB2BMarketFields extends BaseController
      */
     protected function updateMinimumQuantityMetaFields($quantityObject, \WC_Product $wcProduct, $groupSlug)
     {
-        $wcProduct->update_meta_data(sprintf("bm_%s_min_quantity", $groupSlug),
-            (float)$quantityObject->getMinimumOrderQuantity());
-        $wcProduct->update_meta_data(sprintf("bm_%s_step_quantity", $groupSlug),
-            (float)$quantityObject->getPackagingQuantity());
-        $wcProduct->save();
+        $minQuantityKey = sprintf("bm_%s_min_quantity", $groupSlug);
+        \update_post_meta(
+            $wcProduct->get_id(),
+            $minQuantityKey,
+            (float)$quantityObject->getMinimumOrderQuantity(),
+            \get_post_meta($wcProduct->get_id(), $minQuantityKey, true)
+        );
+        $stepQuantityKey = sprintf("bm_%s_step_quantity", $groupSlug);
+        \update_post_meta(
+            $wcProduct->get_id(),
+            $stepQuantityKey,
+            (float)$quantityObject->getPackagingQuantity(),
+            \get_post_meta($wcProduct->get_id(), $stepQuantityKey, true)
+        );
     }
 
     /**

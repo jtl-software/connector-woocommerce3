@@ -2,6 +2,12 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.3
+* Enhancement - Added default value for 'dhl_wunschpaket_neighbour_address_addition' attribute in format: {shipping address zipcode} {shipping address city}
+* Bugfix - CO-981 - Fixed saving meta fields from B2B market cause variable product type was switched to simple
+* Bugfix - CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
+* Bugfix - CO-855 - Fixed connector setting: 'Abgeschlossene Bestellungen importieren' doesnt't work 
+
 ## 1.9.2
 * Bugfix - Stock level doubled when canceling order, added 'woocommerce_can_restore_order_stock' in status_change.push to prevent
 * Bugfix - fixed manufacturer image linking, added missing condition
