@@ -14,6 +14,7 @@ use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use ReflectionClass;
 
 abstract class BaseController extends Controller
@@ -28,6 +29,11 @@ abstract class BaseController extends Controller
      * @var string
      */
     protected $controllerName;
+
+    /**
+     * @var bool
+     */
+    protected $canUseWcml = false;
     
     /**
      * BaseController constructor.
@@ -36,6 +42,11 @@ abstract class BaseController extends Controller
     {
         parent::__construct();
         $this->database = Db::getInstance();
+
+        if (SupportedPlugins::areWcmlEnabled() === true) {
+            $this->canUseWcml = (bool)wpml_get_setting_filter(false, 'setup_complete');
+        }
+
         try {
             $reflect = new ReflectionClass($this);
             $shortName = $reflect->getShortName();
@@ -43,6 +54,14 @@ abstract class BaseController extends Controller
         } catch (\ReflectionException $exception) {
             //
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function canUseWcml(): bool
+    {
+        return $this->canUseWcml;
     }
     
     /**

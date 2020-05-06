@@ -9,7 +9,7 @@ namespace JtlWooCommerceConnector\Utilities;
 final class SupportedPlugins
 {
     //THEMESPECIALS
-    
+
     //Compatible
     const PLUGIN_B2B_MARKET = 'B2B Market';
     const PLUGIN_GERMAN_MARKET = 'German Market';
@@ -29,6 +29,11 @@ final class SupportedPlugins
     const PLUGIN_BACKUPBUDDY = 'BackupBuddy';
     const PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE = 'UpdraftPlus - Backup/Restore';
     const PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE = 'VR pay eCommerce - WooCommerce';
+    const PLUGIN_WPML_MULTILINGUAL_CMS = 'WPML Multilingual CMS';
+    const PLUGIN_WPML_STRING_TRANSLATION = 'WPML String Translation';
+    const PLUGIN_WPML_MEDIA = 'WPML Media';
+    const PLUGIN_WPML_TRANSLATION_MANAGEMENT = 'WPML Translation Management';
+    const PLUGIN_WOOCOMMERCE_MULTILUNGUAL = 'WooCommerce Multilingual';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -62,8 +67,13 @@ final class SupportedPlugins
         self::PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE,
         self::PLUGIN_BACKUPBUDDY,
         self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
+        self::PLUGIN_WPML_MULTILINGUAL_CMS,
+        self::PLUGIN_WPML_STRING_TRANSLATION,
+        self::PLUGIN_WPML_MEDIA,
+        self::PLUGIN_WPML_TRANSLATION_MANAGEMENT,
+        self::PLUGIN_WOOCOMMERCE_MULTILUNGUAL
     ];
-    
+
     const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
         self::PLUGIN_CERBER_SECURITY,
@@ -76,7 +86,7 @@ final class SupportedPlugins
         self::PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET,
         self::PLUGIN_BACKWPUP,
     ];
-    
+
     /**
      * Returns all active and validated plugins
      *
@@ -86,29 +96,29 @@ final class SupportedPlugins
     {
         $plugins = get_plugins();
         $plArr = [];
-        
+
         foreach (wp_get_active_and_valid_plugins() as $activePl) {
             $tmp = explode('/', $activePl);
             $count = count($tmp) - 1;
-            
+
             $string = '';
-            
+
             if (strcmp('plugins', $tmp[$count - 1]) !== 0) {
                 $string .= (string)$tmp[$count - 1];
                 $string .= '/';
             }
-            
+
             $string .= (string)$tmp[$count];
-            
+
             if (array_key_exists($string, $plugins)) {
                 $plArr[] = $plugins[$string];
             }
-            
+
         }
-        
+
         return $plArr;
     }
-    
+
     /**
      * Returns all supported active and validated plugins
      *
@@ -127,14 +137,14 @@ final class SupportedPlugins
                 $tmp[] = $plugin['Name'];
             }
         }
-        
+
         if ($asString) {
             return implode(', ', $tmp);
         } else {
             return $plugins;
         }
     }
-    
+
     /**
      * Returns all not supported active plugins or all not supported plugins
      *
@@ -154,7 +164,7 @@ final class SupportedPlugins
                 $tmp[] = $plugin['Name'];
             }
         }
-        
+
         if ($asString) {
             if ($all) {
                 return implode(', ', self::INCOMPATIBLE_PLUGINS);
@@ -165,11 +175,11 @@ final class SupportedPlugins
             if ($all && $asArray) {
                 return self::INCOMPATIBLE_PLUGINS;
             }
-            
+
             return $plugins;
         }
     }
-    
+
     /**
      * Check if Special PLugin is Installed
      *
@@ -181,28 +191,62 @@ final class SupportedPlugins
     {
         $plArray = self::getInstalledAndActivated();
         $active = false;
-        
+
         foreach ($plArray as $plugin) {
             if (strcmp($pluginName, $plugin['Name']) === 0) {
                 $active = true;
             }
         }
-        
+
         return $active;
     }
-    
+
+    /**
+     * @param string ...$pluginNames
+     * @return bool|string
+     */
+    public static function areAllActive(string ...$pluginNames): bool
+    {
+        $result = true;
+        foreach ($pluginNames as $pluginName) {
+            $result &= self::isActive($pluginName);
+        }
+        return (bool) $result;
+    }
+
+    /**
+     * @param string $pluginName
+     * @return mixed|null
+     */
     public static function getVersionOf($pluginName = 'WooCommerce'){
         $plArray = self::getInstalledAndActivated();
-        
+
         foreach ($plArray as $plugin) {
             if (strcmp($pluginName, $plugin['Name']) === 0) {
                 return $plugin['Version'];
             }
         }
-        
+
         return null;
     }
-    
+
+    /**
+     * @return bool|string
+     */
+    public static function areWcmlEnabled(): bool
+    {
+        //enabled doesnt mean it's configured
+        $plugins = [
+            self::PLUGIN_WPML_MULTILINGUAL_CMS,
+            self::PLUGIN_WPML_STRING_TRANSLATION,
+            self::PLUGIN_WPML_MEDIA,
+            self::PLUGIN_WPML_TRANSLATION_MANAGEMENT,
+            self::PLUGIN_WOOCOMMERCE_MULTILUNGUAL
+        ];
+
+        return self::areAllActive(...$plugins);
+    }
+
     /**
      * @param string $name
      *
@@ -212,11 +256,11 @@ final class SupportedPlugins
     {
         $installed = false;
         $themes = wp_get_themes();
-        
+
         if (is_array($themes)) {
             $installed = array_key_exists((string)$name, $themes);
         }
-        
+
         return $installed;
     }
 }
