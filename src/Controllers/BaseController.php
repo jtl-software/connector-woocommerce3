@@ -29,11 +29,6 @@ abstract class BaseController extends Controller
      * @var string
      */
     protected $controllerName;
-
-    /**
-     * @var bool
-     */
-    protected $canUseWcml = false;
     
     /**
      * BaseController constructor.
@@ -42,10 +37,6 @@ abstract class BaseController extends Controller
     {
         parent::__construct();
         $this->database = Db::getInstance();
-
-        if (SupportedPlugins::areWcmlEnabled() === true) {
-            $this->canUseWcml = (bool)wpml_get_setting_filter(false, 'setup_complete');
-        }
 
         try {
             $reflect = new ReflectionClass($this);
@@ -56,14 +47,6 @@ abstract class BaseController extends Controller
         }
     }
 
-    /**
-     * @return bool
-     */
-    public function canUseWcml(): bool
-    {
-        return $this->canUseWcml;
-    }
-    
     /**
      * Method called on a pull request.
      *

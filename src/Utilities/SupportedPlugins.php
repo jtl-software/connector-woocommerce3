@@ -203,7 +203,7 @@ final class SupportedPlugins
 
     /**
      * @param string ...$pluginNames
-     * @return bool|string
+     * @return bool
      */
     public static function areAllActive(string ...$pluginNames): bool
     {
@@ -228,23 +228,6 @@ final class SupportedPlugins
         }
 
         return null;
-    }
-
-    /**
-     * @return bool|string
-     */
-    public static function areWcmlEnabled(): bool
-    {
-        //enabled doesnt mean it's configured
-        $plugins = [
-            self::PLUGIN_WPML_MULTILINGUAL_CMS,
-            self::PLUGIN_WPML_STRING_TRANSLATION,
-            self::PLUGIN_WPML_MEDIA,
-            self::PLUGIN_WPML_TRANSLATION_MANAGEMENT,
-            self::PLUGIN_WOOCOMMERCE_MULTILUNGUAL
-        ];
-
-        return self::areAllActive(...$plugins);
     }
 
     /**

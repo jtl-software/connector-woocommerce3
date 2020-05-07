@@ -21,7 +21,7 @@ class GlobalData extends BaseController
     public function pullData()
     {
         $globalData = (new GlobalDataModel())
-            ->addCurrency((new Currency())->pullData())
+            ->setCurrencies((new Currency())->pullData())
             ->addLanguage((new Language())->pullData())
             ->setProductTypes((new ProductType())->pullData())
             ->setShippingClasses((new ShippingClass())->pullData())
@@ -32,19 +32,7 @@ class GlobalData extends BaseController
         foreach ((new CustomerGroup)->pullData() as $group) {
             $globalData->addCustomerGroup($group);
         }
-        
-        if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
-            //Wawi überträgt Netto
-            //   \update_option('woocommerce_prices_include_tax', 'no', true);
-            //Preise im Shop mit hinterlegter Steuer
-            // \update_option('woocommerce_tax_display_shop', 'incl', true);   //MOVED PROD PUSH
-            //Preise im Cart mit hinterlegter Steuer
-            //\update_option('woocommerce_tax_display_cart', 'incl', true);
-            
-            /*\update_option('woocommerce_dimension_unit', 'cm', true);
-            \update_option('woocommerce_weight_unit', 'kg', true);*/
-        }
-        
+
         if (
             (
                 SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
