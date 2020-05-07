@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Wpml;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use \woocommerce_wpml;
+use \SitePress;
 
 /**
  * Class WpmlUtils
@@ -22,6 +23,14 @@ class WpmlUtils
             return false;
         }
         return true;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getActiveLanguages(): array
+    {
+        return self::getSitepress()->get_active_languages();
     }
 
     /**
@@ -58,6 +67,15 @@ class WpmlUtils
     {
         global $woocommerce_wpml;
         return $woocommerce_wpml;
+    }
+
+    /**
+     * @return SitePress
+     */
+    public static function getSitepress(): SitePress
+    {
+        global $sitepress;
+        return $sitepress;
     }
 
     /**

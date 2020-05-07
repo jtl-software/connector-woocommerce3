@@ -2,6 +2,8 @@
 
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
+use jtl\Connector\Model\Currency;
+use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Wpml\WpmlUtils;
 use phpmock\MockBuilder;
@@ -18,15 +20,9 @@ class WpmlCurrencyTest extends WpmlTestCase
      */
     public function testGetCurrencies()
     {
-        $builder = new MockBuilder();
-        $defaultCurrency = $builder->setNamespace('JtlWooCommerceConnector\Wpml')
-            ->setName('wcml_get_woocommerce_currency_option')
-            ->setFunction(function () {
-                return 'USD';
-            })->build();
-        $defaultCurrency->enable();
-
         $wcmlMock = \Mockery::mock(woocommerce_wpml::class);
+        $wcmlMock->shouldReceive('get_multi_currency->get_default_currency')
+            ->andReturn("USD");
         $wcmlMock->shouldReceive('get_multi_currency->get_currencies')
             ->andReturn([
                 'EUR' => [
@@ -67,5 +63,53 @@ class WpmlCurrencyTest extends WpmlTestCase
 
         $this->assertCount(2, $currencies);
         $this->assertEquals(true, $currencies[1]->getIsDefault());
+    }
+
+    /**
+     *
+     */
+    public function testSetCurrencies()
+    {
+        $wcmlMock = \Mockery::mock(woocommerce_wpml::class);
+        $wcmlMock->shouldReceive('get_multi_currency->enable');
+        $wcmlMock->shouldReceive('update_settings');
+
+        $wpmlUtilsMock = \Mockery::mock("alias:" . WpmlUtils::class);
+        $wpmlUtilsMock->shouldReceive('getWcml')->andReturn($wcmlMock);
+        $wpmlUtilsMock->shouldReceive('getActiveLanguages')->andReturn([
+            'en' => [
+                'code' => 'en'
+            ],
+            'de' => [
+                'code' => 'de'
+            ]
+        ]);
+
+        $jtlCurrencies = [
+            (new Currency())->setId(new Identity(strtolower('PLN')))
+                ->setName('PLN')
+                ->setDelimiterCent(',')
+                ->setDelimiterThousand('.')
+                ->setIso('PLN')
+                ->setFactor((float)4.5)
+                ->setNameHtml('PLN')
+                ->setHasCurrencySignBeforeValue(false)
+                ->setIsDefault(false),
+            (new Currency())->setId(new Identity(strtolower('EUR')))
+                ->setName('EUR')
+                ->setDelimiterCent(',')
+                ->setDelimiterThousand('.')
+                ->setIso('EUR')
+                ->setFactor((float)1)
+                ->setNameHtml('EUR')
+                ->setHasCurrencySignBeforeValue(false)
+                ->setIsDefault(true),
+        ];
+
+        $currency = new WpmlCurrency();
+        $currencies = $currency->setCurrencies(...$jtlCurrencies);
+
+        $this->assertCount(2, $currencies);
+        $this->assertEquals(4.5, $currencies['PLN']['rate']);
     }
 }

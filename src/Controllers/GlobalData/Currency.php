@@ -11,6 +11,7 @@ use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Wpml\WpmlUtils;
 
 class Currency
 {
@@ -25,7 +26,7 @@ class Currency
     {
         $currencies = [];
 
-        if(WpmlCurrency::canUseMultiCurrency()){
+        if (WpmlCurrency::canUseMultiCurrency()) {
             $currencies = (new WpmlCurrency())->getCurrencies();
         } else {
             $iso = \get_woocommerce_currency();
@@ -45,6 +46,10 @@ class Currency
         return $currencies;
     }
 
+    /**
+     * @param array $currencies
+     * @return array
+     */
     public function pushData(array $currencies)
     {
         /** @var CurrencyModel $currency */
@@ -56,9 +61,14 @@ class Currency
             \update_option(self::ISO, $currency->getIso(), 'yes');
             \update_option(self::CENT_DELIMITER, $currency->getDelimiterCent(), 'yes');
             \update_option(self::THOUSAND_DELIMITER, $currency->getDelimiterThousand(), 'yes');
-            \update_option(self::SIGN_POSITION, $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right', 'yes');
+            \update_option(self::SIGN_POSITION, $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right',
+                'yes');
 
             break;
+        }
+
+        if (WpmlUtils::canUseWcml()) {
+            (new WpmlCurrency())->setCurrencies(...$currencies);
         }
 
         return $currencies;
