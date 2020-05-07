@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Wpml;
 
+use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use \woocommerce_wpml;
 
@@ -16,7 +17,8 @@ class WpmlUtils
      */
     public static function isMultiCurrencyEnabled(): bool
     {
-        if (self::getWcml()->settings['enable_multi_currency'] == WCML_MULTI_CURRENCIES_DISABLED) {
+        if (wcml_is_multi_currency_on() === false) {
+            WpmlLogger::getInstance()->writeLog("WPML multi-currency is not enabled.");
             return false;
         }
         return true;
@@ -37,7 +39,13 @@ class WpmlUtils
     {
         $canUse = self::isWpmlEnabled();
         if ($canUse === true) {
-            $canUse &= self::isSetupCompleted();
+
+            $isSetupCompleted = self::isSetupCompleted();
+            if ($isSetupCompleted === false) {
+                WpmlLogger::getInstance()->writeLog("WPML setup is not completed cannot use WPML.");
+            }
+
+            $canUse &= $isSetupCompleted;
         }
 
         return (bool)$canUse;
@@ -55,7 +63,7 @@ class WpmlUtils
     /**
      * @return bool
      */
-    public static function isSetupCompleted(): bool
+    protected static function isSetupCompleted(): bool
     {
         return (bool)wpml_get_setting_filter(false, 'setup_complete');
     }
@@ -63,7 +71,7 @@ class WpmlUtils
     /**
      * @return bool
      */
-    public static function isWpmlEnabled(): bool
+    protected static function isWpmlEnabled(): bool
     {
         $plugins = [
             SupportedPlugins::PLUGIN_WPML_MULTILINGUAL_CMS,

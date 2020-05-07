@@ -26,12 +26,11 @@ class WpmlCurrency
      */
     public function getCurrencies(): array
     {
-        $jtlCurrencies = [];
-
         $wcml = WpmlUtils::getWcml();
-        $currencies = $wcml->multi_currency->get_currencies('include_default = true');
+        $currencies = $wcml->get_multi_currency()->get_currencies('include_default = true');
 
-        $defaultCurrencyIso = \get_woocommerce_currency();
+        $defaultCurrencyIso = wcml_get_woocommerce_currency_option();
+        $jtlCurrencies = [];
 
         foreach($currencies as $currencyIso => $currency){
             $jtlCurrencies[] = (new Currency())
