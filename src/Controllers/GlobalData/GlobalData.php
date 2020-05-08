@@ -22,7 +22,7 @@ class GlobalData extends BaseController
     {
         $globalData = (new GlobalDataModel())
             ->setCurrencies((new Currency())->pullData())
-            ->addLanguage((new Language())->pullData())
+            ->setLanguages((new Language())->pullData())
             ->setProductTypes((new ProductType())->pullData())
             ->setShippingClasses((new ShippingClass())->pullData())
             ->setShippingMethods((new ShippingMethod())->pullData())

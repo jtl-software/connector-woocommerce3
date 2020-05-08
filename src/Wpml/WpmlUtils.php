@@ -34,6 +34,14 @@ class WpmlUtils
     }
 
     /**
+     * @return string
+     */
+    public static function getDefaultLanguage(): string
+    {
+        return wpml_get_default_language();
+    }
+
+    /**
      * @return bool
      */
     public static function isWpmlMediaEnabled(): bool

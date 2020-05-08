@@ -10,21 +10,31 @@ use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Utilities\Util;
+use JtlWooCommerceConnector\Wpml\WpmlLanguage;
+use JtlWooCommerceConnector\Wpml\WpmlUtils;
 
 class Language
 {
     use PullTrait;
 
-    public function pullData()
+    /**
+     * @return array
+     */
+    public function pullData(): array
     {
-        $locale = \get_locale();
-
-        return (new \jtl\Connector\Model\Language())
-            ->setId(new Identity(Util::getInstance()->mapLanguageIso($locale)))
-            ->setNameGerman($this->nameGerman($locale))
-            ->setNameEnglish($this->nameEnglish($locale))
-            ->setLanguageISO(Util::getInstance()->mapLanguageIso($locale))
-            ->setIsDefault(true);
+        if (WpmlUtils::canUseWcml()) {
+            return (new WpmlLanguage())->getLanguages();
+        } else {
+            $locale = \get_locale();
+            return [
+                (new \jtl\Connector\Model\Language())
+                    ->setId(new Identity(Util::getInstance()->mapLanguageIso($locale)))
+                    ->setNameGerman($this->nameGerman($locale))
+                    ->setNameEnglish($this->nameEnglish($locale))
+                    ->setLanguageISO(Util::getInstance()->mapLanguageIso($locale))
+                    ->setIsDefault(true)
+            ];
+        }
     }
 
     protected function nameGerman($locale)
