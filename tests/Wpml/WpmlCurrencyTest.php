@@ -4,8 +4,8 @@ namespace JtlWooCommerceConnector\Tests\Wpml;
 
 use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 use JtlWooCommerceConnector\Tests\TestCase;
 use woocommerce_wpml;
 
@@ -55,10 +55,10 @@ class WpmlCurrencyTest extends TestCase
                 ],
 
             ]);
-        $wpmlUtilsMock = \Mockery::mock("alias:" . WpmlUtils::class);
-        $wpmlUtilsMock->shouldReceive('getWcml')->andReturn($wcmlMock);
+        $wpmlPluginMock = \Mockery::mock(Wpml::class);
+        $wpmlPluginMock->shouldReceive('getWcml')->andReturn($wcmlMock);
 
-        $currency = new WpmlCurrency();
+        $currency = new WpmlCurrency($wpmlPluginMock);
         $currencies = $currency->getCurrencies();
 
         $this->assertCount(2, $currencies);
@@ -74,9 +74,9 @@ class WpmlCurrencyTest extends TestCase
         $wcmlMock->shouldReceive('get_multi_currency->enable');
         $wcmlMock->shouldReceive('update_settings');
 
-        $wpmlUtilsMock = \Mockery::mock("alias:" . WpmlUtils::class);
-        $wpmlUtilsMock->shouldReceive('getWcml')->andReturn($wcmlMock);
-        $wpmlUtilsMock->shouldReceive('getActiveLanguages')->andReturn([
+        $wpmlPluginMock = \Mockery::mock(Wpml::class);
+        $wpmlPluginMock->shouldReceive('getWcml')->andReturn($wcmlMock);
+        $wpmlPluginMock->shouldReceive('getActiveLanguages')->andReturn([
             'en' => [
                 'code' => 'en'
             ],
@@ -106,7 +106,7 @@ class WpmlCurrencyTest extends TestCase
                 ->setIsDefault(true),
         ];
 
-        $currency = new WpmlCurrency();
+        $currency = new WpmlCurrency($wpmlPluginMock);
         $currencies = $currency->setCurrencies(...$jtlCurrencies);
 
         $this->assertCount(2, $currencies);

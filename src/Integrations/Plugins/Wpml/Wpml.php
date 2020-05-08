@@ -2,21 +2,22 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use \woocommerce_wpml;
-use \SitePress;
+use woocommerce_wpml;
+use SitePress;
 
 /**
- * Class WpmlUtils
+ * Class Wpml
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
-class WpmlUtils
+class Wpml extends AbstractPlugin
 {
     /**
      * @return bool
      */
-    public static function isMultiCurrencyEnabled(): bool
+    public function isMultiCurrencyEnabled(): bool
     {
         if (wcml_is_multi_currency_on() === false) {
             WpmlLogger::getInstance()->writeLog("WPML multi-currency is not enabled.");
@@ -28,15 +29,15 @@ class WpmlUtils
     /**
      * @return array
      */
-    public static function getActiveLanguages(): array
+    public function getActiveLanguages(): array
     {
-        return self::getSitepress()->get_active_languages();
+        return $this->getSitepress()->get_active_languages();
     }
 
     /**
      * @return string
      */
-    public static function getDefaultLanguage(): string
+    public function getDefaultLanguage(): string
     {
         return wpml_get_default_language();
     }
@@ -44,7 +45,7 @@ class WpmlUtils
     /**
      * @return bool
      */
-    public static function isWpmlMediaEnabled(): bool
+    public function isWpmlMediaEnabled(): bool
     {
         return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA);
     }
@@ -52,12 +53,12 @@ class WpmlUtils
     /**
      * @return bool
      */
-    public static function canUseWcml(): bool
+    public function canUseWcml(): bool
     {
-        $canUse = self::isWpmlEnabled();
+        $canUse = $this->isWpmlEnabled();
         if ($canUse === true) {
 
-            $isSetupCompleted = self::isSetupCompleted();
+            $isSetupCompleted = $this->isSetupCompleted();
             if ($isSetupCompleted === false) {
                 WpmlLogger::getInstance()->writeLog("WPML setup is not completed cannot use WPML.");
             }
@@ -71,7 +72,7 @@ class WpmlUtils
     /**
      * @return woocommerce_wpml
      */
-    public static function getWcml(): woocommerce_wpml
+    public function getWcml(): woocommerce_wpml
     {
         global $woocommerce_wpml;
         return $woocommerce_wpml;
@@ -80,7 +81,7 @@ class WpmlUtils
     /**
      * @return SitePress
      */
-    public static function getSitepress(): SitePress
+    public function getSitepress(): SitePress
     {
         global $sitepress;
         return $sitepress;
@@ -89,7 +90,7 @@ class WpmlUtils
     /**
      * @return bool
      */
-    protected static function isSetupCompleted(): bool
+    protected function isSetupCompleted(): bool
     {
         return (bool)wpml_get_setting_filter(false, 'setup_complete');
     }
@@ -97,7 +98,7 @@ class WpmlUtils
     /**
      * @return bool
      */
-    protected static function isWpmlEnabled(): bool
+    protected function isWpmlEnabled(): bool
     {
         $plugins = [
             SupportedPlugins::PLUGIN_WPML_MULTILINGUAL_CMS,

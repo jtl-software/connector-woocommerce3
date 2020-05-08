@@ -5,13 +5,14 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Language;
+use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WpmlLanguage
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
-class WpmlLanguage
+class WpmlLanguage extends AbstractComponent
 {
     /**
      * @return Language[]
@@ -20,8 +21,8 @@ class WpmlLanguage
     {
         $jtlLanguages = [];
 
-        $defaultLanguage = WpmlUtils::getDefaultLanguage();
-        $activeLanguages = WpmlUtils::getActiveLanguages();
+        $defaultLanguage = $this->plugin->getDefaultLanguage();
+        $activeLanguages = $this->plugin->getActiveLanguages();
 
         foreach ($activeLanguages as $activeLanguage) {
             $jtlLanguages[] = (new Language())

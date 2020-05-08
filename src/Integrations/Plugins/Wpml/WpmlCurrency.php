@@ -4,22 +4,22 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
+use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\ComponentInterface;
 
 /**
  * Class WpmlCurrency
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
-class WpmlCurrency
+class WpmlCurrency extends AbstractComponent
 {
-
     /**
      * @return bool
      */
-    public static function canUseMultiCurrency()
+    public function canUseMultiCurrency(): bool
     {
-        return
-            WpmlUtils::canUseWcml() &&
-            WpmlUtils::isMultiCurrencyEnabled();
+        return (bool)($this->plugin->canUseWcml() &&
+            $this->plugin->isMultiCurrencyEnabled());
     }
 
     /**
@@ -27,7 +27,7 @@ class WpmlCurrency
      */
     public function getCurrencies(): array
     {
-        $wcml = WpmlUtils::getWcml();
+        $wcml = $this->plugin->getWcml();
         $currencies = $wcml->get_multi_currency()->get_currencies(true);
 
         $defaultCurrencyIso = $wcml->get_multi_currency()->get_default_currency();
@@ -40,7 +40,7 @@ class WpmlCurrency
                 ->setDelimiterCent($currency['decimal_sep'])
                 ->setDelimiterThousand($currency['thousand_sep'])
                 ->setIso($currencyIso)
-                ->setFactor((float) $currency['rate'])
+                ->setFactor((float)$currency['rate'])
                 ->setNameHtml($currencyIso)
                 ->setHasCurrencySignBeforeValue($currency['position'] === 'left')
                 ->setIsDefault($defaultCurrencyIso === $currencyIso);
@@ -55,12 +55,12 @@ class WpmlCurrency
      */
     public function setCurrencies(Currency ...$jtlCurrencies): array
     {
-        $wcml = WpmlUtils::getWcml();
+        $wcml = $this->plugin->getWcml();
         $wcml->get_multi_currency()->enable();
 
-        $activeLanguages = WpmlUtils::getActiveLanguages();
+        $activeLanguages = $this->plugin->getActiveLanguages();
         $languages = [];
-        foreach($activeLanguages as $activeLanguage){
+        foreach ($activeLanguages as $activeLanguage) {
             $languages[$activeLanguage['code']] = 1;
         }
 
@@ -76,7 +76,7 @@ class WpmlCurrency
                 'rounding' => 'disabled',
                 'rounding_increment' => 1,
                 'auto_subtract' => 0,
-                'languages'=>$languages
+                'languages' => $languages
             ];
         }
 

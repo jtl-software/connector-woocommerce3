@@ -12,6 +12,8 @@ use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
+use JtlWooCommerceConnector\Integrations\IntegrationsManager;
+use JtlWooCommerceConnector\Integrations\Plugins\PluginsManager;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -29,7 +31,12 @@ abstract class BaseController extends Controller
      * @var string
      */
     protected $controllerName;
-    
+
+    /**
+     * @var PluginsManager
+     */
+    protected $pluginManager;
+
     /**
      * BaseController constructor.
      */
@@ -38,6 +45,9 @@ abstract class BaseController extends Controller
         parent::__construct();
         $this->database = Db::getInstance();
 
+        $integrationsManager = new IntegrationsManager();
+        $this->pluginManager = $integrationsManager->getPluginsManager();
+
         try {
             $reflect = new ReflectionClass($this);
             $shortName = $reflect->getShortName();
@@ -45,6 +55,14 @@ abstract class BaseController extends Controller
         } catch (\ReflectionException $exception) {
             //
         }
+    }
+
+    /**
+     * @return PluginsManager
+     */
+    public function getPluginManager(): PluginsManager
+    {
+        return $this->pluginManager;
     }
 
     /**

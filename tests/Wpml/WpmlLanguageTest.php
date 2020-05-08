@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Tests\TestCase;
 use JtlWooCommerceConnector\Utilities\Util;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
@@ -24,9 +25,9 @@ class WpmlLanguageTest extends TestCase
             'eng', 'ger'
         );
 
-        $wpmlUtilsMock = \Mockery::mock("alias:" . WpmlUtils::class);
-        $wpmlUtilsMock->shouldReceive('getDefaultLanguage')->andReturn('en');
-        $wpmlUtilsMock->shouldReceive('getActiveLanguages')->andReturn([
+        $wpmlPluginMock = \Mockery::mock(Wpml::class);
+        $wpmlPluginMock->shouldReceive('getDefaultLanguage')->andReturn('en');
+        $wpmlPluginMock->shouldReceive('getActiveLanguages')->andReturn([
             'en' => [
                 'default_locale' => 'en_GB',
                 'display_name' => 'English',
@@ -41,7 +42,7 @@ class WpmlLanguageTest extends TestCase
             ]
         ]);
 
-        $language = new WpmlLanguage();
+        $language = new WpmlLanguage($wpmlPluginMock);
         $languages = $language->getLanguages();
 
         $this->assertCount(2, $languages);

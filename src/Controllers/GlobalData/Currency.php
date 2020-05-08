@@ -8,12 +8,13 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\Currency as CurrencyModel;
 use jtl\Connector\Model\Identity;
+use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
-class Currency
+class Currency extends BaseController
 {
     use PullTrait, PushTrait;
 
@@ -26,8 +27,14 @@ class Currency
     {
         $currencies = [];
 
-        if (WpmlCurrency::canUseMultiCurrency()) {
-            $currencies = (new WpmlCurrency())->getCurrencies();
+        $wpmlCurrency = $this->getPluginManager()
+            ->get(Wpml::class)
+            ->getComponent(WpmlCurrency::class);
+
+        if (
+            $wpmlCurrency->canUseMultiCurrency()
+        ) {
+            $currencies = $wpmlCurrency->getCurrencies();
         } else {
             $iso = \get_woocommerce_currency();
 
@@ -49,6 +56,7 @@ class Currency
     /**
      * @param array $currencies
      * @return array
+     * @throws \Exception
      */
     public function pushData(array $currencies)
     {
@@ -67,8 +75,10 @@ class Currency
             break;
         }
 
-        if (WpmlUtils::canUseWcml()) {
-            (new WpmlCurrency())->setCurrencies(...$currencies);
+        $wpml = $this->getPluginManager()->get(Wpml::class);
+
+        if ($wpml->canUseWcml()) {
+            $wpml->getComponent(WpmlCurrency::class)->setCurrencies(...$currencies);
         }
 
         return $currencies;

@@ -8,22 +8,25 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
+use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Utilities\Util;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
-class Language
+class Language extends BaseController
 {
     use PullTrait;
 
     /**
      * @return array
+     * @throws \Exception
      */
     public function pullData(): array
     {
-        if (WpmlUtils::canUseWcml()) {
-            return (new WpmlLanguage())->getLanguages();
+        $wpml = $this->getPluginManager()->get(Wpml::class);
+        if ($wpml->canUseWcml()) {
+            return $wpml->getComponent(WpmlLanguage::class)->getLanguages();
         } else {
             $locale = \get_locale();
             return [
