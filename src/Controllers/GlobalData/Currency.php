@@ -10,8 +10,8 @@ use jtl\Connector\Model\Currency as CurrencyModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Wpml\WpmlUtils;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
 class Currency
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace JtlWooCommerceConnector\Wpml;
+namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
@@ -9,7 +9,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WpmlLanguage
- * @package JtlWooCommerceConnector\Wpml
+ * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlLanguage
 {

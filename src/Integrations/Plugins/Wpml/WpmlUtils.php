@@ -1,6 +1,6 @@
 <?php
 
-namespace JtlWooCommerceConnector\Wpml;
+namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -9,7 +9,7 @@ use \SitePress;
 
 /**
  * Class WpmlUtils
- * @package JtlWooCommerceConnector\Wpml
+ * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlUtils
 {

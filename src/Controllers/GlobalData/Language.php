@@ -10,8 +10,8 @@ use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Wpml\WpmlLanguage;
-use JtlWooCommerceConnector\Wpml\WpmlUtils;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
 class Language
 {
