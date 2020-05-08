@@ -2,20 +2,20 @@
 
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
+use JtlWooCommerceConnector\Tests\TestCase;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Wpml\WpmlLanguage;
-use JtlWooCommerceConnector\Wpml\WpmlUtils;
-use woocommerce_wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
 /**
  * Class WpmlLanguageTest
  * @package JtlWooCommerceConnector\Tests\Wpml
  */
-class WpmlLanguageTest extends WpmlTestCase
+class WpmlLanguageTest extends TestCase
 {
     /**
-     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
      */
     public function testGetLanguages()
     {

@@ -4,16 +4,16 @@ namespace JtlWooCommerceConnector\Tests\Wpml;
 
 use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Wpml\WpmlUtils;
-use phpmock\MockBuilder;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
+use JtlWooCommerceConnector\Tests\TestCase;
 use woocommerce_wpml;
 
 /**
  * Class WpmlCurrencyTest
  * @package JtlWooCommerceConnector\Tests\Wpml
  */
-class WpmlCurrencyTest extends WpmlTestCase
+class WpmlCurrencyTest extends TestCase
 {
     /**
      * @throws \phpmock\MockEnabledException

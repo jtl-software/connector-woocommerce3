@@ -1,10 +1,10 @@
 <?php
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
+use JtlWooCommerceConnector\Tests\TestCase;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
-use PHPUnit\Framework\TestCase;
 
 class UtilTest extends TestCase
 {
