@@ -18,7 +18,7 @@ class WpmlCurrency extends AbstractComponent
      */
     public function canUseMultiCurrency(): bool
     {
-        return (bool)($this->plugin->canUseWcml() &&
+        return (bool)($this->plugin->canBeUsed() &&
             $this->plugin->isMultiCurrencyEnabled());
     }
 

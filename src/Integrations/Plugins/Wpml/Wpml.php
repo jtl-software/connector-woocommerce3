@@ -4,9 +4,11 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use woocommerce_wpml;
 use SitePress;
+use wpdb;
 
 /**
  * Class Wpml
@@ -14,6 +16,11 @@ use SitePress;
  */
 class Wpml extends AbstractPlugin
 {
+    /**
+     * @var Db
+     */
+    protected $database;
+
     /**
      * @return bool
      */
@@ -53,7 +60,7 @@ class Wpml extends AbstractPlugin
     /**
      * @return bool
      */
-    public function canUseWcml(): bool
+    public function canBeUsed(): bool
     {
         $canUse = $this->isWpmlEnabled();
         if ($canUse === true) {
@@ -67,6 +74,15 @@ class Wpml extends AbstractPlugin
         }
 
         return (bool)$canUse;
+    }
+
+    /**
+     * @return wpdb
+     */
+    public function getWpDb(): wpdb
+    {
+        global $wpdb;
+        return $wpdb;
     }
 
     /**
@@ -85,6 +101,16 @@ class Wpml extends AbstractPlugin
     {
         global $sitepress;
         return $sitepress;
+    }
+
+    /**
+     * @param $termId
+     * @param $elementType
+     * @return bool|mixed|string|null
+     */
+    public function getElementTrid(int $termId, string $elementType)
+    {
+        return $this->getSitepress()->get_element_trid($termId, $elementType);
     }
 
     /**

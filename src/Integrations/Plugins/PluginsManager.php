@@ -2,6 +2,18 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
+use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTaxonomyTranslation;
+use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Utilities\Db;
+
 /**
  * Class PluginsManager
  * @package JtlWooCommerceConnector\Integrations\Plugins
@@ -14,11 +26,54 @@ class PluginsManager
     protected $pluginsList = [];
 
     /**
-     * @param PluginInterface $plugin
+     * @var Db
      */
-    public function addPlugin(PluginInterface $plugin)
+    protected $database;
+
+    /**
+     * PluginsManager constructor.
+     * @param Db $database
+     */
+    public function __construct(Db $database)
     {
+        $this->database = $database;
+
+        $this->addPlugin(
+            (new Wpml())->addComponents(
+                new WpmlCurrency(),
+                new WpmlLanguage(),
+                new WpmlCategory(),
+                new WpmlTaxonomyTranslation(),
+                new WpmlPerfectWooCommerceBrands()
+            )
+        )
+            ->addPlugin(new YoastSeo())
+            ->addPlugin(new PerfectWooCommerceBrands())
+            ->addPlugin(
+                (new WooCommerce())->addComponents(
+                    new WooCommerceCategory()
+                )
+            );
+    }
+
+    /**
+     * @return Db
+     */
+    public function getDatabase(): Db
+    {
+        return $this->database;
+    }
+
+    /**
+     * @param PluginInterface $plugin
+     * @return $this
+     */
+    public function addPlugin(PluginInterface $plugin): self
+    {
+        $plugin->setPluginsManager($this);
         $this->pluginsList[$plugin->getName()] = $plugin;
+
+        return $this;
     }
 
     /**

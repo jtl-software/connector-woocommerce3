@@ -27,7 +27,7 @@ class Currency extends BaseController
     {
         $currencies = [];
 
-        $wpmlCurrency = $this->getPluginManager()
+        $wpmlCurrency = $this->getPluginsManager()
             ->get(Wpml::class)
             ->getComponent(WpmlCurrency::class);
 
@@ -75,9 +75,9 @@ class Currency extends BaseController
             break;
         }
 
-        $wpml = $this->getPluginManager()->get(Wpml::class);
+        $wpml = $this->getPluginsManager()->get(Wpml::class);
 
-        if ($wpml->canUseWcml()) {
+        if ($wpml->canBeUsed()) {
             $wpml->getComponent(WpmlCurrency::class)->setCurrencies(...$currencies);
         }
 

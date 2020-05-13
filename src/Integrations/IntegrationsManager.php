@@ -3,9 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations;
 
 use JtlWooCommerceConnector\Integrations\Plugins\PluginsManager;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
+use JtlWooCommerceConnector\Utilities\Db;
 
 /**
  * Class IntegrationsManager
@@ -20,32 +18,19 @@ class IntegrationsManager
 
     /**
      * IntegrationsManager constructor.
+     * @param Db $database
      */
-    public function __construct()
+    public function __construct(Db $database)
     {
-        $this->pluginsManager = new PluginsManager();
-
-        $this->addWpmlPlugin();
+        $this->pluginsManager = new PluginsManager($database);
     }
 
     /**
-     * @return mixed
+     * @return PluginsManager
      */
-    public function getPluginsManager()
+    public function getPluginsManager(): PluginsManager
     {
         return $this->pluginsManager;
     }
 
-    /**
-     *
-     */
-    protected function addWpmlPlugin()
-    {
-        $wpml = new Wpml();
-
-        $wpml->addComponent(new WpmlCurrency($wpml));
-        $wpml->addComponent(new WpmlLanguage($wpml));
-
-        $this->pluginsManager->addPlugin($wpml);
-    }
 }

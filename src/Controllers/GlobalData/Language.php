@@ -24,8 +24,8 @@ class Language extends BaseController
      */
     public function pullData(): array
     {
-        $wpml = $this->getPluginManager()->get(Wpml::class);
-        if ($wpml->canUseWcml()) {
+        $wpml = $this->getPluginsManager()->get(Wpml::class);
+        if ($wpml->canBeUsed()) {
             return $wpml->getComponent(WpmlLanguage::class)->getLanguages();
         } else {
             $locale = \get_locale();

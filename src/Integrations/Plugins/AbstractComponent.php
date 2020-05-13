@@ -14,12 +14,13 @@ abstract class AbstractComponent implements ComponentInterface
     protected $plugin;
 
     /**
-     * AbstractComponent constructor.
      * @param PluginInterface $plugin
+     * @return $this
      */
-    public function __construct(PluginInterface $plugin)
+    public function setPlugin(PluginInterface $plugin)
     {
         $this->plugin = $plugin;
+        return $this;
     }
 
     /**

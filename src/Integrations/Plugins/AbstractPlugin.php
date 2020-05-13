@@ -14,21 +14,79 @@ abstract class AbstractPlugin implements PluginInterface
     protected $components = [];
 
     /**
-     * @param ComponentInterface $component
-     * @return mixed|void
+     * @var PluginsManager
      */
-    public function addComponent(ComponentInterface $component)
+    protected $pluginsManager;
+
+    /**
+     * @param ComponentInterface $component
+     * @return $this
+     */
+    public function addComponent(ComponentInterface $component): PluginInterface
     {
         $this->components[$component->getName()] = $component;
+        return $this;
+    }
+
+    /**
+     * @param ComponentInterface ...$components
+     * @return $this
+     */
+    public function addComponents(ComponentInterface ...$components): PluginInterface
+    {
+        foreach ($components as $component) {
+            $component->setPlugin($this);
+            $this->addComponent($component);
+        }
+
+        return $this;
     }
 
     /**
      * @param string $name
      * @return ComponentInterface
+     * @throws \Exception
      */
     public function getComponent(string $name): ComponentInterface
     {
+        if($this->hasComponent($name) === false){
+            throw new \Exception(sprintf("Cannot find component %s in plugin %s", $name, $this->getName()));
+        }
+
         return $this->components[$name];
+    }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function hasComponent(string $name): bool
+    {
+        return isset($this->components[$name]);
+    }
+
+    /**
+     * @return ComponentInterface[]
+     */
+    public function getComponents(): array
+    {
+        return $this->components;
+    }
+
+    /**
+     * @param PluginsManager $pluginsManager
+     */
+    public function setPluginsManager(PluginsManager $pluginsManager): void
+    {
+        $this->pluginsManager = $pluginsManager;
+    }
+
+    /**
+     * @return PluginsManager
+     */
+    public function getPluginsManager(): PluginsManager
+    {
+        return $this->pluginsManager;
     }
 
     /**
