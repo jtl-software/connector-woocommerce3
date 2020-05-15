@@ -104,13 +104,13 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @param $termId
-     * @param $elementType
-     * @return bool|mixed|string|null
+     * @param int $termId
+     * @param string $elementType
+     * @return int
      */
-    public function getElementTrid(int $termId, string $elementType)
+    public function getElementTrid(int $termId, string $elementType): int
     {
-        return $this->getSitepress()->get_element_trid($termId, $elementType);
+        return (int) $this->getSitepress()->get_element_trid($termId, $elementType);
     }
 
     /**

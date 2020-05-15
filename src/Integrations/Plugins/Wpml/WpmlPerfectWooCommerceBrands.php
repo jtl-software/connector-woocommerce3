@@ -2,7 +2,11 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use jtl\Connector\Core\Utilities\Language;
+use jtl\Connector\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 
 /**
  * Class WpmlPerfectWooCommerceBrands
@@ -21,7 +25,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
         $translations = $wpdb->prefix . 'icl_translations';
 
-        $sql = sprintf( "
+        $sql = sprintf("
             SELECT t.term_id, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.trid
             FROM `{$wpdb->terms}` t
             LEFT JOIN `{$wpdb->term_taxonomy}` tt ON t.term_id = tt.term_id
@@ -42,5 +46,56 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         );
 
         return $this->getPlugin()->getPluginsManager()->getDatabase()->query($sql);
+    }
+
+    /**
+     * @param Manufacturer $jtlManufacturer
+     * @throws \Exception
+     */
+    public function saveTranslations(Manufacturer $jtlManufacturer)
+    {
+        $mainTermId = (int)$jtlManufacturer->getId()->getEndpoint();
+
+        $termTranslations = $this->getPlugin()->getComponent(WpmlTermTranslation::class);
+
+        $elementType = 'tax_pwb-brand';
+
+        $trid = $this->getPlugin()->getElementTrid($mainTermId, $elementType);
+
+        $translation = $termTranslations->getTranslations($trid, $elementType);
+
+        foreach ($jtlManufacturer->getI18ns() as $manufacturerI18n) {
+
+            $languageCode = Language::convert(null, $manufacturerI18n->getLanguageISO());
+            if ($languageCode === $this->getPlugin()->getDefaultLanguage()) {
+                continue;
+            }
+
+            if (!isset($translation[$languageCode])) {
+                $result = $this->getPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class)
+                    ->createManufacturer($jtlManufacturer->getName(), $manufacturerI18n);
+            } else {
+                $manufacturerId = $translation[$languageCode]->term_id;
+
+                $result = $this->getPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class)
+                    ->updateManufacturer($manufacturerId, $jtlManufacturer->getName(), $manufacturerI18n);
+            }
+
+            if(isset($result['term_id'])) {
+                $manufacturerId = $result['term_id'];
+
+                $yoastSeo = $this->getPlugin()->getPluginsManager()->get(YoastSeo::class);
+                if ($yoastSeo->canBeUsed()) {
+                    $yoastSeo->setManufacturerSeoData((int)$manufacturerId, $manufacturerI18n);
+                }
+
+                $this->getPlugin()->getSitepress()->set_element_language_details(
+                    $manufacturerId,
+                    $elementType,
+                    $trid,
+                    $languageCode
+                );
+            }
+        }
     }
 }

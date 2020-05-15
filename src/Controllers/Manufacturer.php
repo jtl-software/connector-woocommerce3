@@ -6,6 +6,7 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Manufacturer as ManufacturerModel;
@@ -114,95 +115,44 @@ class Manufacturer extends BaseController
         return $manufacturers;
     }
 
-    protected function pushData(ManufacturerModel $manufacturer)
+    /**
+     * @param ManufacturerModel $jtlManufacturer
+     * @return ManufacturerModel
+     * @throws LanguageException
+     * @throws \Exception
+     */
+    protected function pushData(ManufacturerModel $jtlManufacturer)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
-            $meta = null;
-            $defaultAvailable = false;
+        $perfectWooCommerceBrands = $this->getPluginsManager()->get(PerfectWooCommerceBrands::class);
 
-            foreach ($manufacturer->getI18ns() as $i18n) {
-                $languageSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
-
-                if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                    $defaultAvailable = true;
-                }
-
-                if ($languageSet) {
-                    $meta = $i18n;
-                    break;
-                }
-            }
-
-            //Fallback 'ger' if incorrect language code was given
-            if ($meta === null && $defaultAvailable) {
-                foreach ($manufacturer->getI18ns() as $i18n) {
-                    if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                        $meta = $i18n;
+        if ($perfectWooCommerceBrands->canBeUsed()) {
+            $defaultLanguage = null;
+            foreach ($jtlManufacturer->getI18ns() as $i18n) {
+                if ($this->getWpml()->canBeUsed()) {
+                    if ($this->getWpml()->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+                        $defaultLanguage = $i18n;
+                        break;
                     }
-                }
-            }
-
-            if ($meta !== null) {
-
-                $name = wc_sanitize_taxonomy_name(substr(trim($manufacturer->getName()), 0, 27));
-
-                $term = get_term_by('slug', $name, 'pwb-brand');
-
-                remove_filter('pre_term_description', 'wp_filter_kses');
-
-                if ($term === false) {
-                    //Add term
-                    /** @var \WP_Term $newTerm */
-                    $newTerm = \wp_insert_term(
-                        $manufacturer->getName(),
-                        'pwb-brand',
-                        [
-                            'description' => $meta->getDescription(),
-                            'slug' => $name,
-                        ]
-                    );
-
-                    if ($newTerm instanceof WP_Error) {
-                        //  var_dump($newTerm);
-                        // die();
-                        $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
-                        WpErrorLogger::getInstance()->logError($error);
-                        WpErrorLogger::getInstance()->logError($newTerm);
-                    }
-                    $term = $newTerm;
-
-                    if (!$term instanceof \WP_Term) {
-                        if (array_key_exists('term_id', $term)) {
-                            $term = get_term_by('id', $term['term_id'], 'pwb-brand');
-                        }
-                    }
-
                 } else {
-
-                    wp_update_term($term->term_id, 'pwb-brand', [
-                        'name' => $manufacturer->getName(),
-                        'description' => $meta->getDescription(),
-                    ]);
+                    if (Util::getInstance()->getWooCommerceLanguage() === $i18n->getLanguageISO()) {
+                        $defaultLanguage = $i18n;
+                        break;
+                    }
                 }
+            }
 
-                add_filter('pre_term_description', 'wp_filter_kses');
+            if ($defaultLanguage !== null) {
+                $perfectWooCommerceBrands->saveManufacturer($jtlManufacturer, $defaultLanguage);
 
-                if ($term instanceof \WP_Term) {
-                    $manufacturer->getId()->setEndpoint($term->term_id);
-                    foreach ($manufacturer->getI18ns() as $i18n) {
-                        /** @var ManufacturerI18nModel $i18n */
-                        $i18n->getManufacturerId()->setEndpoint($term->term_id);
-                    }
-
-                    $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
-                    if ($yoastSeo->canBeUsed() && isset($i18n)) {
-                        $yoastSeo->setManufacturerSeoData((int)$term->term_id, $i18n);
-                    }
+                if ($this->getWpml()->canBeUsed()) {
+                    $this->getWpml()
+                        ->getComponent(WpmlPerfectWooCommerceBrands::class)
+                        ->saveTranslations($jtlManufacturer);
                 }
             }
         }
 
-        return $manufacturer;
+        return $jtlManufacturer;
     }
 
     protected function deleteData(ManufacturerModel $manufacturer)

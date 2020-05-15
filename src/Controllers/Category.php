@@ -6,6 +6,7 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\Identity;
@@ -15,7 +16,6 @@ use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
@@ -80,8 +80,7 @@ class Category extends BaseController
 
             if ($this->getWpml()->canBeUsed()) {
 
-                $wpmlTaxonomyTranslations = $this->getPluginsManager()
-                    ->get(Wpml::class)
+                $wpmlTaxonomyTranslations = $this->getWpml()
                     ->getComponent(WpmlTermTranslation::class);
 
                 $categoryTranslations = $wpmlTaxonomyTranslations
@@ -95,10 +94,7 @@ class Category extends BaseController
                     );
 
                     if (isset($term['term_id'])) {
-                        $i18n = $this
-                            ->getPluginsManager()
-                            ->get(WooCommerce::class)
-                            ->getComponent(WooCommerceCategory::class)
+                        $i18n = $wooCommerceCategoryComponent
                             ->createCategoryI18n(
                                 $category,
                                 Language::convert($translation->language_code),
@@ -123,7 +119,8 @@ class Category extends BaseController
     /**
      * @param CategoryModel $category
      * @return CategoryModel
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws LanguageException
+     * @throws \Exception
      */
     protected function pushData(CategoryModel $category)
     {
