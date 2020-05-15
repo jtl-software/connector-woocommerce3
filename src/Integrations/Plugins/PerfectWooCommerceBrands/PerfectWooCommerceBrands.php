@@ -6,6 +6,7 @@ use jtl\Connector\Model\Manufacturer;
 use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 /**
@@ -30,8 +31,12 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @return ManufacturerI18nModel
      * @throws \Exception
      */
-    public function createManufacturerI18n(Manufacturer $manufacturer, string $languageIso, string $description, int $termId): ManufacturerI18nModel
-    {
+    public function createManufacturerI18n(
+        Manufacturer $manufacturer,
+        string $languageIso,
+        string $description,
+        int $termId
+    ): ManufacturerI18nModel {
         $i18n = (new ManufacturerI18nModel())
             ->setManufacturerId($manufacturer->getId())
             ->setLanguageISO($languageIso)
@@ -49,5 +54,15 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         }
 
         return $i18n;
+    }
+
+    /**
+     * @param int $limit
+     * @return array
+     */
+    public function getManufacturers(int $limit): array
+    {
+        $sql = SqlHelper::manufacturerPull($limit);
+        return $this->getPluginsManager()->getDatabase()->query($sql);
     }
 }

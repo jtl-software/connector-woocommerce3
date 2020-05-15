@@ -42,7 +42,8 @@ class WpmlLanguageTest extends TestCase
             ]
         ]);
 
-        $language = new WpmlLanguage($wpmlPluginMock);
+        $language = new WpmlLanguage();
+        $language->setPlugin($wpmlPluginMock);
         $languages = $language->getLanguages();
 
         $this->assertCount(2, $languages);

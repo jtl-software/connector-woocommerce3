@@ -58,7 +58,8 @@ class WpmlCurrencyTest extends TestCase
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
         $wpmlPluginMock->shouldReceive('getWcml')->andReturn($wcmlMock);
 
-        $currency = new WpmlCurrency($wpmlPluginMock);
+        $currency = new WpmlCurrency();
+        $currency->setPlugin($wpmlPluginMock);
         $currencies = $currency->getCurrencies();
 
         $this->assertCount(2, $currencies);
@@ -106,7 +107,8 @@ class WpmlCurrencyTest extends TestCase
                 ->setIsDefault(true),
         ];
 
-        $currency = new WpmlCurrency($wpmlPluginMock);
+        $currency = new WpmlCurrency();
+        $currency->setPlugin($wpmlPluginMock);
         $currencies = $currency->setCurrencies(...$jtlCurrencies);
 
         $this->assertCount(2, $currencies);

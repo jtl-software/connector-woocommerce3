@@ -17,7 +17,7 @@ use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTaxonomyTranslation;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -50,7 +50,17 @@ class Manufacturer extends BaseController
 
         if ($perfectWooCommerceBrands->canBeUsed()) {
 
-            $manufacturerData = $this->getManufacturersData((int)$limit);
+            if ($this->getPluginsManager()->get(Wpml::class)->canBeUsed()) {
+                $manufacturerData = $this
+                    ->getPluginsManager()
+                    ->get(Wpml::class)
+                    ->getComponent(WpmlPerfectWooCommerceBrands::class)
+                    ->getManufacturers((int)$limit);
+
+            } else {
+                $manufacturerData = $perfectWooCommerceBrands->getManufacturers((int)$limit);
+            }
+
 
             foreach ($manufacturerData as $manufacturerDataSet) {
 
@@ -70,30 +80,27 @@ class Manufacturer extends BaseController
 
                     $wpmlTaxonomyTranslations = $this->getPluginsManager()
                         ->get(Wpml::class)
-                        ->getComponent(WpmlTaxonomyTranslation::class);
+                        ->getComponent(WpmlTermTranslation::class);
 
                     $manufacturerTranslations = $wpmlTaxonomyTranslations
                         ->getTranslations((int)$manufacturerDataSet['trid'], 'tax_pwb-brand');
 
                     foreach ($manufacturerTranslations as $languageCode => $translation) {
-                        if ($languageCode === $this->getWpml()->getDefaultLanguage()) {
-                            continue;
-                        }
 
                         $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
                             (int)$translation->term_id,
                             'pwb-brand'
                         );
 
-                        if ($term instanceof \WP_Term) {
+                        if (isset($term['term_id'])) {
                             $i18n = $this
                                 ->getPluginsManager()
                                 ->get(PerfectWooCommerceBrands::class)
                                 ->createManufacturerI18n(
                                     $manufacturer,
                                     Language::convert($translation->language_code),
-                                    $term->description,
-                                    (int)$term->id
+                                    $term['description'],
+                                    (int)$term['term_id']
                                 );
                             $manufacturer->addI18n($i18n);
                         }
@@ -105,28 +112,6 @@ class Manufacturer extends BaseController
         }
 
         return $manufacturers;
-    }
-
-    /**
-     * @param $limit
-     * @return array|null
-     * @throws \Exception
-     */
-    protected function getManufacturersData(int $limit)
-    {
-        if ($this->getPluginsManager()->get(Wpml::class)->canBeUsed()) {
-            $manufacturerData = $this
-                ->getPluginsManager()
-                ->get(Wpml::class)
-                ->getComponent(WpmlPerfectWooCommerceBrands::class)
-                ->getManufacturers($limit);
-
-        } else {
-            $sql = SqlHelper::manufacturerPull($limit);
-            $manufacturerData = $this->database->query($sql);
-        }
-
-        return $manufacturerData;
     }
 
     protected function pushData(ManufacturerModel $manufacturer)

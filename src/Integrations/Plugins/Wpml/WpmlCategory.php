@@ -82,22 +82,15 @@ class WpmlCategory extends AbstractComponent
     {
         $categoryTranslation = $this
             ->getPlugin()
-            ->getComponent(WpmlTaxonomyTranslation::class)
-            ->getTranslations($trid, self::PRODUCT_CATEGORY_TYPE);
+            ->getComponent(WpmlTermTranslation::class)
+            ->getTranslations($trid, self::PRODUCT_CATEGORY_TYPE, false);
 
         $translation = [];
         if (isset($categoryTranslation[$languageCode])) {
             $translationData = $categoryTranslation[$languageCode];
             $translation = $this->getPlugin()
-                ->getComponent(WpmlTaxonomyTranslation::class)
+                ->getComponent(WpmlTermTranslation::class)
                 ->getTranslatedTerm($translationData->term_id, 'product_cat');
-
-            if ($translation === false) {
-                $translation = [];
-            }
-            if (!is_array($translation) && $translation instanceof \WP_Term) {
-                $translation = $translation->to_array();
-            }
         }
         return $translation;
     }

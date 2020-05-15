@@ -30,7 +30,7 @@ abstract class AbstractPlugin implements PluginInterface
 
     /**
      * @param ComponentInterface ...$components
-     * @return $this
+     * @return PluginInterface
      */
     public function addComponents(ComponentInterface ...$components): PluginInterface
     {

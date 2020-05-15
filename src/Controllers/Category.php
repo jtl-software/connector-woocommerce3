@@ -17,7 +17,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTaxonomyTranslation;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -60,7 +60,7 @@ class Category extends BaseController
 
         $categoryData = $this->getCategoryData((int)$limit);
 
-        $wooCommerceCategory = $this->getPluginsManager()->get(WooCommerce::class)->getComponent(WooCommerceCategory::class);
+        $wooCommerceCategoryComponent = $this->getPluginsManager()->get(WooCommerce::class)->getComponent(WooCommerceCategory::class);
 
         foreach ($categoryData as $categoryDataSet) {
             $category = (new CategoryModel)
@@ -71,7 +71,7 @@ class Category extends BaseController
             if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
-            $i18n = $wooCommerceCategory->createCategoryI18n(
+            $i18n = $wooCommerceCategoryComponent->createCategoryI18n(
                 $category,
                 Util::getInstance()->getWooCommerceLanguage(),
                 $categoryDataSet
@@ -82,22 +82,19 @@ class Category extends BaseController
 
                 $wpmlTaxonomyTranslations = $this->getPluginsManager()
                     ->get(Wpml::class)
-                    ->getComponent(WpmlTaxonomyTranslation::class);
+                    ->getComponent(WpmlTermTranslation::class);
 
                 $categoryTranslations = $wpmlTaxonomyTranslations
                     ->getTranslations((int)$categoryDataSet['trid'], 'tax_product_cat');
 
                 foreach ($categoryTranslations as $languageCode => $translation) {
-                    if ($languageCode === $this->getWpml()->getDefaultLanguage()) {
-                        continue;
-                    }
 
                     $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
                         (int)$translation->term_id,
                         'product_cat'
                     );
 
-                    if ($term instanceof \WP_Term) {
+                    if (isset($term['term_id'])) {
                         $i18n = $this
                             ->getPluginsManager()
                             ->get(WooCommerce::class)
@@ -107,9 +104,9 @@ class Category extends BaseController
                                 Language::convert($translation->language_code),
                                 [
                                     'name' => $translation->name,
-                                    'slug' => $term->slug,
-                                    'description' => $term->description,
-                                    'category_id' => $term->term_id
+                                    'slug' => $term['slug'],
+                                    'description' => $term['description'],
+                                    'category_id' => $term['term_id']
                                 ]
                             );
                         $category->addI18n($i18n);
