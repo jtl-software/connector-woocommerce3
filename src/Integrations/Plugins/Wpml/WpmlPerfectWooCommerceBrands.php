@@ -7,6 +7,7 @@ use jtl\Connector\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
  * Class WpmlPerfectWooCommerceBrands
@@ -81,7 +82,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                     ->updateManufacturer($manufacturerId, $jtlManufacturer->getName(), $manufacturerI18n);
             }
 
-            if(isset($result['term_id'])) {
+            if (isset($result['term_id'])) {
                 $manufacturerId = $result['term_id'];
 
                 $yoastSeo = $this->getPlugin()->getPluginsManager()->get(YoastSeo::class);
@@ -97,5 +98,50 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 );
             }
         }
+    }
+
+    /**
+     * @param int $manufacturerId
+     */
+    public function deleteTranslations(int $manufacturerId)
+    {
+        $elementType = 'tax_pwb-brand';
+
+        $trid = $this->getPlugin()->getElementTrid($manufacturerId, $elementType);
+
+        $translations = $this->getPlugin()
+            ->getComponent(WpmlTermTranslation::class)
+            ->getTranslations($trid, $elementType, true);
+
+        foreach ($translations as $translation) {
+            wp_delete_term($translation->term_id, 'pwb-brand');
+        }
+    }
+
+    /**
+     * @return int
+     */
+    public function getStats(): int
+    {
+        $wpdb = $this->getPlugin()->getWpDb();
+        $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+
+        $sql = sprintf("
+            SELECT COUNT(tt.term_id)
+            FROM `{$wpdb->term_taxonomy}` tt
+            LEFT JOIN `%s` l ON tt.term_id = l.endpoint_id
+            LEFT JOIN `%sicl_translations` wpmlt ON tt.term_id = wpmlt.element_id
+            WHERE tt.taxonomy = '%s' 
+            AND wpmlt.element_type = 'tax_pwb-brand'
+            AND wpmlt.source_language_code IS NULL
+            AND l.host_id IS NULL
+            AND wpmlt.language_code = '%s'",
+            $jclm,
+            $wpdb->prefix,
+            'pwb-brand',
+            $this->getPlugin()->getDefaultLanguage()
+        );
+
+        return (int)$this->getPlugin()->getPluginsManager()->getDatabase()->queryOne($sql);
     }
 }

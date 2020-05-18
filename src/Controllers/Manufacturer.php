@@ -10,7 +10,6 @@ use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Manufacturer as ManufacturerModel;
-use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
@@ -19,12 +18,9 @@ use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\Perfec
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
-use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
-use WP_Error;
 
 /**
  * Class Manufacturer
@@ -155,14 +151,26 @@ class Manufacturer extends BaseController
         return $jtlManufacturer;
     }
 
+    /**
+     * @param ManufacturerModel $manufacturer
+     * @return ManufacturerModel
+     * @throws \Exception
+     */
     protected function deleteData(ManufacturerModel $manufacturer)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        $perfectWooCommerceBrands = $this->getPluginsManager()->get(PerfectWooCommerceBrands::class);
+        if ($perfectWooCommerceBrands->canBeUsed()) {
             $manufacturerId = (int)$manufacturer->getId()->getEndpoint();
 
             if (!empty($manufacturerId)) {
 
                 unset(self::$idCache[$manufacturer->getId()->getHost()]);
+
+                if ($this->getWpml()->canBeUsed()) {
+                    $this->getWpml()
+                        ->getComponent(WpmlPerfectWooCommerceBrands::class)
+                        ->deleteTranslations($manufacturerId);
+                }
 
                 wp_delete_term($manufacturerId, 'pwb-brand');
             }
@@ -171,12 +179,23 @@ class Manufacturer extends BaseController
         return $manufacturer;
     }
 
+    /**
+     * @return int
+     * @throws \Exception
+     */
     protected function getStats()
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
-            return $this->database->queryOne(SqlHelper::manufacturerStats());
+        $perfectWooCommerceBrands = $this->getPluginsManager()->get(PerfectWooCommerceBrands::class);
+        if ($perfectWooCommerceBrands->canBeUsed()) {
+            if ($this->getWpml()->canBeUsed()) {
+                $total = $this->getWpml()->getComponent(WpmlPerfectWooCommerceBrands::class)->getStats();
+            } else {
+                $total = $perfectWooCommerceBrands->getStats();
+            }
         } else {
-            return 0;
+            $total = 0;
         }
+
+        return $total;
     }
 }

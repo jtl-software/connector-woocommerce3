@@ -169,4 +169,12 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         $sql = SqlHelper::manufacturerPull($limit);
         return $this->getPluginsManager()->getDatabase()->query($sql);
     }
+
+    /**
+     * @return int
+     */
+    public function getStats(): int
+    {
+        return (int) $this->getPluginsManager()->getDatabase()->queryOne(SqlHelper::manufacturerStats());
+    }
 }
