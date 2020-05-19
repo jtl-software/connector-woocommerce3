@@ -48,6 +48,16 @@ class CustomerOrderItem extends BaseController
         if ($pd < 4) {
             $pd = 4;
         }
+
+        $taxItem = $order->get_items('tax');
+        if(is_array($taxItem) && count($taxItem) === 1){
+            $rate = end($taxItem);
+            $data = $rate->get_data();
+
+            if (isset($data['rate_percent'])) {
+                $singleVatRate = (float) $data['rate_percent'];
+            }
+        }
         
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
@@ -102,18 +112,17 @@ class CustomerOrderItem extends BaseController
                 $priceNet = $order->get_item_subtotal($item, false, false);
                 $priceGross = $order->get_item_subtotal($item, true, true);
             }
-            
-            $vat = 0;
-            
-            if ($priceNet != $priceGross) {
-                $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
+
+            if (isset($singleVatRate)) {
+                $vat = $singleVatRate;
+            } else {
+                $vat = 0;
+
+                if ($priceNet != $priceGross) {
+                    $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
+                }
             }
-            
-            /*            $orderItem
-                            ->setVat($vat)
-                            ->setPrice(round($priceNet, self::PRICE_DECIMALS))
-                            ->setPriceGross(round($priceGross, self::PRICE_DECIMALS));*/
-            
+
             $orderItem
                 ->setVat($vat)
                 ->setPrice((float)Util::getNetPriceCutted($priceNet, $pd))
