@@ -113,7 +113,7 @@ class CustomerOrderItem extends BaseController
                 $priceGross = $order->get_item_subtotal($item, true, false);
             }
 
-            if (isset($singleVatRate)) {
+            if (isset($singleVatRate) && $tax !== 0.) {
                 $vat = $singleVatRate;
             } else {
                 $vat = 0;
