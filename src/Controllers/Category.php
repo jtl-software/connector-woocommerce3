@@ -35,8 +35,8 @@ class Category extends BaseController
      */
     protected function getCategoryData(int $limit)
     {
-        if ($this->getWpml()->canBeUsed()) {
-            $categoryData = $this->getWpml()
+        if ($this->wpml->canBeUsed()) {
+            $categoryData = $this->wpml
                 ->getComponent(WpmlCategory::class)
                 ->getCategories($limit);
         } else {
@@ -78,9 +78,9 @@ class Category extends BaseController
             );
             $category->addI18n($i18n);
 
-            if ($this->getWpml()->canBeUsed()) {
+            if ($this->wpml->canBeUsed()) {
 
-                $wpmlTaxonomyTranslations = $this->getWpml()
+                $wpmlTaxonomyTranslations = $this->wpml
                     ->getComponent(WpmlTermTranslation::class);
 
                 $categoryTranslations = $wpmlTaxonomyTranslations
@@ -139,8 +139,8 @@ class Category extends BaseController
         $categoryId = (int)$category->getId()->getEndpoint();
 
         foreach ($category->getI18ns() as $i18n) {
-            if ($this->getWpml()->canBeUsed()) {
-                if ($this->getWpml()->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+            if ($this->wpml->canBeUsed()) {
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
                     $defaultLanguageI18n = $i18n;
                     break;
                 }
@@ -164,8 +164,8 @@ class Category extends BaseController
 
                 CategoryUtil::updateCategoryTree($category, empty($categoryId));
 
-                if ($this->getWpml()->canBeUsed()) {
-                    $this->getWpml()
+                if ($this->wpml->canBeUsed()) {
+                    $this->wpml
                         ->getComponent(WpmlCategory::class)
                         ->setCategoryTranslations($category, $result, $parentCategoryId);
                 }
@@ -206,8 +206,8 @@ class Category extends BaseController
      */
     protected function getStats(): int
     {
-        if ($this->getWpml()->canBeUsed()) {
-            $count = $this->getWpml()->getComponent(WpmlCategory::class)->getStats();
+        if ($this->wpml->canBeUsed()) {
+            $count = $this->wpml->getComponent(WpmlCategory::class)->getStats();
         } else {
             $count = $this->getPluginsManager()
                 ->get(WooCommerce::class)

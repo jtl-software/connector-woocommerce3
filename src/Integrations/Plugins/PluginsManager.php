@@ -5,11 +5,15 @@ namespace JtlWooCommerceConnector\Integrations\Plugins;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -44,14 +48,18 @@ class PluginsManager
                 new WpmlLanguage(),
                 new WpmlCategory(),
                 new WpmlTermTranslation(),
-                new WpmlPerfectWooCommerceBrands()
+                new WpmlPerfectWooCommerceBrands(),
+                new WpmlSpecific(),
+                new WpmlSpecificValue()
             )
         )
             ->addPlugin(new YoastSeo())
             ->addPlugin(new PerfectWooCommerceBrands())
             ->addPlugin(
                 (new WooCommerce())->addComponents(
-                    new WooCommerceCategory()
+                    new WooCommerceCategory(),
+                    new WooCommerceSpecific(),
+                    new WooCommerceSpecificValue()
                 )
             );
     }

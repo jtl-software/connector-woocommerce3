@@ -40,6 +40,11 @@ abstract class BaseController extends Controller
     protected $pluginsManager;
 
     /**
+     * @var Wpml
+     */
+    protected $wpml;
+
+    /**
      * BaseController constructor.
      */
     public function __construct()
@@ -49,6 +54,7 @@ abstract class BaseController extends Controller
 
         $integrationsManager = new IntegrationsManager($this->database);
         $this->pluginsManager = $integrationsManager->getPluginsManager();
+        $this->wpml = $this->pluginsManager->get(Wpml::class);
 
         try {
             $reflect = new ReflectionClass($this);
@@ -57,15 +63,6 @@ abstract class BaseController extends Controller
         } catch (\ReflectionException $exception) {
             //
         }
-    }
-
-    /**
-     * @return Wpml
-     * @throws \Exception
-     */
-    protected function getWpml(): Wpml
-    {
-        return $this->pluginsManager->get(Wpml::class);
     }
 
     /**

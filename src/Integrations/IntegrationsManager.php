@@ -12,7 +12,7 @@ use JtlWooCommerceConnector\Utilities\Db;
 class IntegrationsManager
 {
     /**
-     * @var
+     * @var PluginsManager
      */
     protected $pluginsManager;
 
@@ -32,5 +32,4 @@ class IntegrationsManager
     {
         return $this->pluginsManager;
     }
-
 }

@@ -54,7 +54,9 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function disableGetTermAdjustId(): bool
     {
-        return remove_filter('get_term', array($this->getPlugin()->getSitepress(), 'get_term_adjust_id'), 1);
+        return remove_filter('get_terms_args', [$this->getPlugin()->getSitepress(), 'get_terms_args_filter']) &&
+            remove_filter('get_term', [$this->getPlugin()->getSitepress(), 'get_term_adjust_id'], 1) &&
+            remove_filter('terms_clauses', [$this->getPlugin()->getSitepress(), 'terms_clauses']);
     }
 
     /**
@@ -62,6 +64,8 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function enableGetTermAdjustId(): bool
     {
-        return add_filter('get_term', array($this->getPlugin()->getSitepress(), 'get_term_adjust_id'), 1, 1);
+        return add_filter('terms_clauses', [$this->getPlugin()->getSitepress(), 'terms_clauses'], 10, 4) &&
+            add_filter('get_term', [$this->getPlugin()->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
+            add_filter('get_terms_args', [$this->getPlugin()->getSitepress(), 'get_terms_args_filter'], 10, 2);
     }
 }

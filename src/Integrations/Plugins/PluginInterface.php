@@ -36,7 +36,6 @@ interface PluginInterface
      */
     public function getComponent(string $name): ComponentInterface;
 
-
     /**
      * @param PluginsManager $pluginsManager
      */

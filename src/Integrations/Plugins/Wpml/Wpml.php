@@ -69,8 +69,13 @@ class Wpml extends AbstractPlugin
             if ($isSetupCompleted === false) {
                 WpmlLogger::getInstance()->writeLog("WPML setup is not completed cannot use WPML.");
             }
-
             $canUse &= $isSetupCompleted;
+
+            $isWooCommerceSetupCompleted = !empty($this->getWcml()->get_setting('set_up_wizard_run'));
+            if ($isWooCommerceSetupCompleted === false) {
+                WpmlLogger::getInstance()->writeLog("WCML setup is not completed cannot use WCML.");
+            }
+            $canUse &= $isWooCommerceSetupCompleted;
         }
 
         return (bool)$canUse;
