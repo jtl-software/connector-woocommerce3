@@ -110,7 +110,7 @@ class CustomerOrderItem extends BaseController
                 $priceNet = $priceGross = $order->get_item_subtotal($item, true, false);
             } else {
                 $priceNet = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, true);
+                $priceGross = $order->get_item_subtotal($item, true, false);
             }
 
             if (isset($singleVatRate)) {
@@ -119,7 +119,7 @@ class CustomerOrderItem extends BaseController
                 $vat = 0;
 
                 if ($priceNet != $priceGross) {
-                    $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
+                    $vat = round(($priceGross * 100 / $priceNet) - 100, 2);
                 }
             }
 
