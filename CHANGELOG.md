@@ -2,6 +2,12 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.4
+* Enhancement - CO-991 - If there is exactly one 'tax' order item type in order, rate_percent from it will be used instead of calculating vat rate manually
+* Enhancement - Item price gross is now used without rounding for manually vat calculation
+* Bugfix - Increased vat value precision to 2 digits when it's manually calculated
+* Enhancement - CO-955 - iframe tag in description is now correctly saved  
+
 ## 1.9.3
 * Enhancement - Added default value for 'dhl_wunschpaket_neighbour_address_addition' attribute in format: {shipping address zipcode} {shipping address city}
 * Bugfix - CO-981 - Fixed saving meta fields from B2B market cause variable product type was switched to simple
