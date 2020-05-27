@@ -216,7 +216,7 @@ class CustomerOrderItem extends BaseController
             $totalTax = (float)$shippingItem->get_total_tax();
             $costs = (float)$order->get_item_total($shippingItem, false, false);
             
-            if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
+            if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) >= 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
                     $taxAmount = (float)$taxAmount;
                     /** @var CustomerOrderItemModel $customerOrderItem */
@@ -254,16 +254,23 @@ class CustomerOrderItem extends BaseController
             } else {
                 /** @var CustomerOrderItemModel $customerOrderItem */
                 $customerOrderItem = $getItem($shippingItem, $order, null);
-                
-                if ($total != 0) {
-                    
+
+                // This solution has been tested with tax-calculation for shipping set to come from base-country and is NOT 'inherit'
+                $tax = new \WC_Tax();
+                $tax->init();
+                $shippingTax = $tax->get_shipping_tax_rates();
+
+                if (is_array($shippingTax)) {
+                    $shippingTax = array_pop($shippingTax); // What if there are multiple rates that apply
+                    $customerOrderItem->setVat((double)$shippingTax['rate']);
+                } elseif ($total != 0) {
                     $tmpVat = round(100 / $total * ($total + $totalTax) - 100, 2);
                     $vat = 0.0;
                     $taxRates = Db::getInstance()->query(SqlHelper::getAllTaxRates());
-                    
+
                     foreach ($taxRates as $taxRate) {
                         $tmpValue = $tmpVat - $taxRate['tax_rate'];
-                  
+
                         if (
                             $taxRate['tax_rate'] !== '0.0000'
                             && abs($tmpValue) < 0.1
@@ -272,8 +279,10 @@ class CustomerOrderItem extends BaseController
                             break;
                         }
                     }
-                    
                     $customerOrderItem->setVat((double)$vat);
+                }
+
+                if ($total != 0) {
                     $customerOrderItem->setPrice((float)Util::getNetPriceCutted($total, $pd));
                     $customerOrderItem->setPriceGross((float)Util::getNetPriceCutted($total + $totalTax, $pd));
                 }
