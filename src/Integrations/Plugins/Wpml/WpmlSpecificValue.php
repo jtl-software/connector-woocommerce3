@@ -28,7 +28,7 @@ class WpmlSpecificValue extends AbstractComponent
 
         foreach ($translations as $languageCode => $translation) {
             $specificValue->addI18n((new SpecificValueI18nModel)
-                ->setLanguageISO(Language::convert($languageCode))
+                ->setLanguageISO($this->getPlugin()->convertLanguageToWawi($languageCode))
                 ->setSpecificValueId($specificValue->getId())
                 ->setValue($translation->name));
         }
@@ -45,7 +45,7 @@ class WpmlSpecificValue extends AbstractComponent
         $trid = (int)$this->getPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
-            $languageCode = Language::convert(null, $specificValueI18n->getLanguageISO());
+            $languageCode = $this->getPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
             if ($this->getPlugin()->getDefaultLanguage() === $languageCode) {
                 continue;
             }

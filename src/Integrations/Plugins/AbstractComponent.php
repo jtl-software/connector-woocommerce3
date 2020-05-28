@@ -32,6 +32,14 @@ abstract class AbstractComponent implements ComponentInterface
     }
 
     /**
+     * @return PluginsManager
+     */
+    public function getPluginsManager(): PluginsManager
+    {
+        return $this->getPlugin()->getPluginsManager();
+    }
+
+    /**
      * @return string
      */
     public function getName(): string

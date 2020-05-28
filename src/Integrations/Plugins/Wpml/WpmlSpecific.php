@@ -48,7 +48,7 @@ class WpmlSpecific extends AbstractComponent
                 $specific->addI18n(
                     (new SpecificI18nModel)
                         ->setSpecificId($specific->getId())
-                        ->setLanguageISO(Language::convert($languageCode))
+                        ->setLanguageISO($this->getPlugin()->convertLanguageToWawi($languageCode))
                         ->setName($translatedName)
                 );
             }
@@ -63,7 +63,7 @@ class WpmlSpecific extends AbstractComponent
     public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation)
     {
         foreach ($specific->getI18ns() as $specificI18n) {
-            $languageCode = Language::convert(null, $specificI18n->getLanguageISO());
+            $languageCode = $this->getPlugin()->convertLanguageToWpml($specificI18n->getLanguageISO());
             if ($this->getPlugin()->getDefaultLanguage() === $languageCode) {
                 continue;
             }

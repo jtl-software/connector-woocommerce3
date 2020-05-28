@@ -2,7 +2,9 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use jtl\Connector\Core\Utilities\Language;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
+use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -47,6 +49,34 @@ class Wpml extends AbstractPlugin
     public function getDefaultLanguage(): string
     {
         return wpml_get_default_language();
+    }
+
+    /**
+     * @param string $wpmlLanguageCode
+     * @return string
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public function convertLanguageToWawi(string $wpmlLanguageCode): string
+    {
+        $wpmlLanguageCode = substr($wpmlLanguageCode, 0, 2);
+        $language = Language::convert($wpmlLanguageCode);
+        if (is_null($language)) {
+            WpmlLogger::getInstance()->writeLog(sprintf("Cannot find corresponding language code %s",
+                $wpmlLanguageCode));
+            $language = '';
+        }
+        return $language;
+    }
+
+    /**
+     * @param string $wawiLanguageCode
+     * @return false|int|mixed|string|null
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public function convertLanguageToWpml(string $wawiLanguageCode): string
+    {
+        $language = Language::convert(null, $wawiLanguageCode);
+        return $language ?? '';
     }
 
     /**
@@ -115,7 +145,7 @@ class Wpml extends AbstractPlugin
      */
     public function getElementTrid(int $termId, string $elementType): int
     {
-        return (int) $this->getSitepress()->get_element_trid($termId, $elementType);
+        return (int)$this->getSitepress()->get_element_trid($termId, $elementType);
     }
 
     /**

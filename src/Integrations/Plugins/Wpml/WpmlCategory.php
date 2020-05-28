@@ -28,17 +28,21 @@ class WpmlCategory extends AbstractComponent
      * @param array $wooCommerceMainCategory
      * @param Identity $parentCategoryId
      * @throws LanguageException
+     * @throws \Exception
      */
     public function setCategoryTranslations(
         Category $jtlCategory,
         array $wooCommerceMainCategory,
         Identity $parentCategoryId
     ): void {
-        $trid = (int)$this->getPlugin()->getElementTrid((int)$wooCommerceMainCategory['term_id'],
-            self::PRODUCT_CATEGORY_TYPE);
+        $trid = (int)$this->getPlugin()
+            ->getElementTrid(
+                (int)$wooCommerceMainCategory['term_id'],
+            self::PRODUCT_CATEGORY_TYPE
+            );
 
         foreach ($jtlCategory->getI18ns() as $categoryI18n) {
-            $languageCode = Language::convert(null, $categoryI18n->getLanguageISO());
+            $languageCode = $this->getPlugin()->convertLanguageToWpml($categoryI18n->getLanguageISO());
             if ($this->getPlugin()->getDefaultLanguage() === $languageCode) {
                 continue;
             }
@@ -65,7 +69,7 @@ class WpmlCategory extends AbstractComponent
 
                 $this->getPlugin()->getSitepress()->set_element_language_details(
                     $result['term_id'],
-                    'tax_product_cat',
+                    self::PRODUCT_CATEGORY_TYPE,
                     $trid,
                     $languageCode
                 );

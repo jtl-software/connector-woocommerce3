@@ -75,7 +75,7 @@ class YoastSeo extends AbstractPlugin
     public function setSeoData(Model $i18n, int $termId, string $type)
     {
         $seoData = $this->findSeoTranslationData($termId, $type);
-        if(!empty($seoData)){
+        if (!empty($seoData)) {
             $i18n->setMetaDescription(isset($seoData['wpseo_desc']) ? $seoData['wpseo_desc'] : '')
                 ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $i18n->getName())
                 ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $i18n->getName());
@@ -137,6 +137,33 @@ class YoastSeo extends AbstractPlugin
     public function findManufacturerSeoData(int $manufacturerId): array
     {
         return $this->findSeoTranslationData($manufacturerId, 'pwb-brand');
+    }
+
+    /**
+     * @param \WC_Product $product
+     * @return array
+     */
+    public function findProductSeoData(\WC_Product $product): array
+    {
+        $productId = $product->get_id();
+
+        $values = [
+            'titleTag' => get_post_meta($productId, '_yoast_wpseo_title'),
+            'metaDesc' => get_post_meta($productId, '_yoast_wpseo_metadesc'),
+            'keywords' => get_post_meta($productId, '_yoast_wpseo_focuskw'),
+            'permlink' => $product->get_slug()
+        ];
+
+        foreach ($values as $key => $value) {
+            if (strcmp($key, 'permalink') === 0) {
+                continue;
+            }
+            if (is_array($value) && count($value) > 0) {
+                $values[$key] = $value[0];
+            }
+        }
+
+        return $values;
     }
 
     /**

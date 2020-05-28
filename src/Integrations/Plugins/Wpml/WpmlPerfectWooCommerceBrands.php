@@ -67,7 +67,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 
         foreach ($jtlManufacturer->getI18ns() as $manufacturerI18n) {
 
-            $languageCode = Language::convert(null, $manufacturerI18n->getLanguageISO());
+            $languageCode = $this->getPlugin()->convertLanguageToWpml($manufacturerI18n->getLanguageISO());
             if ($languageCode === $this->getPlugin()->getDefaultLanguage()) {
                 continue;
             }

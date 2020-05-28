@@ -97,7 +97,7 @@ class Category extends BaseController
                         $i18n = $wooCommerceCategoryComponent
                             ->createCategoryI18n(
                                 $category,
-                                Language::convert($translation->language_code),
+                                $this->wpml->convertLanguageToWawi($translation->language_code),
                                 [
                                     'name' => $translation->name,
                                     'slug' => $term['slug'],

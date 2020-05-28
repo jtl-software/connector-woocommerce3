@@ -22,9 +22,14 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @param SpecificValueI18n $specificValueI18n
      * @param null $slug
      * @return SpecificValue|null
+     * @throws \Exception
      */
-    public function save(string $taxonomy, SpecificValue $specificValue, SpecificValueI18n $specificValueI18n, $slug = null): ?SpecificValue
-    {
+    public function save(
+        string $taxonomy,
+        SpecificValue $specificValue,
+        SpecificValueI18n $specificValueI18n,
+        $slug = null
+    ): ?SpecificValue {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
             'slug' => $slug ?? wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
@@ -62,9 +67,16 @@ class WooCommerceSpecificValue extends AbstractComponent
 
             $termId = $newTerm['term_id'];
         } elseif (is_null($exValId) && $endValId !== 0) {
-            $this->getPlugin()->getPluginsManager()->get(Wpml::class)->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+            $wpml = $this->getPluginsManager()->get(Wpml::class);
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+            }
+
             $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
-            $this->getPlugin()->getPluginsManager()->get(Wpml::class)->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+            }
         } else {
             $termId = $exValId;
         }

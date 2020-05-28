@@ -2,9 +2,11 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
+use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -12,6 +14,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
@@ -50,16 +53,19 @@ class PluginsManager
                 new WpmlTermTranslation(),
                 new WpmlPerfectWooCommerceBrands(),
                 new WpmlSpecific(),
-                new WpmlSpecificValue()
+                new WpmlSpecificValue(),
+                new WpmlProduct()
             )
         )
             ->addPlugin(new YoastSeo())
             ->addPlugin(new PerfectWooCommerceBrands())
+            ->addPlugin(new Germanized())
             ->addPlugin(
                 (new WooCommerce())->addComponents(
                     new WooCommerceCategory(),
                     new WooCommerceSpecific(),
-                    new WooCommerceSpecificValue()
+                    new WooCommerceSpecificValue(),
+                    new WooCommerceProduct()
                 )
             );
     }
