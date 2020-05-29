@@ -2,7 +2,6 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Specific;
 use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -82,5 +81,41 @@ class WpmlSpecific extends AbstractComponent
 
             }
         }
+    }
+
+    /**
+     * @param string $specificName
+     * @return array|null
+     */
+    public function getValues(string $specificName)
+    {
+        $wpdb = $this->getPlugin()->getWpDb();
+        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $iclt = $wpdb->prefix . 'icl_translations';
+        $languageCode = $this->getPlugin()->getDefaultLanguage();
+        $elementType = 'tax_' . $specificName;
+
+        return $this->getPluginsManager()->getDatabase()->query(
+            "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
+                FROM {$wpdb->terms} t
+                  LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
+                  LEFT JOIN {$jclsv} lsv ON t.term_id = lsv.endpoint_id
+                  LEFT JOIN {$iclt} wpmlt ON t.term_id = wpmlt.element_id
+                WHERE lsv.host_id IS NULL
+                AND tt.taxonomy LIKE '{$specificName}'
+                AND wpmlt.element_type = '{$elementType}'
+                AND wpmlt.source_language_code IS NULL
+                AND wpmlt.language_code = '{$languageCode}'
+                ORDER BY tt.parent ASC;");
+    }
+
+    /**
+     * @param string $specificName
+     * @return bool
+     */
+    public function isTranslatable(string $specificName): bool
+    {
+        $attributes = $this->getPlugin()->getWcml()->get_setting('attributes_settings');
+        return (isset($attributes[$specificName]) && (int)$attributes[$specificName] === 1) ? true : false;
     }
 }

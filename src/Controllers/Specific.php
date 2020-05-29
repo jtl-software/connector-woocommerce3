@@ -55,19 +55,21 @@ class Specific extends BaseController
                     ->setName($specificDataSet['attribute_label'])
             );
 
-            if ($this->wpml->canBeUsed()) {
+            $specificName = sprintf('pa_%s', $specificDataSet['attribute_name']);
+
+            if ($this->wpml->canBeUsed() && $this->wpml->getComponent(WpmlSpecific::class)->isTranslatable($specificName)) {
                 $this->wpml
                     ->getComponent(WpmlSpecific::class)
                     ->getTranslations($specific, $specificDataSet['attribute_label']);
-            }
 
-            // SpecificValues
-            $specificValueData = $this->database->query(
-                SqlHelper::specificValuePull(sprintf(
-                    'pa_%s',
-                    $specificDataSet['attribute_name']
-                ))
-            );
+                $specificValueData = $this->wpml
+                    ->getComponent(WpmlSpecific::class)
+                    ->getValues($specificName);
+            } else {
+                $specificValueData = $this->database->query(
+                    SqlHelper::specificValuePull($specificName)
+                );
+            }
 
             foreach ($specificValueData as $specificValueDataSet) {
                 $specificValue = (new SpecificValueModel)
@@ -134,7 +136,8 @@ class Specific extends BaseController
             $attrName = wc_sanitize_taxonomy_name(Util::removeSpecialchars($defaultSpecificTranslation->getName()));
 
             //Get taxonomy
-            $taxonomy = $attrName ? 'pa_' . wc_sanitize_taxonomy_name(substr(trim($defaultSpecificTranslation->getName()), 0, 27)) : '';
+            $taxonomy = $attrName ? 'pa_' . wc_sanitize_taxonomy_name(substr(trim($defaultSpecificTranslation->getName()),
+                    0, 27)) : '';
 
             //Register taxonomy for current request
             register_taxonomy($taxonomy, null);
