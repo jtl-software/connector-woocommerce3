@@ -202,7 +202,16 @@ class CustomerOrderItem extends BaseController
         if ($pd < 4) {
             $pd = 4;
         }
-        
+
+        $highestVatRateFallback = 0.;
+        if($type === 'shipping'){
+            foreach ($customerOrderItems as $orderItem) {
+                if ($orderItem->getVat() > $highestVatRateFallback) {
+                    $highestVatRateFallback = $orderItem->getVat();
+                }
+            }
+        }
+
         $productTotalByVat = $this->getProductTotalByVat($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
             return $vat !== 0;
@@ -277,7 +286,11 @@ class CustomerOrderItem extends BaseController
                     $customerOrderItem->setPrice((float)Util::getNetPriceCutted($total, $pd));
                     $customerOrderItem->setPriceGross((float)Util::getNetPriceCutted($total + $totalTax, $pd));
                 }
-                
+
+                if ($type === 'shipping' && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
+                    $customerOrderItem->setVat($highestVatRateFallback);
+                }
+
                 $customerOrderItems[] = $customerOrderItem;
             }
         }
