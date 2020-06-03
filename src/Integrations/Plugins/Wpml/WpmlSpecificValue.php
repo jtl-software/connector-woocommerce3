@@ -23,12 +23,12 @@ class WpmlSpecificValue extends AbstractComponent
      */
     public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType)
     {
-        $trid = (int)$this->getPlugin()->getElementTrid($mainSpecificValueId, 'tax_'.$elementType);
-        $translations = $this->getPlugin()->getComponent(WpmlTermTranslation::class)->getTranslations($trid, 'tax_'.$elementType, true);
+        $trid = $this->getCurrentPlugin()->getElementTrid($mainSpecificValueId, 'tax_'.$elementType);
+        $translations = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class)->getTranslations($trid, 'tax_'.$elementType, true);
 
         foreach ($translations as $languageCode => $translation) {
             $specificValue->addI18n((new SpecificValueI18nModel)
-                ->setLanguageISO($this->getPlugin()->convertLanguageToWawi($languageCode))
+                ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($languageCode))
                 ->setSpecificValueId($specificValue->getId())
                 ->setValue($translation->name));
         }
@@ -37,16 +37,16 @@ class WpmlSpecificValue extends AbstractComponent
     /**
      * @param string $taxonomy
      * @param SpecificValue $specificValue
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \Exception
      */
     public function setTranslations(string $taxonomy, SpecificValue $specificValue)
     {
         $type = 'tax_' . $taxonomy;
-        $trid = (int)$this->getPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
+        $trid = $this->getCurrentPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
-            $languageCode = $this->getPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
-            if ($this->getPlugin()->getDefaultLanguage() === $languageCode) {
+            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
+            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
                 continue;
             }
 
@@ -59,14 +59,14 @@ class WpmlSpecificValue extends AbstractComponent
             $slug = wc_sanitize_taxonomy_name($specificValueI18n->getValue()) . '-' . $languageCode;
 
             /** @var SpecificValue $specificValue |null */
-            $specificValueSaved = $this->getPlugin()
+            $specificValueSaved = $this->getCurrentPlugin()
                 ->getPluginsManager()
                 ->get(WooCommerce::class)
                 ->getComponent(WooCommerceSpecificValue::class)
                 ->save($taxonomy, $specificValue, $specificValueI18n, $slug);
 
             if (!is_null($specificValueSaved) && !empty($specificValueSaved->getId()->getEndpoint())) {
-                $this->getPlugin()->getSitepress()->set_element_language_details(
+                $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
                     $specificValueSaved->getId()->getEndpoint(),
                     $type,
                     $trid,
@@ -85,14 +85,14 @@ class WpmlSpecificValue extends AbstractComponent
     public function findSpecificValueTranslation(int $trid, string $taxonomy, string $languageCode)
     {
         $specificTranslations = $this
-            ->getPlugin()
+            ->getCurrentPlugin()
             ->getComponent(WpmlTermTranslation::class)
             ->getTranslations($trid, 'tax_' . $taxonomy, false);
 
         $translation = [];
         if (isset($specificTranslations[$languageCode])) {
             $translationData = $specificTranslations[$languageCode];
-            $translation = $this->getPlugin()
+            $translation = $this->getCurrentPlugin()
                 ->getComponent(WpmlTermTranslation::class)
                 ->getTranslatedTerm($translationData->term_id, $taxonomy);
         }

@@ -35,7 +35,7 @@ class WooCommerceSpecificValue extends AbstractComponent
             'slug' => $slug ?? wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
         ];
 
-        $exValId = $this->getPlugin()->getPluginsManager()->getDatabase()->query(
+        $exValId = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(
             SqlHelper::getSpecificValueIdBySlug(
                 $taxonomy,
                 $endpointValue['slug']

@@ -26,7 +26,7 @@ abstract class AbstractComponent implements ComponentInterface
     /**
      * @return PluginInterface
      */
-    public function getPlugin(): PluginInterface
+    public function getCurrentPlugin(): PluginInterface
     {
         return $this->plugin;
     }
@@ -36,7 +36,7 @@ abstract class AbstractComponent implements ComponentInterface
      */
     public function getPluginsManager(): PluginsManager
     {
-        return $this->getPlugin()->getPluginsManager();
+        return $this->getCurrentPlugin()->getPluginsManager();
     }
 
     /**

@@ -11,7 +11,7 @@ interface ComponentInterface
     /**
      * @return PluginInterface
      */
-    public function getPlugin(): PluginInterface;
+    public function getCurrentPlugin(): PluginInterface;
 
     /**
      * @param PluginInterface $plugin

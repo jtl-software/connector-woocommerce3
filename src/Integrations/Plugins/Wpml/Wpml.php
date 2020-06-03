@@ -4,7 +4,6 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Core\Utilities\Language;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
-use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

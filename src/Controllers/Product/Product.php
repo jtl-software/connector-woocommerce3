@@ -137,34 +137,24 @@ class Product extends BaseController
                 $jtlProduct->setMasterProductId(new Identity($wcProduct->get_parent_id()));
             }
 
-            $specialPrices = ProductSpecialPrice::getInstance()->pullData($wcProduct, $jtlProduct);
-            $prices = ProductPrice::getInstance()->pullData($wcProduct, $jtlProduct);
-
             if ($this->wpml->canBeUsed()) {
                 $this->wpml->getComponent(WpmlProduct::class)->getTranslations($wcProduct, $jtlProduct);
-                $languageIso = $this->wpml->getDefaultLanguage();
-            } else {
-                $languageIso = Util::getInstance()->getWooCommerceLanguage();
             }
 
-            $jtlProduct->addI18n(
-                $this->getPluginsManager()
-                    ->get(WooCommerce::class)
-                    ->getComponent(WooCommerceProduct::class)
-                    ->getI18ns($wcProduct, $jtlProduct, $languageIso)
-            );
+            $productI18n = $this->getPluginsManager()
+                ->get(WooCommerce::class)
+                ->getComponent(WooCommerceProduct::class)
+                ->getI18ns($wcProduct, $jtlProduct, Util::getInstance()->getWooCommerceLanguage());
 
-            $jtlProduct->setPrices($prices)
-                ->setSpecialPrices($specialPrices)
+            $jtlProduct->addI18n($productI18n)
+                ->setPrices(ProductPrice::getInstance()->pullData($wcProduct, $jtlProduct))
+                ->setSpecialPrices(ProductSpecialPrice::getInstance()->pullData($wcProduct, $jtlProduct))
                 ->setCategories(Product2Category::getInstance()->pullData($wcProduct));
 
-            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)
-                ->pullData($wcProduct, $jtlProduct);
+            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)->pullData($wcProduct, $jtlProduct);
 
             // Var parent or child articles
-            if ($wcProduct instanceof \WC_Product_Variable
-                || $wcProduct instanceof \WC_Product_Variation
-            ) {
+            if ($wcProduct instanceof \WC_Product_Variable || $wcProduct instanceof \WC_Product_Variation) {
                 $jtlProduct->setVariations($productVariationSpecificAttribute['productVariation']);
             }
 
@@ -204,6 +194,7 @@ class Product extends BaseController
      * @return ProductModel
      * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
      * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
+     * @throws \WC_Data_Exception
      */
     protected function pushData(ProductModel $product)
     {
@@ -325,15 +316,22 @@ class Product extends BaseController
 
     /**
      * @return int
+     * @throws \Exception
      */
     protected function getStats()
     {
-        return count($this->database->queryList(SqlHelper::productPull()));
+        if ($this->wpml->canBeUsed()) {
+            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts();
+        } else {
+            $ids = $this->database->queryList(SqlHelper::productPull());
+        }
+        return count($ids);
     }
 
     /**
      * @param ProductModel $product
      * @param $meta
+     * @throws \WC_Data_Exception
      */
     protected function onProductInserted(ProductModel &$product, &$meta)
     {

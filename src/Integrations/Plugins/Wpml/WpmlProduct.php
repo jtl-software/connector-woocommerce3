@@ -2,9 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Product;
-use jtl\Connector\Model\ProductI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
@@ -19,15 +17,15 @@ class WpmlProduct extends AbstractComponent
         POST_TYPE = 'post_product';
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @return array
      */
-    public function getProducts(int $limit): array
+    public function getProducts(int $limit = null): array
     {
-        $wpdb = $this->getPlugin()->getWpDb();
+        $wpdb = $this->getCurrentPlugin()->getWpDb();
         $jclp = $wpdb->prefix . 'jtl_connector_link_product';
         $translations = $wpdb->prefix . 'icl_translations';
-        $defaultLanguage = $this->getPlugin()->getDefaultLanguage();
+        $defaultLanguage = $this->getCurrentPlugin()->getDefaultLanguage();
 
         $limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
         $query = "SELECT p.ID
@@ -51,14 +49,14 @@ class WpmlProduct extends AbstractComponent
                 )
             )
             AND p.post_status IN ('draft', 'future', 'publish', 'inherit', 'private')
-            AND wpmlt.element_type = 'post_product'
+            AND wpmlt.element_type IN ('post_product','post_product_variation')
             AND wpmlt.language_code = '{$defaultLanguage}'
             AND wpmlt.source_language_code IS NULL
             GROUP BY p.ID
             ORDER BY p.post_type
             {$limitQuery}";
 
-        $result = $this->getPlugin()->getPluginsManager()->getDatabase()->queryList($query);
+        $result = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryList($query);
 
         return is_array($result) ? $result : [];
     }
@@ -70,21 +68,15 @@ class WpmlProduct extends AbstractComponent
      */
     public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct)
     {
-        $trid = (int)$this->getPlugin()->getElementTrid((int)$wcProduct->get_id(),
-            self::POST_TYPE);
+        $wcProductTranslations = $this->getProductTranslationInfo((int)$wcProduct->get_id());
 
-        $wcTranslations = $this
-            ->getPlugin()
-            ->getComponent(WpmlTermTranslation::class)
-            ->getTranslations($trid, self::POST_TYPE);
+        foreach ($wcProductTranslations as $wpmlLanguageCode => $wpmlTranslationInfo) {
 
-        foreach ($wcTranslations as $languageCode => $wcTranslation) {
-
-            $wcProductTranslation = wc_get_product($wcTranslation->element_id);
-            $languageIso = $this->getPlugin()->convertLanguageToWawi($languageCode);
+            $wcProductTranslation = wc_get_product($wpmlTranslationInfo->element_id);
+            $languageIso = $this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode);
 
             if ($wcProductTranslation instanceof \WC_Product) {
-                $i18n = $this->getPlugin()
+                $i18n = $this->getCurrentPlugin()
                     ->getPluginsManager()
                     ->get(WooCommerce::class)
                     ->getComponent(WooCommerceProduct::class)
@@ -96,5 +88,83 @@ class WpmlProduct extends AbstractComponent
                 $jtlProduct->addI18n($i18n);
             }
         }
+    }
+
+    /**
+     * @param \WC_Product $wcProduct
+     * @return \WC_Product[]
+     */
+    public function getWooCommerceProductTranslations(\WC_Product $wcProduct): array
+    {
+        $translations = [];
+        $info = $this->getProductTranslationInfo($wcProduct->get_id());
+        foreach ($info as $wpmlLanguageCode => $item) {
+            $translatedProduct = wc_get_product($item->element_id);
+            if ($translatedProduct instanceof \WC_Product) {
+                $translations[$wpmlLanguageCode] = $translatedProduct;
+            }
+        }
+
+        return $translations;
+    }
+
+    /**
+     * @param \WC_Product $wcProduct
+     * @param string $slug
+     * @return \WC_Product_Attribute|null
+     */
+    public function getWooCommerceProductTranslatedAttributeBySlug(
+        \WC_Product $wcProduct,
+        string $slug
+    ): ?\WC_Product_Attribute {
+        $translatedAttribute = null;
+        $attributes = $wcProduct->get_attributes();
+
+        foreach ($attributes as $attributeSlug => $attribute) {
+            if ($attributeSlug === $slug) {
+                $translatedAttribute = $attribute;
+                break;
+            }
+        }
+
+        return $translatedAttribute;
+    }
+
+    /**
+     * @param \WC_Product $wcProduct
+     * @param string $slug
+     * @return string|null
+     */
+    public function getWooCommerceProductTranslatedAttributeValueBySlug(
+        \WC_Product_Variation $wcProduct,
+        string $slug
+    ): ?string {
+        $translatedAttribute = null;
+        $attributes = $wcProduct->get_attributes();
+
+        foreach ($attributes as $attributeSlug => $attribute) {
+            if ($attributeSlug === $slug) {
+                $translatedAttribute = $attribute;
+                break;
+            }
+        }
+
+        return $translatedAttribute;
+    }
+
+
+    /**
+     * @param int $productId
+     * @return array
+     */
+    public function getProductTranslationInfo(int $productId): array
+    {
+        return $this
+            ->getCurrentPlugin()
+            ->getComponent(WpmlTermTranslation::class)
+            ->getTranslations(
+                $this->getCurrentPlugin()->getElementTrid($productId, self::POST_TYPE),
+                self::POST_TYPE
+            );
     }
 }

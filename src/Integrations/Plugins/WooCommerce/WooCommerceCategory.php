@@ -36,7 +36,7 @@ class WooCommerceCategory extends AbstractComponent
             ->setTitleTag($data['name']);
 
         /** @var YoastSeo $yoastSeo */
-        $yoastSeo = $this->getPlugin()->getPluginsManager()->get(YoastSeo::class);
+        $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $seoData = $yoastSeo->findCategorySeoData($data['category_id']);
             if (!empty($seoData)) {
@@ -54,7 +54,7 @@ class WooCommerceCategory extends AbstractComponent
      */
     public function getStats(): int
     {
-        return (int)$this->getPlugin()->getPluginsManager()->getDatabase()->queryOne(SqlHelper::categoryStats());
+        return (int)$this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryOne(SqlHelper::categoryStats());
     }
 
     /**
@@ -64,7 +64,7 @@ class WooCommerceCategory extends AbstractComponent
     public function getCategories(int $limit): array
     {
         CategoryUtil::fillCategoryLevelTable();
-        return $this->getPlugin()->getPluginsManager()->getDatabase()->query(SqlHelper::categoryPull($limit));
+        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(SqlHelper::categoryPull($limit));
     }
 
     /**
@@ -105,7 +105,7 @@ class WooCommerceCategory extends AbstractComponent
 
         $categoryId = (int) $result['term_id'];
 
-        $yoastSeo = $this->getPlugin()->getPluginsManager()->get(YoastSeo::class);
+        $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $yoastSeo->setCategorySeoData($categoryId, $categoryI18n);
         }

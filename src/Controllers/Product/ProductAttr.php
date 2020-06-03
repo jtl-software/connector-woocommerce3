@@ -18,24 +18,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductAttr extends BaseController
 {
-    // <editor-fold defaultstate="collapsed" desc="Pull">
-    public function pullData(
-        \WC_Product $product,
-        \WC_Product_Attribute $attribute,
-        $slug,
-        $languageIso
-    ) {
-        return $this->buildAttribute(
-            $product,
-            $attribute,
-            $slug,
-            $languageIso
-        );
-    }
-    // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc="Push">
-    
     /**
      * @param              $productId
      * @param              $pushedAttributes
@@ -558,43 +540,7 @@ class ProductAttr extends BaseController
         
         return $attributesFilteredVariationsAndSpecifics;
     }
-    
-    // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc="Methods">
-    /**
-     * @param \WC_Product           $product
-     * @param \WC_Product_Attribute $attribute
-     * @param                       $slug
-     * @param string                $languageIso
-     *
-     * @return ProductAttrModel
-     */
-    private function buildAttribute(
-        \WC_Product $product,
-        \WC_Product_Attribute $attribute,
-        $slug,
-        $languageIso
-    ) {
-        $productAttribute = $product->get_attribute($attribute->get_name());
-        $isTax = $attribute->is_taxonomy();
-        
-        // Divided by |
-        $values = explode(WC_DELIMITER, $productAttribute);
-        
-        $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($slug))
-            ->setName($attribute->get_name())
-            ->setValue(implode(', ', $values))
-            ->setLanguageISO($languageIso);
-        
-        return (new ProductAttrModel)
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
-            ->setIsCustomProperty($isTax)
-            ->addI18n($i18n);
-    }
-    
+
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes)
     {
         $this->addNewAttributeOrEditExisting($i18n, [

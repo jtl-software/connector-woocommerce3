@@ -15,6 +15,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProductVariation;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
@@ -54,7 +55,8 @@ class PluginsManager
                 new WpmlPerfectWooCommerceBrands(),
                 new WpmlSpecific(),
                 new WpmlSpecificValue(),
-                new WpmlProduct()
+                new WpmlProduct(),
+                new WpmlProductVariation()
             )
         )
             ->addPlugin(new YoastSeo())
