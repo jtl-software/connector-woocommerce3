@@ -239,7 +239,6 @@ class ProductVaSpeAttrHandler extends BaseController
         delete_transient('wc_attribute_taxonomies');
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
     private function getVariationAndSpecificAttributes($attributes = [])
     {
         $filteredAttributes = [];
@@ -299,9 +298,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
         return $filteredAttributes;
     }
-    // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="GenerateData Methods">
     private function generateSpecificData($pushedSpecifics = [])
     {
         $specificData = [];
@@ -367,9 +364,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
         return $variationSpecificData;
     }
-    // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="FuncAttr Methods">
     /**
      * @param \WC_Product $product
      * @param string $languageIso
@@ -727,8 +722,6 @@ class ProductVaSpeAttrHandler extends BaseController
         return $attribute;
     }
 
-    // </editor-fold>
-
     //ALL
     public function getSpecificValueId(
         $slug,
@@ -783,5 +776,4 @@ class ProductVaSpeAttrHandler extends BaseController
             }
         }
     }
-
 }

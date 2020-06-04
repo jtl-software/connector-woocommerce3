@@ -387,7 +387,7 @@ class Product extends BaseController
      */
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
     {
-        $parent = $parent = $product->getMasterProductId()->getEndpoint();
+        $parent = $product->getMasterProductId()->getEndpoint();
 
         $wcProduct->set_sku($product->getSku());
         $wcProduct->set_parent_id(empty($parent) ? 0 : (int)$parent);

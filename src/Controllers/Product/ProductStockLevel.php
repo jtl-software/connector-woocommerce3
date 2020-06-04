@@ -33,7 +33,7 @@ class ProductStockLevel extends BaseController
 
         \update_post_meta($variationId, '_manage_stock', $product->getConsiderStock() ? 'yes' : 'no');
 
-        $stockLevel = $product->getStockLevel()->getStockLevel();
+        $stockLevel = !is_null($product->getStockLevel()) ? $product->getStockLevel()->getStockLevel() : 0;
 
         \wc_update_product_stock_status($variationId, Util::getInstance()->getStockStatus(
             $stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock()
@@ -41,7 +41,7 @@ class ProductStockLevel extends BaseController
 
         if ($product->getConsiderStock()) {
             \update_post_meta($product->getId()->getEndpoint(), '_backorders', $product->getPermitNegativeStock() ? 'yes' : 'no');
-            \wc_update_product_stock($variationId, \wc_stock_amount($product->getStockLevel()->getStockLevel()));
+            \wc_update_product_stock($variationId, \wc_stock_amount($stockLevel));
         } else {
             \delete_post_meta($variationId, '_backorders');
             \delete_post_meta($variationId, '_stock');
@@ -57,7 +57,7 @@ class ProductStockLevel extends BaseController
             return;
         }
 
-        $stockLevel = $product->getStockLevel()->getStockLevel();
+        $stockLevel = !is_null($product->getStockLevel()) ? $product->getStockLevel()->getStockLevel() : 0;
         $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock());
 
         if ('yes' == get_option('woocommerce_manage_stock')) {
