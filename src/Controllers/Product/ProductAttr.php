@@ -6,7 +6,6 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
@@ -32,7 +31,6 @@ class ProductAttr extends BaseController
         $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
     ) {
-        //  $parent = (new ProductVariationSpecificAttribute);
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
         $downloadable = false;
@@ -83,25 +81,6 @@ class ProductAttr extends BaseController
                             }
                             $fbStatusCode = true;
                         }
-                        
-                        /* if (strcmp($attrName, self::FACEBOOK_VISIBILITY_ATTR) === 0) {
-                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                             $value = $value ? '1' : '0';
-                             
-                             if (!add_post_meta(
-                                 $productId,
-                                 substr($attrName, 3),
-                                 $value,
-                                 true
-                             )) {
-                                 update_post_meta(
-                                     $productId,
-                                     substr($attrName, 3),
-                                     $value
-                                 );
-                             }
-                             $fbVisibility = true;
-                         }*/
                     }
                     if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)){
                         if($i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
@@ -482,21 +461,6 @@ class ProductAttr extends BaseController
                     );
                 }
             }
-            
-            /*if (!$fbVisibility) {
-                if (!add_post_meta(
-                    $productId,
-                    substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
-                    '1',
-                    true
-                )) {
-                    update_post_meta(
-                        $productId,
-                        substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
-                        '1'
-                    );
-                }
-            }*/
         }
         
         if (!$payable) {
@@ -579,5 +543,4 @@ class ProductAttr extends BaseController
             'is_taxonomy'  => 0,
         ];
     }
-    // </editor-fold>
 }

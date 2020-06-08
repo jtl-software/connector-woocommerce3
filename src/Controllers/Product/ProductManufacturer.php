@@ -9,18 +9,20 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductManufacturer extends BaseController
 {
     /**
      * @param ProductModel $product
+     * @throws \Exception
      */
     public function pushData(ProductModel $product)
     {
         $productId = $product->getId()->getEndpoint();
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if ($this->getPluginsManager()->get(PerfectWooCommerceBrands::class)->canBeUsed()) {
             $manufacturerId = $product->getManufacturerId()->getEndpoint();
             $this->removeManufacturerTerm($productId);
             $term = get_term_by('id', $manufacturerId, 'pwb-brand');
@@ -57,7 +59,7 @@ class ProductManufacturer extends BaseController
     {
         $productId      = $model->getId()->getEndpoint();
         $manufacturerId = null;
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if ($this->getPluginsManager()->get(PerfectWooCommerceBrands::class)->canBeUsed()) {
             $terms = wp_get_object_terms($productId, 'pwb-brand');
             
             if (count($terms) > 0) {

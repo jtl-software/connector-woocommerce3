@@ -3,6 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
+use JtlWooCommerceConnector\Integrations\Plugins\GermanMarket\GermanMarket;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
@@ -12,6 +13,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlGermanMarket;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
@@ -56,12 +58,14 @@ class PluginsManager
                 new WpmlSpecific(),
                 new WpmlSpecificValue(),
                 new WpmlProduct(),
-                new WpmlProductVariation()
+                new WpmlProductVariation(),
+                new WpmlGermanMarket()
             )
         )
             ->addPlugin(new YoastSeo())
             ->addPlugin(new PerfectWooCommerceBrands())
             ->addPlugin(new Germanized())
+            ->addPlugin(new GermanMarket())
             ->addPlugin(
                 (new WooCommerce())->addComponents(
                     new WooCommerceCategory(),

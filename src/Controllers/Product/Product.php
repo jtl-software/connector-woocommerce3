@@ -7,6 +7,7 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use DateTime;
+use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
@@ -21,6 +22,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\Perfec
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
+use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
@@ -195,6 +197,7 @@ class Product extends BaseController
      * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
      * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
      * @throws \WC_Data_Exception
+     * @throws \jtl\Connector\Core\Exception\LanguageException
      */
     protected function pushData(ProductModel $product)
     {
@@ -207,7 +210,7 @@ class Product extends BaseController
             \update_option('woocommerce_tax_display_cart', 'incl', true);
         }
 
-        $tmpI18n = null;
+        $defaultI18n = null;
         $masterProductId = $product->getMasterProductId()->getEndpoint();
 
         if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
@@ -216,69 +219,51 @@ class Product extends BaseController
         }
 
         foreach ($product->getI18ns() as $i18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $tmpI18n = $i18n;
-                break;
+            if ($this->wpml->canBeUsed()) {
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+                    $defaultI18n = $i18n;
+                    break;
+                }
+            } else {
+                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $defaultI18n = $i18n;
+                    break;
+                }
             }
         }
 
-        if (is_null($tmpI18n)) {
+        if (is_null($defaultI18n)) {
             return $product;
         }
 
-        $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
-
-        if (!$creationDate instanceof DateTime) {
-            $creationDate = new DateTime();
+        $wcProductId = (int)$product->getId()->getEndpoint();
+        $existingProductId = \wc_get_product_id_by_sku($product->getSku());
+        if ($existingProductId !== 0) {
+            $wcProductId = $existingProductId;
         }
 
-        $isMasterProduct = empty($masterProductId);
+        $newPostId = $this->getPluginsManager()
+            ->get(WooCommerce::class)
+            ->getComponent(WooCommerceProduct::class)
+            ->saveProduct($wcProductId, $masterProductId, $product, $defaultI18n);
 
-        /** @var ProductI18nModel $tmpI18n */
-        $endpoint = [
-            'ID' => (int)$product->getId()->getEndpoint(),
-            'post_type' => $isMasterProduct ? 'product' : 'product_variation',
-            'post_title' => $tmpI18n->getName(),
-            'post_name' => $tmpI18n->getUrlPath(),
-            'post_content' => $tmpI18n->getDescription(),
-            'post_excerpt' => $tmpI18n->getShortDescription(),
-            'post_date' => $this->getCreationDate($creationDate),
-            //'post_date_gmt' => $this->getCreationDate($creationDate, true),
-            'post_status' => is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future',
-        ];
-
-        if ($endpoint['ID'] !== 0) {
-            // Needs to be set for existing products otherwise commenting is disabled
-            $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
-        } else {
-            // Update existing products by SKU
-            $productId = \wc_get_product_id_by_sku($product->getSku());
-
-            if ($productId !== 0) {
-                $endpoint['ID'] = $productId;
-            }
-        }
-        // Post filtering
-        remove_filter('content_save_pre', 'wp_filter_post_kses');
-        remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-        $newPostId = \wp_insert_post($endpoint, true);
-        // Post filtering
-        add_filter('content_save_pre', 'wp_filter_post_kses');
-        add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-
-        if ($newPostId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($newPostId);
-
+        if (is_null($newPostId)) {
             return $product;
         }
 
         $product->getId()->setEndpoint($newPostId);
 
-        $this->onProductInserted($product, $tmpI18n);
+        if($this->wpml->canBeUsed()){
+            $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
+                $newPostId,
+                $masterProductId,
+                $product
+            );
+        }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+        $this->onProductInserted($product, $defaultI18n);
+
+        if ($this->getPluginsManager()->get(Germanized::class)->canBeUsed()) {
             (new ProductGermanizedFields)->pushData($product);
         }
 
@@ -290,9 +275,8 @@ class Product extends BaseController
             (new ProductB2BMarketFields)->pushData($product);
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-            (new ProductMetaSeo)->pushData($product, $newPostId, $tmpI18n);
+        if ($this->getPluginsManager()->get(YoastSeo::class)->canBeUsed()) {
+            (new ProductMetaSeo)->pushData($product, $newPostId, $defaultI18n);
         }
 
         return $product;
@@ -329,34 +313,39 @@ class Product extends BaseController
     }
 
     /**
-     * @param ProductModel $product
-     * @param $meta
+     * @param ProductModel $jtlProduct
+     * @param $jtlProductDefaultI18n
      * @throws \WC_Data_Exception
      */
-    protected function onProductInserted(ProductModel &$product, &$meta)
+    protected function onProductInserted(ProductModel $jtlProduct, ProductI18nModel $jtlProductDefaultI18n)
     {
-        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
-        $productType = $this->getType($product);
+        $wcProduct = \wc_get_product($jtlProduct->getId()->getEndpoint());
+        $productType = $this->getType($jtlProduct);
 
         if (is_null($wcProduct)) {
             return;
         }
 
-        $this->updateProductMeta($product, $wcProduct);
+        $this->updateProductMeta($jtlProduct, $wcProduct);
 
-        $this->updateProductRelations($product, $wcProduct);
+        (new Product2Category)->pushData($jtlProduct);
 
-        (new ProductVaSpeAttrHandler)->pushDataNew($product, $wcProduct);
+        $this->fixProductPriceForCustomerGroups($jtlProduct, $wcProduct);
 
+        (new ProductPrice)->pushData($jtlProduct);
+
+        (new ProductSpecialPrice)->pushData($jtlProduct, $wcProduct);
+
+        (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct);
 
         if ($productType !== 'product_variation') {
-            $this->updateProduct($product);
-            \wc_delete_product_transients($product->getId()->getEndpoint());
+            $this->updateProduct($jtlProduct);
+            \wc_delete_product_transients($jtlProduct->getId()->getEndpoint());
         }
 
         //variations
         if ($productType === 'product_variation') {
-            $this->updateVariationCombinationChild($product, $wcProduct, $meta);
+            $this->updateVariationCombinationChild($jtlProduct, $jtlProductDefaultI18n);
         }
 
         $productTypeTerm = \get_term_by('slug', $productType, 'product_type');
@@ -473,22 +462,9 @@ class Product extends BaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param ProductI18nModel $jtlProductDefaultI18n
      */
-    private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct)
-    {
-        (new Product2Category)->pushData($product);
-        $this->fixProductPriceForCustomerGroups($product, $wcProduct);
-        (new ProductPrice)->pushData($product);
-        (new ProductSpecialPrice)->pushData($product, $wcProduct);
-    }
-
-    /**
-     * @param ProductModel $product
-     * @param \WC_Product $wcProduct
-     * @param $meta
-     */
-    private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
+    private function updateVariationCombinationChild(ProductModel $product, ProductI18nModel $jtlProductDefaultI18n)
     {
         $productId = (int)$product->getId()->getEndpoint();
 
@@ -498,8 +474,8 @@ class Product extends BaseController
             'ID' => $productId,
             'post_title' => $variation_post_title,
         ]);
-        \update_post_meta($productId, '_variation_description', $meta->getDescription());
-        \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
+        \update_post_meta($productId, '_variation_description', $jtlProductDefaultI18n->getDescription());
+        \update_post_meta($productId, '_mini_dec', $jtlProductDefaultI18n->getShortDescription());
 
         (new ProductStockLevel)->pushDataChild($product);
     }

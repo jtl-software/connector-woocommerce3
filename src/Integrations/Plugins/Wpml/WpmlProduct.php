@@ -3,6 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Model\Product;
+use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandler;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
@@ -14,7 +15,75 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 class WpmlProduct extends AbstractComponent
 {
     public const
-        POST_TYPE = 'post_product';
+        POST_TYPE = 'post_product',
+        POST_TYPE_VARIATION = 'post_product_variation';
+
+    /**
+     * @param int $wcProductId
+     * @param string $masterProductId
+     * @param Product $jtlProduct
+     * @throws \Exception
+     */
+    public function setProductTranslations(int $wcProductId, string $masterProductId, Product $jtlProduct)
+    {
+        $type = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
+
+        $trid = $this->getCurrentPlugin()->getElementTrid($wcProductId, $type);
+
+        $translationInfo = $this->getProductTranslationInfo($wcProductId);
+
+        foreach ($jtlProduct->getI18ns() as $productI18n) {
+            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($productI18n->getLanguageISO());
+            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
+                continue;
+            }
+
+            $translationElementId = $translationInfo[$languageCode] ? $translationInfo[$languageCode]->element_id : 0;
+
+            $translationElementId = $this->getCurrentPlugin()
+                ->getPluginsManager()
+                ->get(WooCommerce::class)
+                ->getComponent(WooCommerceProduct::class)
+                ->saveProduct(
+                    $translationElementId,
+                    $masterProductId,
+                    $jtlProduct,
+                    $productI18n
+                );
+
+            if (!is_null($translationElementId)) {
+                $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
+                    $translationElementId,
+                    $type,
+                    $trid,
+                    $languageCode
+                );
+
+                $translatedWcProduct = wc_get_product($translationElementId);
+                (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $translatedWcProduct);
+            }
+        }
+    }
+
+
+    /**
+     * @param DateTime $creationDate
+     * @param bool $gmt
+     * @return string|null
+     */
+    private function getCreationDate(\DateTime $creationDate, $gmt = false)
+    {
+        if (is_null($creationDate)) {
+            return null;
+        }
+
+        if ($gmt) {
+            $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
+            $creationDate->sub(date_interval_create_from_date_string($shopTimeZone->getOffset($creationDate) / 3600 . ' hours'));
+        }
+
+        return $creationDate->format('Y-m-d H:i:s');
+    }
 
     /**
      * @param int|null $limit

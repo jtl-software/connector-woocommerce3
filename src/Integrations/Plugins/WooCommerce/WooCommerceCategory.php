@@ -7,6 +7,8 @@ use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Model\CategoryI18n as CategoryI18nModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
@@ -94,7 +96,16 @@ class WooCommerceCategory extends AbstractComponent
             if (isset($categoryData['slug'])) {
                 $categoryData['slug'] = wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
             }
+            $wpml = $this->getCurrentPlugin()->getPluginsManager()->get(Wpml::class);
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+            }
+
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
+
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+            }
         }
         add_filter('pre_term_description', 'wp_filter_kses');
 
