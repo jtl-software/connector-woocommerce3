@@ -41,7 +41,7 @@ class Image extends BaseController
         $images = $this->productImagePull($limit);
         $productImages = $this->addNextImages($images, ImageRelationType::TYPE_PRODUCT, $limit);
 
-        if ($this->wpml->canBeUsed()) {
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $categoryImageQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull($limit);
         } else {
             $categoryImageQuery = SqlHelper::imageCategoryPull($limit);
@@ -54,7 +54,7 @@ class Image extends BaseController
 
         if ($this->getPluginsManager()->get(PerfectWooCommerceBrands::class)->canBeUsed()) {
 
-            if ($this->wpml->canBeUsed()) {
+            if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $manufacturerImagesQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull($limit);
             } else {
                 $manufacturerImagesQuery = SqlHelper::imageManufacturerPull($limit);
@@ -73,7 +73,7 @@ class Image extends BaseController
         $return = [];
 
         $language = Util::getInstance()->getWooCommerceLanguage();
-        if ($this->wpml->canBeUsed()) {
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
         }
 
@@ -99,7 +99,7 @@ class Image extends BaseController
                     ->setLanguageISO($language)
                 );
 
-            if ($this->wpml->canBeUsed()) {
+            if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $this->wpml
                     ->getComponent(WpmlMedia::class)
                     ->getTranslations($image['ID'], $model);
@@ -287,14 +287,14 @@ class Image extends BaseController
         $imageCount = $this->masterProductImageStats();
         $imageCount += count($this->database->query(SqlHelper::imageVariationCombinationPull()));
 
-        if ($this->wpml->canBeUsed()) {
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull());
         } else {
             $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
         }
 
         if ($this->getPluginsManager()->get(PerfectWooCommerceBrands::class)->canBeUsed()) {
-            if ($this->wpml->canBeUsed()) {
+            if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull());
             } else {
                 $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
@@ -312,7 +312,13 @@ class Image extends BaseController
         $images = [];
 
         // Fetch unlinked product cover images
-        $thumbnails = $this->database->query(SqlHelper::imageProductThumbnail());
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $thumbnails = $this->database->query(
+                $this->wpml->getComponent(WpmlMedia::class)->getImageProductThumbnailSql()
+            );
+        } else {
+            $thumbnails = $this->database->query(SqlHelper::imageProductThumbnail());
+        }
 
         foreach ($thumbnails as $thumbnail) {
             $images[(int)$thumbnail['ID']] = (int)$thumbnail['meta_value'];
@@ -320,7 +326,13 @@ class Image extends BaseController
         }
 
         // Get all product gallery images
-        $productImagesMappings = $this->database->query(SqlHelper::imageProductGalleryStats());
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $productImagesMappings = $this->database->query(
+                $this->wpml->getComponent(WpmlMedia::class)->getImageProductGalleryStats()
+            );
+        }else{
+            $productImagesMappings = $this->database->query(SqlHelper::imageProductGalleryStats());
+        }
 
         foreach ($productImagesMappings as $productImagesMapping) {
             $productId = (int)$productImagesMapping['ID'];

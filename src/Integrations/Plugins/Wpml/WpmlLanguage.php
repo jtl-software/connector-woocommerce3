@@ -2,7 +2,6 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Model\Currency;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Language;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;

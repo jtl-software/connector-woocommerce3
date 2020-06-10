@@ -24,7 +24,9 @@ abstract class AbstractPlugin implements PluginInterface
      */
     public function addComponent(ComponentInterface $component): PluginInterface
     {
+        $component->setPlugin($this);
         $this->components[$component->getName()] = $component;
+
         return $this;
     }
 
@@ -35,7 +37,6 @@ abstract class AbstractPlugin implements PluginInterface
     public function addComponents(ComponentInterface ...$components): PluginInterface
     {
         foreach ($components as $component) {
-            $component->setPlugin($this);
             $this->addComponent($component);
         }
 
@@ -63,14 +64,6 @@ abstract class AbstractPlugin implements PluginInterface
     public function hasComponent(string $name): bool
     {
         return isset($this->components[$name]);
-    }
-
-    /**
-     * @return ComponentInterface[]
-     */
-    public function getComponents(): array
-    {
-        return $this->components;
     }
 
     /**

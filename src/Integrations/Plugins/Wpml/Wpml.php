@@ -81,9 +81,9 @@ class Wpml extends AbstractPlugin
     /**
      * @return bool
      */
-    public function isWpmlMediaEnabled(): bool
+    public function canWpmlMediaBeUsed(): bool
     {
-        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA);
+        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA) && (new \WPML_Media_Dependencies())->check();
     }
 
     /**
