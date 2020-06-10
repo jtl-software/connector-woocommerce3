@@ -84,11 +84,6 @@ class Category {
 	
 	public static function getTermMetaData() {
 		global $wpdb;
-		
-		if ( version_compare( WC()->version, '2.6', '>=' ) ) {
-			return [ $wpdb->termmeta, 'term_id' ];
-		} else {
-			return [ "{$wpdb->prefix}woocommerce_termmeta", 'woocommerce_term_id' ];
-		}
+        return [ $wpdb->termmeta, 'term_id' ];
 	}
 }

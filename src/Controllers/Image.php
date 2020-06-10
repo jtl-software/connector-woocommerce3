@@ -73,7 +73,7 @@ class Image extends BaseController
         $return = [];
 
         $language = Util::getInstance()->getWooCommerceLanguage();
-        if($this->wpml->canBeUsed()){
+        if ($this->wpml->canBeUsed()) {
             $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
         }
 
@@ -286,10 +286,19 @@ class Image extends BaseController
     {
         $imageCount = $this->masterProductImageStats();
         $imageCount += count($this->database->query(SqlHelper::imageVariationCombinationPull()));
-        $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
+
+        if ($this->wpml->canBeUsed()) {
+            $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull());
+        } else {
+            $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
+        }
 
         if ($this->getPluginsManager()->get(PerfectWooCommerceBrands::class)->canBeUsed()) {
-            $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
+            if ($this->wpml->canBeUsed()) {
+                $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull());
+            } else {
+                $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
+            }
         }
 
         return $imageCount;
