@@ -3,6 +3,9 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Model\Product;
+use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
+use JtlWooCommerceConnector\Controllers\Product\ProductSpecific;
+use JtlWooCommerceConnector\Controllers\Product\ProductVariation;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandler;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
@@ -30,6 +33,11 @@ class WpmlProduct extends AbstractComponent
 
         $trid = $this->getCurrentPlugin()->getElementTrid($wcProductId, $type);
 
+        $masterProductTranslations = [];
+        if (!empty($masterProductId)) {
+            $masterProductTranslations = $this->getProductTranslationInfo($masterProductId);
+        }
+
         $translationInfo = $this->getProductTranslationInfo($wcProductId);
 
         foreach ($jtlProduct->getI18ns() as $productI18n) {
@@ -38,7 +46,8 @@ class WpmlProduct extends AbstractComponent
                 continue;
             }
 
-            $translationElementId = $translationInfo[$languageCode] ? $translationInfo[$languageCode]->element_id : 0;
+            $translationElementId = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;
+            $masterProductId = isset($masterProductTranslations[$languageCode]) ? $masterProductTranslations[$languageCode]->element_id : 0;
 
             $translationElementId = $this->getCurrentPlugin()
                 ->getPluginsManager()
@@ -52,37 +61,19 @@ class WpmlProduct extends AbstractComponent
                 );
 
             if (!is_null($translationElementId)) {
+
+                $product = wc_get_product($translationElementId);
+                $product->set_parent_id($masterProductId);
+                $product->save();
+
                 $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
                     $translationElementId,
                     $type,
                     $trid,
                     $languageCode
                 );
-
-                $translatedWcProduct = wc_get_product($translationElementId);
-                (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $translatedWcProduct);
             }
         }
-    }
-
-
-    /**
-     * @param DateTime $creationDate
-     * @param bool $gmt
-     * @return string|null
-     */
-    private function getCreationDate(\DateTime $creationDate, $gmt = false)
-    {
-        if (is_null($creationDate)) {
-            return null;
-        }
-
-        if ($gmt) {
-            $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(date_interval_create_from_date_string($shopTimeZone->getOffset($creationDate) / 3600 . ' hours'));
-        }
-
-        return $creationDate->format('Y-m-d H:i:s');
     }
 
     /**

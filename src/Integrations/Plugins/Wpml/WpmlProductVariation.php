@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductVariation;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue;
@@ -42,6 +43,72 @@ class WpmlProductVariation extends AbstractComponent
                     ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode)));
             }
         }
+    }
+
+    /**
+     * @param int $productId
+     * @param Product $product
+     */
+    public function updateMeta(int $productId, Product $product)
+    {
+        $wcProduct = wc_get_product($productId);
+        if ($wcProduct instanceof \WC_Product) {
+            $translations = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
+
+            foreach ($translations as $wpmlLanguageCode => $translation) {
+                if ($translation instanceof \WC_Product) {
+                    foreach ($product->getI18ns() as $productI18n) {
+                        if ($productI18n->getLanguageISO() === $this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode)) {
+                            \update_post_meta($translation->get_id(), '_variation_description',
+                                $productI18n->getDescription());
+                            \update_post_meta($translation->get_id(), '_mini_dec', $productI18n->getShortDescription());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $productId
+     * @param $pushedVariations
+     * @return array
+     */
+    public function setChildTranslation($productId, $pushedVariations)
+    {
+        $updatedAttributeKeys = [];
+        $wcProduct = wc_get_product($productId);
+        if ($wcProduct instanceof \WC_Product) {
+            $translations = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
+            foreach ($translations as $wpmlLanguageCode => $translation) {
+                /** @var ProductVariation $variation */
+                foreach ($pushedVariations as $variation) {
+                    foreach ($variation->getValues() as $variationValue) {
+                        foreach ($variation->getI18ns() as $variationI18n) {
+                            foreach ($variationValue->getI18ns() as $i18n) {
+                                if ($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode) !== $i18n->getLanguageISO()) {
+                                    continue;
+                                }
+                                $metaKey =
+                                    'attribute_pa_' . wc_sanitize_taxonomy_name(
+                                        substr(
+                                            trim(
+                                                $variationI18n->getName()
+                                            ),
+                                            0,
+                                            27
+                                        )
+                                    );
+                                $updatedAttributeKeys[] = $metaKey;
+                                \update_post_meta($translation->get_id(), $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $updatedAttributeKeys;
     }
 
     /**

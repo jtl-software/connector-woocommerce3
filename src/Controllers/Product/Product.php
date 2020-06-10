@@ -18,10 +18,12 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
+use JtlWooCommerceConnector\Integrations\Plugins\GermanMarket\GermanMarket;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProductVariation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
@@ -110,9 +112,7 @@ class Product extends BaseController
             if (Util::useGtinAsEanEnabled()) {
                 $ean = '';
 
-                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+                if ($this->getPluginsManager()->get(Germanized::class)->canBeUsed()) {
                     $ean = get_post_meta($wcProduct->get_id(), '_ts_gtin');
 
                     if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
@@ -122,7 +122,7 @@ class Product extends BaseController
                     }
                 }
 
-                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+                if ($this->getPluginsManager()->get(GermanMarket::class)->canBeUsed()) {
                     $ean = get_post_meta($wcProduct->get_id(), '_gm_gtin');
 
                     if (is_array($ean) && count($ean) > 0 && array_key_exists(0, $ean)) {
@@ -253,6 +253,8 @@ class Product extends BaseController
 
         $product->getId()->setEndpoint($newPostId);
 
+        $this->onProductInserted($product, $defaultI18n);
+
         if($this->wpml->canBeUsed()){
             $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
                 $newPostId,
@@ -260,8 +262,6 @@ class Product extends BaseController
                 $product
             );
         }
-
-        $this->onProductInserted($product, $defaultI18n);
 
         if ($this->getPluginsManager()->get(Germanized::class)->canBeUsed()) {
             (new ProductGermanizedFields)->pushData($product);
@@ -316,6 +316,7 @@ class Product extends BaseController
      * @param ProductModel $jtlProduct
      * @param $jtlProductDefaultI18n
      * @throws \WC_Data_Exception
+     * @throws \jtl\Connector\Core\Exception\LanguageException
      */
     protected function onProductInserted(ProductModel $jtlProduct, ProductI18nModel $jtlProductDefaultI18n)
     {
@@ -336,7 +337,7 @@ class Product extends BaseController
 
         (new ProductSpecialPrice)->pushData($jtlProduct, $wcProduct);
 
-        (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct);
+        (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
 
         if ($productType !== 'product_variation') {
             $this->updateProduct($jtlProduct);
@@ -387,9 +388,7 @@ class Product extends BaseController
         $wcProduct->set_width($product->getWidth());
         $wcProduct->set_weight($product->getShippingWeight());
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+        if ($this->getPluginsManager()->get(Germanized::class)->canBeUsed()) {
             $productId = $product->getId()->getEndpoint();
             if (Util::useGtinAsEanEnabled()) {
                 \update_post_meta(
@@ -408,7 +407,7 @@ class Product extends BaseController
             }
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+        if ($this->getPluginsManager()->get(GermanMarket::class)->canBeUsed()) {
             $productId = $product->getId()->getEndpoint();
 
             if (Util::useGtinAsEanEnabled()) {
@@ -463,6 +462,7 @@ class Product extends BaseController
     /**
      * @param ProductModel $product
      * @param ProductI18nModel $jtlProductDefaultI18n
+     * @throws \Exception
      */
     private function updateVariationCombinationChild(ProductModel $product, ProductI18nModel $jtlProductDefaultI18n)
     {
@@ -476,6 +476,10 @@ class Product extends BaseController
         ]);
         \update_post_meta($productId, '_variation_description', $jtlProductDefaultI18n->getDescription());
         \update_post_meta($productId, '_mini_dec', $jtlProductDefaultI18n->getShortDescription());
+
+        if($this->wpml->canBeUsed()){
+            $this->wpml->getComponent(WpmlProductVariation::class)->updateMeta($productId, $product);
+        }
 
         (new ProductStockLevel)->pushDataChild($product);
     }
@@ -518,24 +522,5 @@ class Product extends BaseController
         }
 
         return 'simple';
-    }
-
-    /**
-     * @param DateTime $creationDate
-     * @param bool $gmt
-     * @return string|null
-     */
-    private function getCreationDate(DateTime $creationDate, $gmt = false)
-    {
-        if (is_null($creationDate)) {
-            return null;
-        }
-
-        if ($gmt) {
-            $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(date_interval_create_from_date_string($shopTimeZone->getOffset($creationDate) / 3600 . ' hours'));
-        }
-
-        return $creationDate->format('Y-m-d H:i:s');
     }
 }

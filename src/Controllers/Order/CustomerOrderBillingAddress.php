@@ -58,11 +58,7 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setCountryIso(get_option('woocommerce_default_country'));
         }
         
-        if (
-            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
-        ) {
+        if ($this->getPluginsManager()->get(\JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized::class)->canBeUsed()) {
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }

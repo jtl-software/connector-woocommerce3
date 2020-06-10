@@ -10,12 +10,14 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
+use jtl\Connector\Model\ProductI18n;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProductVariation;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
@@ -173,15 +175,21 @@ class ProductVaSpeAttrHandler extends BaseController
         return $this->productData;
     }
 
-    public function pushDataNew(ProductModel &$product, \WC_Product &$wcProduct)
+    /**
+     * @param ProductModel $jtlProduct
+     * @param \WC_Product $wcProduct
+     * @param ProductI18n $defaultI18n
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public function pushDataNew(ProductModel $jtlProduct, \WC_Product $wcProduct, ProductI18n $defaultI18n)
     {
         if ($wcProduct === false) {
             return;
         }
         //Identify Master = parent/simple
-        $isMaster = $product->getMasterProductId()->getHost() === 0;
+        $isMaster = $jtlProduct->getMasterProductId()->getHost() === 0;
 
-        $productId = $product->getId()->getEndpoint();
+        $productId = $jtlProduct->getId()->getEndpoint();
 
         if ($isMaster) {
             $newProductAttributes = [];
@@ -197,21 +205,25 @@ class ProductVaSpeAttrHandler extends BaseController
             );
 
             //GENERATE DATA ARRAYS
-            $variationSpecificData = $this->generateVariationSpecificData($product->getVariations());
-            $specificData = $this->generateSpecificData($product->getSpecifics());
+            $variationSpecificData = $this->generateVariationSpecificData(
+                $defaultI18n->getLanguageISO(),
+                $jtlProduct->getVariations()
+            );
+            $specificData = $this->generateSpecificData($jtlProduct->getSpecifics());
 
             //handleAttributes
             $finishedAttr = (new ProductAttr)->pushData(
                 $productId,
-                $product->getAttributes(),
+                $jtlProduct->getAttributes(),
                 $attributesFilteredVariationsAndSpecifics,
-                $product
+                $jtlProduct,
+                $defaultI18n->getLanguageISO()
             );
             $this->mergeAttributes($newProductAttributes, $finishedAttr);
 
             // handleSpecifics
             $finishedSpecifics = (new ProductSpecific)->pushData(
-                $productId, $curAttributes, $specificData, $product->getSpecifics()
+                $productId, $curAttributes, $specificData, $jtlProduct->getSpecifics()
             );
             $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
             // handleVarSpecifics
@@ -232,8 +244,14 @@ class ProductVaSpeAttrHandler extends BaseController
         } else {
             (new ProductVariation)->pushChildData(
                 $productId,
-                $product->getVariations()
+                $jtlProduct->getVariations()
             );
+
+            if($this->wpml->canBeUsed()){
+                $this->wpml
+                    ->getComponent(WpmlProductVariation::class)
+                    ->setChildTranslation($productId, $jtlProduct->getVariations());
+            }
         }
         // remove the transient to renew the cache
         delete_transient('wc_attribute_taxonomies');
@@ -310,7 +328,7 @@ class ProductVaSpeAttrHandler extends BaseController
         return $specificData;
     }
 
-    private function generateVariationSpecificData($pushedVariations = [])
+    private function generateVariationSpecificData(string $wawiIsoLanguage, $pushedVariations = [])
     {
         $variationSpecificData = [];
         foreach ($pushedVariations as $variation) {
@@ -319,7 +337,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
                 $customSort = false;
 
-                if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                if ($wawiIsoLanguage !== $variationI18n->getLanguageISO()) {
                     continue;
                 }
 
@@ -343,7 +361,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 foreach ($this->values as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
                     foreach ($vv->getI18ns() as $valueI18n) {
-                        if (!Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
+                        if ($wawiIsoLanguage !== $valueI18n->getLanguageISO()) {
                             continue;
                         }
 

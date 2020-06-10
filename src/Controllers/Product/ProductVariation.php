@@ -240,7 +240,7 @@ class ProductVariation extends BaseController
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
             $taxonomy = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));
-            $specificID = $this->database->query(SqlHelper::getSpecificId(sprintf('%s', $key)));
+            $specificID = $this->database->query(SqlHelper::getSpecificId($key));
             $specificExists = isset($specificID[0]['attribute_id']) ? true : false;
             $options = [];
 
@@ -270,8 +270,6 @@ class ProductVariation extends BaseController
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
-                            // die();
                             WpErrorLogger::getInstance()->logError($newTerm);
                             continue;
                         }
@@ -341,11 +339,7 @@ class ProductVariation extends BaseController
                 $attributeId = wc_create_attribute($endpoint);
 
                 if ($attributeId instanceof WP_Error) {
-                    //var_dump($attributeId);
-                    //die();
-                    //return $termId->get_error_message();
                     WpErrorLogger::getInstance()->logError($attributeId);
-
                     return null;
                 }
 
@@ -386,8 +380,6 @@ class ProductVariation extends BaseController
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
-                            // die();
                             WpErrorLogger::getInstance()->logError($newTerm);
                             continue;
                         }
@@ -395,8 +387,6 @@ class ProductVariation extends BaseController
                         $termId = $newTerm['term_id'];
 
                         if ($termId instanceof WP_Error) {
-                            // var_dump($termId);
-                            // die();
                             WpErrorLogger::getInstance()->logError($termId);
                             continue;
                         }
@@ -434,6 +424,7 @@ class ProductVariation extends BaseController
      * @param $productId
      * @param $pushedVariations
      * @return array
+     * @throws LanguageException
      */
     public function pushChildData(
         $productId,
@@ -445,11 +436,15 @@ class ProductVariation extends BaseController
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                    if ($this->skipNotDefaultLanguage($variationI18n->getLanguageISO())) {
                         continue;
                     }
 
                     foreach ($variationValue->getI18ns() as $i18n) {
+                        if ($this->skipNotDefaultLanguage($i18n->getLanguageISO())) {
+                            continue;
+                        }
+
                         $metaKey =
                             'attribute_pa_' . wc_sanitize_taxonomy_name(
                                 substr(
@@ -462,8 +457,7 @@ class ProductVariation extends BaseController
                             );
                         $updatedAttributeKeys[] = $metaKey;
 
-                        \update_post_meta($productId, $metaKey,
-                            wc_sanitize_taxonomy_name($i18n->getName()));
+                        \update_post_meta($productId, $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
                     }
                     break;
                 }
@@ -471,5 +465,24 @@ class ProductVariation extends BaseController
         }
 
         return $updatedAttributeKeys;
+    }
+
+    /**
+     * @param string $wawiLanguageIso
+     * @return bool
+     * @throws LanguageException
+     */
+    protected function skipNotDefaultLanguage(string $wawiLanguageIso): bool
+    {
+        if ($this->wpml->canBeUsed()) {
+            if ($this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage()) !== $wawiLanguageIso) {
+                return true;
+            }
+        } else {
+            if (!Util::getInstance()->isWooCommerceLanguage($wawiLanguageIso)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

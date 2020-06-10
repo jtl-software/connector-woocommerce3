@@ -29,7 +29,8 @@ class ProductAttr extends BaseController
         $productId,
         $pushedAttributes,
         $attributesFilteredVariationsAndSpecifics,
-        ProductModel $product
+        ProductModel $product,
+        $wawiLanguageIso
     ) {
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
@@ -49,7 +50,7 @@ class ProductAttr extends BaseController
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if ($wawiLanguageIso !== $i18n->getLanguageISO()) {
                     continue;
                 }
                 
@@ -493,7 +494,7 @@ class ProductAttr extends BaseController
             }
             
             foreach ($attribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if ($wawiLanguageIso !== $i18n->getLanguageISO()) {
                     continue;
                 }
                 
