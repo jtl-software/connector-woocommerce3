@@ -136,7 +136,7 @@ class CustomerOrderItem extends BaseController
     {
         $this->accurateItemTaxCalculation(
             $order,
-            'shipping',
+            CustomerOrderItemModel::TYPE_SHIPPING,
             $customerOrderItems,
             function ($shippingItem, $order, $taxRateId) {
                 return $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
@@ -204,7 +204,7 @@ class CustomerOrderItem extends BaseController
         }
 
         $highestVatRateFallback = 0.;
-        if($type === 'shipping'){
+        if($type === CustomerOrderItemModel::TYPE_SHIPPING){
             foreach ($customerOrderItems as $orderItem) {
                 if ($orderItem->getVat() > $highestVatRateFallback) {
                     $highestVatRateFallback = $orderItem->getVat();
@@ -287,7 +287,7 @@ class CustomerOrderItem extends BaseController
                     $customerOrderItem->setPriceGross((float)Util::getNetPriceCutted($total + $totalTax, $pd));
                 }
 
-                if ($type === 'shipping' && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
+                if ($type === CustomerOrderItemModel::TYPE_SHIPPING && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
                     $customerOrderItem->setVat($highestVatRateFallback);
                 }
 
