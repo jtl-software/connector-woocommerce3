@@ -6,7 +6,7 @@ Tested up to: 5.3
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.0
-Stable tag: 1.9.4
+Stable tag: 1.9.5
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.9.5 =
+* Enhancement - CO-979 - Added delivery time support for Germanized plugin
+* Enhancement - CO-965 - Added fallback when shipping vat rate is 0 then vat rate is the highest rate from products
 
 = 1.9.4 =
 * Enhancement - CO-991 - If there is exactly one 'tax' order item type in order, rate_percent from it will be used instead of calculating vat rate manually

@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.9.5
+* Enhancement - CO-979 - Added delivery time support for Germanized plugin
+* Enhancement - CO-965 - Added fallback when shipping vat rate is 0 then vat rate is the highest rate from products 
+
 ## 1.9.4
 * Enhancement - CO-991 - If there is exactly one 'tax' order item type in order, rate_percent from it will be used instead of calculating vat rate manually
 * Enhancement - Item price gross is now used without rounding for manually vat calculation
