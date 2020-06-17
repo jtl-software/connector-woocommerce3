@@ -35,7 +35,7 @@ class DeliveryNote extends BaseController
             foreach ($deliveryNote->getTrackingLists() as $trackingList) {
 
                 $trackingInfoItem = [];
-                $trackingInfoItem['data_shipped'] = $deliveryNote->getCreationDate()->format("Y-m-d");
+                $trackingInfoItem['date_shipped'] = $deliveryNote->getCreationDate()->format("Y-m-d");
 
                 $trackingProviders = $shipmentTrackingActions->get_providers();
 
