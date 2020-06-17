@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.9.5
+* Bugfix - Fixed typo in DeliveryNote controller 
 * Enhancement - CO-979 - Added delivery time support for Germanized plugin
 * Enhancement - CO-965 - Added fallback when shipping vat rate is 0 then vat rate is the highest rate from products 
 
