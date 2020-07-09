@@ -142,7 +142,7 @@ class Product extends BaseController
                 (new ProductB2BMarketFields)->pullData($productModel, $product);
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+            if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
                 $tmpManId = ProductManufacturer::getInstance()->pullData($productModel);
                 if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
                     $productModel->setManufacturerId($tmpManId);

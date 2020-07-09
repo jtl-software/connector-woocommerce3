@@ -154,6 +154,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.9.5 =
+* Enhancement - CO-1049 - Added compatibility for plugin name change Perfect Brands for WooCommerce
 * Bugfix - Reverted changes related to rounding vat on item from version 1.9.4
 * Bugfix - Fixed typo in DeliveryNote controller
 * Enhancement - CO-979 - Added delivery time support for Germanized plugin
