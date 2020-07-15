@@ -47,17 +47,10 @@ class CustomerOrderItem extends BaseController
         
         if ($pd < 4) {
             $pd = 4;
-        }
-
-        $taxItem = $order->get_items('tax');
-        if(is_array($taxItem) && count($taxItem) === 1){
-            $rate = end($taxItem);
-            $data = $rate->get_data();
-
-            if (isset($data['rate_percent'])) {
-                $singleVatRate = (float) $data['rate_percent'];
-            }
-        }
+		}
+		
+		// Init the WooCommerce Tax Class to handle var rate calculation on order item basis.
+		$wcTaxClass = new \WC_Tax();
         
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
@@ -102,27 +95,19 @@ class CustomerOrderItem extends BaseController
                     $orderItem->setName(sprintf($format, $orderItem->getName(),
                         \wc_get_formatted_variation($product, true)));
                 }
-            }
-            
-            $tax = $order->get_item_tax($item); // the tax amount
-            
-            if ($tax === 0.0) {
-                $priceNet = $priceGross = $order->get_item_subtotal($item, true, false);
-            } else {
-                $priceNet = $order->get_item_subtotal($item, false, false);
-                $priceGross = $order->get_item_subtotal($item, true, true);
-            }
+			}
+			
+			// Vat Rate from Order Item.
+			$taxClass = $orderItem->get_tax_class();
+			$taxes = $wcTaxClass->get_rates($taxClass);
+			$taxData = array_shift($taxes);
+			$vat = $taxData['rate'];
 
-            if (isset($singleVatRate) && $tax !== 0.) {
-                $vat = $singleVatRate;
-            } else {
-                $vat = 0;
+			// Net and gross price, as calculated in WooCommerce. We also use rounded values here.
+			$priceNet = $order->get_item_subtotal($item, false, true);
+			$priceGross = $order->get_item_subtotal($item, true, true);
 
-                if ($priceNet != $priceGross) {
-                    $vat = round(($priceGross * 100 / $priceNet) - 100, 1);
-                }
-            }
-
+			
             $orderItem
                 ->setVat($vat)
                 ->setPrice((float)Util::getNetPriceCutted($priceNet, $pd))
