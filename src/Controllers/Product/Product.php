@@ -279,6 +279,18 @@ class Product extends BaseController
             (new ProductMetaSeo)->pushData($product, $newPostId, $defaultI18n);
         }
 
+        remove_filter('content_save_pre', 'wp_filter_post_kses');
+        remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+
+        wp_update_post([
+            'ID' => $newPostId,
+            'post_content' => $defaultI18n->getDescription(),
+            'post_excerpt' => $defaultI18n->getShortDescription()
+        ]);
+
+        add_filter('content_save_pre', 'wp_filter_post_kses');
+        add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+
         return $product;
     }
 
