@@ -23,7 +23,7 @@ class ProductDeliveryTime extends BaseController
     public function pushData(ProductModel $product, \WC_Product $wcProduct)
     {
         $productId = $product->getId()->getEndpoint();
-        $time = $product->getSupplierDeliveryTime();
+        $time = $product->calculateHandlingTime();
         $germanizedDeliveryTimeTaxonomyName = 'product_delivery_time';
 
         $this->removeDeliveryTimeTerm($productId);
