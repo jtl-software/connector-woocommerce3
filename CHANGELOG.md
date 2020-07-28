@@ -2,7 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
-## 1.9.5
+## 1.10.0  
+* Enhancement - CO-1086 - Changed supplier delivery time to handling time method 
+* Enhancement - CO-1049 - Added compatibility for plugin name change Perfect Brands for WooCommerce
+
+## 1.9.5 
 * Bugfix - Reverted changes related to rounding vat on item from version 1.9.4
 * Bugfix - Fixed typo in DeliveryNote controller 
 * Enhancement - CO-979 - Added delivery time support for Germanized plugin

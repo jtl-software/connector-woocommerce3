@@ -20,7 +20,7 @@ class ProductManufacturer extends BaseController
     {
         $productId = $product->getId()->getEndpoint();
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $manufacturerId = $product->getManufacturerId()->getEndpoint();
             $this->removeManufacturerTerm($productId);
             $term = get_term_by('id', $manufacturerId, 'pwb-brand');
@@ -57,7 +57,7 @@ class ProductManufacturer extends BaseController
     {
         $productId      = $model->getId()->getEndpoint();
         $manufacturerId = null;
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $terms = wp_get_object_terms($productId, 'pwb-brand');
             
             if (count($terms) > 0) {

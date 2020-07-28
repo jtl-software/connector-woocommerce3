@@ -44,7 +44,7 @@ class Image extends BaseController
     
         $combinedArray = array_merge($productImages, $categoryImages);
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $images             = $this->manufacturerImagePull($limit);
             $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
             $combinedArray = array_merge($combinedArray, $manufacturerImages);
@@ -282,7 +282,7 @@ class Image extends BaseController
         $imageCount += count($this->database->query(SqlHelper::imageVariationCombinationPull()));
         $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
         }
         

@@ -28,7 +28,7 @@ class Manufacturer extends BaseController
     protected function pullData($limit)
     {
         $manufacturers = [];
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $sql = SqlHelper::manufacturerPull($limit);
             $manufacturerData = $this->database->query($sql);
             
@@ -69,7 +69,7 @@ class Manufacturer extends BaseController
     
     protected function pushData(ManufacturerModel $manufacturer)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $meta = null;
             $defaultAvailable = false;
             
@@ -192,7 +192,7 @@ class Manufacturer extends BaseController
     
     protected function deleteData(ManufacturerModel $manufacturer)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $manufacturerId = (int)$manufacturer->getId()->getEndpoint();
             
             if (!empty($manufacturerId)) {
@@ -208,7 +208,7 @@ class Manufacturer extends BaseController
     
     protected function getStats()
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             return $this->database->queryOne(SqlHelper::manufacturerStats());
         } else {
             return 0;
