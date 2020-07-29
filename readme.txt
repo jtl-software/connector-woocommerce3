@@ -6,7 +6,7 @@ Tested up to: 5.3
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.0
-Stable tag: 1.9.5.2
+Stable tag: 1.10.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.10.0 =
+* Enhancement - CO-1086 - Changed supplier delivery time to handling time method
+* Enhancement - CO-1049 - Added compatibility for plugin name change Perfect Brands for WooCommerce
 
 = 1.9.5 =
 * Bugfix - Reverted changes related to rounding vat on item from version 1.9.4

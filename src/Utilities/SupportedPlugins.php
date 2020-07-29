@@ -14,6 +14,7 @@ final class SupportedPlugins
     const PLUGIN_B2B_MARKET = 'B2B Market';
     const PLUGIN_GERMAN_MARKET = 'German Market';
     const PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands';
+    const PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE = 'Perfect Brands for WooCommerce';
     const PLUGIN_FB_FOR_WOO = 'Facebook for WooCommerce';
     const PLUGIN_WOOCOMMERCE = 'WooCommerce';
     const PLUGIN_WOOCOMMERCE_GERMANIZED = 'WooCommerce Germanized';
@@ -51,6 +52,7 @@ final class SupportedPlugins
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
+        self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE,
         self::PLUGIN_B2B_MARKET,
         self::PLUGIN_GERMAN_MARKET,
         self::PLUGIN_FB_FOR_WOO,
@@ -201,6 +203,17 @@ final class SupportedPlugins
         }
 
         return $active;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isPerfectWooCommerceBrandsActive()
+    {
+        return (
+            self::isActive(self::PLUGIN_PERFECT_WOO_BRANDS) ||
+            self::isActive(self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE)
+        );
     }
 
     /**
