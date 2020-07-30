@@ -7,6 +7,7 @@ use jtl\Connector\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
@@ -72,30 +73,37 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 continue;
             }
 
+            $perfectWooCommerceBrands = $this->getCurrentPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class);
+
             if (!isset($translation[$languageCode])) {
-                $result = $this->getCurrentPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class)
-                    ->createManufacturer($jtlManufacturer->getName(), $manufacturerI18n);
+                $slug = $perfectWooCommerceBrands->sanitizeSlug($jtlManufacturer->getName(), $languageCode);
+                $result = $perfectWooCommerceBrands->createManufacturer($slug, $jtlManufacturer->getName(),
+                    $manufacturerI18n);
             } else {
                 $manufacturerId = $translation[$languageCode]->term_id;
 
-                $result = $this->getCurrentPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class)
+                $result = $perfectWooCommerceBrands
                     ->updateManufacturer($manufacturerId, $jtlManufacturer->getName(), $manufacturerI18n);
             }
 
-            if (isset($result['term_id'])) {
-                $manufacturerId = $result['term_id'];
+            if ($result instanceof \WP_Error) {
+                WpErrorLogger::getInstance()->logError($result);
+            } else {
+                if (isset($result['term_id'])) {
+                    $manufacturerId = $result['term_id'];
 
-                $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
-                if ($yoastSeo->canBeUsed()) {
-                    $yoastSeo->setManufacturerSeoData((int)$manufacturerId, $manufacturerI18n);
+                    $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
+                    if ($yoastSeo->canBeUsed()) {
+                        $yoastSeo->setManufacturerSeoData((int)$manufacturerId, $manufacturerI18n);
+                    }
+
+                    $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
+                        $manufacturerId,
+                        $elementType,
+                        $trid,
+                        $languageCode
+                    );
                 }
-
-                $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                    $manufacturerId,
-                    $elementType,
-                    $trid,
-                    $languageCode
-                );
             }
         }
     }

@@ -52,7 +52,8 @@ class YoastSeo extends AbstractPlugin
                 $taxonomySeo[$type][$catKey]['wpseo_desc'] = $i18nModel->getMetaDescription();
                 $taxonomySeo[$type][$catKey]['wpseo_focuskw'] = $i18nModel->getMetaKeywords();
                 $taxonomySeo[$type][$catKey]['wpseo_title'] = strcmp($i18nModel->getTitleTag(),
-                    '') === 0 ? $i18nModel->getName() : $i18nModel->getTitleTag();
+                    '') === 0 && method_exists($i18nModel,
+                    'getName') ? $i18nModel->getName() : $i18nModel->getTitleTag();
             }
         }
         if ($exists === false) {
@@ -60,7 +61,8 @@ class YoastSeo extends AbstractPlugin
                 'wpseo_desc' => $i18nModel->getMetaDescription(),
                 'wpseo_focuskw' => $i18nModel->getMetaKeywords(),
                 'wpseo_title' => strcmp($i18nModel->getTitleTag(),
-                    '') === 0 ? $i18nModel->getName() : $i18nModel->getTitleTag(),
+                    '') === 0 && method_exists($i18nModel,
+                    'getName') ? $i18nModel->getName() : $i18nModel->getTitleTag(),
             ];
         }
 
@@ -113,12 +115,12 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $categoryId
+     * @param int $manufacturerId
      * @param ManufacturerI18n $manufacturerI18n
      */
-    public function setManufacturerSeoData(int $categoryId, ManufacturerI18n $manufacturerI18n): void
+    public function setManufacturerSeoData(int $manufacturerId, ManufacturerI18n $manufacturerI18n): void
     {
-        $this->updateWpSeoTaxonomyMeta($categoryId, $manufacturerI18n, 'pwb-brand');
+        $this->updateWpSeoTaxonomyMeta($manufacturerId, $manufacturerI18n, 'pwb-brand');
     }
 
     /**

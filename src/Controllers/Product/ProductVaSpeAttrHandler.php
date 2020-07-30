@@ -189,7 +189,7 @@ class ProductVaSpeAttrHandler extends BaseController
         //Identify Master = parent/simple
         $isMaster = $jtlProduct->getMasterProductId()->getHost() === 0;
 
-        $productId = $jtlProduct->getId()->getEndpoint();
+        $productId = $wcProduct->get_id();
 
         if ($isMaster) {
             $newProductAttributes = [];
@@ -246,12 +246,6 @@ class ProductVaSpeAttrHandler extends BaseController
                 $productId,
                 $jtlProduct->getVariations()
             );
-
-            if($this->wpml->canBeUsed()){
-                $this->wpml
-                    ->getComponent(WpmlProductVariation::class)
-                    ->setChildTranslation($productId, $jtlProduct->getVariations());
-            }
         }
         // remove the transient to renew the cache
         delete_transient('wc_attribute_taxonomies');

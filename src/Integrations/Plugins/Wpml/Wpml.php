@@ -51,6 +51,16 @@ class Wpml extends AbstractPlugin
     }
 
     /**
+     * @param string $wawiLanguageIso
+     * @return bool
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public function isDefaultLanguage(string $wawiLanguageIso): bool
+    {
+        return $this->getDefaultLanguage() === $this->convertLanguageToWpml($wawiLanguageIso);
+    }
+
+    /**
      * @param string $wpmlLanguageCode
      * @return string
      * @throws \jtl\Connector\Core\Exception\LanguageException
@@ -144,7 +154,20 @@ class Wpml extends AbstractPlugin
      */
     public function getElementTrid(int $termId, string $elementType): int
     {
-        return (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+        $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+
+        if ($trid === 0) {
+            $this->getSitepress()->set_element_language_details(
+                $termId,
+                $elementType,
+                $trid,
+                $this->getDefaultLanguage()
+            );
+
+            $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+        }
+
+        return $trid;
     }
 
     /**

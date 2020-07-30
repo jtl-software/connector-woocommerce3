@@ -253,7 +253,8 @@ class Product extends BaseController
 
         $product->getId()->setEndpoint($newPostId);
 
-        $this->onProductInserted($product, $defaultI18n);
+        $wcProduct = \wc_get_product($newPostId);
+        $this->onProductInserted($wcProduct, $product, $defaultI18n);
 
         if($this->wpml->canBeUsed()){
             $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
@@ -276,7 +277,7 @@ class Product extends BaseController
         }
 
         if ($this->getPluginsManager()->get(YoastSeo::class)->canBeUsed()) {
-            (new ProductMetaSeo)->pushData($product, $newPostId, $defaultI18n);
+            (new ProductMetaSeo)->pushData($newPostId, $defaultI18n);
         }
 
         remove_filter('content_save_pre', 'wp_filter_post_kses');
@@ -325,14 +326,15 @@ class Product extends BaseController
     }
 
     /**
+     * @param \WC_Product $wcProduct
      * @param ProductModel $jtlProduct
-     * @param $jtlProductDefaultI18n
+     * @param ProductI18nModel $jtlProductDefaultI18n
      * @throws \WC_Data_Exception
      * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \Exception
      */
-    protected function onProductInserted(ProductModel $jtlProduct, ProductI18nModel $jtlProductDefaultI18n)
+    public function onProductInserted(\WC_Product $wcProduct, ProductModel $jtlProduct, ProductI18nModel $jtlProductDefaultI18n)
     {
-        $wcProduct = \wc_get_product($jtlProduct->getId()->getEndpoint());
         $productType = $this->getType($jtlProduct);
 
         if (is_null($wcProduct)) {
@@ -352,15 +354,25 @@ class Product extends BaseController
         (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
 
         if ($productType !== 'product_variation') {
-            $this->updateProduct($jtlProduct);
-            \wc_delete_product_transients($jtlProduct->getId()->getEndpoint());
+            $this->updateProduct($wcProduct, $jtlProduct);
+            \wc_delete_product_transients($wcProduct->get_id());
         }
 
         //variations
         if ($productType === 'product_variation') {
-            $this->updateVariationCombinationChild($jtlProduct, $jtlProductDefaultI18n);
+            $this->updateVariationCombinationChild($wcProduct, $jtlProduct, $jtlProductDefaultI18n);
+            (new ProductStockLevel)->pushDataChild($jtlProduct);
         }
 
+        $this->setProductType($productType, $wcProduct);
+    }
+
+    /**
+     * @param string $productType
+     * @param \WC_Product $wcProduct
+     */
+    public function setProductType(string $productType, \WC_Product $wcProduct)
+    {
         $productTypeTerm = \get_term_by('slug', $productType, 'product_type');
         $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
@@ -472,15 +484,16 @@ class Product extends BaseController
     }
 
     /**
+     * @param \WC_Product $wcProduct
      * @param ProductModel $product
      * @param ProductI18nModel $jtlProductDefaultI18n
      * @throws \Exception
      */
-    private function updateVariationCombinationChild(ProductModel $product, ProductI18nModel $jtlProductDefaultI18n)
+    public function updateVariationCombinationChild(\WC_Product $wcProduct, ProductModel $product, ProductI18nModel $jtlProductDefaultI18n)
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
-        $productTitle = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
+        $productTitle = \esc_html(\get_the_title($wcProduct->get_parent_id()));
         $variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post([
             'ID' => $productId,
@@ -488,20 +501,15 @@ class Product extends BaseController
         ]);
         \update_post_meta($productId, '_variation_description', $jtlProductDefaultI18n->getDescription());
         \update_post_meta($productId, '_mini_dec', $jtlProductDefaultI18n->getShortDescription());
-
-        if($this->wpml->canBeUsed()){
-            $this->wpml->getComponent(WpmlProductVariation::class)->updateMeta($productId, $product);
-        }
-
-        (new ProductStockLevel)->pushDataChild($product);
     }
 
     /**
+     * @param \WC_Product $wcProduct
      * @param ProductModel $product
      */
-    private function updateProduct(ProductModel $product)
+    private function updateProduct(\WC_Product $wcProduct, ProductModel $product)
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
         \update_post_meta($productId, '_visibility', 'visible');
 

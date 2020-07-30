@@ -24,7 +24,7 @@ use ReflectionClass;
 abstract class BaseController extends Controller
 {
     use BaseControllerTrait;
-    
+
     /**
      * @var Db
      */
@@ -84,22 +84,22 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'pullData')) {
                 $result = $this->pullData($query->getLimit());
             }
-            
+
             $action->setResult($result);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a push request.
      *
@@ -110,22 +110,22 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'pushData')) {
                 $result = $this->pushData($data);
             }
-            
+
             $action->setResult($result);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a delete request.
      *
@@ -136,20 +136,20 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'deleteData')) {
                 $action->setResult($this->deleteData($data));
             }
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a statistic request.
      *
@@ -160,20 +160,20 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $statModel = new Statistic();
-            
+
             if (method_exists($this, 'getStats')) {
                 $statModel->setAvailable((int)$this->getStats());
             }
-            
+
             $statModel->setControllerName(lcfirst($this->controllerName));
             $action->setResult($statModel);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
 }

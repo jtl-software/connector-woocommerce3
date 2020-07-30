@@ -72,36 +72,36 @@ class WpmlProductVariation extends AbstractComponent
     /**
      * @param $productId
      * @param $pushedVariations
+     * @param $languageCode
      * @return array
      */
-    public function setChildTranslation($productId, $pushedVariations)
+    public function setChildTranslation($productId, $pushedVariations, $languageCode)
     {
         $updatedAttributeKeys = [];
         $wcProduct = wc_get_product($productId);
         if ($wcProduct instanceof \WC_Product) {
-            $translations = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
-            foreach ($translations as $wpmlLanguageCode => $translation) {
-                /** @var ProductVariation $variation */
-                foreach ($pushedVariations as $variation) {
-                    foreach ($variation->getValues() as $variationValue) {
-                        foreach ($variation->getI18ns() as $variationI18n) {
-                            foreach ($variationValue->getI18ns() as $i18n) {
-                                if ($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode) !== $i18n->getLanguageISO()) {
-                                    continue;
-                                }
-                                $metaKey =
-                                    'attribute_pa_' . wc_sanitize_taxonomy_name(
-                                        substr(
-                                            trim(
-                                                $variationI18n->getName()
-                                            ),
-                                            0,
-                                            27
-                                        )
-                                    );
-                                $updatedAttributeKeys[] = $metaKey;
-                                \update_post_meta($translation->get_id(), $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
+            foreach ($pushedVariations as $variation) {
+                foreach ($variation->getValues() as $variationValue) {
+                    foreach ($variation->getI18ns() as $variationI18n) {
+                        if ($this->getCurrentPlugin()->convertLanguageToWawi($languageCode) !== $variationI18n->getLanguageISO()) {
+                            continue;
+                        }
+                        foreach ($variationValue->getI18ns() as $i18n) {
+                            if ($this->getCurrentPlugin()->convertLanguageToWawi($languageCode) !== $i18n->getLanguageISO()) {
+                                continue;
                             }
+                            $metaKey =
+                                'attribute_pa_' . wc_sanitize_taxonomy_name(
+                                    substr(
+                                        trim(
+                                            $variationI18n->getName()
+                                        ),
+                                        0,
+                                        27
+                                    )
+                                );
+                            $updatedAttributeKeys[] = $metaKey;
+                            \update_post_meta($productId, $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
                         }
                     }
                 }

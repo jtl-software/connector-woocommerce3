@@ -72,7 +72,9 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
         if ($manufacturerTerm === false) {
             /** @var \WP_Term $newManufacturerTerm */
-            $newManufacturerTerm = $this->createManufacturer($jtlManufacturer->getName(), $manufacturerI18n);
+
+            $slug = $this->sanitizeSlug($jtlManufacturer->getName());
+            $newManufacturerTerm = $this->createManufacturer($slug, $jtlManufacturer->getName(), $manufacturerI18n);
 
             if ($newManufacturerTerm instanceof WP_Error) {
                 $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
@@ -109,11 +111,22 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @param string $manufacturerName
+     * @param string $languageSuffix
      * @return string
      */
-    public function sanitizeSlug(string $manufacturerName)
+    public function sanitizeSlug(string $manufacturerName, string $languageSuffix = '')
     {
-        return wc_sanitize_taxonomy_name(substr(trim($manufacturerName), 0, 27));
+        $manufacturerName = substr(trim($manufacturerName), 0, 27);
+
+        if (!empty($languageSuffix)) {
+            if (mb_strlen($manufacturerName) > 24) {
+                $manufacturerName = substr($manufacturerName, 0, 24);
+            }
+
+            $manufacturerName .= '-' . $languageSuffix;
+        }
+
+        return wc_sanitize_taxonomy_name($manufacturerName);
     }
 
     /**
@@ -126,15 +139,14 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     }
 
     /**
+     * @param string $slug
      * @param string $manufacturerName
      * @param ManufacturerI18nModel $manufacturerI18n
-     * @return array|WP_Error
+     * @return array|int[]|WP_Error
      */
-    public function createManufacturer(string $manufacturerName, ManufacturerI18nModel $manufacturerI18n)
+    public function createManufacturer(string $slug, string $manufacturerName, ManufacturerI18nModel $manufacturerI18n)
     {
-        $slug = $this->sanitizeSlug($manufacturerName);
-
-        $newTerm = \wp_insert_term(
+        return \wp_insert_term(
             $manufacturerName,
             'pwb-brand',
             [
@@ -142,8 +154,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
                 'slug' => $slug,
             ]
         );
-
-        return $newTerm;
     }
 
     /**
