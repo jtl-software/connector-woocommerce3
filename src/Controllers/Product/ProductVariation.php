@@ -16,6 +16,7 @@ use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nMo
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProductVariation;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlStringTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -25,6 +26,11 @@ use WP_Error;
 
 class ProductVariation extends BaseController
 {
+    /**
+     * @var array
+     */
+    protected static $originLanguageDetails = [];
+
     /**
      * @param ProductModel $model
      * @param \WC_Product_Attribute $attribute
@@ -228,27 +234,68 @@ class ProductVariation extends BaseController
      * @param $productId
      * @param $variationSpecificData
      * @param $attributesFilteredVariationSpecifics
-     * @return |null
+     * @param $wawiIsoLanguage
+     * @return |null |null
+     * @throws LanguageException
      */
     public function pushMasterData(
         $productId,
         $variationSpecificData,
-        $attributesFilteredVariationSpecifics
+        $attributesFilteredVariationSpecifics,
+        $wawiIsoLanguage
     ) {
         $result = null;
         $parent = (new ProductVaSpeAttrHandler);
 
+        $isDefaultLanguage = Util::getInstance()->isWooCommerceLanguage($wawiIsoLanguage);
+        if ($this->wpml->canBeUsed()) {
+            $isDefaultLanguage = $this->wpml->isDefaultLanguage($wawiIsoLanguage);
+        }
+
+        if ($isDefaultLanguage === true) {
+            self::$originLanguageDetails = [
+                'term' => [],
+                'attribute' => []
+            ];
+        }
+
+        $translationDetailInfo = [
+            'term' => [],
+            'attribute' => []
+        ];
+
+        $k = 0;
         foreach ($variationSpecificData as $key => $variationSpecific) {
+            $k++;
+
+            if ($this->wpml->canBeUsed() && $isDefaultLanguage === false) {
+                $key = self::$originLanguageDetails['attribute'][$k]['key'];
+            }
+
             $taxonomy = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));
             $specificID = $this->database->query(SqlHelper::getSpecificId($key));
-            $specificExists = isset($specificID[0]['attribute_id']) ? true : false;
+            $specificExists = isset($specificID[0]['attribute_id']);
             $options = [];
 
             if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                 $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
             }
 
+            if($isDefaultLanguage === true){
+                self::$originLanguageDetails['attribute'][$k] = [
+                    'taxonomy' => $taxonomy,
+                    'name' => $variationSpecific['name'],
+                    'key' => $key
+                ];
+            }
+
             if ($specificExists) {
+
+                if ($this->wpml->canBeUsed() && $isDefaultLanguage === false) {
+                    $name = self::$originLanguageDetails['attribute'][$k]['name'];
+                    $this->wpml->getComponent(WpmlStringTranslation::class)->translate($name,
+                        $variationSpecific['name'], $wawiIsoLanguage);
+                }
 
                 //Get existing values
                 $pushedValues = explode(' ' . WC_DELIMITER . ' ', $variationSpecific['value']);
@@ -275,7 +322,19 @@ class ProductVariation extends BaseController
                         }
 
                         $termId = $newTerm['term_id'];
+                        $specificValueId->setEndpoint(new Identity($termId));
                     }
+
+                    if ($isDefaultLanguage === true) {
+                        self::$originLanguageDetails['term'][] = [
+                            'tax' => $taxonomy,
+                            'id' => $termId
+                        ];
+                    }
+                    $translationDetailInfo['term'][] = [
+                        'tax' => $taxonomy,
+                        'id' => $termId
+                    ];
 
                     if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                         $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
@@ -320,31 +379,43 @@ class ProductVariation extends BaseController
                         true
                     );
                 }
+
             } else {
                 //Create specific and add values
-                $endpoint = [
-                    'id' => '',
-                    'name' => $variationSpecific['name'],
-                    'slug' => $taxonomy,
-                    'type' => 'select',
-                    'order_by' => 'menu_order',
-                    //'attribute_public'  => 0,
-                ];
+                if($isDefaultLanguage === true) {
+                    $endpoint = [
+                        'id' => '',
+                        'name' => $variationSpecific['name'],
+                        'slug' => $taxonomy,
+                        'type' => 'select',
+                        'order_by' => 'menu_order'
+                    ];
+
+                    $attributeId = wc_create_attribute($endpoint);
+
+                    if ($attributeId instanceof WP_Error) {
+                        WpErrorLogger::getInstance()->logError($attributeId);
+                        return null;
+                    }
+                }
 
                 $options = explode(
                     ' ' . WC_DELIMITER . ' ',
                     $variationSpecific['value']
                 );
 
-                $attributeId = wc_create_attribute($endpoint);
-
-                if ($attributeId instanceof WP_Error) {
-                    WpErrorLogger::getInstance()->logError($attributeId);
-                    return null;
-                }
-
                 //Register taxonomy for current request
                 register_taxonomy($taxonomy, null);
+
+                if($this->wpml->canBeUsed()){
+                    if ($isDefaultLanguage === true) {
+                        $this->wpml->getComponent(WpmlStringTranslation::class)->registerString($taxonomy, $endpoint['name'], $wawiIsoLanguage);
+                    } else {
+                        $name = self::$originLanguageDetails['attribute'][$k]['name'];
+                        $this->wpml->getComponent(WpmlStringTranslation::class)->translate($name,
+                            $variationSpecific['name'], $wawiIsoLanguage);
+                    }
+                }
 
                 $assignedValueIds = [];
 
@@ -362,15 +433,10 @@ class ProductVariation extends BaseController
                             $endpointValue['name']
                         )
                     );
+                    $exValId = $exValId[0]['term_id'] ?? null;
 
-                    if (count($exValId) >= 1) {
-                        if (isset($exValId[0]['term_id'])) {
-                            $exValId = $exValId[0]['term_id'];
-                        } else {
-                            $exValId = null;
-                        }
-                    } else {
-                        $exValId = null;
+                    if($isDefaultLanguage === false){
+                        $taxonomy = self::$originLanguageDetails['attribute'][$k]['taxonomy'];
                     }
 
                     if (is_null($exValId)) {
@@ -392,6 +458,17 @@ class ProductVariation extends BaseController
                         }
 
                         $assignedValueIds[] = $termId;
+
+                        if ($isDefaultLanguage === true) {
+                            self::$originLanguageDetails['term'][] = [
+                                'tax' => $taxonomy,
+                                'id' => $termId
+                            ];
+                        }
+                        $translationDetailInfo['term'][] = [
+                            'tax' => $taxonomy,
+                            'id' => $termId
+                        ];
                     }
                 }
 
@@ -415,6 +492,22 @@ class ProductVariation extends BaseController
                 );
             }
             $result = $attributesFilteredVariationSpecifics;
+        }
+
+        if ($this->wpml->canBeUsed() && $isDefaultLanguage === false && !empty(self::$originLanguageDetails)) {
+            foreach ($translationDetailInfo['term'] as $index => $detail) {
+                $originLanguage = self::$originLanguageDetails['term'][$index];
+                $type = 'tax_' . $originLanguage['tax'];
+                $languageCode = $this->wpml->convertLanguageToWpml($wawiIsoLanguage);
+                $trid = $this->wpml->getElementTrid($originLanguage['id'], $type);
+
+                $this->wpml->getSitepress()->set_element_language_details(
+                    $detail['id'],
+                    $type,
+                    $trid,
+                    $languageCode
+                );
+            }
         }
 
         return $result;

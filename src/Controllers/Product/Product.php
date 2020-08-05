@@ -256,7 +256,7 @@ class Product extends BaseController
         $wcProduct = \wc_get_product($newPostId);
         $this->onProductInserted($wcProduct, $product, $defaultI18n);
 
-        if($this->wpml->canBeUsed()){
+        if ($this->wpml->canBeUsed()) {
             $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
                 $newPostId,
                 $masterProductId,
@@ -333,8 +333,11 @@ class Product extends BaseController
      * @throws \jtl\Connector\Core\Exception\LanguageException
      * @throws \Exception
      */
-    public function onProductInserted(\WC_Product $wcProduct, ProductModel $jtlProduct, ProductI18nModel $jtlProductDefaultI18n)
-    {
+    public function onProductInserted(
+        \WC_Product $wcProduct,
+        ProductModel $jtlProduct,
+        ProductI18nModel $jtlProductDefaultI18n
+    ) {
         $productType = $this->getType($jtlProduct);
 
         if (is_null($wcProduct)) {
@@ -489,8 +492,11 @@ class Product extends BaseController
      * @param ProductI18nModel $jtlProductDefaultI18n
      * @throws \Exception
      */
-    public function updateVariationCombinationChild(\WC_Product $wcProduct, ProductModel $product, ProductI18nModel $jtlProductDefaultI18n)
-    {
+    public function updateVariationCombinationChild(
+        \WC_Product $wcProduct,
+        ProductModel $product,
+        ProductI18nModel $jtlProductDefaultI18n
+    ) {
         $productId = (int)$wcProduct->get_id();
 
         $productTitle = \esc_html(\get_the_title($wcProduct->get_parent_id()));

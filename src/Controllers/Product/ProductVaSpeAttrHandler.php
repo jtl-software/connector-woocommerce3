@@ -16,6 +16,7 @@ use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProductVariation;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -55,8 +56,6 @@ class ProductVaSpeAttrHandler extends BaseController
         'productAttributes' => [],
         'productSpecifics' => [],
     ];
-
-    private $values = [];
 
     /**
      * @param \WC_Product $product
@@ -178,10 +177,10 @@ class ProductVaSpeAttrHandler extends BaseController
     /**
      * @param ProductModel $jtlProduct
      * @param \WC_Product $wcProduct
-     * @param ProductI18n $defaultI18n
+     * @param ProductI18n $productI18n
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    public function pushDataNew(ProductModel $jtlProduct, \WC_Product $wcProduct, ProductI18n $defaultI18n)
+    public function pushDataNew(ProductModel $jtlProduct, \WC_Product $wcProduct, ProductI18n $productI18n)
     {
         if ($wcProduct === false) {
             return;
@@ -206,7 +205,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
             //GENERATE DATA ARRAYS
             $variationSpecificData = $this->generateVariationSpecificData(
-                $defaultI18n->getLanguageISO(),
+                $productI18n->getLanguageISO(),
                 $jtlProduct->getVariations()
             );
             $specificData = $this->generateSpecificData($jtlProduct->getSpecifics());
@@ -217,7 +216,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $jtlProduct->getAttributes(),
                 $attributesFilteredVariationsAndSpecifics,
                 $jtlProduct,
-                $defaultI18n->getLanguageISO()
+                $productI18n->getLanguageISO()
             );
             $this->mergeAttributes($newProductAttributes, $finishedAttr);
 
@@ -226,11 +225,13 @@ class ProductVaSpeAttrHandler extends BaseController
                 $productId, $curAttributes, $specificData, $jtlProduct->getSpecifics()
             );
             $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
+
             // handleVarSpecifics
             $finishedVarSpecifics = (new ProductVariation)->pushMasterData(
                 $productId,
                 $variationSpecificData,
-                $attributesFilteredVariationSpecifics
+                $attributesFilteredVariationSpecifics,
+                $productI18n->getLanguageISO()
             );
 
             if (!is_array($finishedVarSpecifics)) {
@@ -337,22 +338,22 @@ class ProductVaSpeAttrHandler extends BaseController
 
                 $values = [];
 
-                $this->values = $variation->getValues();
+                $variationValues = $variation->getValues();
 
-                foreach ($this->values as $vv) {
+                foreach ($variationValues as $vv) {
                     if ($vv->getSort() !== 0) {
                         $customSort = true;
                     }
                 }
 
                 if ($customSort) {
-                    usort($this->values, [
+                    usort($variationValues, [
                         $this,
                         'sortI18nValues',
                     ]);
                 }
 
-                foreach ($this->values as $vv) {
+                foreach ($variationValues as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
                     foreach ($vv->getI18ns() as $valueI18n) {
                         if ($wawiIsoLanguage !== $valueI18n->getLanguageISO()) {
