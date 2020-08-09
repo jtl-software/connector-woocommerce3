@@ -150,6 +150,11 @@ class WpmlProduct extends AbstractComponent
 
         $translationElementId = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;
         $masterProductId = isset($masterProductTranslations[$languageCode]) ? $masterProductTranslations[$languageCode]->element_id : 0;
+
+        if($type === self::POST_TYPE_VARIATION && $masterProductId === 0){
+            return;
+        }
+
         $translationElementId = $wpmlPlugin
             ->getPluginsManager()
             ->get(WooCommerce::class)
