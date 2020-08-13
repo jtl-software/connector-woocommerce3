@@ -28,9 +28,18 @@ class GlobalData extends BaseController
             ->setShippingMethods((new ShippingMethod())->pullData())
             ->setCrossSellingGroups((new CrossSellingGroups())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
-        
+
+        $hasDefaultCustomerGroup = false;
         foreach ((new CustomerGroup)->pullData() as $group) {
+            /** @var $group \jtl\Connector\Model\CustomerGroup */
+            if($group->getIsDefault() === true){
+                $hasDefaultCustomerGroup = true;
+            }
             $globalData->addCustomerGroup($group);
+        }
+
+        if($hasDefaultCustomerGroup === false){
+            throw new \Exception(__("Please update B2B-Market/WooCommerce default customer group", JTLWCC_TEXT_DOMAIN));
         }
         
         if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {

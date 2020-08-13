@@ -145,6 +145,10 @@ msgstr ""
 msgid "Connector Password"
 msgstr "Connector Passwort"
 
+#: includes/JtlConnectorAdmin.php:2248
+msgid "Please update B2B-Market/WooCommerce default customer group"
+msgstr "Bitte aktualisieren Sie die B2B-Market/WooCommerce Standard-Kundengruppe"
+
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "
 #~ "help."

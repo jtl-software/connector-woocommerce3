@@ -6,6 +6,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGrou
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Symfony\Component\Yaml\Yaml;
 
@@ -35,16 +36,16 @@ final class JtlConnectorAdmin
      * Use another format for child product names than Variation #22 of Product name
      */
     const OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format';
-    
+
     /**
      * The currently installed connector version.
      */
-    
+
     /**
      * The update to a new connector version failed.
      */
     const OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed';
-    
+
     const OPTIONS_INSTALLED_VERSION = 'jtlconnector_installed_version';
     const OPTIONS_DEVELOPER_LOGGING = 'developer_logging';
     const OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page';
@@ -58,61 +59,61 @@ final class JtlConnectorAdmin
     const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
     const OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce';
     const OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group';
-    
+
     const JTLWCC_CONFIG = [
         //FIRSTPAGE
         self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
-        self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => 'bool',
-        self::OPTIONS_VARIATION_NAME_FORMAT                    => 'string',
-        self::OPTIONS_USE_GTIN_FOR_EAN                         => 'bool',
-        self::OPTIONS_DEFAULT_CUSTOMER_GROUP                   => 'string',
+        self::OPTIONS_SEND_CUSTOM_PROPERTIES => 'bool',
+        self::OPTIONS_VARIATION_NAME_FORMAT => 'string',
+        self::OPTIONS_USE_GTIN_FOR_EAN => 'bool',
+        self::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'string',
         //PAGE
-        self::OPTIONS_USE_DELIVERYTIME_CALC                    => 'bool',
-        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => 'bool',
-        self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'string',
-        self::OPTIONS_SUFFIX_DELIVERYTIME                      => 'string',
+        self::OPTIONS_USE_DELIVERYTIME_CALC => 'bool',
+        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',
+        self::OPTIONS_PRAEFIX_DELIVERYTIME => 'string',
+        self::OPTIONS_SUFFIX_DELIVERYTIME => 'string',
         //PAGE
-        self::OPTIONS_COMPLETED_ORDERS                         => 'bool',
-        self::OPTIONS_PULL_ORDERS_SINCE                        => 'date',
+        self::OPTIONS_COMPLETED_ORDERS => 'bool',
+        self::OPTIONS_PULL_ORDERS_SINCE => 'date',
         //Page
-        self::OPTIONS_DEVELOPER_LOGGING                        => 'bool',
-        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS                 => 'bool',
-        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => 'bool',
-        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => 'bool',
+        self::OPTIONS_DEVELOPER_LOGGING => 'bool',
+        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => 'bool',
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS => 'bool',
     ];
-    
+
     const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
         self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => true,
-        self::OPTIONS_SEND_CUSTOM_PROPERTIES                   => true,
-        self::OPTIONS_VARIATION_NAME_FORMAT                    => '',
-        self::OPTIONS_USE_GTIN_FOR_EAN                         => true,
-        self::OPTIONS_DEFAULT_CUSTOMER_GROUP                   => 'customer',
+        self::OPTIONS_SEND_CUSTOM_PROPERTIES => true,
+        self::OPTIONS_VARIATION_NAME_FORMAT => '',
+        self::OPTIONS_USE_GTIN_FOR_EAN => true,
+        self::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
         //PAGE
-        self::OPTIONS_USE_DELIVERYTIME_CALC                    => true,
-        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME              => true,
-        self::OPTIONS_PRAEFIX_DELIVERYTIME                     => 'ca. ',
-        self::OPTIONS_SUFFIX_DELIVERYTIME                      => ' Werktage',
+        self::OPTIONS_USE_DELIVERYTIME_CALC => true,
+        self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
+        self::OPTIONS_PRAEFIX_DELIVERYTIME => 'ca. ',
+        self::OPTIONS_SUFFIX_DELIVERYTIME => ' Werktage',
         //PAGE
-        self::OPTIONS_COMPLETED_ORDERS                         => true,
-        self::OPTIONS_PULL_ORDERS_SINCE                        => '',
+        self::OPTIONS_COMPLETED_ORDERS => true,
+        self::OPTIONS_PULL_ORDERS_SINCE => '',
         //Page
-        self::OPTIONS_DEVELOPER_LOGGING                        => false,
-        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS                 => true,
-        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               => true,
-        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS                  => true,
+        self::OPTIONS_DEVELOPER_LOGGING => false,
+        self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
+        self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => true,
+        self::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
     ];
-    
+
     private static $initiated = false;
-    
+
     // <editor-fold defaultstate="collapsed" desc="Activation">
     public static function plugin_activation()
     {
         global $woocommerce;
-        
+
         $version = $woocommerce->version;
         $connectorVersion = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
-        
+
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
@@ -124,14 +125,14 @@ final class JtlConnectorAdmin
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_wrong_woocommerce_version');
         }
-        
+
         try {
             self::run_system_check();
             self::activate_linking();
-            
+
             add_option(self::OPTIONS_TOKEN, self::create_password());
             add_option(self::OPTIONS_INSTALLED_VERSION, $connectorVersion);
-            
+
             foreach (self::JTLWCC_CONFIG as $oKey => $castItem) {
                 $curValue = get_option($oKey, null);
                 if ($curValue === null) {
@@ -148,7 +149,7 @@ final class JtlConnectorAdmin
             }
         }
     }
-    
+
     private static function run_system_check()
     {
         try {
@@ -159,14 +160,14 @@ final class JtlConnectorAdmin
                     add_action('admin_notices', 'directory_no_write_access');
                 }
             }
-            
+
             Check::run();
-            
+
         } catch (\Exception $e) {
             wp_die($e->getMessage());
         }
     }
-    
+
     private static function run_phar_check()
     {
         if (!extension_loaded('phar')) {
@@ -178,11 +179,11 @@ final class JtlConnectorAdmin
             }
         }
     }
-    
+
     private static function activate_linking()
     {
         global $wpdb;
-        
+
         $createQuery = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -190,16 +191,16 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        
+
         $dropOldQuery = '
           DROP TABLE IF EXISTS `%s`;
         ';
-        
+
         $oldPrefix = 'jtl_connector_link_';
         $prefix = $wpdb->prefix . $oldPrefix;
-        
+
         $existingTables = self::getOldDatabaseTables();
-        
+
         $tables = [
             'category',
             'category_level',
@@ -230,19 +231,19 @@ final class JtlConnectorAdmin
         foreach ($tables as $key => $table) {
             $oldExists = in_array($oldPrefix . $table, $existingTables);
             $newExists = in_array($prefix . $table, $existingTables);
-            
+
             if (strcmp('category_level', $table) === 0 || strcmp('product_checksum', $table) === 0) {
                 //repair bug
                 if (in_array($prefix . $table, $existingTables)) {
                     self::renameTable($prefix . $table, substr($prefix, 0, -5) . $table);
                 }
-                
+
                 $oldPrefix = substr($oldPrefix, 0, -5);
                 $prefix = substr($prefix, 0, -5);
                 $oldExists = in_array($oldPrefix . $table, $existingTables);
                 $newExists = in_array($prefix . $table, $existingTables);
             }
-            
+
             if ($oldExists && $newExists) {
                 $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
             } elseif (!$oldExists && !$newExists) {
@@ -275,20 +276,20 @@ final class JtlConnectorAdmin
             $oldPrefix = 'jtl_connector_link_';
             $prefix = $wpdb->prefix . $oldPrefix;
         }
-        
+
         self::add_constraints_for_multi_linking_tables($prefix);
     }
-    
+
     private static function renameTable($oldName, $newName)
     {
         global $wpdb;
-        
+
         $query = 'RENAME TABLE %s TO %s;';
-        
+
         $sql = sprintf($query, $oldName, $newName);
         $wpdb->query($sql);
     }
-    
+
     private static function createImageLinkingTable()
     {
         global $wpdb;
@@ -302,9 +303,9 @@ final class JtlConnectorAdmin
                 INDEX (`endpoint_id`, `type`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
-        
+
     }
-    
+
     private static function createCustomerLinkingTable()
     {
         global $wpdb;
@@ -319,7 +320,7 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
     }
-    
+
     private static function createCustomerGroupLinkingTable()
     {
         global $wpdb;
@@ -333,13 +334,13 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci'
         );
     }
-    
+
     private static function getOldDatabaseTables()
     {
         global $wpdb;
         $existingTables = [];
         $tableDataSet = $wpdb->get_results('SHOW TABLES');
-        
+
         if (count($tableDataSet) !== 0) {
             foreach ($tableDataSet as $tableData) {
                 foreach ($tableData as $table) {
@@ -347,27 +348,27 @@ final class JtlConnectorAdmin
                 }
             }
         }
-        
+
         return array_values($existingTables);
     }
-    
+
     private static function activate_checksum($prefix)
     {
         global $wpdb;
-        
+
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-        
+
         if ($engine === 'InnoDB') {
             $constraint = ", CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES {$wpdb->posts} (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION";
         } else {
             $constraint = '';
         }
-        
+
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `{$prefix}product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
@@ -376,7 +377,7 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`product_id`) {$constraint}
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
-    
+
     private static function activate_category_tree()
     {
         global $wpdb;
@@ -387,15 +388,15 @@ final class JtlConnectorAdmin
             WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-        
+
         $constraint = '';
-        
+
         if ($engine === 'InnoDB') {
             if (!DB::checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
                 $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
             }
         }
-        
+
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `{$prefix}category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
@@ -405,47 +406,61 @@ final class JtlConnectorAdmin
                 INDEX (`level`) {$constraint}
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
     }
-    
+
     private static function create_password()
     {
         if (function_exists('com_create_guid') === true) {
             return trim(com_create_guid(), '{}');
         }
-        
+
         return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535),
             mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535));
     }
-    
+
     // </editor-fold>
-    
+
     public static function plugin_deactivation()
     {
         delete_option(self::OPTIONS_TOKEN);
     }
-    
+
     public static function init()
     {
         if (!self::$initiated) {
             self::init_hooks();
+            self::checkIfDefaultCustomerGroupIsSet();
         }
     }
-    
+
+    public static function checkIfDefaultCustomerGroupIsSet()
+    {
+        $defaultCustomerGroup = Config::get(self::OPTIONS_DEFAULT_CUSTOMER_GROUP);
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $sql = SqlHelper::customerGroupPull();
+            $b2bMarketCustomerGroups = Db::getInstance()->query($sql);
+            if (count($b2bMarketCustomerGroups) > 0 && !in_array($defaultCustomerGroup, array_column($b2bMarketCustomerGroups, 'ID'))) {
+                add_action('admin_notices', ['JtlConnectorAdmin', 'default_customer_group_not_updated']);
+            }
+        }
+    }
+
     public static function init_hooks()
     {
         self::$initiated = true;
-        
+
         add_filter('plugin_row_meta', [
             'JtlConnectorAdmin',
             'jtlconnector_plugin_row_meta',
         ], 10, 2);
-        
+
         add_action('admin_post_settings_save_woo-jtl-connector', [
             'JtlConnectorAdmin',
             'save',
         ]);
-        
+
         //Register custom fields
         add_action('woocommerce_admin_field_jtl_date_field',
             [
@@ -519,7 +534,7 @@ final class JtlConnectorAdmin
                 'compatible_plugins_field',
             ]
         );
-        
+
         //NEW PAGE
         add_action('admin_menu', 'woo_jtl_connector_add_admin_menu');
         add_action('admin_enqueue_scripts', 'woo_jtl_connector_loadCssAndJs');
@@ -534,7 +549,7 @@ final class JtlConnectorAdmin
                 null,
                 '55.5'
             );
-            
+
             add_submenu_page(
                 'woo-jtl-connector',
                 __('JTL-Connector:Information', JTLWCC_TEXT_DOMAIN),
@@ -543,7 +558,7 @@ final class JtlConnectorAdmin
                 'woo-jtl-connector-information',
                 'woo_jtl_connector_information_page'
             );
-            
+
             add_submenu_page(
                 'woo-jtl-connector',
                 __('JTL-Connector:Advanced', JTLWCC_TEXT_DOMAIN),
@@ -552,7 +567,7 @@ final class JtlConnectorAdmin
                 'woo-jtl-connector-advanced',
                 'woo_jtl_connector_advanced_page'
             );
-            
+
             add_submenu_page(
                 'woo-jtl-connector',
                 __('JTL-Connector:Delivery times', JTLWCC_TEXT_DOMAIN),
@@ -561,7 +576,7 @@ final class JtlConnectorAdmin
                 'woo-jtl-connector-delivery-time',
                 'woo_jtl_connector_delivery_time_page'
             );
-            
+
             add_submenu_page(
                 'woo-jtl-connector',
                 __('JTL-Connector:Customer orders', JTLWCC_TEXT_DOMAIN),
@@ -570,7 +585,7 @@ final class JtlConnectorAdmin
                 'woo-jtl-connector-customer-order',
                 'woo_jtl_connector_customer_order_page'
             );
-            
+
             add_submenu_page(
                 'woo-jtl-connector',
                 __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
@@ -579,10 +594,10 @@ final class JtlConnectorAdmin
                 'woo-jtl-connector-developer-settings',
                 'woo_jtl_connector_developer_settings_page'
             );
-            
+
             remove_submenu_page('woo-jtl-connector', 'woo-jtl-connector');
         }
-        
+
         function woo_jtl_connector_loadCssAndJs($hook)
         {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
@@ -590,43 +605,43 @@ final class JtlConnectorAdmin
             if (!preg_match('/^jtl-connector_page_woo-/', $hook)) {
                 return;
             }
-            
+
             wp_enqueue_style('bootstrap4', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css');
             wp_enqueue_style('custom-css-jtl', JTLWCC_CONNECTOR_DIR_URL . '/includes/css/custom.css');
             wp_enqueue_script('boot1', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js',
                 ['jquery'], '', true);
-            
+
         }
-        
+
         function woo_jtl_connector_information_page()
         {
             JtlConnectorAdmin::displayPageNew('information_page', __('Connector information', JTLWCC_TEXT_DOMAIN));
         }
-        
+
         function woo_jtl_connector_advanced_page()
         {
             JtlConnectorAdmin::displayPageNew('advanced_page', __('Advanced Settings', JTLWCC_TEXT_DOMAIN), true);
         }
-        
+
         function woo_jtl_connector_delivery_time_page()
         {
             JtlConnectorAdmin::displayPageNew('delivery_time_page', __('Delivery time', JTLWCC_TEXT_DOMAIN), true);
         }
-        
+
         function woo_jtl_connector_customer_order_page()
         {
             JtlConnectorAdmin::displayPageNew('customer_order_page', __('Customer order', JTLWCC_TEXT_DOMAIN), true);
         }
-        
+
         function woo_jtl_connector_developer_settings_page()
         {
             JtlConnectorAdmin::displayPageNew('developer_settings_page', __('Developer Settings', JTLWCC_TEXT_DOMAIN),
                 true);
         }
-        
+
         self::update();
     }
-    
+
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'woo-jtl-connector.php') !== false) {
@@ -636,21 +651,21 @@ final class JtlConnectorAdmin
             ];
             $links = array_merge($links, $new_links);
         }
-        
+
         return $links;
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="Settings">
-    
+
     public static function displayPageNew($page, $title = 'Connector information', $submit = false)
     {
         $options = null;
         if (is_null($page)) {
             return;
         }
-        
+
         self::validateAndPrepareConfig();
-        
+
         switch ($page) {
             case 'information_page':
                 $settings = apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields());
@@ -671,13 +686,13 @@ final class JtlConnectorAdmin
                 $settings = null;
                 break;
         }
-        
+
         if (is_null($settings)) {
             return;
         }
-        
+
         $options = apply_filters('woocommerce_get_settings_jtlconnector', $settings);
-        
+
         ?>
         <div class="bootstrap-wrapper m-0 bg-light">
             <?php
@@ -711,7 +726,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     private static function displayNanvigation($page)
     {
         ?>
@@ -758,17 +773,17 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function settings_link($links = [])
     {
         $settings_link = '<a href="admin.php?page=woo-jtl-connector-information">' . __('Settings',
                 JTLWCC_TEXT_DOMAIN) . '</a>';
-        
+
         array_unshift($links, $settings_link);
-        
+
         return $links;
     }
-    
+
     private static function notCompatiblePluginsError()
     {
         //Show error if unsupported plugins are in use
@@ -781,176 +796,176 @@ final class JtlConnectorAdmin
             );
         }
     }
-    
+
     private static function getInformationFields()
     {
         $fields = [];
-        
+
         self::notCompatiblePluginsError();
-        
+
         //Add Information field
         $fields[] = [
             'type' => 'title',
             'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. The ERP system as well as the entire JTL product family are perfectly suited to the requirements of e-commerce and mail order businesses. They help you to process more orders in a shorter time and offer a range of exciting functionalities. Basic information and credentials of the installed JTL-Connector. It is needed to configure the JTL-Connector in the jtl customer center and JTL-Wawi.',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         //Add connector url field
         $fields[] = [
-            'title'     => 'Connector URL',
-            'type'      => 'connector_url',
+            'title' => 'Connector URL',
+            'type' => 'connector_url',
             'helpBlock' => __('This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => 'connector_url',
-            'value'     => sprintf('%s%s%s',
+            'id' => 'connector_url',
+            'value' => sprintf('%s%s%s',
                 $protocol = isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) ||
                 isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' ? 'https://' : 'http://',
                 str_replace(
-                        'http://',
+                    'http://',
+                    '',
+                    str_replace(
+                        'https://',
                         '',
-                        str_replace(
-                                'https://',
-                                '',
-                                get_bloginfo('url')
-                        )
+                        get_bloginfo('url')
+                    )
                 ),
                 '/index.php/jtlconnector/'
             ),
         ];
-        
+
         //Add connector password field
         $fields[] = [
-            'title'     => __('Connector Password', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'connector_password',
+            'title' => __('Connector Password', JTLWCC_TEXT_DOMAIN),
+            'type' => 'connector_password',
             'helpBlock' => __('This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => 'connector_password',
-            'value'     => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
+            'id' => 'connector_password',
+            'value' => get_option(JtlConnectorAdmin::OPTIONS_TOKEN),
         ];
-        
+
         //Add connector version field
         $fields[] = [
-            'title'     => 'Connector Version',
-            'type'      => 'paragraph',
+            'title' => 'Connector Version',
+            'type' => 'paragraph',
             'helpBlock' => __('This is your current installed connector version.', JTLWCC_TEXT_DOMAIN),
-            'desc'      => Config::get('connector_version'),
+            'desc' => Config::get('connector_version'),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         //Add extend plugin informations
         if (count(SupportedPlugins::getSupported()) > 0) {
             $fields[] = [
-                'title'   => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
-                'type'    => 'compatible_plugins_field',
+                'title' => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
+                'type' => 'compatible_plugins_field',
                 'plugins' => SupportedPlugins::getSupported(),
             ];
         }
-        
+
         //Add Incompatible plugin informations
         $fields[] = [
-            'title'   => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
-            'type'    => 'not_compatible_plugins_field',
+            'title' => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
+            'type' => 'not_compatible_plugins_field',
             'plugins' => SupportedPlugins::getNotSupportedButActive(false, true, true),
         ];
-        
+
         $fields[] = [
-            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
-            'type'       => 'jtlwcc_card',
-            'color'      => 'border-warning',
+            'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtlwcc_card',
+            'color' => 'border-warning',
             'text-color' => 'text-warning',
-            'center'     => true,
-            'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+            'center' => true,
+            'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         return $fields;
     }
-    
+
     private static function getAdvancedFields()
     {
         $fields = [];
-        
+
         self::notCompatiblePluginsError();
-        
+
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
             'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. These are the advanced settings of the installed JTL-Connector. Here you can configure how some data is handled while push/pull.',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         //Add variation specific radio field
         $fields[] = [
-            'title'     => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you want to show your customers the variation as specific (Default : Enabled).',
+            'title' => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to show your customers the variation as specific (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
-            'value'     => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
+            'value' => Config::get(self::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add custom properties radio field
         $fields[] = [
-            'title'     => __('Custom properties', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
+            'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
-            'value'     => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_SEND_CUSTOM_PROPERTIES,
+            'value' => Config::get(self::OPTIONS_SEND_CUSTOM_PROPERTIES),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add gtin/ean radio field
         $fields[] = [
-            'title'     => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you want to use the GTIN field for ean. (Default : Enabled / Required plugin: WooCommerce Germanized).',
+            'title' => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to use the GTIN field for ean. (Default : Enabled / Required plugin: WooCommerce Germanized).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_USE_GTIN_FOR_EAN,
-            'value'     => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_USE_GTIN_FOR_EAN,
+            'value' => Config::get(self::OPTIONS_USE_GTIN_FOR_EAN),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add variation select field
         $fields[] = [
-            'title'     => __('Variation name format', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'jtl_connector_select',
-            'id'        => self::OPTIONS_VARIATION_NAME_FORMAT,
-            'value'     => Config::get(self::OPTIONS_VARIATION_NAME_FORMAT),
-            'options'   => [
-                ''                => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
-                'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                'brackets'        => __('Variation #22 of Product name (Color: black, Size: S)',
+            'title' => __('Variation name format', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_select',
+            'id' => self::OPTIONS_VARIATION_NAME_FORMAT,
+            'value' => Config::get(self::OPTIONS_VARIATION_NAME_FORMAT),
+            'options' => [
+                '' => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
+                'space' => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'brackets' => __('Variation #22 of Product name (Color: black, Size: S)',
                     JTLWCC_TEXT_DOMAIN),
-                'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'space_parent' => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
                 'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
             ],
             'helpBlock' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && version_compare(
                 (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
@@ -960,7 +975,7 @@ final class JtlConnectorAdmin
         ) {
             $customerGroups = (new CustomerGroupModel)->pullData();
             $options = [];
-            
+
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $key => $customerGroup) {
                 if (count($customerGroup->getI18ns()) > 0) {
@@ -969,191 +984,191 @@ final class JtlConnectorAdmin
                     $options[$customerGroup->getId()->getEndpoint()] = $i18n->getName();
                 }
             }
-            
+
             $fields[] = [
-                'title'     => __('B2B-Market/WooCommerce default customer group', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'jtl_connector_select',
-                'id'        => self::OPTIONS_DEFAULT_CUSTOMER_GROUP,
-                'value'     => Config::get(self::OPTIONS_DEFAULT_CUSTOMER_GROUP),
-                'options'   => $options,
+                'title' => __('B2B-Market/WooCommerce default customer group', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtl_connector_select',
+                'id' => self::OPTIONS_DEFAULT_CUSTOMER_GROUP,
+                'value' => Config::get(self::OPTIONS_DEFAULT_CUSTOMER_GROUP),
+                'options' => $options,
                 'helpBlock' => __('Define which customer group is default.', JTLWCC_TEXT_DOMAIN),
             ];
         }
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
-        
+
+
         return $fields;
     }
-    
+
     private static function getCustomerOrderFields()
     {
         $fields = [];
-        
+
         self::notCompatiblePluginsError();
-        
+
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
             'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Customer order related settings of the installed JTL-Connector. Here you can set some options to modify the import of customer orders.',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         //Add variation specific radio field
         $fields[] = [
-            'title'     => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Do not choose when having a large amount of data and low server specifications.',
+            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Do not choose when having a large amount of data and low server specifications.',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_COMPLETED_ORDERS,
-            'value'     => Config::get(self::OPTIONS_COMPLETED_ORDERS),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_COMPLETED_ORDERS,
+            'value' => Config::get(self::OPTIONS_COMPLETED_ORDERS),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
         //Add pull order since date field
         $fields[] = [
-            'title'     => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'jtl_date_field',
+            'title' => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_date_field',
             // 'default'  => '2019-03-22',
-            'value'     => Config::get(self::OPTIONS_PULL_ORDERS_SINCE),
+            'value' => Config::get(self::OPTIONS_PULL_ORDERS_SINCE),
             'helpBlock' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_PULL_ORDERS_SINCE,
+            'id' => self::OPTIONS_PULL_ORDERS_SINCE,
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
-        
+
+
         return $fields;
     }
-    
+
     private static function getDeliveryTimeFields()
     {
         $fields = [];
-        
+
         self::notCompatiblePluginsError();
-        
+
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
             'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Delivery time related settings of the installed JTL-Connector. Here you can set some options to modify the pull/psuh of delivery times.',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         //Add delivery time calculation radio field
         $fields[] = [
-            'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
+            'title' => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_USE_DELIVERYTIME_CALC,
-            'value'     => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_USE_DELIVERYTIME_CALC,
+            'value' => Config::get(self::OPTIONS_USE_DELIVERYTIME_CALC),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add dont use zero values radio field
         $fields[] = [
-            'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
+            'title' => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
-            'value'     => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
+            'value' => Config::get(self::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add prefix for delivery time textinput field
         $fields[] = [
-            'title'     => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'jtl_text_input',
-            'id'        => self::OPTIONS_PRAEFIX_DELIVERYTIME,
-            'value'     => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
+            'title' => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_text_input',
+            'id' => self::OPTIONS_PRAEFIX_DELIVERYTIME,
+            'value' => Config::get(self::OPTIONS_PRAEFIX_DELIVERYTIME),
             'helpBlock' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add suffix for delivery time textinput field
         $fields[] = [
-            'title'     => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'jtl_text_input',
-            'id'        => self::OPTIONS_SUFFIX_DELIVERYTIME,
-            'value'     => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
+            'title' => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_text_input',
+            'id' => self::OPTIONS_SUFFIX_DELIVERYTIME,
+            'value' => Config::get(self::OPTIONS_SUFFIX_DELIVERYTIME),
             'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         return $fields;
     }
-    
+
     private static function getDeveloperSettingsFields()
     {
         $fields = [];
-        
+
         self::notCompatiblePluginsError();
-        
+
         //Add Settings information field
         $fields[] = [
             'type' => 'title',
             'desc' => __('With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the free JTL-Wawi ERP system by JTL-Software. Developer related settings of the installed JTL-Connector. Here you can enable/disable/reset/download the developer logs of the jtl connector.',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add dev log radio field
         $fields[] = [
-            'title'     => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
+            'title' => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_DEVELOPER_LOGGING,
-            'value'     => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_DEVELOPER_LOGGING,
+            'value' => Config::get(self::OPTIONS_DEVELOPER_LOGGING),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         //Add dev log buttons
         $fields[] = [
-            'type'          => 'dev_log_btn',
-            'downloadText'  => __('Download', JTLWCC_TEXT_DOMAIN),
+            'type' => 'dev_log_btn',
+            'downloadText' => __('Download', JTLWCC_TEXT_DOMAIN),
             'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         $fields[] = [
-            'title'     => __('Recommend WooCommerce Settings', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+            'title' => __('Recommend WooCommerce Settings', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
                 JTLWCC_TEXT_DOMAIN),
-            'id'        => self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS,
-            'value'     => Config::get(self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS,
+            'value' => Config::get(self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
         $fields[] = [
-            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
-            'type'       => 'jtlwcc_card',
-            'color'      => 'border-info',
+            'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtlwcc_card',
+            'color' => 'border-info',
             'text-color' => 'text-danger',
-            'center'     => false,
-            'text'       => __('The <b>JTL-Connector</b> set following settings for WooCommerce:</br></br>
+            'center' => false,
+            'text' => __('The <b>JTL-Connector</b> set following settings for WooCommerce:</br></br>
                                     <ul class="list-group bg-transparent border-info text-info">
                                       <li class="list-group-item bg-transparent">Prices entered with tax: "No, I will enter prices exclusive of tax" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Display prices in the shop: "Including tax" (Dont change this!)</li>
@@ -1161,25 +1176,25 @@ final class JtlConnectorAdmin
                                     </ul>',
                 JTLWCC_TEXT_DOMAIN),
         ];
-        
+
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
-                'title'     => __('Recommend German Market Settings', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                'title' => __('Recommend German Market Settings', JTLWCC_TEXT_DOMAIN),
+                'type' => 'active_true_false_radio',
+                'desc' => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
                     JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS,
-                'value'     => Config::get(self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'id' => self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS,
+                'value' => Config::get(self::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS),
+                'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
             $fields[] = [
-                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
-                'type'       => 'jtlwcc_card',
-                'color'      => 'border-info',
+                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtlwcc_card',
+                'color' => 'border-info',
                 'text-color' => 'text-danger',
-                'center'     => false,
-                'text'       => __('<h6>The <b>JTL-Connector</b> set following settings for German Market:</br></br></h6>
+                'center' => false,
+                'text' => __('<h6>The <b>JTL-Connector</b> set following settings for German Market:</br></br></h6>
                                     <ul class="list-group bg-transparent border-info text-info">
                                       <li class="list-group-item bg-transparent">Delivery Time > Default Delivery Time: "not specified" (Dont change this!)</li>
                                       <li class="list-group-item bg-transparent">Delivery Time > Show Delivery Times on Product Pages: "On"</li>
@@ -1212,43 +1227,43 @@ final class JtlConnectorAdmin
                     JTLWCC_TEXT_DOMAIN),
             ];
         }
-        
+
         //CURRENT DISBALED THIS
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && false) {
             $fields[] = [
-                'title'     => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
-                'type'      => 'active_true_false_radio',
-                'desc'      => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
+                'title' => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
+                'type' => 'active_true_false_radio',
+                'desc' => __('JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
                     JTLWCC_TEXT_DOMAIN),
-                'id'        => self::OPTIONS_AUTO_B2B_MARKET_OPTIONS,
-                'value'     => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+                'id' => self::OPTIONS_AUTO_B2B_MARKET_OPTIONS,
+                'value' => Config::get(self::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
+                'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
             $fields[] = [
-                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
-                'type'       => 'jtlwcc_card',
-                'color'      => 'border-info',
+                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtlwcc_card',
+                'color' => 'border-info',
                 'text-color' => 'text-info',
-                'center'     => false,
-                'text'       => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+                'center' => false,
+                'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
                     JTLWCC_TEXT_DOMAIN),
             ];
         }
-        
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
         ];
-        
+
         return $fields;
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
     public static function jtl_date_field(array $field)
     {
         $option_value = $field['default'];// get_option($field['id'], $field['default']);
-        
+
         ?>
 
         <div class="form-group row">
@@ -1271,7 +1286,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function connector_password_field(array $field)
     {
         ?>
@@ -1314,7 +1329,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function connector_url_field(array $field)
     {
         ?>
@@ -1357,7 +1372,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function not_compatible_plugins_field(array $field)
     {
         ?>
@@ -1378,7 +1393,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function jtlwcc_card(array $field)
     {
         ?>
@@ -1399,7 +1414,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function compatible_plugins_field(array $field)
     {
         ?>
@@ -1429,7 +1444,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function paragraph_field(array $field)
     {
         ?>
@@ -1452,7 +1467,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function active_true_false_radio_btn(array $field)
     {
         ?>
@@ -1494,13 +1509,14 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function jtl_connector_select(array $field)
     {
         ?>
         <div class="form-group row">
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
+            <select required class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
+                <option></option>
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
@@ -1524,7 +1540,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function dev_log_btn(array $field)
     {
         ?>
@@ -1538,7 +1554,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function jtl_text_input(array $field)
     {
         ?>
@@ -1563,7 +1579,7 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     public static function jtl_checkbox(array $field)
     {
         ?>
@@ -1581,19 +1597,19 @@ final class JtlConnectorAdmin
         </div>
         <?php
     }
-    
+
     // </editor-fold>
-    
+
     /**
      * Save Settings
      */
     public static function save()
     {
         $settings = $_REQUEST;
-        
+
         foreach ($settings as $key => $item) {
             $cast = self::JTLWCC_CONFIG[$key];
-            
+
             switch ($cast) {
                 case 'bool':
                     if (strcmp($item, 'on') === 0 || strcmp($item, 'true') === 0 || strcmp($item,
@@ -1613,49 +1629,49 @@ final class JtlConnectorAdmin
                     $value = trim($item);
                     break;
             }
-            
+
             if (array_key_exists($key, self::JTLWCC_CONFIG)) {
-                
+
                 Config::set($key, $value);
                 $option = get_option($key, null);
-                
+
                 if ($option !== $value || is_null($option)) {
                     update_option($key, $value);
                 }
-                
+
             }
-            
+
         }
         $request = $_SERVER["HTTP_REFERER"];
-        
+
         wp_redirect($request, 301);
         //WC_Admin_Settings::save_fields($settings);
     }
-    
+
     /**
      * Validate and prepare config.json
      */
     private static function validateAndPrepareConfig()
     {
         $configFileValues = Config::getData();
-        
+
         if (get_option(JtlConnectorAdmin::OPTIONS_TOKEN, false) === false) {
             add_option(self::OPTIONS_TOKEN, self::create_password());
         }
-        
+
         if (!Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
             || Config::has(JtlConnectorAdmin::OPTIONS_TOKEN)
             && $configFileValues->connector_password !== get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
         ) {
-            
+
             Config::set(
                 JtlConnectorAdmin::OPTIONS_TOKEN,
                 get_option(JtlConnectorAdmin::OPTIONS_TOKEN)
             );
         }
-        
+
         $version = trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
-        
+
         if (!Config::has('connector_version') || Config::has('connector_version') && version_compare(
                 $configFileValues->connector_version,
                 $version,
@@ -1667,17 +1683,17 @@ final class JtlConnectorAdmin
                 $version
             );
         }
-        
+
         foreach (self::JTLWCC_CONFIG as $key => $value) {
             $option = get_option($key, null);
-            
+
             if (Config::has($key) && is_null($option)) {
                 add_option($key, $configFileValues->$key);
             }
-            
+
             if (!Config::has($key) && !is_null($option) || Config::has($key) && !is_null($option)) {
                 $cast = self::JTLWCC_CONFIG[$key];
-                
+
                 switch ($cast) {
                     case 'bool':
                         if (strcmp($option, 'on') === 0 || strcmp($option, 'true') === 0 || strcmp($option,
@@ -1699,7 +1715,7 @@ final class JtlConnectorAdmin
                         $value = trim($option);
                         break;
                 }
-                
+
                 if ($key === self::OPTIONS_DEFAULT_CUSTOMER_GROUP) {
                     if ($value === CustomerGroupModel::DEFAULT_GROUP
                         && version_compare(
@@ -1708,7 +1724,7 @@ final class JtlConnectorAdmin
                             '>'
                         )) {
                         $customerGroups = (new CustomerGroupModel)->pullData();
-                        
+
                         /** @var CustomerGroupModel $customerGroup */
                         foreach ($customerGroups as $ckey => $customerGroup) {
                             if ($value !== CustomerGroupModel::DEFAULT_GROUP) {
@@ -1717,12 +1733,12 @@ final class JtlConnectorAdmin
                         }
                     }
                 }
-                
+
                 Config::set($key, $value);
             }
-            
+
             if (!Config::has($key) && is_null($option)) {
-                
+
                 if ($key === self::OPTIONS_DEFAULT_CUSTOMER_GROUP
                     && version_compare(
                         (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
@@ -1731,7 +1747,7 @@ final class JtlConnectorAdmin
                     )
                 ) {
                     $customerGroups = (new CustomerGroupModel)->pullData();
-                    
+
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $ckey => $customerGroup) {
                         if ($value !== CustomerGroupModel::DEFAULT_GROUP) {
@@ -1741,22 +1757,22 @@ final class JtlConnectorAdmin
                 } else {
                     $value = self::JTLWCC_CONFIG_DEFAULTS[$key];
                 }
-                
+
                 add_option($key, $value);
                 Config::set($key, $value);
             }
         }
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update">
     private static function update()
     {
         global $wpdb;
-        
+
         $installed_version = \get_option(self::OPTIONS_INSTALLED_VERSION, '');
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
-        
+
         switch ($installed_version) {
             case '1.0':
                 self::update_to_multi_linking();
@@ -1918,17 +1934,17 @@ final class JtlConnectorAdmin
             default:
                 self::activate_linking();
         }
-        
+
         \update_option(self::OPTIONS_INSTALLED_VERSION,
             trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']));
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()
     {
         global $wpdb;
-        
+
         $query =
             'CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` varchar(255) NOT NULL,
@@ -1937,10 +1953,10 @@ final class JtlConnectorAdmin
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        
+
         $result = true;
         $wpdb->query('START TRANSACTION');
-        
+
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_customer'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
@@ -1948,9 +1964,9 @@ final class JtlConnectorAdmin
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
-        
+
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
-        
+
         foreach ($types as $type) {
             $type = (int)$type->type;
             $tableName = self::get_table_name($type);
@@ -1959,7 +1975,7 @@ final class JtlConnectorAdmin
                 SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
             ");
         }
-        
+
         if ($result) {
             $wpdb->query('DROP TABLE IF EXISTS `jtl_connector_link`');
             $wpdb->query('COMMIT');
@@ -1969,7 +1985,7 @@ final class JtlConnectorAdmin
             add_action('admin_notices', 'update_failed');
         }
     }
-    
+
     private static function get_table_name($type)
     {
         switch ($type) {
@@ -1988,16 +2004,16 @@ final class JtlConnectorAdmin
             case \jtl\Connector\Linker\IdentityLinker::TYPE_CROSSSELLING:
                 return 'jtl_connector_link_crossselling';
         }
-        
+
         return null;
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.2">
     private static function update_multi_linking_endpoint_types()
     {
         global $wpdb;
-        
+
         // Modify varchar endpoint_id to integer
         $modifyEndpointType = 'ALTER TABLE `%s` MODIFY `endpoint_id` BIGINT(20) unsigned';
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_order'));
@@ -2005,7 +2021,7 @@ final class JtlConnectorAdmin
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_product'));
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_crossselling'));
         $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_category'));
-        
+
         // Add is_guest column for customers instead of using a prefix
         $wpdb->query('ALTER TABLE `jtl_connector_link_customer` ADD COLUMN `is_guest` BIT');
         $wpdb->query(sprintf('
@@ -2020,7 +2036,7 @@ final class JtlConnectorAdmin
             WHERE `endpoint_id` NOT LIKE "%s_%%"',
             Id::GUEST_PREFIX
         ));
-        
+
         // Add type column for images instead of using a prefix
         $wpdb->query('ALTER TABLE `jtl_connector_link_image` ADD COLUMN `type` INT(4) unsigned');
         $updateImageLinkingTable = '
@@ -2035,21 +2051,21 @@ final class JtlConnectorAdmin
             \jtl\Connector\Linker\IdentityLinker::TYPE_PRODUCT,
             Id::PRODUCT_PREFIX
         ));
-        
+
         self::add_constraints_for_multi_linking_tables('jtl_connector_link_');
     }
-    
+
     private static function add_constraints_for_multi_linking_tables($prefix)
     {
         global $wpdb;
-        
+
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-        
+
         if ($engine === 'InnoDB') {
             if (!DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
                 $wpdb->query("
@@ -2081,7 +2097,7 @@ final class JtlConnectorAdmin
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            
+
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (!DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
                 $wpdb->query("
@@ -2091,14 +2107,14 @@ final class JtlConnectorAdmin
             }
         }
     }
-    
+
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.5.0">
     private static function add_specifc_linking_tables()
     {
         global $wpdb;
-        
+
         $query = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -2106,17 +2122,17 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        
+
         $wpdb->query(sprintf($query, 'jtl_connector_link_specific'));
         $wpdb->query(sprintf($query, 'jtl_connector_link_specific_value'));
-        
+
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-        
+
         if ($engine === 'InnoDB') {
             if (!DB::checkIfFKExists('jtl_connector_link_category',
                 'jtl_connector_link_category_1')) {
@@ -2125,7 +2141,7 @@ final class JtlConnectorAdmin
                 ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            
+
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (!DB::checkIfFKExists('jtl_connector_link_specific',
                 'jtl_connector_link_specific_1')) {
@@ -2137,14 +2153,14 @@ final class JtlConnectorAdmin
         }
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.6.0">
     private static function set_linking_table_name_prefix_correctly()
     {
         global $wpdb;
-        
+
         $query = 'RENAME TABLE %s TO %s%s;';
-        
+
         $tables = [
             'jtl_connector_category_level',
             'jtl_connector_link_category',
@@ -2163,15 +2179,15 @@ final class JtlConnectorAdmin
             $sql = sprintf($query, $table, $wpdb->prefix, $table);
             $wpdb->query($sql);
         }
-        
+
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
     private static function createManufacturerLinkingTable()
     {
         global $wpdb;
-        
+
         $query = '
             CREATE TABLE IF NOT EXISTS `%s` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -2179,16 +2195,16 @@ final class JtlConnectorAdmin
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        
+
         $wpdb->query(sprintf($query, $wpdb->prefix . 'jtl_connector_link_manufacturer'));
-        
+
         $engine = $wpdb->get_var(sprintf("
             SELECT ENGINE
             FROM information_schema.TABLES
             WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
             DB_NAME
         ));
-        
+
         if ($engine === 'InnoDB') {
             if (!DB::checkIfFKExists($wpdb->prefix . 'jtl_connector_link_manufacturer',
                 'jtl_connector_link_manufacturer_1')) {
@@ -2200,31 +2216,40 @@ final class JtlConnectorAdmin
         }
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Error messages">
     function update_failed()
     {
         self::jtlwcc_show_wordpress_error(__('The linking table migration was not successful. Please use the forum for help.',
             JTLWCC_TEXT_DOMAIN));
     }
-    
+
     function directory_no_write_access()
     {
         self::jtlwcc_show_wordpress_error(sprintf(__('Directory %s has no write access.', sys_get_temp_dir()),
             JTLWCC_TEXT_DOMAIN));
     }
-    
+
     function phar_extension()
     {
         self::jtlwcc_show_wordpress_error(__('PHP extension "phar" could not be found.', JTLWCC_TEXT_DOMAIN));
     }
-    
+
     function suhosin_whitelist()
     {
         self::jtlwcc_show_wordpress_error(__('PHP extension "phar" is not on the suhosin whitelist.',
             JTLWCC_TEXT_DOMAIN));
     }
-    
+
+    public function default_customer_group_not_updated()
+    {
+        echo '<div class="notice notice-error">
+				<p class="pt-3 pb-3">
+                    '.__('Please update B2B-Market/WooCommerce default customer group',JTLWCC_TEXT_DOMAIN).': <a href="admin.php?page=woo-jtl-connector-advanced">'.strtolower(__('Advanced Settings', JTLWCC_TEXT_DOMAIN)).'</a> !
+				</p>
+			</div>';
+    }
+
     public static function jtlwcc_show_wordpress_error($message)
     {
         echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert"><p><b>JTL-Connector:</b>&nbsp;' . $message . '</p></div>';

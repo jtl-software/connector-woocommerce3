@@ -131,3 +131,7 @@ msgstr ""
 #: includes/settings.php:17
 msgid "Connector Password"
 msgstr ""
+
+#: includes/JtlConnectorAdmin.php:2248
+msgid "Please update B2B-Market/WooCommerce default customer group"
+msgstr ""
