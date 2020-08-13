@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Bugfix - Invalid manufacturer query when deleting image
+
 ## 1.10.0  
 * Enhancement - CO-1086 - Changed supplier delivery time to handling time method 
 * Enhancement - CO-1049 - Added compatibility for plugin name change Perfect Brands for WooCommerce

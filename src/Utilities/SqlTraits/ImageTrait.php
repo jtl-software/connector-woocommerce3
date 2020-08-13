@@ -176,7 +176,7 @@ trait ImageTrait
         global $wpdb;
         
         return sprintf("
-            SELECT COUNT({'term_id'})
+            SELECT COUNT(term_id)
             FROM {$wpdb->termmeta}
             WHERE meta_key = '%s' AND meta_value = {$id}",
             ImageCtrl::MANUFACTURER_KEY
