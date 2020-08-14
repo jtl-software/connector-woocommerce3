@@ -442,7 +442,7 @@ final class JtlConnectorAdmin
             $sql = SqlHelper::customerGroupPull();
             $b2bMarketCustomerGroups = Db::getInstance()->query($sql);
             if (count($b2bMarketCustomerGroups) > 0 && !in_array($defaultCustomerGroup, array_column($b2bMarketCustomerGroups, 'ID'))) {
-                add_action('admin_notices', ['JtlConnectorAdmin', 'default_customer_group_not_updated']);
+                add_action('admin_notices', [self::class, 'default_customer_group_not_updated']);
             }
         }
     }
@@ -2243,9 +2243,12 @@ final class JtlConnectorAdmin
 
     public function default_customer_group_not_updated()
     {
+        $message = __('The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings', JTLWCC_TEXT_DOMAIN);
+        $message .= ': <a href="admin.php?page=woo-jtl-connector-advanced">'.strtolower(__('Advanced Settings', JTLWCC_TEXT_DOMAIN)).'</a>';
+
         echo '<div class="notice notice-error">
 				<p class="pt-3 pb-3">
-                    '.__('Please update B2B-Market/WooCommerce default customer group',JTLWCC_TEXT_DOMAIN).': <a href="admin.php?page=woo-jtl-connector-advanced">'.strtolower(__('Advanced Settings', JTLWCC_TEXT_DOMAIN)).'</a> !
+                    '.$message.'
 				</p>
 			</div>';
     }

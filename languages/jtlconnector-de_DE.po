@@ -145,9 +145,13 @@ msgstr ""
 msgid "Connector Password"
 msgstr "Connector Passwort"
 
-#: includes/JtlConnectorAdmin.php:2248
-msgid "Please update B2B-Market/WooCommerce default customer group"
-msgstr "Bitte aktualisieren Sie die B2B-Market/WooCommerce Standard-Kundengruppe"
+#: src/Controllers/GlobalData.php:42
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel."
+msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die B2B-Market Standard-Kundengruppe in den JTL-Connector Einstellungen im Wordpress Admin Panel."
+
+#: includes/JtlConnectorAdmin.php:2246
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings"
+msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die B2B-Market Standard-Kundengruppe in den JTL-Connector Einstellungen"
 
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "

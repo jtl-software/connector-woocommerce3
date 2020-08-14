@@ -39,7 +39,7 @@ class GlobalData extends BaseController
         }
 
         if($hasDefaultCustomerGroup === false){
-            throw new \Exception(__("Please update B2B-Market/WooCommerce default customer group", JTLWCC_TEXT_DOMAIN));
+            throw new \Exception(__("The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel.", JTLWCC_TEXT_DOMAIN));
         }
         
         if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
