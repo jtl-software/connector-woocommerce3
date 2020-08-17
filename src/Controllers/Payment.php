@@ -24,7 +24,7 @@ class Payment extends BaseController
 
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($limit, $includeCompletedOrders));
+        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($includeCompletedOrders, $limit));
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
@@ -64,6 +64,6 @@ class Payment extends BaseController
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        return (int)$this->database->queryOne(SqlHelper::paymentCompletedPull(null, $includeCompletedOrders));
+        return (int)$this->database->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
     }
 }

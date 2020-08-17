@@ -128,10 +128,6 @@ msgstr "PHP-Erweiterung \"Phar\" konnte nicht gefunden werden."
 msgid "PHP extension \"phar\" is not on the suhosin whitelist."
 msgstr "Die PHP-Erweiterung \"Phar\" befindet sich nicht auf der suhosin Whitelist."
 
-#: includes/settings.php:2
-msgid "Information"
-msgstr "Informationen"
-
 #: includes/settings.php:3
 msgid ""
 "Basic information and credentials of the installed connector. It is needed "
@@ -141,9 +137,13 @@ msgstr ""
 "Diese sind notwendig um den Connector im Kundencenter und JTL-Wawi "
 "einzurichten."
 
-#: includes/settings.php:17
-msgid "Connector Password"
-msgstr "Connector Passwort"
+#: src/Controllers/GlobalData.php:42
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel."
+msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die B2B-Market Standard-Kundengruppe in den JTL-Connector Einstellungen im Wordpress Admin Panel."
+
+#: includes/JtlConnectorAdmin.php:2246
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings"
+msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die B2B-Market Standard-Kundengruppe in den JTL-Connector Einstellungen"
 
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "

@@ -30,7 +30,7 @@ final class Util extends Singleton
     public function __construct()
     {
         parent::__construct();
-        $this->locale = $this->mapLanguageIso(\get_locale());
+        $this->locale = $this->mapLanguageIso(get_locale());
 
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',
@@ -332,6 +332,8 @@ final class Util extends Singleton
     public function mapPaymentModuleCode(\WC_Order $order)
     {
         switch ($order->get_payment_method()) {
+            case 'paypal_plus':
+                return PaymentTypes::TYPE_PAYPAL_PLUS;
             case 'express_checkout':
             case 'paypal':
                 return PaymentTypes::TYPE_PAYPAL_EXPRESS;
