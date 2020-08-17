@@ -2,8 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
-## Unreleased
+## 1.11.0
 * Bugfix - Invalid manufacturer query when deleting image
+* Enhancement - CO-974 - Pull payment only if order is linked
+* Enhancement - CO-1067 - Added support for Paypal Plus PUI
+* Bugfix - CO-898 - Image alt is no more set as tmp filename when not present
 
 ## 1.10.0  
 * Enhancement - CO-1086 - Changed supplier delivery time to handling time method 
