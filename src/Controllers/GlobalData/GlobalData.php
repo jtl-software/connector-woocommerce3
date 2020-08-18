@@ -38,8 +38,17 @@ class GlobalData extends BaseController
             ->setCrossSellingGroups((new CrossSellingGroups())->pullData())
             ->setTaxRates((new TaxRate())->pullData());
 
+        $hasDefaultCustomerGroup = false;
         foreach ((new CustomerGroup)->pullData() as $group) {
+            /** @var $group \jtl\Connector\Model\CustomerGroup */
+            if($group->getIsDefault() === true){
+                $hasDefaultCustomerGroup = true;
+            }
             $globalData->addCustomerGroup($group);
+        }
+
+        if($hasDefaultCustomerGroup === false){
+            throw new \Exception(__("The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel.", JTLWCC_TEXT_DOMAIN));
         }
 
         if ($this->getPluginsManager()->get(Germanized::class)->canBeUsed() && !$this->getPluginsManager()->get(GermanMarket::class)->canBeUsed()) {
