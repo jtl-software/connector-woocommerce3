@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 2.0.0-dev
+* Enhancement - CO-307 - WPML implementation
+
 ## 1.11.0
 * Bugfix - Invalid manufacturer query when deleting image
 * Enhancement - CO-984 - Pull payment only if order is linked
