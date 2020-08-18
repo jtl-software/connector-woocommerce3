@@ -2,11 +2,11 @@
 Contributors: papryk, ntbyk, chakratos, drieschel, messtech
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.3
+Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.0
-Stable tag: 1.10.0
+WC tested up to: 4.2
+Stable tag: 1.11.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,13 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.11.0 =
+* Bugfix - Invalid manufacturer query when deleting image
+* Enhancement - CO-984 - Pull payment only if order is linked
+* Enhancement - CO-1067 - Added support for Paypal Plus PUI
+* Bugfix - CO-898 - Image alt is no more set as tmp filename when not present
+* Bugfix - CO-1109 - Added exception when default customer group is not set in connector settings
 
 = 1.10.0 =
 * Enhancement - CO-1086 - Changed supplier delivery time to handling time method
