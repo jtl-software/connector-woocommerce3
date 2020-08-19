@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.11.1
+* Bugfix - Paypal Plus PUI auto loading fix
+
 ## 1.11.0
 * Bugfix - Invalid manufacturer query when deleting image
 * Enhancement - CO-984 - Pull payment only if order is linked

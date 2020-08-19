@@ -12,6 +12,7 @@ use jtl\Connector\Model\CustomerOrderPaymentInfo;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Controllers\Payment;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -120,7 +121,7 @@ class CustomerOrder extends BaseController
     {
         $instructionType = $order->get_meta('instruction_type');
 
-        if ($instructionType === PaymentExecutionSuccess::PAY_UPON_INVOICE) {
+        if ($instructionType === Payment::PAY_UPON_INVOICE) {
             $payPalPlusSettings = get_option('woocommerce_paypal_plus_settings', []);
 
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
