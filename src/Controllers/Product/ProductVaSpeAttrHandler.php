@@ -676,10 +676,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
     private function getProductTypeFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $value = get_post_meta($product->get_id(), self::PRODUCT_TYPE_ATTR, true);
-        if(empty($value)){
-            $value = $product->get_type();
-        }
+        $value = $product->get_type();
 
         $i18n = (new ProductAttrI18nModel)
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::PRODUCT_TYPE_ATTR))
@@ -687,13 +684,11 @@ class ProductVaSpeAttrHandler extends BaseController
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
 
-        $attribute = (new ProductAttrModel)
+        return (new ProductAttrModel)
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-
-        return $attribute;
     }
 
     private function getFacebookSyncStatusFunctionAttribute(\WC_Product $product, $languageIso = '')
