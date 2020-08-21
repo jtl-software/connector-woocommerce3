@@ -12,6 +12,7 @@ use jtl\Connector\Model\CustomerOrderPaymentInfo;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Controllers\Payment;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -19,6 +20,7 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use TheIconic\NameParser\Parser;
+use WCPayPalPlus\Payment\PaymentExecutionSuccess;
 
 class CustomerOrder extends BaseController
 {
@@ -85,6 +87,10 @@ class CustomerOrder extends BaseController
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
+
+            if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_PAYPAL_PLUS) {
+                $this->setPayPalPlusPaymentInfo($order, $customerOrder);
+            }
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
@@ -109,6 +115,36 @@ class CustomerOrder extends BaseController
         }
         
         return $orders;
+    }
+
+    protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder)
+    {
+        $instructionType = $order->get_meta('instruction_type');
+
+        if ($instructionType === Payment::PAY_UPON_INVOICE) {
+            $payPalPlusSettings = get_option('woocommerce_paypal_plus_settings', []);
+
+            $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
+            if (empty($pui)) {
+                $orderMetaData = $order->get_meta_data();
+                $pui = (sprintf(
+                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
+                    number_format((float)$customerOrder->getTotalSumGross(), 2),
+                    $customerOrder->getCurrencyIso(),
+                    $orderMetaData['payment_due_date'] ?? '',
+                    sprintf(
+                        'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
+                        $orderMetaData['account_holder_name'] ?? '',
+                        $orderMetaData['bank_name'] ?? '',
+                        $orderMetaData['international_bank_account_number'] ?? '',
+                        $orderMetaData['bank_identifier_code'] ?? ''
+                    ),
+                    $orderMetaData['reference_number']
+                ));
+            }
+
+            $customerOrder->setPui($pui);
+        }
     }
     
     protected function paymentStatus(\WC_Order $order)
@@ -215,13 +251,22 @@ class CustomerOrder extends BaseController
                                 ->setValue($streetParts['number'])
                         );
                     }
+
+                    $addressAddition = sprintf('%s %s',
+                        $customerOrder->getShippingAddress()->getZipCode(),
+                        $customerOrder->getShippingAddress()->getCity()
+                    );
+
                     if (isset($parts[1])) {
-                        $customerOrder->addAttribute(
-                            (new CustomerOrderAttr())
-                                ->setKey('dhl_wunschpaket_neighbour_address_addition')
-                                ->setValue($parts[1])
-                        );
+                        $addressAddition = $parts[1];
                     }
+
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('dhl_wunschpaket_neighbour_address_addition')
+                            ->setValue($addressAddition)
+                    );
+
                     break;
                 case 'pr_dhl_preferred_neighbour_name':
                     $name = (new Parser())->parse($optionValue);
@@ -232,6 +277,10 @@ class CustomerOrder extends BaseController
                     if(preg_match("/(herr|frau)/i",$firstName)){
                         $salutation = ucfirst(mb_strtolower($firstName));
                         $firstName = $name->getMiddlename();
+                    }
+                    $salutation = trim($salutation);
+                    if (empty($salutation)) {
+                        $salutation = 'Herr';
                     }
 
                     $customerOrder->addAttribute(

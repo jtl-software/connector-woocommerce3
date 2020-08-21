@@ -131,3 +131,11 @@ msgstr ""
 #: includes/settings.php:17
 msgid "Connector Password"
 msgstr ""
+
+#: src/Controllers/GlobalData.php:42
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel."
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:2246
+msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings"
+msgstr ""

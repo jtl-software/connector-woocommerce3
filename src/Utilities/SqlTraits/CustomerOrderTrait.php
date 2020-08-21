@@ -8,30 +8,38 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\Util;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-trait CustomerOrderTrait {
-	public static function customerOrderPull( $limit ) {
-		global $wpdb;
-		$jclo = $wpdb->prefix . 'jtl_connector_link_order';
-		
-		if ( is_null( $limit ) ) {
-			$select     = 'COUNT(DISTINCT(p.ID))';
-			$limitQuery = '';
-		} else {
-			$select     = 'DISTINCT(p.ID)';
-			$limitQuery = 'LIMIT ' . $limit;
-		}
-		
-		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-  
-		if (   \get_option( \JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, '1' ) === '1' ) {
-			$status .= ", 'wc-completed'";
-		}
-		
-		$since = \get_option( \JtlConnectorAdmin::OPTIONS_PULL_ORDERS_SINCE );
-		$where = ( ! empty( $since ) && strtotime( $since ) !== false ) ? "AND p.post_date > '{$since}'" : '';
-		
-		return "
+trait CustomerOrderTrait
+{
+    public static function customerOrderPull($limit)
+    {
+        global $wpdb;
+        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+
+        if (is_null($limit)) {
+            $select = 'COUNT(DISTINCT(p.ID))';
+            $limitQuery = '';
+        } else {
+            $select = 'DISTINCT(p.ID)';
+            $limitQuery = 'LIMIT ' . $limit;
+        }
+
+        $status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+            $status .= ", 'wc-payment-accepted'";
+        }
+
+        if (Util::includeCompletedOrders()) {
+            $status .= ", 'wc-completed'";
+        }
+
+        $since = \get_option(\JtlConnectorAdmin::OPTIONS_PULL_ORDERS_SINCE);
+        $where = (!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
+
+        return "
             SELECT {$select}
             FROM {$wpdb->posts} p
             LEFT JOIN {$jclo} l
@@ -41,5 +49,5 @@ trait CustomerOrderTrait {
             AND l.host_id IS NULL {$where}
             ORDER BY p.post_date DESC
             {$limitQuery}";
-	}
+    }
 }

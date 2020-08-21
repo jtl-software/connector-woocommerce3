@@ -16,15 +16,17 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Payment extends BaseController
 {
+    const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+
     use PullTrait, PushTrait, StatsTrait;
 
     public function pullData($limit)
     {
         $payments = [];
 
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
+        $includeCompletedOrders = Util::includeCompletedOrders();
 
-        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($limit, $includeCompletedOrders));
+        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($includeCompletedOrders, $limit));
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
@@ -62,8 +64,8 @@ class Payment extends BaseController
 
     protected function getStats()
     {
-        $includeCompletedOrders = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes') === 'yes';
+        $includeCompletedOrders = Util::includeCompletedOrders();
 
-        return (int)$this->database->queryOne(SqlHelper::paymentCompletedPull(null, $includeCompletedOrders));
+        return (int)$this->database->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
     }
 }

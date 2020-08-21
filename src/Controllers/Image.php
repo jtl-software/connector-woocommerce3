@@ -44,7 +44,7 @@ class Image extends BaseController
     
         $combinedArray = array_merge($productImages, $categoryImages);
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $images             = $this->manufacturerImagePull($limit);
             $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
             $combinedArray = array_merge($combinedArray, $manufacturerImages);
@@ -282,7 +282,7 @@ class Image extends BaseController
         $imageCount += count($this->database->query(SqlHelper::imageVariationCombinationPull()));
         $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_PERFECT_WOO_BRANDS)) {
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
         }
         
@@ -397,33 +397,33 @@ class Image extends BaseController
             require_once(ABSPATH . 'wp-admin/includes/image.php');
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
-            //ALTERNATIVTEXT
-            $altText = null;
-            $i18ns   = $image->getI18ns();
-            
-            if (count($i18ns) > 0) {
-                foreach ($i18ns as $i18n) {
-                    if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())
-                        && ! empty($i18n->getAltText())
-                    ) {
-                        $altText = $i18n->getAltText();
-                    }
-                }
-            } else {
-                if ( ! empty($image->getName())) {
-                    $altText = $image->getName();
-                } else {
-                    $altText = $image->getFilename();
-                }
-            }
-            
-            if ( ! is_null($altText)) {
-                \update_post_meta($post, '_wp_attachment_image_alt', $altText);
-            }
-            //ALTERNATIVTEXT ENDE
+            \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
         }
         
         return $post;
+    }
+
+    /**
+     * @param ImageModel $image
+     * @return string
+     */
+    protected function getImageAlt(ImageModel $image)
+    {
+        $altText = $image->getName();
+        $i18ns = $image->getI18ns();
+
+        if (count($i18ns) > 0) {
+            foreach ($i18ns as $i18n) {
+                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())
+                    && !empty($i18n->getAltText())
+                ) {
+                    $altText = $i18n->getAltText();
+                    break;
+                }
+            }
+        }
+
+        return $altText;
     }
     
     private function pushProductImage(ImageModel $image)
