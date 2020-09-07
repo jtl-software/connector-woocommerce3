@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Bugfix - CO-1133 delete transients after quicksync
+
 ## 1.11.1
 * Bugfix - Paypal Plus PUI auto loading fix
 
