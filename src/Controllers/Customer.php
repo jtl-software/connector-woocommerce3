@@ -210,7 +210,7 @@ class Customer extends BaseController
 
             $customerGroupName = $wcCustomer->get_role();
             if (!empty($customerGroupName) && is_string($customerGroupName)) {
-                $groups = $this->getB2BCustomerGroups();
+                $groups = $this->getB2BMarketCustomerGroups();
                 foreach ($groups as $id => $groupName) {
                     if ($customerGroupName === $groupName) {
                         $customerGroupIdentity->setEndpoint($id);
@@ -233,7 +233,7 @@ class Customer extends BaseController
             $customerGroupIdentity = new Identity();
 
             $defaultCustomerGroupId = (int)get_option(\JtlConnectorAdmin::OPTIONS_DEFAULT_CUSTOMER_GROUP);
-            $groups = $this->getB2BCustomerGroups();
+            $groups = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
                 if ($defaultCustomerGroupId === $id) {
                     $customerGroupIdentity->setEndpoint($id);
@@ -248,17 +248,18 @@ class Customer extends BaseController
     /**
      * @return array
      */
-    protected function getB2BCustomerGroups(): array
+    protected function getB2BMarketCustomerGroups(): array
     {
         $customerGroups = [];
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $bmUser = new \BM_User();
+            $groups = $bmUser->get_all_customer_groups();
+            foreach ($groups as $group) {
+                $id = end($group);
+                $name = key($group);
 
-        $bmUser = new \BM_User();
-        $groups = $bmUser->get_all_customer_groups();
-        foreach ($groups as $group) {
-            $id = end($group);
-            $name = key($group);
-
-            $customerGroups[$id] = $name;
+                $customerGroups[$id] = $name;
+            }
         }
 
         return $customerGroups;
