@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Enhancement - CO-1139 - Initial pull transfer html chars in products, categories description and customer order item name without encode
+
 ## 1.11.1
 * Bugfix - Paypal Plus PUI auto loading fix
 

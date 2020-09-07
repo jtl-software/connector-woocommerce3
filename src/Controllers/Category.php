@@ -46,7 +46,7 @@ class Category extends BaseController
                 ->setCategoryId($category->getId())
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
                 ->setName($categoryDataSet['name'])
-                ->setDescription($categoryDataSet['description'])
+                ->setDescription(html_entity_decode($categoryDataSet['description']))
                 ->setUrlPath($categoryDataSet['slug'])
                 ->setTitleTag($categoryDataSet['name']);
             
