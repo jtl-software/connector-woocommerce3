@@ -59,6 +59,7 @@ final class JtlConnectorAdmin
     const OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market';
     const OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce';
     const OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group';
+    const OPTIONS_RECALCULATE_COUPONS_ON_PULL = 'jtlconnector_recalculate_coupons_on_pull';
 
     const JTLWCC_CONFIG = [
         //FIRSTPAGE
@@ -75,6 +76,7 @@ final class JtlConnectorAdmin
         //PAGE
         self::OPTIONS_COMPLETED_ORDERS => 'bool',
         self::OPTIONS_PULL_ORDERS_SINCE => 'date',
+        self::OPTIONS_RECALCULATE_COUPONS_ON_PULL => 'bool',
         //Page
         self::OPTIONS_DEVELOPER_LOGGING => 'bool',
         self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
@@ -97,6 +99,7 @@ final class JtlConnectorAdmin
         //PAGE
         self::OPTIONS_COMPLETED_ORDERS => true,
         self::OPTIONS_PULL_ORDERS_SINCE => '',
+        self::OPTIONS_RECALCULATE_COUPONS_ON_PULL => false,
         //Page
         self::OPTIONS_DEVELOPER_LOGGING => false,
         self::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
@@ -1041,6 +1044,15 @@ final class JtlConnectorAdmin
             'value' => Config::get(self::OPTIONS_PULL_ORDERS_SINCE),
             'helpBlock' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
             'id' => self::OPTIONS_PULL_ORDERS_SINCE,
+        ];
+        $fields[] = [
+            'title' => __('Recalculate order when has coupons', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('When option is enabled, connector will recalculate order when coupons were applied to order.', JTLWCC_TEXT_DOMAIN),
+            'id' => self::OPTIONS_RECALCULATE_COUPONS_ON_PULL,
+            'value' => Config::get(self::OPTIONS_RECALCULATE_COUPONS_ON_PULL),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
         //Add sectionend

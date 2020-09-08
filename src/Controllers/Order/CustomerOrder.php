@@ -56,11 +56,10 @@ class CustomerOrder extends BaseController
             if (!$order instanceof \WC_Order) {
                 continue;
             }
-            $pd = \wc_get_price_decimals();
+
             $total = $order->get_total();
             $totalTax = $order->get_total_tax();
-            $totalSum = Util::getNetPriceCutted($total - $totalTax, $pd);
-            $totalGross = Util::getNetPriceCutted($total, $pd);
+            $totalSum = $total - $totalTax;
                 
             $customerOrder = (new CustomerOrderModel())
                 ->setId(new Identity($order->get_id()))
@@ -76,8 +75,7 @@ class CustomerOrder extends BaseController
                 ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
                 ->setPaymentStatus($this->paymentStatus($order))
                 ->setStatus($this->status($order))
-                ->setTotalSum((float)$totalSum)
-                ->setTotalSumGross((float)$totalGross);
+                ->setTotalSum((float)$totalSum);
             
             $customerOrder
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))

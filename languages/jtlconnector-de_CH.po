@@ -145,6 +145,13 @@ msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die
 msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings"
 msgstr "Die Standard-Kundengruppe ist nicht gesetzt. Bitte aktualisieren Sie die B2B-Market Standard-Kundengruppe in den JTL-Connector Einstellungen"
 
+#: includes/JtlConnectorAdmin.php:1049
+msgid "Recalculate order when at least one coupon is applied"
+msgstr "Bestellung neu berechnen, wenn mindestens ein Coupon hinzugefügt wurde"
+
+#: includes/JtlConnectorAdmin.php:1051
+msgid "Sometimes WooCommerce calculates an order wrong when a coupon is applied. Recalculation of the order can fix this in most cases."
+msgstr "Manchmal wird eine Bestellung falsch berechnet, wenn ein Coupon hinzugefügt wurde. Durch Neuberechnnung der Bestellung, kann das Problem in den meisten Fällen behoben werden."
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "
 #~ "help."

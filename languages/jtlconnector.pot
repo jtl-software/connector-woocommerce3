@@ -139,3 +139,11 @@ msgstr ""
 #: includes/JtlConnectorAdmin.php:2246
 msgid "The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings"
 msgstr ""
+
+#: includes/JtlConnectorAdmin.php:1049
+msgid "Recalculate order when at least one coupon is applied"
+msgstr ""
+
+#: includes/JtlConnectorAdmin.php:1051
+msgid "Sometimes WooCommerce calculates an order wrong when a coupon is applied. Recalculation of the order can fix this in most cases."
+msgstr ""
