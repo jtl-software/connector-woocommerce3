@@ -6,7 +6,7 @@ Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.2
-Stable tag: 1.11.1
+Stable tag: 1.12.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,15 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.12.0 =
+* Info - removed setPriceGross in CustomerOrderItem
+* Info - removed setTotalSumGross in CustomerOrder
+* Info - removed minimum price decimals condition in CustomerOrderItem
+* Info - removed price cutting in CustomerOrder
+* Enhancement - Vat calculations improvements, it's calculated basing directly on priceNet and priceGross
+* Enhancement - Added option to recalculate order before pull when order has coupons
+* Enhancement - Added possibility to transfer product type in the attribute 'wc_product_type' but type need to exist in WooCommerce
 
 = 1.11.1 =
 * Bugfix - Paypal Plus PUI auto loading fix
