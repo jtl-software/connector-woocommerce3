@@ -2,7 +2,7 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
-## Unreleased
+## 1.12.0
 * Info - removed setPriceGross in CustomerOrderItem
 * Info - removed setTotalSumGross in CustomerOrder
 * Info - removed minimum price decimals condition in CustomerOrderItem
