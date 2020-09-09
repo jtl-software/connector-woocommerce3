@@ -25,6 +25,7 @@ if (!defined('WC_DELIMITER')) {
 
 class ProductVaSpeAttrHandler extends BaseController
 {
+    const PRODUCT_TYPE_ATTR = 'wc_product_type';
     const DELIVERY_TIME_ATTR = 'wc_dt_offset';
     const DOWNLOADABLE_ATTR = 'wc_downloadable';
     const FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility';
@@ -402,6 +403,10 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             ),
+            $this->getProductTypeFunctionAttribute(
+                $product,
+                $languageIso
+            ),
             $this->getPurchaseNoteFunctionAttribute(
                 $product,
                 $languageIso
@@ -668,7 +673,24 @@ class ProductVaSpeAttrHandler extends BaseController
         
         return $attribute;
     }
-    
+
+    private function getProductTypeFunctionAttribute(\WC_Product $product, $languageIso = '')
+    {
+        $value = $product->get_type();
+
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PRODUCT_TYPE_ATTR))
+            ->setName(self::PRODUCT_TYPE_ATTR)
+            ->setValue((string)$value)
+            ->setLanguageISO($languageIso);
+
+        return (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+    }
+
     private function getFacebookSyncStatusFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
         $value = self::VALUE_FALSE;

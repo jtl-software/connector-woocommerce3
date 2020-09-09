@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
@@ -311,25 +312,84 @@ class Product extends BaseController
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         }
 
-        $productTypeTerm = \get_term_by('slug', $productType, 'product_type');
-        $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
+        $this->updateProductType($product, $wcProduct, $productType);
+    }
 
-        $removeTerm = null;
-        foreach ($currentProductType as $term) {
-            if ($term instanceof \WP_Term) {
-                $removeTerm = $term->term_id;
+    /**
+     * @param ProductModel $jtlProduct
+     * @param \WC_Product $wcProduct
+     * @param string $oldProductType
+     */
+    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct, string $oldProductType)
+    {
+        $productId = $wcProduct->get_id();
+        $customProductTypeSet = false;
+
+        foreach ($jtlProduct->getAttributes() as $key => $pushedAttribute) {
+            foreach ($pushedAttribute->getI18ns() as $i18n) {
+                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    continue;
+                }
+
+                $attrName = strtolower(trim($i18n->getName()));
+
+                if (strcmp($attrName, ProductVaSpeAttrHandler::PRODUCT_TYPE_ATTR) === 0) {
+                    $value = $i18n->getValue();
+
+                    $allowedTypes = \wc_get_product_types();
+
+                    if (in_array($value, array_keys($allowedTypes))) {
+                        $term = get_term_by('slug', wc_sanitize_taxonomy_name(
+                            $value
+                        ), 'product_type');
+
+                        if ($term instanceof \WP_Term) {
+                            $productTypeTerms = wc_get_object_terms($productId, 'product_type');
+                            if (is_array($productTypeTerms) && count($productTypeTerms) === 1) {
+                                $oldProductTypeTerm = end($productTypeTerms);
+                                if ($oldProductTypeTerm->term_id !== $term->term_id) {
+                                    $removeObjTermsResult = wp_remove_object_terms($productId,
+                                        [$oldProductTypeTerm->term_id],
+                                        'product_type');
+                                    if ($removeObjTermsResult === true) {
+                                        $result = wp_add_object_terms($productId, [$term->term_id], 'product_type');
+                                        if (($result instanceof \WP_Error === false) && is_array($result)) {
+                                            $customProductTypeSet = true;
+                                        }
+                                    }
+                                } else {
+                                    $customProductTypeSet = true;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
             }
         }
 
-        if (!is_null($removeTerm) && is_int($removeTerm)) {
-            \wp_remove_object_terms($wcProduct->get_id(), $removeTerm, 'product_type');
+        if ($customProductTypeSet === false) {
+            $productTypeTerm = \get_term_by('slug', $oldProductType, 'product_type');
+            $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
+
+            $removeTerm = null;
+            foreach ($currentProductType as $term) {
+                if ($term instanceof \WP_Term) {
+                    $removeTerm = $term->term_id;
+                }
+            }
+
+            if (!is_null($removeTerm) && is_int($removeTerm)) {
+                \wp_remove_object_terms($wcProduct->get_id(), $removeTerm, 'product_type');
+            }
+
+            if ($productTypeTerm instanceof \WP_Term) {
+                \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
+            } else {
+                \wp_set_object_terms($wcProduct->get_id(), $oldProductType, 'product_type', false);
+            }
         }
 
-        if ($productTypeTerm instanceof \WP_Term) {
-            \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
-        } else {
-            \wp_set_object_terms($wcProduct->get_id(), $productType, 'product_type', false);
-        }
     }
 
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
@@ -459,17 +519,25 @@ class Product extends BaseController
 
     public function getType(ProductModel $product)
     {
-        $variations = $product->getVariations();
-        $productId = (int)$product->getId()->getEndpoint();
-        $type = \get_post_field('post_type', $productId);
+        $type = null;
 
-        $allowedTypes = \wc_get_product_types();
+        $productId = (int)$product->getId()->getEndpoint();
+        $productTypeTerms = wc_get_object_terms($productId, 'product_type');
+        if (is_array($productTypeTerms) && count($productTypeTerms) === 1) {
+            $productTypeTerm = end($productTypeTerms);
+            $type = $productTypeTerm->slug;
+        }
+
+        $allowedTypes = wc_get_product_types();
         $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
 
-        if (!empty($variations) && $type === 'product') {
-            return 'variable';
-        } elseif (array_key_exists($type, $allowedTypes)) {
+        if (array_key_exists($type, $allowedTypes)) {
             return $type;
+        }
+
+        $postType = get_post_field('post_type', $productId);
+        if (!empty($product->getVariations()) && $postType === 'product') {
+            return 'variable';
         }
 
         return 'simple';
