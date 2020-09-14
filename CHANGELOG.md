@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.13.0
+* Bugfix - CO-1134 - Invalid customer group id sent on pull
+
 ## 1.12.0
 * Info - removed setPriceGross in CustomerOrderItem
 * Info - removed setTotalSumGross in CustomerOrder
