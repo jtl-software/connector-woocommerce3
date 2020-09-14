@@ -153,6 +153,9 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 2.1.0-dev =
+* Info - Merged state with current release
+
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
 
