@@ -16,6 +16,8 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Payment extends BaseController
 {
+    const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+
     use PullTrait, PushTrait, StatsTrait;
 
     public function pullData($limit)

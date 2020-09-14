@@ -5,6 +5,22 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.13.0
+* Bugfix - CO-1134 - Invalid customer group id sent on pull
+* Bugfix - CO-1133 delete transients after quicksync
+
+## 1.12.0
+* Info - removed setPriceGross in CustomerOrderItem
+* Info - removed setTotalSumGross in CustomerOrder
+* Info - removed minimum price decimals condition in CustomerOrderItem
+* Info - removed price cutting in CustomerOrder
+* Enhancement - Vat calculations improvements, it's calculated basing directly on priceNet and priceGross
+* Enhancement - Added option to recalculate order before pull when order has coupons
+* Enhancement - Added possibility to transfer product type in the attribute 'wc_product_type' but type need to exist in WooCommerce 
+  
+## 1.11.1
+* Bugfix - Paypal Plus PUI auto loading fix
+
 ## 1.11.0
 * Bugfix - Invalid manufacturer query when deleting image
 * Enhancement - CO-984 - Pull payment only if order is linked

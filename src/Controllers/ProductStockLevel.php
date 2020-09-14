@@ -39,6 +39,8 @@ class ProductStockLevel extends BaseController
             if ($wcProduct->is_type('variation')) {
                 \WC_Product_Variable::sync_stock_status($wcProduct->get_id());
             }
+
+            \wc_delete_product_transients($wcProduct->get_id());
         }
 
         return $productStockLevel;

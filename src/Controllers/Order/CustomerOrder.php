@@ -12,6 +12,7 @@ use jtl\Connector\Model\CustomerOrderPaymentInfo;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Controllers\Payment;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
@@ -56,11 +57,10 @@ class CustomerOrder extends BaseController
             if (!$order instanceof \WC_Order) {
                 continue;
             }
-            $pd = \wc_get_price_decimals();
+
             $total = $order->get_total();
             $totalTax = $order->get_total_tax();
-            $totalSum = Util::getNetPriceCutted($total - $totalTax, $pd);
-            $totalGross = Util::getNetPriceCutted($total, $pd);
+            $totalSum = $total - $totalTax;
                 
             $customerOrder = (new CustomerOrderModel())
                 ->setId(new Identity($order->get_id()))
@@ -76,8 +76,7 @@ class CustomerOrder extends BaseController
                 ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
                 ->setPaymentStatus($this->paymentStatus($order))
                 ->setStatus($this->status($order))
-                ->setTotalSum((float)$totalSum)
-                ->setTotalSumGross((float)$totalGross);
+                ->setTotalSum((float)$totalSum);
             
             $customerOrder
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))
@@ -119,7 +118,7 @@ class CustomerOrder extends BaseController
     {
         $instructionType = $order->get_meta('instruction_type');
 
-        if ($instructionType === PaymentExecutionSuccess::PAY_UPON_INVOICE) {
+        if ($instructionType === Payment::PAY_UPON_INVOICE) {
             $payPalPlusSettings = get_option('woocommerce_paypal_plus_settings', []);
 
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
