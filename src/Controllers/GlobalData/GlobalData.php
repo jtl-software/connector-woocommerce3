@@ -42,7 +42,7 @@ class GlobalData extends BaseController
             throw new \Exception(__("The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel.", JTLWCC_TEXT_DOMAIN));
         }
         
-        if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
+        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
             //   \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer
@@ -71,7 +71,7 @@ class GlobalData extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             )
         ) {
-            if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
+            if (Config::get(Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
                 //LIEFERZEITEN
                 update_option('woocommerce_global_lieferzeit', '-1', true);
                 //update_option('woocommerce_de_show_delivery_time_overview', 'off', true);

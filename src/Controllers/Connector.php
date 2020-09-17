@@ -16,6 +16,7 @@ use JtlWooCommerceConnector\Event\CanHandleEvent;
 use JtlWooCommerceConnector\Event\HandleStatsEvent;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 use Symfony\Component\Yaml\Yaml;
 
@@ -64,7 +65,7 @@ class Connector extends Controller
         $action->setHandled(true);
 
         try {
-            if (\get_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
+            if (Config::get(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
                 CategoryUtil::saveCategoryLevelsAsPreOrder();
                 \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no');
             }

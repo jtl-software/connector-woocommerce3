@@ -542,7 +542,7 @@ class ProductAttr extends BaseController
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             $result = null;
-            if (!(bool)Config::get(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES) && $attribute->getIsCustomProperty() === true) {
+            if (!(bool)Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES) && $attribute->getIsCustomProperty() === true) {
                 continue;
             }
             
