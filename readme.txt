@@ -6,7 +6,7 @@ Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.2
-Stable tag: 1.12.0
+Stable tag: 1.13.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.13.0 =
+* Bugfix - CO-1134 - Invalid customer group id sent on pull
+* Bugfix - CO-1133 delete transients after quicksync
 
 = 1.12.0 =
 * Info - removed setPriceGross in CustomerOrderItem

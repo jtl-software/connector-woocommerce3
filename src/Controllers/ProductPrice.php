@@ -34,6 +34,8 @@ class ProductPrice extends BaseController
             if ($product->is_type('variation')) {
                 \WC_Product_Variable::sync($product->get_id());
             }
+
+            \wc_delete_product_transients($product->get_id());
         }
         
         return $productPrice;
