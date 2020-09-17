@@ -136,4 +136,27 @@ class Config
     {
         return (string)trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
     }
+
+    /**
+     * @param bool $value
+     * @return bool
+     */
+    public static function updateDeveloperLoggingSettings(bool $value): bool
+    {
+        $file = CONNECTOR_DIR . '/config/config.json';
+
+        $config = new \stdClass();
+        if (!file_exists($file)) {
+            file_put_contents($file, json_encode($config));
+        } else {
+            $config = json_decode(file_get_contents($file));
+            if (!$config instanceof \stdClass) {
+                $config = new \stdClass();
+            }
+        }
+
+        $config->{self::OPTIONS_DEVELOPER_LOGGING} = $value;
+
+        return (bool)file_put_contents($file, json_encode($config));
+    }
 }

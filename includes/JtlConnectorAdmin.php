@@ -1540,6 +1540,8 @@ final class JtlConnectorAdmin
 
             Config::set($key, $value);
         }
+        Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
+
         $request = $_SERVER["HTTP_REFERER"];
 
         wp_redirect($request, 301);
@@ -1719,6 +1721,7 @@ final class JtlConnectorAdmin
                 self::activate_linking();
         }
 
+        Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
     }
     // </editor-fold>
