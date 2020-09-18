@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.13.1
+* Bugfix - CO-1160 - Removed deprecated PHP function call get_magic_quotes_gpc()
+
 ## 1.13.0
 * Bugfix - CO-1134 - Invalid customer group id sent on pull
 * Bugfix - CO-1133 delete transients after quicksync
