@@ -204,7 +204,12 @@ class ProductPrice extends BaseController
         return $groupedProductPrices;
     }
 
-    public function pushData($vat, $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    /**
+     * @param float $vat
+     * @param string $productType
+     * @param ProductPriceModel ...$productPrices
+     */
+    public function pushData(float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
     {
         Util::deleteB2Bcache();
 
@@ -214,14 +219,19 @@ class ProductPrice extends BaseController
         }
     }
 
-    public function updateProductPrices($productPrices, $vat, $productType)
+    /**
+     * @param $groupedProductPrices
+     * @param float $vat
+     * @param string $productType
+     */
+    public function updateProductPrices($groupedProductPrices, float $vat, string $productType)
     {
         $pd = \wc_get_price_decimals();
 
         $wcProducts = [];
 
         /** @var ProductPriceModel $productPrice */
-        foreach ($productPrices as $customerGroupId => $productPrice) {
+        foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
             if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId) || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
                 continue;
             }
