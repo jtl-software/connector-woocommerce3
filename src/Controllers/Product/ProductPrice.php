@@ -162,11 +162,15 @@ class ProductPrice extends BaseController
         return (float)$netPrice;
     }
 
-    public function pushData(ProductModel $product)
+    /**
+     * @param ProductPriceModel ...$jtlProductPrices
+     * @return array
+     */
+    protected function groupProductPrices(\jtl\Connector\Model\ProductPrice ...$jtlProductPrices): array
     {
-        $productPrices = [];
+        $groupedProductPrices = [];
 
-        foreach ($product->getPrices() as &$price) {
+        foreach ($jtlProductPrices as $price) {
             $endpoint = $price->getCustomerGroupId()->getEndpoint();
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
@@ -174,11 +178,10 @@ class ProductPrice extends BaseController
                     (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
                     '1.0.3',
                     '>')) {
-                /** @var ProductPriceModel $productPrice */
                 if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
-                    $productPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
+                    $groupedProductPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                        ->setProductId($product->getId())
+                        ->setProductId($price->getProductId())
                         ->setItems($price->getItems());
                 }
             }
@@ -194,25 +197,42 @@ class ProductPrice extends BaseController
                         $endpoint = CustomerGroup::DEFAULT_GROUP;
                     }
                 }
-                $price->setProductId($product->getId());
-                $productPrices[$endpoint] = $price;
+                $groupedProductPrices[$endpoint] = $price;
             }
         }
 
-        if (count($productPrices) > 0) {
-            $this->updateProductPrices($productPrices, $product, $product->getVat());
+        return $groupedProductPrices;
+    }
+
+    public function pushData($vat, $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    {
+        Util::deleteB2Bcache();
+
+        $groupedProductPrices = $this->groupProductPrices(...$productPrices);
+        if (count($groupedProductPrices) > 0) {
+            $this->updateProductPrices($groupedProductPrices, $vat, $productType);
         }
     }
 
-    public function updateProductPrices($productPrices, ProductModel $product, $vat)
+    public function updateProductPrices($productPrices, $vat, $productType)
     {
-        $productId = $product->getId()->getEndpoint();
         $pd = \wc_get_price_decimals();
+
+        $wcProducts = [];
 
         /** @var ProductPriceModel $productPrice */
         foreach ($productPrices as $customerGroupId => $productPrice) {
-            if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)
-                || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
+            if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId) || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
+                continue;
+            }
+
+            $productId = $productPrice->getProductId()->getEndpoint();
+            $wcProduct = $wcProducts[$productId] ?? null;
+            if (is_null($wcProduct)) {
+                $wcProduct = $wcProducts[$productId] = wc_get_product($productId);
+            }
+
+            if (!$wcProduct instanceof \WC_Product) {
                 continue;
             }
 
@@ -254,7 +274,6 @@ class ProductPrice extends BaseController
                     $pd = 3;
                 }
                 $customerGroup = get_post($customerGroupId);
-                $productType = (new Product)->getType($product);
                 $bulkPrices = [];
 
                 foreach ($productPrice->getItems() as $item) {
@@ -278,7 +297,7 @@ class ProductPrice extends BaseController
                             );
 
                             if ($productType === 'product_variation') {
-                                $parentProduct = \wc_get_product($product->getMasterProductId()->getEndpoint());
+                                $parentProduct = \wc_get_product($wcProduct->get_parent_id());
                                 if ($parentProduct instanceof \WC_Product) {
                                     $childParentPrice = sprintf(
                                         'bm_%s_%s_price',
@@ -336,21 +355,18 @@ class ProductPrice extends BaseController
                 if (count($bulkPrices) > 0) {
 
                     $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
-                    $metaProductId = $product->getId()->getEndpoint();
-
                     $bulkPrices = Util::setBulkPricesQuantityTo($bulkPrices);
 
                     \update_post_meta(
-                        $metaProductId,
+                        $productId,
                         $metaKey,
                         $bulkPrices,
-                        \get_post_meta($metaProductId, $metaKey, true)
+                        \get_post_meta($productId, $metaKey, true)
                     );
 
-                    if (!$product->getMasterProductId()->getHost() === 0) {
-                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
-                            $product->getId()->getEndpoint());
-                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                    if (!$wcProduct->get_parent_id() === 0) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name, $productId);
+                        $metaProductId = $wcProduct->get_parent_id();
 
                         \update_post_meta(
                             $metaProductId,
@@ -361,18 +377,14 @@ class ProductPrice extends BaseController
                     }
                 } else {
 
-                    $metaKey = sprintf('bm_%s_bulk_prices', $customerGroup->post_name);
-                    $metaProductId = $product->getId()->getEndpoint();
-
                     \delete_post_meta(
-                        $metaProductId,
-                        $metaKey
+                        $productId,
+                        sprintf('bm_%s_bulk_prices', $customerGroup->post_name)
                     );
 
-                    if (!$product->getMasterProductId()->getHost() === 0) {
-                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name,
-                            $product->getId()->getEndpoint());
-                        $metaProductId = $product->getMasterProductId()->getEndpoint();
+                    if (!$wcProduct->get_parent_id() === 0) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name, $product->getId()->getEndpoint());
+                        $metaProductId = $wcProduct->get_parent_id();
                         \delete_post_meta(
                             $metaProductId,
                             $metaKey

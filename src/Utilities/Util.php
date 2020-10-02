@@ -366,6 +366,18 @@ final class Util extends Singleton
     }
 
     /**
+     *
+     */
+    public static function deleteB2Bcache()
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
+            is_callable(['BM_Helper', 'delete_b2b_transients'])
+        ) {
+            \BM_Helper::delete_b2b_transients();
+        }
+    }
+
+    /**
      * @param $str
      *
      * @return string

@@ -482,7 +482,10 @@ class Product extends BaseController
     {
         (new Product2Category)->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
-        (new ProductPrice)->pushData($product);
+
+        $productType = (new Product)->getType($product);
+        (new ProductPrice)->pushData($product->getVat(), $productType, ...$product->getPrices());
+
         (new ProductSpecialPrice)->pushData($product, $wcProduct);
     }
 
@@ -517,7 +520,11 @@ class Product extends BaseController
         self::$idCache[$product->getId()->getHost()] = $productId;
     }
 
-    public function getType(ProductModel $product)
+    /**
+     * @param ProductModel $product
+     * @return string
+     */
+    public function getType(ProductModel $product): string
     {
         $type = null;
 
@@ -530,6 +537,10 @@ class Product extends BaseController
 
         $allowedTypes = wc_get_product_types();
         $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
+
+        if($product->getMasterProductId()->getHost() > 0){
+            return 'product_variation';
+        }
 
         if (array_key_exists($type, $allowedTypes)) {
             return $type;
