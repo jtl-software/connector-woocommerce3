@@ -199,11 +199,18 @@ class CustomerOrderItem extends BaseController
             }
         }
 
+        $productTotalByVat = $this->groupProductsByTaxRate($customerOrderItems);
+        $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
+            return (float)$vat !== 0;
+        }, ARRAY_FILTER_USE_KEY);
+        $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
+
         /** @var \WC_Order_Item_Shipping $shippingItem */
         foreach ($order->get_items($type) as $shippingItem) {
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
+            $costs = (float)$order->get_item_total($shippingItem, false, true);
 
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
@@ -223,7 +230,12 @@ class CustomerOrderItem extends BaseController
                         continue;
                     }
 
-                    $netPrice = (float)$order->get_item_subtotal($shippingItem, false, true);
+                    if (!isset($productTotalByVatWithoutZero[$taxRate])) {
+                        $factor = 1;
+                    } else {
+                        $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
+                    }
+                    $netPrice = round($costs * $factor, 2);
                     $customerOrderItem->setPrice($netPrice);
 
                     $customerOrderItems[] = $customerOrderItem;
@@ -307,5 +319,28 @@ class CustomerOrderItem extends BaseController
         }
 
         return round($vat, 2);
+    }
+
+    /**
+     * @param array $customerOrderItems
+     * @return array
+     */
+    private function groupProductsByTaxRate(array $customerOrderItems)
+    {
+        $totalPriceForVats = [];
+
+        foreach ($customerOrderItems as $item) {
+            if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
+                $taxRate = (string)$item->getVat();
+
+                if (isset($totalPriceForVats[$taxRate])) {
+                    $totalPriceForVats[$taxRate] += $item->getPrice();
+                } else {
+                    $totalPriceForVats[$taxRate] = $item->getPrice();
+                }
+            }
+        }
+
+        return $totalPriceForVats;
     }
 }
