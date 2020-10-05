@@ -102,7 +102,7 @@ class ProductB2BMarketFields extends BaseController
     private function updateRRP(ProductModel $product, \WC_Product $wcProduct)
     {
         $rrp = $product->getRecommendedRetailPrice();
-        $rrp = round($rrp, 3);
+        $rrp = round($rrp, 4);
         $oldValue = (float) \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         if ($rrp !== 0.) {
             if ($rrp !== $oldValue) {
