@@ -45,8 +45,8 @@ class Category extends BaseController
             $i18n = (new CategoryI18nModel)
                 ->setCategoryId($category->getId())
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                ->setName($categoryDataSet['name'])
-                ->setDescription($categoryDataSet['description'])
+                ->setName(html_entity_decode($categoryDataSet['name']))
+                ->setDescription(html_entity_decode($categoryDataSet['description']))
                 ->setUrlPath($categoryDataSet['slug'])
                 ->setTitleTag($categoryDataSet['name']);
             

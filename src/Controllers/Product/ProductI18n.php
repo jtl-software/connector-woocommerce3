@@ -21,8 +21,8 @@ class ProductI18n extends BaseController
             ->setProductId($model->getId())
             ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
             ->setName($this->name($product))
-            ->setDescription($product->get_description())
-            ->setShortDescription($product->get_short_description())
+            ->setDescription(html_entity_decode($product->get_description()))
+            ->setShortDescription(html_entity_decode($product->get_short_description()))
             ->setUrlPath($product->get_slug());
         
         if ((SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)

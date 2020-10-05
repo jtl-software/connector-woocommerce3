@@ -68,7 +68,7 @@ class CustomerOrderItem extends BaseController
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
                 ->setCustomerOrderId(new Identity($order->get_id()))
-                ->setName($item->get_name())
+                ->setName(html_entity_decode($item->get_name()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
