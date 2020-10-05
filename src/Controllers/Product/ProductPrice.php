@@ -251,7 +251,7 @@ class ProductPrice extends BaseController
                         $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                     } else {
                         $regularPrice = $item->getNetPrice();
-                        $regularPrice = round($regularPrice, 2);
+                        $regularPrice = round($regularPrice, $pd);
                     }
 
                     if ($item->getQuantity() === 0) {

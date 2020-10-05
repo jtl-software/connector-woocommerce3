@@ -43,10 +43,10 @@ trait WawiProductPriceSchmuddelTrait
                 foreach ($pValue->getItems() as $ikey => $item) {
                     if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
-                            $defaultPriceNet = round($item->getNetPrice() * (1 + $vat / 100), 2);
+                            $defaultPriceNet = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                         } else {
                             $defaultPriceNet = $item->getNetPrice();
-                            $defaultPriceNet = round($defaultPriceNet, 2);
+                            $defaultPriceNet = round($defaultPriceNet, $pd);
                         }
                     }
                 }
