@@ -115,8 +115,7 @@ class ProductPrice extends BaseController
         $groupSlug,
         \WC_Product $product,
         ProductModel $model
-    )
-    {
+    ) {
         if ($model->getIsMasterProduct()) {
             $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -146,17 +145,13 @@ class ProductPrice extends BaseController
     protected function netPrice(\WC_Product $product)
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
-        $pd = \wc_get_price_decimals();
+        $pd = Util::getPriceDecimals();
 
-        if ($pd < 4) {
-            $pd = 4;
-        }
-
+        $netPrice = (float)$product->get_regular_price();
         if (\wc_prices_include_tax() && $taxRate != 0) {
-            $netPrice = ((float)$product->get_regular_price()) / ($taxRate + 100) * 100;
+            $netPrice = round($netPrice / ($taxRate + 100), $pd) * 100;
         } else {
-            $netPrice = (float)$product->get_regular_price();
-            $netPrice = Util::getNetPriceCutted($netPrice, $pd);
+            $netPrice = round($netPrice, $pd);
         }
 
         return (float)$netPrice;
@@ -207,7 +202,7 @@ class ProductPrice extends BaseController
     public function updateProductPrices($productPrices, ProductModel $product, $vat)
     {
         $productId = $product->getId()->getEndpoint();
-        $pd = \wc_get_price_decimals();
+        $pd = Util::getPriceDecimals();
 
         /** @var ProductPriceModel $productPrice */
         foreach ($productPrices as $customerGroupId => $productPrice) {
@@ -223,16 +218,13 @@ class ProductPrice extends BaseController
             }
 
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
-                if ($pd < 4) {
-                    $pd = 4;
-                }
 
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
-                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                     } else {
                         $regularPrice = $item->getNetPrice();
-                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
+                        $regularPrice = round($regularPrice, $pd);
                     }
 
                     if ($item->getQuantity() === 0) {
@@ -250,19 +242,16 @@ class ProductPrice extends BaseController
             } elseif (!is_null($customerGroupMeta)
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             ) {
-                if ($pd > 3) {
-                    $pd = 3;
-                }
                 $customerGroup = get_post($customerGroupId);
                 $productType = (new Product)->getType($product);
                 $bulkPrices = [];
 
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
-                        $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                     } else {
                         $regularPrice = $item->getNetPrice();
-                        $regularPrice = Util::getNetPriceCutted($regularPrice, $pd);
+                        $regularPrice = round($regularPrice, 2);
                     }
 
                     if ($item->getQuantity() === 0) {

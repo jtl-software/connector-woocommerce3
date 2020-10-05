@@ -288,11 +288,13 @@ class CustomerOrderItem extends BaseController
             $discountTax = (float)$item->get_discount_tax();
             $totalGross = $total + $discountTax;
 
+            $pd = Util::getPriceDecimals();
+
             $vat = $this->calculateVat($total, $totalGross);
             if (!in_array($vat, $orderItemsVatRates)) {
                 $vat = $highestVatRate;
                 $total = $totalGross * 100 / ($vat + 100);
-                $total = number_format( (float) $total, wc_get_price_decimals(), '.', '' );
+                $total = number_format( (float) $total, $pd, '.', '' );
             }
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
