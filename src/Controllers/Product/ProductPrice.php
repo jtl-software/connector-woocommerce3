@@ -300,13 +300,13 @@ class ProductPrice extends BaseController
                             $customerGroup->post_name
                         );
 
-                        if ($productType !== 'variable') {
+                        if ($productType !== Product::TYPE_PARENT) {
                             $metaKeyForCustomerGroupRegularPrice = sprintf(
                                 '_jtlwcc_bm_%s_regular_price',
                                 $customerGroup->post_name
                             );
 
-                            if ($productType === 'product_variation') {
+                            if ($productType === Product::TYPE_CHILD) {
                                 $parentProduct = \wc_get_product($wcProduct->get_parent_id());
                                 if ($parentProduct instanceof \WC_Product) {
                                     $childParentPrice = sprintf(
@@ -340,7 +340,7 @@ class ProductPrice extends BaseController
                             \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
                         );
 
-                        if ($productType !== 'variable' && isset($metaKeyForCustomerGroupRegularPrice)) {
+                        if ($productType !== Product::TYPE_PARENT && isset($metaKeyForCustomerGroupRegularPrice)) {
                             \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
                                 \wc_format_decimal($regularPrice, $pd),
                                 \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));

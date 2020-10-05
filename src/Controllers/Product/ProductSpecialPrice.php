@@ -145,7 +145,7 @@ class ProductSpecialPrice extends BaseController
         return $netPrice;
     }*/
     
-    public function pushData(ProductModel $product, \WC_Product $wcProduct)
+    public function pushData(ProductModel $product, \WC_Product $wcProduct, string $productType)
     {
         $pd = \wc_get_price_decimals();
         
@@ -197,11 +197,10 @@ class ProductSpecialPrice extends BaseController
                     }
                 }
             }
-            
+
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
-                    $productType = (new Product)->getType($product);
                     $current_time = time();
                     
                     if ($specialPrice->getConsiderDateLimit()) {
@@ -260,7 +259,7 @@ class ProductSpecialPrice extends BaseController
                         }
                         
                     } elseif (is_int((int)$endpoint)) {
-                        if ($productType !== 'variable') {
+                        if ($productType !== Product::TYPE_PARENT) {
                             if ($pd > 4) {
                                 $pd = 3;
                             }
@@ -282,7 +281,7 @@ class ProductSpecialPrice extends BaseController
                                 \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
                             );
                             
-                            if ($productType === 'product_variation') {
+                            if ($productType === Product::TYPE_CHILD) {
                                 $COPpriceMetaKey = sprintf(
                                     'bm_%s_%s_price',
                                     $customerGroup->post_name,
@@ -329,7 +328,7 @@ class ProductSpecialPrice extends BaseController
                                     \get_post_meta($productId, $priceMetaKey, true)
                                 );
                                 
-                                if ($productType === 'product_variation'
+                                if ($productType === Product::TYPE_CHILD
                                     && isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                     && isset($COPsalePriceMetaKey)
@@ -390,7 +389,7 @@ class ProductSpecialPrice extends BaseController
                                     \get_post_meta($productId, $priceMetaKey, true)
                                 );
                                 
-                                if ($productType === 'product_variation'
+                                if ($productType === Product::TYPE_CHILD
                                     && isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                     && isset($COPsalePriceMetaKey)
@@ -511,7 +510,6 @@ class ProductSpecialPrice extends BaseController
         } else {
             
             $customerGroups = (new CustomerGroup)->pullData();
-            $productType = (new Product)->getType($product);
             
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
                 && version_compare(
@@ -553,7 +551,7 @@ class ProductSpecialPrice extends BaseController
                         \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
                     );
                     
-                    if ($productType === 'product_variation') {
+                    if ($productType === Product::TYPE_CHILD) {
                         $COPpriceMetaKey = sprintf(
                             'bm_%s_%s_price',
                             $post->post_name,
@@ -627,8 +625,8 @@ class ProductSpecialPrice extends BaseController
                 
                 \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($regularPrice, $pd),
                     \get_post_meta($productId, $priceMetaKey, true));
-                
-                if ($productType === 'product_variation' && isset($COPpriceTypeMetaKey) && isset($COPpriceMetaKey)) {
+
+                if ($productType === Product::TYPE_CHILD && isset($COPpriceTypeMetaKey) && isset($COPpriceMetaKey)) {
                     \update_post_meta(
                         $masterProductId->getEndpoint(),
                         $COPpriceMetaKey,
