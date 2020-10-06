@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.2
-Stable tag: 1.13.1
+WC tested up to: 4.4
+Stable tag: 1.14.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.14.0 =
+* Bugfix - CO-1175 - Fixed split tax on shipping when there are two or more tax rates
+* Enhancement - CO-1139 - Product/Category with special in name is now correctly imported
+* Enhancement - CO-1045 - Allow to change price import precision. Setting is basing on WooCommerce decimal prices setting for frontend
+* Bugfix - CO-982 - RRP/UVP price in B2B market is not set correctly
 
 = 1.13.1 =
 * Bugfix - CO-1160 - Removed deprecated PHP function call get_magic_quotes_gpc()
