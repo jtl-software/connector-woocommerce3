@@ -90,19 +90,14 @@ class ProductGermanizedFields extends BaseController
     private function updateGermanizedBasePriceAndUnits(ProductModel $product, $id)
     {
         if ($product->getConsiderBasePrice()) {
-            $pd = \wc_get_price_decimals();
-            
-            if ($pd < 4) {
-                $pd = 4;
-            }
-            
+            $pd = Util::getPriceDecimals();
+
             \update_post_meta($id, '_unit_base', $product->getBasePriceQuantity());
             
             if ($product->getBasePriceDivisor() != 0) {
                 $divisor      = $product->getBasePriceDivisor();
                 $currentPrice = (float)\get_post_meta($id, '_price', true);
-                $basePrice    = $currentPrice / $divisor;
-                $basePrice    = Util::getNetPriceCutted($basePrice, $pd);
+                $basePrice    = round($currentPrice / $divisor,  $pd);
                 
                 \update_post_meta($id, '_unit_price', (float)$basePrice);
                 \update_post_meta($id, '_unit_price_regular', (float)$basePrice);
@@ -112,8 +107,7 @@ class ProductGermanizedFields extends BaseController
             
             if ( ! empty($salePrice)) {
                 if ($product->getBasePriceDivisor() !== 0) {
-                    $unitSale = (float)$salePrice / $product->getBasePriceDivisor();
-                    $unitSale = Util::getNetPriceCutted($unitSale, $pd);
+                    $unitSale = round((float)$salePrice / $product->getBasePriceDivisor(), $pd);
                     
                     \update_post_meta($id, '_unit_price_sale', (float)$unitSale);
                     

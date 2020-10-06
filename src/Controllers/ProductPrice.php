@@ -48,12 +48,8 @@ class ProductPrice extends BaseController
      */
     public function updateProductPrice(\WC_Product $product, ProductPriceModel $productPrice, $vat)
     {
-        $pd = \wc_get_price_decimals();
-        
-        if ($pd < 4) {
-            $pd = 4;
-        }
-        
+        $pd = Util::getPriceDecimals();
+
         $customerGroupId = $productPrice->getCustomerGroupId()->getEndpoint();
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
@@ -73,10 +69,10 @@ class ProductPrice extends BaseController
                 $productId = $product->get_id();
                 foreach ($productPrice->getItems() as $item) {
                     if (\wc_prices_include_tax()) {
-                        $newPrice = $item->getNetPrice() * (1 + $vat / 100);
+                        $newPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                     } else {
                         $newPrice = $item->getNetPrice();
-                        $newPrice = Util::getNetPriceCutted($newPrice, $pd);
+                        $newPrice = round($newPrice, $pd);
                     }
                     
                     if ($item->getQuantity() === 0) {
@@ -126,10 +122,6 @@ class ProductPrice extends BaseController
             $productType = $product->get_type();
             $customerGroup = \get_post($customerGroupId);
             
-            if ($pd > 3) {
-                $pd = 3;
-            }
-            
             if ($productType !== 'variable') {
                 $parentProduct = \wc_get_product($product->get_parent_id());
                 
@@ -154,10 +146,9 @@ class ProductPrice extends BaseController
             foreach ($productPrice->getItems() as $item) {
                 
                 if (\wc_prices_include_tax()) {
-                    $newPrice = $item->getNetPrice() * (1 + $vat / 100);
+                    $newPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                 } else {
-                    $newPrice = $item->getNetPrice();
-                    $newPrice = Util::getNetPriceCutted($newPrice, $pd);
+                    $newPrice = round($newPrice, $pd);
                 }
                 
                 if ($item->getQuantity() === 0) {
