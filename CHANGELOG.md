@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.14.1
+* Bugfix - Price quicksync set price to 0 
+
 ## 1.14.0
 * Bugfix - CO-1175 - Fixed split tax on shipping when there are two or more tax rates 
 * Enhancement - CO-1139 - Product/Category with special in name is now correctly imported
