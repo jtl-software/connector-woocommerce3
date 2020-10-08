@@ -148,7 +148,7 @@ class ProductPrice extends BaseController
                 if (\wc_prices_include_tax()) {
                     $newPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                 } else {
-                    $newPrice = round($newPrice, $pd);
+                    $newPrice = round($item->getNetPrice(), $pd);
                 }
                 
                 if ($item->getQuantity() === 0) {
