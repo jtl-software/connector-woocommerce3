@@ -5,7 +5,7 @@ Requires at least: 4.7
 Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.2
+WC tested up to: 4.4
 Stable tag: 2.1.0-dev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
@@ -158,6 +158,18 @@ This section describes how to install the plugin and get it working.
 
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
+
+= 1.14.1 =
+* Bugfix - Price quicksync set price to 0
+
+= 1.14.0 =
+* Bugfix - CO-1175 - Fixed split tax on shipping when there are two or more tax rates
+* Enhancement - CO-1139 - Product/Category with special in name is now correctly imported
+* Enhancement - CO-1045 - Allow to change price import precision. Setting is basing on WooCommerce decimal prices setting for frontend
+* Bugfix - CO-982 - RRP/UVP price in B2B market is not set correctly
+
+= 1.13.1 =
+* Bugfix - CO-1160 - Removed deprecated PHP function call get_magic_quotes_gpc()
 
 = 1.13.0 =
 * Bugfix - CO-1134 - Invalid customer group id sent on pull

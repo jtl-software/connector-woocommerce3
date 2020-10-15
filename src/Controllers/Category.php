@@ -99,9 +99,9 @@ class Category extends BaseController
                                 $category,
                                 $this->wpml->convertLanguageToWawi($translation->language_code),
                                 [
-                                    'name' => $translation->name,
+                                    'name' => html_entity_decode($translation->name),
                                     'slug' => $term['slug'],
-                                    'description' => $term['description'],
+                                    'description' => html_entity_decode($term['description']),
                                     'category_id' => $term['term_id']
                                 ]
                             );

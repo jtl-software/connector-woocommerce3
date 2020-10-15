@@ -26,9 +26,7 @@ final class JtlConnector
                 session_destroy();
             }
 
-            if (!get_magic_quotes_gpc()) {
-                self::unslash_gpc();
-            }
+            self::unslash_gpc();
 
             try {
                 if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {

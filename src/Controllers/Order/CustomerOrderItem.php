@@ -68,7 +68,7 @@ class CustomerOrderItem extends BaseController
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
                 ->setCustomerOrderId(new Identity($order->get_id()))
-                ->setName($item->get_name())
+                ->setName(html_entity_decode($item->get_name()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
@@ -199,11 +199,18 @@ class CustomerOrderItem extends BaseController
             }
         }
 
+        $productTotalByVat = $this->groupProductsByTaxRate($customerOrderItems);
+        $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
+            return (float)$vat !== 0;
+        }, ARRAY_FILTER_USE_KEY);
+        $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
+
         /** @var \WC_Order_Item_Shipping $shippingItem */
         foreach ($order->get_items($type) as $shippingItem) {
             $taxes = $shippingItem->get_taxes();
             $total = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
+            $costs = (float)$order->get_item_total($shippingItem, false, true);
 
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
@@ -223,7 +230,12 @@ class CustomerOrderItem extends BaseController
                         continue;
                     }
 
-                    $netPrice = (float)$order->get_item_subtotal($shippingItem, false, true);
+                    if (!isset($productTotalByVatWithoutZero[$taxRate])) {
+                        $factor = 1;
+                    } else {
+                        $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
+                    }
+                    $netPrice = round($costs * $factor, 2);
                     $customerOrderItem->setPrice($netPrice);
 
                     $customerOrderItems[] = $customerOrderItem;
@@ -276,11 +288,13 @@ class CustomerOrderItem extends BaseController
             $discountTax = (float)$item->get_discount_tax();
             $totalGross = $total + $discountTax;
 
+            $pd = Util::getPriceDecimals();
+
             $vat = $this->calculateVat($total, $totalGross);
             if (!in_array($vat, $orderItemsVatRates)) {
                 $vat = $highestVatRate;
                 $total = $totalGross * 100 / ($vat + 100);
-                $total = number_format( (float) $total, wc_get_price_decimals(), '.', '' );
+                $total = number_format( (float) $total, $pd, '.', '' );
             }
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
@@ -307,5 +321,28 @@ class CustomerOrderItem extends BaseController
         }
 
         return round($vat, 2);
+    }
+
+    /**
+     * @param array $customerOrderItems
+     * @return array
+     */
+    private function groupProductsByTaxRate(array $customerOrderItems)
+    {
+        $totalPriceForVats = [];
+
+        foreach ($customerOrderItems as $item) {
+            if ($item instanceof CustomerOrderItemModel && $item->getType() == CustomerOrderItemModel::TYPE_PRODUCT) {
+                $taxRate = (string)$item->getVat();
+
+                if (isset($totalPriceForVats[$taxRate])) {
+                    $totalPriceForVats[$taxRate] += $item->getPrice();
+                } else {
+                    $totalPriceForVats[$taxRate] = $item->getPrice();
+                }
+            }
+        }
+
+        return $totalPriceForVats;
     }
 }

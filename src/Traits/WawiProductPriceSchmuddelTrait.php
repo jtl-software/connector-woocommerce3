@@ -17,6 +17,7 @@ trait WawiProductPriceSchmuddelTrait
 {
     private function fixProductPriceForCustomerGroups(ProductModel &$product, \WC_Product $wcProduct)
     {
+        $pd = \wc_get_price_decimals();
         $pushedPrices = $product->getPrices();
         $defaultPrices = null;
         $defaultPriceNet = 0;
@@ -42,10 +43,10 @@ trait WawiProductPriceSchmuddelTrait
                 foreach ($pValue->getItems() as $ikey => $item) {
                     if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
-                            $defaultPriceNet = $item->getNetPrice() * (1 + $vat / 100);
+                            $defaultPriceNet = round($item->getNetPrice() * (1 + $vat / 100), $pd);
                         } else {
                             $defaultPriceNet = $item->getNetPrice();
-                            $defaultPriceNet = Util::getNetPriceCutted($defaultPriceNet, 4);
+                            $defaultPriceNet = round($defaultPriceNet, $pd);
                         }
                     }
                 }
