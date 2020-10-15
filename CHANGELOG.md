@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 2.2.0-dev
+* Info - Merged state with current release
+* Bugfix - Fixed setProductType bug
+
 ## 2.1.0-dev
 * Info - Merged state with current release
 

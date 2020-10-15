@@ -100,8 +100,8 @@ class WooCommerceProduct extends AbstractComponent
             ->setProductId($jtlProduct->getId())
             ->setLanguageISO($languageIso)
             ->setName($this->name($wcProduct))
-            ->setDescription($wcProduct->get_description())
-            ->setShortDescription($wcProduct->get_short_description())
+            ->setDescription(html_entity_decode($wcProduct->get_description()))
+            ->setShortDescription(html_entity_decode($wcProduct->get_short_description()))
             ->setUrlPath($wcProduct->get_slug());
 
         $germanized = $this->getPluginsManager()->get(Germanized::class);
@@ -130,7 +130,7 @@ class WooCommerceProduct extends AbstractComponent
      */
     private function name(\WC_Product $product): string
     {
-        $name = $product->get_name();
+        $name = html_entity_decode($product->get_name());
         if ($product instanceof \WC_Product_Variation) {
             switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT, '')) {
                 case 'space':
