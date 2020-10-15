@@ -372,7 +372,7 @@ class Product extends BaseController
      * @param \WC_Product $wcProduct
      * @param string $oldProductType
      */
-    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct, string $oldProductType)
+    public function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct, string $oldProductType)
     {
         $productId = $wcProduct->get_id();
         $customProductTypeSet = false;

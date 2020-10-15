@@ -179,7 +179,7 @@ class WpmlProduct extends AbstractComponent
                 add_filter('content_save_pre', 'wp_filter_post_kses');
                 add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-                $productController->setProductType($productType, $wcProduct);
+                $productController->updateProductType($jtlProduct, $wcProduct, $productType);
                 $wpmlPlugin
                     ->getComponent(WpmlProductVariation::class)
                     ->setChildTranslation($translationElementId, $jtlProduct->getVariations(), $languageCode);
@@ -187,7 +187,7 @@ class WpmlProduct extends AbstractComponent
 
             if ($type === self::POST_TYPE) {
                 (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $productI18n);
-                $productController->setProductType($productType, $wcProduct);
+                $productController->updateProductType($jtlProduct, $wcProduct, $productType);
             }
 
             (new ProductMetaSeo)->pushData($translationElementId, $productI18n);
