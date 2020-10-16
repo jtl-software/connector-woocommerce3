@@ -322,7 +322,7 @@ class ProductVariation extends BaseController
                         }
 
                         $termId = $newTerm['term_id'];
-                        $specificValueId->setEndpoint(new Identity($termId));
+                        $specificValueId->setEndpoint($termId);
                     }
 
                     if ($isDefaultLanguage === true) {
