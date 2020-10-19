@@ -495,18 +495,26 @@ class ProductVariation extends BaseController
         }
 
         if ($this->wpml->canBeUsed() && $isDefaultLanguage === false && !empty(self::$originLanguageDetails)) {
-            foreach ($translationDetailInfo['term'] as $index => $detail) {
-                $originLanguage = self::$originLanguageDetails['term'][$index];
-                $type = 'tax_' . $originLanguage['tax'];
-                $languageCode = $this->wpml->convertLanguageToWpml($wawiIsoLanguage);
-                $trid = $this->wpml->getElementTrid($originLanguage['id'], $type);
+            foreach ($translationDetailInfo['term'] as $detail) {
+                $originLanguage= null;
+                foreach(self::$originLanguageDetails['term'] as $info){
+                    if($info['tax'] === $detail['tax']){
+                        $originLanguage = $info;
+                        break;
+                    }
+                }
+                if(!is_null($originLanguage)) {
+                    $type = 'tax_' . $originLanguage['tax'];
+                    $languageCode = $this->wpml->convertLanguageToWpml($wawiIsoLanguage);
+                    $trid = $this->wpml->getElementTrid($originLanguage['id'], $type);
 
-                $this->wpml->getSitepress()->set_element_language_details(
-                    $detail['id'],
-                    $type,
-                    $trid,
-                    $languageCode
-                );
+                    $this->wpml->getSitepress()->set_element_language_details(
+                        $detail['id'],
+                        $type,
+                        $trid,
+                        $languageCode
+                    );
+                }
             }
         }
 
