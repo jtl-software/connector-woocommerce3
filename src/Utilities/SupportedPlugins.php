@@ -30,6 +30,8 @@ final class SupportedPlugins
     const PLUGIN_BACKUPBUDDY = 'BackupBuddy';
     const PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE = 'UpdraftPlus - Backup/Restore';
     const PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE = 'VR pay eCommerce - WooCommerce';
+    const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE = 'WPC Product Quantity for WooCommerce';
+    const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM = 'WPC Product Quantity for WooCommerce (Premium)';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -64,6 +66,8 @@ final class SupportedPlugins
         self::PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE,
         self::PLUGIN_BACKUPBUDDY,
         self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
+        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE,
+        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM
     ];
 
     const INCOMPATIBLE_PLUGINS = [

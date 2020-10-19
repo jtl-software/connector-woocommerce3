@@ -455,4 +455,12 @@ final class Util extends Singleton
     {
         return parent::getInstance();
     }
+
+    /**
+     * @return int
+     */
+    public static function getPriceDecimals()
+    {
+        return \wc_get_price_decimals();
+    }
 }
