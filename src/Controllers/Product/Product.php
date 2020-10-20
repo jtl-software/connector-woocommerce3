@@ -534,11 +534,14 @@ class Product extends BaseController
         switch ($this->getType($product)) {
             case self::TYPE_PARENT:
                 $type = 'variable';
+                break;
             case self::TYPE_CHILD:
                 $type = 'product_variation';
+                break;
             case self::TYPE_SINGLE:
             default:
                 $type = 'simple';
+                break;
         }
 
         return $type;
