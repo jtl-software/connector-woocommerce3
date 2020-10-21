@@ -26,6 +26,11 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Product extends BaseController
 {
+    public const
+        TYPE_PARENT = 'parent',
+        TYPE_CHILD = 'child',
+        TYPE_SINGLE = 'single';
+
     use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
 
     private static $idCache = [];
@@ -297,30 +302,29 @@ class Product extends BaseController
 
         $this->updateProductMeta($product, $wcProduct);
 
-        $this->updateProductRelations($product, $wcProduct);
+        $this->updateProductRelations($product, $wcProduct, $productType);
 
         (new ProductVaSpeAttrHandler)->pushDataNew($product, $wcProduct);
 
 
-        if ($productType !== 'product_variation') {
+        if ($productType !== Product::TYPE_CHILD) {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
         //variations
-        if ($productType === 'product_variation') {
+        if ($productType === Product::TYPE_CHILD) {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         }
 
-        $this->updateProductType($product, $wcProduct, $productType);
+        $this->updateProductType($product, $wcProduct);
     }
 
     /**
      * @param ProductModel $jtlProduct
      * @param \WC_Product $wcProduct
-     * @param string $oldProductType
      */
-    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct, string $oldProductType)
+    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct)
     {
         $productId = $wcProduct->get_id();
         $customProductTypeSet = false;
@@ -369,7 +373,9 @@ class Product extends BaseController
         }
 
         if ($customProductTypeSet === false) {
-            $productTypeTerm = \get_term_by('slug', $oldProductType, 'product_type');
+            $oldWcProductType = $this->getWcProductType($jtlProduct);
+
+            $productTypeTerm = \get_term_by('slug', $oldWcProductType, 'product_type');
             $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
             $removeTerm = null;
@@ -386,7 +392,7 @@ class Product extends BaseController
             if ($productTypeTerm instanceof \WP_Term) {
                 \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
             } else {
-                \wp_set_object_terms($wcProduct->get_id(), $oldProductType, 'product_type', false);
+                \wp_set_object_terms($wcProduct->get_id(), $oldWcProductType, 'product_type', false);
             }
         }
 
@@ -478,12 +484,14 @@ class Product extends BaseController
         (new ProductManufacturer())->pushData($product);
     }
 
-    private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct)
+    private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct, string $productType)
     {
         (new Product2Category)->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
-        (new ProductPrice)->pushData($product);
-        (new ProductSpecialPrice)->pushData($product, $wcProduct);
+
+        (new ProductPrice)->pushData($product->getVat(), $productType, ...$product->getPrices());
+
+        (new ProductSpecialPrice)->pushData($product, $wcProduct, $productType);
     }
 
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
@@ -517,30 +525,41 @@ class Product extends BaseController
         self::$idCache[$product->getId()->getHost()] = $productId;
     }
 
-    public function getType(ProductModel $product)
+    /**
+     * @param ProductModel $product
+     * @return string
+     */
+    protected function getWcProductType(ProductModel $product): string
     {
-        $type = null;
-
-        $productId = (int)$product->getId()->getEndpoint();
-        $productTypeTerms = wc_get_object_terms($productId, 'product_type');
-        if (is_array($productTypeTerms) && count($productTypeTerms) === 1) {
-            $productTypeTerm = end($productTypeTerms);
-            $type = $productTypeTerm->slug;
+        switch ($this->getType($product)) {
+            case self::TYPE_PARENT:
+                $type = 'variable';
+                break;
+            case self::TYPE_CHILD:
+                $type = 'product_variation';
+                break;
+            case self::TYPE_SINGLE:
+            default:
+                $type = 'simple';
+                break;
         }
 
-        $allowedTypes = wc_get_product_types();
-        $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
+        return $type;
+    }
 
-        if (array_key_exists($type, $allowedTypes)) {
-            return $type;
+    /**
+     * @param ProductModel $product
+     * @return string
+     */
+    public function getType(ProductModel $product): string
+    {
+        if($product->getIsMasterProduct() === true){
+            return self::TYPE_PARENT;
         }
-
-        $postType = get_post_field('post_type', $productId);
-        if (!empty($product->getVariations()) && $postType === 'product') {
-            return 'variable';
+        if ($product->getMasterProductId()->getHost() > 0) {
+            return self::TYPE_CHILD;
         }
-
-        return 'simple';
+        return self::TYPE_SINGLE;
     }
 
     private function getCreationDate(DateTime $creationDate, $gmt = false)
