@@ -45,7 +45,7 @@ class CustomerOrderShippingAddress extends BaseController
             }
 
             if (!empty($postNumber)) {
-                $address->setExtraAddressLine($postNumber);
+                $address->setExtraAddressLine((string) $postNumber);
             }
         }
 
