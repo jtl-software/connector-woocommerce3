@@ -317,7 +317,7 @@ class CustomerOrderItem extends BaseController
     {
         $vat = .0;
         if ($totalNet > 0 && $totalGross > 0 && $totalGross > $totalNet) {
-            $vat = round($totalGross / $totalNet, 2) * 100 - 100;
+            $vat = round($totalGross / $totalNet, 4) * 100 - 100;
         }
 
         return round($vat, 2);
