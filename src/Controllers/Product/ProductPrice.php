@@ -242,47 +242,21 @@ class ProductPrice extends BaseController
             }
 
             $customerGroupMeta = null;
-
             if (is_int($customerGroupId)) {
                 $customerGroupMeta = \get_post_meta($customerGroupId);
             }
 
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
-
                 foreach ($productPrice->getItems() as $item) {
-                    if (\wc_prices_include_tax()) {
-                        $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
-                    } else {
-                        $regularPrice = $item->getNetPrice();
-                        $regularPrice = round($regularPrice, $pd);
-                    }
-
-                    if ($item->getQuantity() === 0) {
-                        $salePrice = \get_post_meta($productId, '_sale_price', true);
-
-                        if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
-                            \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd),
-                                \get_post_meta($productId, '_price', true));
-                        }
-
-                        \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd),
-                            \get_post_meta($productId, '_regular_price', true));
-                    }
+                    $this->updateDefaultProductPrice($item, $vat, $pd);
                 }
-            } elseif (!is_null($customerGroupMeta)
-                && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            ) {
+            } elseif (!is_null($customerGroupMeta) && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 $customerGroup = get_post($customerGroupId);
                 $bulkPrices = [];
 
                 foreach ($productPrice->getItems() as $item) {
-                    if (\wc_prices_include_tax()) {
-                        $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
-                    } else {
-                        $regularPrice = $item->getNetPrice();
-                        $regularPrice = round($regularPrice, $pd);
-                    }
 
+                    $regularPrice = $this->getRegularPrice($item, $vat, $pd);
                     if ($item->getQuantity() === 0) {
                         $metaKeyForCustomerGroupPrice = sprintf(
                             'bm_%s_price',
@@ -363,7 +337,7 @@ class ProductPrice extends BaseController
                         \get_post_meta($productId, $metaKey, true)
                     );
 
-                    if (!$wcProduct->get_parent_id() === 0) {
+                    if ($wcProduct->get_parent_id() !== 0) {
                         $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name, $productId);
                         $metaProductId = $wcProduct->get_parent_id();
 
@@ -375,14 +349,13 @@ class ProductPrice extends BaseController
                         );
                     }
                 } else {
-
                     \delete_post_meta(
                         $productId,
                         sprintf('bm_%s_bulk_prices', $customerGroup->post_name)
                     );
 
-                    if (!$wcProduct->get_parent_id() === 0) {
-                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name, $product->getId()->getEndpoint());
+                    if ($wcProduct->get_parent_id() !== 0) {
+                        $metaKey = sprintf('bm_%s_%s_bulk_prices', $customerGroup->post_name, $productId);
                         $metaProductId = $wcProduct->get_parent_id();
                         \delete_post_meta(
                             $metaProductId,
@@ -392,5 +365,45 @@ class ProductPrice extends BaseController
                 }
             }
         }
+    }
+
+    /**
+     * @param ProductPriceItemModel $item
+     * @param float $vat
+     * @param int $pd
+     */
+    protected function updateDefaultProductPrice(ProductPriceItemModel $item, float $vat, int $pd)
+    {
+        $regularPrice = $this->getRegularPrice($item, $vat, $pd);
+
+        if ($item->getQuantity() === 0) {
+            $salePrice = \get_post_meta($productId, '_sale_price', true);
+
+            if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
+                \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd),
+                    \get_post_meta($productId, '_price', true));
+            }
+
+            \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd),
+                \get_post_meta($productId, '_regular_price', true));
+        }
+    }
+
+    /**
+     * @param ProductPriceItemModel $item
+     * @param float $vat
+     * @param int $pd
+     * @return float
+     */
+    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd): float
+    {
+        if (\wc_prices_include_tax()) {
+            $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
+        } else {
+            $regularPrice = $item->getNetPrice();
+            $regularPrice = round($regularPrice, $pd);
+        }
+
+        return $regularPrice;
     }
 }
