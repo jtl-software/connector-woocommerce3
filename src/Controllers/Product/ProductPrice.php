@@ -115,8 +115,7 @@ class ProductPrice extends BaseController
         $groupSlug,
         \WC_Product $product,
         ProductModel $model
-    )
-    {
+    ) {
         if ($model->getIsMasterProduct()) {
             $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -369,11 +368,11 @@ class ProductPrice extends BaseController
     }
 
     /**
-     * @param $item
-     * @param $vat
-     * @param $pd
+     * @param ProductPriceItemModel $item
+     * @param float $vat
+     * @param int $pd
      */
-    protected function updateDefaultProductPrice(\jtl\Connector\Model\ProductPrice $item, float $vat, int $pd)
+    protected function updateDefaultProductPrice(ProductPriceItemModel $item, float $vat, int $pd)
     {
         $regularPrice = $this->getRegularPrice($item, $vat, $pd);
 
@@ -391,12 +390,12 @@ class ProductPrice extends BaseController
     }
 
     /**
-     * @param ProductPriceModel $item
+     * @param ProductPriceItemModel $item
      * @param float $vat
-     * @param float $pd
+     * @param int $pd
      * @return float
      */
-    protected function getRegularPrice(\jtl\Connector\Model\ProductPrice $item, float $vat, int $pd): float
+    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd): float
     {
         if (\wc_prices_include_tax()) {
             $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
