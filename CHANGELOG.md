@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.14.2
+* Bugfix - Price decimal precision increased to minimum of 4
+
 ## 1.14.1
 * Bugfix - Price quicksync set price to 0 
 
