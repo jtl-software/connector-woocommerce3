@@ -200,17 +200,18 @@ class ProductPrice extends BaseController
     }
 
     /**
+     * @param \WC_Product $wcProduct
      * @param float $vat
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
      */
-    public function pushData(float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    public function pushData(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
     {
         Util::deleteB2Bcache();
 
         $groupedProductPrices = $this->groupProductPrices(...$productPrices);
         if (count($groupedProductPrices) > 0) {
-            $this->updateProductPrices($groupedProductPrices, $vat, $productType);
+            $this->updateProductPrices($wcProduct, $groupedProductPrices, $vat, $productType);
         }
     }
 
@@ -219,11 +220,9 @@ class ProductPrice extends BaseController
      * @param float $vat
      * @param string $productType
      */
-    public function updateProductPrices($groupedProductPrices, float $vat, string $productType)
+    public function updateProductPrices(\WC_Product $wcProduct, array $groupedProductPrices, float $vat, string $productType)
     {
         $pd = Util::getPriceDecimals();
-
-        $wcProducts = [];
 
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
@@ -231,15 +230,7 @@ class ProductPrice extends BaseController
                 continue;
             }
 
-            $productId = $productPrice->getProductId()->getEndpoint();
-            $wcProduct = $wcProducts[$productId] ?? null;
-            if (is_null($wcProduct)) {
-                $wcProduct = $wcProducts[$productId] = wc_get_product($productId);
-            }
-
-            if (!$wcProduct instanceof \WC_Product) {
-                continue;
-            }
+            $productId = $wcProduct->get_id();
 
             $customerGroupMeta = null;
             if (is_int($customerGroupId)) {
@@ -248,7 +239,7 @@ class ProductPrice extends BaseController
 
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
                 foreach ($productPrice->getItems() as $item) {
-                    $this->updateDefaultProductPrice($item, $vat, $pd);
+                    $this->updateDefaultProductPrice($item, $productId, $vat, $pd);
                 }
             } elseif (!is_null($customerGroupMeta) && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 $customerGroup = get_post($customerGroupId);
@@ -369,10 +360,11 @@ class ProductPrice extends BaseController
 
     /**
      * @param ProductPriceItemModel $item
+     * @param int $productId
      * @param float $vat
      * @param int $pd
      */
-    protected function updateDefaultProductPrice(ProductPriceItemModel $item, float $vat, int $pd)
+    protected function updateDefaultProductPrice(ProductPriceItemModel $item, int $productId, float $vat, int $pd)
     {
         $regularPrice = $this->getRegularPrice($item, $vat, $pd);
 

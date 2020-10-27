@@ -33,6 +33,7 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
             $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
             parent::pushData(
+                $wcProduct,
                 $vat,
                 $this->getJtlProductType($wcProduct),
                 ...[$productPrice]

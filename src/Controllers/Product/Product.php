@@ -489,7 +489,7 @@ class Product extends BaseController
         (new Product2Category)->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
 
-        (new ProductPrice)->pushData($product->getVat(), $productType, ...$product->getPrices());
+        (new ProductPrice)->pushData($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
 
         (new ProductSpecialPrice)->pushData($product, $wcProduct, $productType);
     }
