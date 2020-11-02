@@ -108,18 +108,21 @@ class CustomerOrderItem extends BaseController
                 }
             }
 
-            $priceNet = (float)$order->get_item_subtotal($item, false, true);
-            $priceGross = (float)$order->get_item_subtotal($item, true, true);
 
             if (isset($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
+                $priceNet = (float)$order->get_item_subtotal($item, false, true);
+                $priceGross = (float)$order->get_item_subtotal($item, true, true);
                 $vat = $this->calculateVat($priceNet, $priceGross);
             }
 
+            $priceNet = (float)$order->get_item_subtotal($item, false, false);
+            $priceGross = (float)$order->get_item_subtotal($item, true, false);
             $orderItem
                 ->setVat($vat)
-                ->setPrice($priceNet);
+                ->setPrice(round($priceNet, Util::getPriceDecimals()))
+                ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
 
             $customerOrderItems[] = $orderItem;
         }
@@ -235,8 +238,12 @@ class CustomerOrderItem extends BaseController
                     } else {
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
-                    $netPrice = round($costs * $factor, 2);
-                    $customerOrderItem->setPrice($netPrice);
+                    $netPrice = $costs * $factor;
+                    $priceGross = $netPrice + $taxAmount;
+
+                    $customerOrderItem
+                        ->setPrice(round($netPrice, Util::getPriceDecimals()))
+                        ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
 
                     $customerOrderItems[] = $customerOrderItem;
                 }
@@ -249,8 +256,9 @@ class CustomerOrderItem extends BaseController
                     $priceGross = $total + $totalTax;
                     $vat = $this->calculateVat($total, $priceGross);
 
-                    $customerOrderItem->setVat($vat);
-                    $customerOrderItem->setPrice($total);
+                    $customerOrderItem->setVat($vat)
+                        ->setPrice(round($total, Util::getPriceDecimals()))
+                        ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
                 }
 
                 if ($type === CustomerOrderItemModel::TYPE_SHIPPING && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
@@ -302,7 +310,8 @@ class CustomerOrderItem extends BaseController
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(-1 * $total)
+                ->setPrice(round(-1 * $total, Util::getPriceDecimals()))
+                ->setPriceGross(round(-1 * $totalGross, Util::getPriceDecimals()))
                 ->setVat($vat)
                 ->setQuantity(1);
         }
