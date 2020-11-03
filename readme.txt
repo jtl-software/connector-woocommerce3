@@ -159,6 +159,9 @@ This section describes how to install the plugin and get it working.
 * Bugfix - CO-1161 - DHL postnumber is now correctly transfered
 * Bugfix - CO-1174 - Customer group can be changed on customer update
 
+= 1.14.2 =
+* Bugfix - Price decimal precision increased to minimum of 4
+
 = 1.14.1 =
 * Bugfix - Price quicksync set price to 0
 
