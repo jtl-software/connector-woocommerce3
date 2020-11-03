@@ -554,9 +554,10 @@ class Image extends BaseController
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
-        if (((int)$this->database->queryOne(SqlHelper::imageProductDelete($attachmentId))) !== 0) {
-            // Used by any other product
-            return;
+        if (((int)$this->database->queryOne(SqlHelper::imageProductDelete($attachmentId))) === 1) {
+            if (\get_attached_file($attachmentId) !== false) {
+                \wp_delete_attachment($attachmentId, true);
+            }
         }
         if ((int)$this->database->queryOne(SqlHelper::imageCategoryDelete($attachmentId)) === 0) {
             // Not used by either product or category
