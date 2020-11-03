@@ -4,6 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.15.0
 * Entchancement - Product price refactoring, unified normal and quick sync calls to one method
+* Bugfix - Fixed setting bulk prices
+* Bugfix - Fixed setting standard price when B2B Market is active
+* Bugfix - Reverted transfer priceGross on customer order pull, set item price precision to minimum of 4
 * Bugfix - Increased tax rate calculation precision to 4
 * Bugfix - CO-1161 - DHL postnumber is now correctly transfered 
 * Bugfix - CO-1174 - Customer group can be changed on customer update
