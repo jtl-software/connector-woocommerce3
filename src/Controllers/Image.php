@@ -108,7 +108,7 @@ class Image extends BaseController
                 $query = new \WP_Query([
                     'fields'         => 'ids',
                     'post_type'      => ['product', 'product_variation'],
-                    'post_status'    => ['publish', 'private'],
+                    'post_status'    => ['future', 'draft', 'publish', 'inherit', 'private'],
                     'posts_per_page' => 50,
                     'paged'          => $page++,
                 ]);
