@@ -35,6 +35,11 @@ use JtlWooCommerceConnector\Utilities\Util;
  */
 class Product extends BaseController
 {
+    public const
+        TYPE_PARENT = 'parent',
+        TYPE_CHILD = 'child',
+        TYPE_SINGLE = 'single';
+
     use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
 
     /**
@@ -347,32 +352,31 @@ class Product extends BaseController
 
         $this->fixProductPriceForCustomerGroups($jtlProduct, $wcProduct);
 
-        (new ProductPrice)->pushData($jtlProduct);
+        (new ProductPrice)->pushData($wcProduct, $jtlProduct->getVat(), $productType, ...$jtlProduct->getPrices());
 
-        (new ProductSpecialPrice)->pushData($jtlProduct, $wcProduct);
+        (new ProductSpecialPrice)->pushData($jtlProduct, $wcProduct, $productType);
 
         (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
 
-        if ($productType !== 'product_variation') {
+        if ($productType !== Product::TYPE_CHILD) {
             $this->updateProduct($wcProduct, $jtlProduct);
-            \wc_delete_product_transients($wcProduct->get_id());
+            \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
         //variations
-        if ($productType === 'product_variation') {
+        if ($productType === Product::TYPE_CHILD) {
             $this->updateVariationCombinationChild($wcProduct, $jtlProduct, $jtlProductDefaultI18n);
             (new ProductStockLevel)->pushDataChild($jtlProduct);
         }
 
-        $this->updateProductType($jtlProduct, $wcProduct, $productType);
+        $this->updateProductType($jtlProduct, $wcProduct);
     }
 
     /**
      * @param ProductModel $jtlProduct
      * @param \WC_Product $wcProduct
-     * @param string $oldProductType
      */
-    public function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct, string $oldProductType)
+    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct)
     {
         $productId = $wcProduct->get_id();
         $customProductTypeSet = false;
@@ -421,7 +425,9 @@ class Product extends BaseController
         }
 
         if ($customProductTypeSet === false) {
-            $productTypeTerm = \get_term_by('slug', $oldProductType, 'product_type');
+            $oldWcProductType = $this->getWcProductType($jtlProduct);
+
+            $productTypeTerm = \get_term_by('slug', $oldWcProductType, 'product_type');
             $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
             $removeTerm = null;
@@ -438,7 +444,7 @@ class Product extends BaseController
             if ($productTypeTerm instanceof \WP_Term) {
                 \wp_set_object_terms($wcProduct->get_id(), $productTypeTerm->term_id, 'product_type', false);
             } else {
-                \wp_set_object_terms($wcProduct->get_id(), $oldProductType, 'product_type', false);
+                \wp_set_object_terms($wcProduct->get_id(), $oldWcProductType, 'product_type', false);
             }
         }
 
@@ -579,29 +585,36 @@ class Product extends BaseController
      * @param ProductModel $product
      * @return string
      */
-    public function getType(ProductModel $product)
+    protected function getWcProductType(ProductModel $product): string
     {
-        $type = null;
-
-        $productId = (int)$product->getId()->getEndpoint();
-        $productTypeTerms = wc_get_object_terms($productId, 'product_type');
-        if (is_array($productTypeTerms) && count($productTypeTerms) === 1) {
-            $productTypeTerm = end($productTypeTerms);
-            $type = $productTypeTerm->slug;
+        switch ($this->getType($product)) {
+            case self::TYPE_PARENT:
+                $type = 'variable';
+                break;
+            case self::TYPE_CHILD:
+                $type = 'product_variation';
+                break;
+            case self::TYPE_SINGLE:
+            default:
+                $type = 'simple';
+                break;
         }
 
-        $allowedTypes = wc_get_product_types();
-        $allowedTypes['product_variation'] = 'Variables Kind Produkt.';
+        return $type;
+    }
 
-        if (array_key_exists($type, $allowedTypes)) {
-            return $type;
+    /**
+     * @param ProductModel $product
+     * @return string
+     */
+    public function getType(ProductModel $product): string
+    {
+        if($product->getIsMasterProduct() === true){
+            return self::TYPE_PARENT;
         }
-
-        $postType = get_post_field('post_type', $productId);
-        if (!empty($product->getVariations()) && $postType === 'product') {
-            return 'variable';
+        if ($product->getMasterProductId()->getHost() > 0) {
+            return self::TYPE_CHILD;
         }
-
-        return 'simple';
+        return self::TYPE_SINGLE;
     }
 }

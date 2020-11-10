@@ -366,6 +366,18 @@ final class Util extends Singleton
     }
 
     /**
+     *
+     */
+    public static function deleteB2Bcache()
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
+            is_callable(['BM_Helper', 'delete_b2b_transients'])
+        ) {
+            \BM_Helper::delete_b2b_transients();
+        }
+    }
+
+    /**
      * @param $str
      *
      * @return string
@@ -435,7 +447,7 @@ final class Util extends Singleton
         $includeCompletedOrdersOption = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes');
         return in_array($includeCompletedOrdersOption, ['yes', '1'], true);
     }
-    
+
     /**
      * @return Singleton|$this
      */
@@ -449,6 +461,10 @@ final class Util extends Singleton
      */
     public static function getPriceDecimals()
     {
-        return \wc_get_price_decimals();
+        $pd = \wc_get_price_decimals();
+        if ($pd < 4) {
+            $pd = 4;
+        }
+        return $pd;
     }
 }

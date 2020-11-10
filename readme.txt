@@ -5,8 +5,9 @@ Requires at least: 4.7
 Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.4
+WC tested up to: 4.5
 Stable tag: 2.2.0-dev
+Stable tag: 1.15.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -158,6 +159,18 @@ This section describes how to install the plugin and get it working.
 
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
+
+= 1.15.0 =
+* Entchancement - Product price refactoring, unified normal and quick sync calls to one method
+* Bugfix - Fixed setting bulk prices
+* Bugfix - Fixed setting standard price when B2B Market is active
+* Bugfix - Reverted transfer priceGross on customer order pull, set item price precision to minimum of 4
+* Bugfix - Increased tax rate calculation precision to 4
+* Bugfix - CO-1161 - DHL postnumber is now correctly transfered
+* Bugfix - CO-1174 - Customer group can be changed on customer update
+
+= 1.14.2 =
+* Bugfix - Price decimal precision increased to minimum of 4
 
 = 1.14.1 =
 * Bugfix - Price quicksync set price to 0

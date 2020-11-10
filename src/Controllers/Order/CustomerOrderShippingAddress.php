@@ -36,10 +36,13 @@ class CustomerOrderShippingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
 
-            $parcel = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
+            $postNumber = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
+            if (empty($postNumber)) {
+                $postNumber = $order->get_meta('_shipping_dhl_postnumber', true);
+            }
 
-            if (!empty($parcel)) {
-                $address->setExtraAddressLine($parcel);
+            if (!empty($postNumber)) {
+                $address->setExtraAddressLine((string) $postNumber);
             }
         }
 

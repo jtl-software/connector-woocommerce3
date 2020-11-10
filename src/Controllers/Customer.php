@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WooCommerceLogger;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -78,7 +79,7 @@ class Customer extends BaseController
             } else {
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
-            
+
             if ($this->getPluginsManager()->get(\JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized::class)->canBeUsed()) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
@@ -143,25 +144,25 @@ class Customer extends BaseController
                 ->setCustomerGroupId($this->getDefaultCustomerGroup())
                 ->setIsActive(false)
                 ->setHasCustomerAccount(false);
-            
+
             if ($this->getPluginsManager()->get(\JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized::class)->canBeUsed()) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
-            
+
             $customers[] = $customer;
         }
-        
+
         return $customers;
     }
-    
+
     public function pushData(CustomerModel $customer)
     {
         // Only registered customers data can be updated
         if (!$customer->getHasCustomerAccount()) {
             return $customer;
         }
-        
+
         try {
             $wcCustomer = new \WC_Customer((int)$customer->getId()->getEndpoint());
             $wcCustomer->set_first_name($customer->getFirstName());
@@ -179,13 +180,36 @@ class Customer extends BaseController
             $wcCustomer->set_billing_email($customer->getEMail());
             $wcCustomer->set_billing_phone($customer->getPhone());
             $wcCustomer->save();
+
+            if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
+                wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
+            }
+
         } catch (\Exception $exception) {
-            WooCommerceLogger::getInstance()->writeLog($exception->getTraceAsString());
+            WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
-        
+
         return $customer;
     }
-    
+
+    /**
+     * @param $customerGroupId
+     */
+    protected function getWpCustomerRole($customerGroupId): ?\WP_Role
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $customerGroups = get_posts(['post_type' => 'customer_groups']);
+            foreach ($customerGroups as $customerGroup) {
+                $role = get_role($customerGroup->post_name);
+                if ($role instanceof \WP_Role && (int)$customerGroupId === $customerGroup->ID) {
+                    return $role;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function getStats()
     {
         $customers = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
