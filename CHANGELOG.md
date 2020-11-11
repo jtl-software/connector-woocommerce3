@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.15.1
+* Entchancement - Fixed tax rate calculation    
+
 ## 1.15.0
 * Entchancement - Product price refactoring, unified normal and quick sync calls to one method
 * Bugfix - Fixed setting bulk prices
