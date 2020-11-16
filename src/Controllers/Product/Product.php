@@ -360,7 +360,7 @@ class Product extends BaseController
 
         if ($productType !== Product::TYPE_CHILD) {
             $this->updateProduct($wcProduct, $jtlProduct);
-            \wc_delete_product_transients($product->getId()->getEndpoint());
+            \wc_delete_product_transients($jtlProduct->getId()->getEndpoint());
         }
 
         //variations
@@ -376,7 +376,7 @@ class Product extends BaseController
      * @param ProductModel $jtlProduct
      * @param \WC_Product $wcProduct
      */
-    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct)
+    public function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct)
     {
         $productId = $wcProduct->get_id();
         $customProductTypeSet = false;

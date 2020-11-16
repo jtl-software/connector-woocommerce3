@@ -21,7 +21,6 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use TheIconic\NameParser\Parser;
-use WCPayPalPlus\Payment\PaymentExecutionSuccess;
 
 class CustomerOrder extends BaseController
 {
@@ -82,7 +81,11 @@ class CustomerOrder extends BaseController
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))
                 ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order))
                 ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order));
-            
+
+            if ($this->wpml->canBeUsed() && !empty($wpmlLanguage = $order->get_meta('wpml_language'))) {
+                $customerOrder->setLanguageISO($this->wpml->convertLanguageToWawi($wpmlLanguage));
+            }
+
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
