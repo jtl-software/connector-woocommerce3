@@ -1952,6 +1952,8 @@ final class JtlConnectorAdmin
             case '1.14.1':
             case '1.14.2':
             case '1.15.0':
+            case '1.15.1':
+            case '1.15.2':
             case '2.0.0':
             case '2.1.0':
             case '2.2.0':

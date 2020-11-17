@@ -11,6 +11,7 @@ use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
+use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
@@ -64,10 +65,10 @@ class Image extends BaseController
             $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
             $combinedArray = array_merge($combinedArray, $manufacturerImages);
         }
-
+        
         return $combinedArray;
     }
-
+    
     private function addNextImages($images, $type, &$limit)
     {
         $return = [];
@@ -512,32 +513,44 @@ class Image extends BaseController
 
     protected function deleteData(ImageModel $image, $realDelete = true)
     {
-        if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
-            $this->deleteProductImage($image, $realDelete);
-        } elseif ($image->getRelationType() === ImageRelationType::TYPE_CATEGORY) {
-            $this->deleteCategoryImage($image, $realDelete);
-        } elseif ($image->getRelationType() === ImageRelationType::TYPE_MANUFACTURER) {
-            $this->deleteManufacturerImage($image, $realDelete);
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_PRODUCT:
+                $this->deleteProductImage($image, $realDelete);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $this->deleteImageTermMeta($image, $realDelete);
+                break;
         }
 
         return $image;
     }
 
-    private function deleteCategoryImage(ImageModel $image, $realDelete)
+    /**
+     * @param ImageModel $image
+     * @param $realDelete
+     * @throws \Exception
+     */
+    private function deleteImageTermMeta(ImageModel $image, $realDelete)
     {
-        \delete_term_meta($image->getForeignKey()->getEndpoint(), self::CATEGORY_THUMBNAIL);
-
-        if ($realDelete) {
-            $this->deleteIfNotUsedByOthers(Id::unlinkCategoryImage($image->getId()->getEndpoint()));
+        $endpointId = $image->getId()->getEndpoint();
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $metaKey = self::MANUFACTURER_KEY;
+                $id = Id::unlinkCategoryImage($endpointId);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+                $metaKey = self::CATEGORY_THUMBNAIL;
+                $id = Id::unlinkManufacturerImage($endpointId);
+                break;
+            default:
+                throw new \Exception(sprintf("Invalid relation %s type for id %s when deleting image.", $image->getRelationType(), $endpointId));
         }
-    }
 
-    private function deleteManufacturerImage(ImageModel $image, $realDelete)
-    {
-        \delete_term_meta($image->getForeignKey()->getEndpoint(), self::MANUFACTURER_KEY);
+        \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers(Id::unlinkManufacturerImage($image->getId()->getEndpoint()));
+            $this->deleteIfNotUsedByOthers($image, $id);
         }
     }
 
@@ -554,7 +567,7 @@ class Image extends BaseController
         $attachmentId = (int)$ids[0];
 
         if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
-            $this->deleteAllProductImages($productId);
+            $this->deleteAllProductImages($image, $productId);
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
@@ -566,28 +579,32 @@ class Image extends BaseController
             }
 
             if ($realDelete) {
-                $this->deleteIfNotUsedByOthers($attachmentId);
+                $this->deleteIfNotUsedByOthers($image, $attachmentId);
             }
         }
     }
 
-    private function deleteIfNotUsedByOthers($attachmentId)
+    private function deleteIfNotUsedByOthers(ImageModel $image, $attachmentId)
     {
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
-        if (((int)$this->database->queryOne(SqlHelper::imageProductDelete($attachmentId))) !== 0) {
-            // Used by any other product
-            return;
+
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_PRODUCT:
+                $query = SqlHelper::countRelatedProducts($attachmentId);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::CATEGORY_THUMBNAIL);
+                break;
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::MANUFACTURER_KEY);
+                break;
+            default:
+                throw new \Exception(sprintf("Cannot find relation %s for attachement id %s when deleting image", $image->getRelationType(), $attachmentId));
         }
-        if ((int)$this->database->queryOne(SqlHelper::imageCategoryDelete($attachmentId)) === 0) {
-            // Not used by either product or category
-            if (\get_attached_file($attachmentId) !== false) {
-                \wp_delete_attachment($attachmentId, true);
-            }
-        }
-        if ((int)$this->database->queryOne(SqlHelper::imageManufacturerDelete($attachmentId)) === 0) {
-            // Not used by either product or category
+
+        if ((int)$this->database->queryOne($query) <= 1) {
             if (\get_attached_file($attachmentId) !== false) {
                 \wp_delete_attachment($attachmentId, true);
             }
@@ -599,15 +616,15 @@ class Image extends BaseController
         return $image->getSort() === 1;
     }
 
-    private function deleteAllProductImages($productId)
+    private function deleteAllProductImages(ImageModel $image, $productId)
     {
         $thumbnail = \get_post_thumbnail_id($productId);
         \set_post_thumbnail($productId, 0);
-        $this->deleteIfNotUsedByOthers($thumbnail);
+        $this->deleteIfNotUsedByOthers($image, $thumbnail);
         $galleryImages = $this->getGalleryImages($productId);
         \update_post_meta($productId, self::GALLERY_KEY, '');
         foreach ($galleryImages as $galleryImage) {
-            $this->deleteIfNotUsedByOthers($galleryImage);
+            $this->deleteIfNotUsedByOthers($image, $galleryImage);
         }
     }
 

@@ -85,30 +85,12 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
-            $customer->setVatNumber((string) $this->getVatId($customerId));
+            $customer->setVatNumber(Util::getVatIdFromCustomer($customerId));
 
             $customers[] = $customer;
         }
 
         return $customers;
-    }
-
-    /**
-     * @param $customerId
-     * @return mixed|string
-     */
-    protected function getVatId($customerId)
-    {
-        $vatIdPlugins = [
-            'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
-            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
-            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-        ];
-
-        return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
-            return \get_user_meta($id, $metaKey, true);
-        });
     }
 
     private function pullGuests($limit)
@@ -143,7 +125,8 @@ class Customer extends BaseController
                 ->setCreationDate($order->get_date_created())
                 ->setCustomerGroupId($this->getDefaultCustomerGroup())
                 ->setIsActive(false)
-                ->setHasCustomerAccount(false);
+                ->setHasCustomerAccount(false)
+                ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
 
             if ($this->getPluginsManager()->get(\JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized::class)->canBeUsed()) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);

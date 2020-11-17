@@ -114,7 +114,7 @@ class CustomerOrderItem extends BaseController
             } else {
                 $priceNet = (float)$order->get_item_subtotal($item, false, true);
                 $priceGross = (float)$order->get_item_subtotal($item, true, true);
-                $vat = $this->calculateVat($priceNet, $priceGross);
+                $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
             }
 
             $priceNet = (float)$order->get_item_subtotal($item, false, false);
@@ -254,7 +254,7 @@ class CustomerOrderItem extends BaseController
                 if ($total != 0) {
 
                     $priceGross = $total + $totalTax;
-                    $vat = $this->calculateVat($total, $priceGross);
+                    $vat = $this->calculateVat($total, $priceGross, wc_get_price_decimals());
 
                     $customerOrderItem->setVat($vat)
                         ->setPrice(round($total, Util::getPriceDecimals()))
@@ -298,11 +298,11 @@ class CustomerOrderItem extends BaseController
 
             $pd = Util::getPriceDecimals();
 
-            $vat = $this->calculateVat($total, $totalGross);
+            $vat = $this->calculateVat($total, $totalGross, wc_get_price_decimals());
             if (!in_array($vat, $orderItemsVatRates)) {
                 $vat = $highestVatRate;
                 $total = $totalGross * 100 / ($vat + 100);
-                $total = number_format( (float) $total, $pd, '.', '' );
+                $total = number_format((float)$total, $pd, '.', '');
             }
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
@@ -322,11 +322,17 @@ class CustomerOrderItem extends BaseController
      * @param float $totalGross
      * @return float
      */
-    private function calculateVat(float $totalNet, float $totalGross): float
+    private function calculateVat(float $totalNet, float $totalGross, $wooCommerceRoundPrecision = 2, int $vatRoundPrecision = 2): float
     {
         $vat = .0;
         if ($totalNet > 0 && $totalGross > 0 && $totalGross > $totalNet) {
-            $vat = round($totalGross / $totalNet, 4) * 100 - 100;
+            $vat = round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100;
+        }
+
+        $totalGrossCalculated = round(($totalNet * ($vat / 100 + 1)), $wooCommerceRoundPrecision);
+
+        if ($vatRoundPrecision <= 6 && $vat !== .0 && $totalGrossCalculated !== $totalGross) {
+            return $this->calculateVat($totalNet, $totalGross, $wooCommerceRoundPrecision, $vatRoundPrecision + 1);
         }
 
         return round($vat, 2);

@@ -88,7 +88,7 @@ class UtilTest extends TestCase
     public function testFindVatId()
     {
         $expectedVatId = 'DE123456789';
-        $returnOnKeys = ['billing_vat_id' => $expectedVatId, 'shipping_vat_id' => 'DE0000000'];
+        $returnOnKeys = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
 
         $getMetaField = function ($id, $metaKey) use ($expectedVatId, $returnOnKeys) {
             return in_array($metaKey,array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
@@ -103,8 +103,8 @@ class UtilTest extends TestCase
         $vatPlugins = [
             'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
             'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
-            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
         ];
 
         $foundVatId = Util::findVatId(1, $vatPlugins, $getMetaField);
@@ -129,8 +129,8 @@ class UtilTest extends TestCase
         $vatPlugins = [
             'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
             'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
-            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
         ];
 
         $foundVatId = Util::findVatId(1, $vatPlugins, $getMetaField);

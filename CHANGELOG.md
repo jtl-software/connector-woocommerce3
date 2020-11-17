@@ -12,6 +12,13 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.15.2
+* Bugfix - CO-1213 - Delete product image if not used
+* Bugfix - CO-1193 - Fixed tax id import
+
+## 1.15.1
+* Entchancement - Fixed tax rate calculation    
+
 ## 1.15.0
 * Entchancement - Product price refactoring, unified normal and quick sync calls to one method
 * Bugfix - Fixed setting bulk prices
