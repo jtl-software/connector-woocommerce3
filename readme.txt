@@ -153,6 +153,10 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.15.2 =
+* Bugfix - CO-1213 - Delete product image if not used
+* Bugfix - CO-1193 - Fixed tax id import
+
 = 1.15.1 =
 * Entchancement - Fixed tax rate calculation
 
