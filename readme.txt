@@ -154,6 +154,10 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 2.2.0-dev =
+* Info - Merged state with current release
+* Bugfix - Fixed setProductType bug
+
 = 2.1.0-dev =
 * Info - Merged state with current release
 
