@@ -36,7 +36,8 @@ class CustomerOrderBillingAddress extends BaseController
                 : Id::link([
                     Id::GUEST_PREFIX,
                     $order->get_id(),
-                ])));
+                ])))
+            ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
         
         if (strcmp($address->getCity(), '') === 0) {
             $address->setCity(get_option('woocommerce_store_city'));
@@ -67,24 +68,6 @@ class CustomerOrderBillingAddress extends BaseController
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
         }
 
-        $address->setVatNumber((string)$this->getVatId($order->get_id()));
-
         return $address;
-    }
-
-    /**
-     * @param $orderId
-     * @return mixed|string
-     */
-    protected function getVatId($orderId)
-    {
-        $vatIdPlugins = [
-            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
-            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-        ];
-
-        return Util::findVatId($orderId, $vatIdPlugins, function ($id, $metaKey) {
-            return \get_post_meta($id, $metaKey, true);
-        });
     }
 }

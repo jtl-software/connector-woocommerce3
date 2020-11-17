@@ -170,7 +170,7 @@ final class Util extends Singleton
      * @param callable $getMetaFieldValueFunction
      * @return string
      */
-    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction)
+    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction): string
     {
         $uid = '';
         foreach ($vatPluginsPriority as $metaKey => $pluginName) {
@@ -187,6 +187,42 @@ final class Util extends Singleton
         }
 
         return (string) $uid;
+    }
+
+    /**
+     * @param $customerId
+     * @return string
+     */
+    public static function getVatIdFromCustomer($customerId): string
+    {
+        $vatIdPlugins = [
+            'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
+            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
+            '_billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+        ];
+
+        return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
+            return \get_user_meta($id, $metaKey, true);
+        });
+    }
+
+    /**
+     * @param $orderId
+     * @return string
+     */
+    public static function getVatIdFromOrder($orderId): string
+    {
+        $vatIdPlugins = [
+            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
+            '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            '_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+        ];
+
+        return Util::findVatId($orderId, $vatIdPlugins, function ($id, $metaKey) {
+            return \get_post_meta($id, $metaKey, true);
+        });
     }
 
     /**
