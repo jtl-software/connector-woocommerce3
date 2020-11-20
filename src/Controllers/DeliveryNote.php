@@ -8,6 +8,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use Vendidero\Germanized\Shipments\Order;
 use WC_Advanced_Shipment_Tracking_Actions;
 
 class DeliveryNote extends BaseController
@@ -20,15 +21,15 @@ class DeliveryNote extends BaseController
      */
     protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote)
     {
+        $orderId = $deliveryNote->getCustomerOrderId()->getEndpoint();
+
+        $order = \wc_get_order($orderId);
+
+        if (!$order instanceof \WC_Order) {
+            return $deliveryNote;
+        }
+
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {
-
-            $orderId = $deliveryNote->getCustomerOrderId()->getEndpoint();
-
-            $order = \wc_get_order($orderId);
-
-            if (!$order instanceof \WC_Order) {
-                return $deliveryNote;
-            }
 
             $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
 
@@ -51,6 +52,48 @@ class DeliveryNote extends BaseController
                 foreach ($trackingList->getCodes() as $trackingCode) {
                     $trackingInfoItem['tracking_number'] = $trackingCode;
                     $shipmentTrackingActions->add_tracking_item($order->get_id(), $trackingInfoItem);
+                }
+            }
+        }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+
+            global $wpdb;
+
+            if (in_array('woocommerce_gzd_shipments', $wpdb->tables) && function_exists('wc_gzd_get_shipment_order')) {
+                $shipmentOrder = wc_gzd_get_shipment_order($order);
+                if($shipmentOrder instanceof Order) {
+                    foreach ($deliveryNote->getTrackingLists() as $trackingList) {
+                        $methodName = $trackingList->getName();
+                        $shipments = $shipmentOrder->get_shipments();
+
+                        if (!empty($shipments)) {
+                            foreach ($shipments as $shipment) {
+                                $orderShippingMethod = $shipment->get_shipping_method();
+                                $shippingMethod = substr($orderShippingMethod, 0, strpos($orderShippingMethod, ':'));
+
+                                $wcShippingMethods = \WC()->shipping()->get_shipping_methods();
+                                $mappedWcShippingMethod = null;
+                                foreach($wcShippingMethods as $wcShippingMethod){
+                                    if($shippingMethod === $wcShippingMethod->id){
+                                        $mappedWcShippingMethod = $wcShippingMethod;
+                                        break;
+                                    }
+                                }
+
+                                $fullTitleMatch = $mappedWcShippingMethod->get_method_title() === $methodName;
+                                $methodIdMatch = $mappedWcShippingMethod->id === str_replace(' ','_',strtolower($methodName));
+
+                                if (!is_null($mappedWcShippingMethod) && ($fullTitleMatch || $methodIdMatch)) {
+                                    $shipment->set_status('shipped', true);
+                                    $shipment->set_tracking_id(join(',', $trackingList->getCodes()));
+                                    $shipment->save();
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
