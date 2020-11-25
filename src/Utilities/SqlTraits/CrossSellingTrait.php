@@ -22,6 +22,7 @@ trait CrossSellingTrait {
             LEFT JOIN {$jclc} l ON p.ID = l.endpoint_id
             WHERE p.post_type = 'product' 
             AND (pm.meta_key = '_crosssell_ids' OR pm.meta_key = '_upsell_ids') 
+            AND pm.meta_value != ''  
             AND l.host_id IS NULL
             {$limitQuery}";
 	}
