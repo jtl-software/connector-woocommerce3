@@ -26,9 +26,7 @@ final class JtlConnector
                 session_destroy();
             }
 
-            if (!get_magic_quotes_gpc()) {
-                self::unslash_gpc();
-            }
+            self::unslash_gpc();
 
             try {
                 require(JTLWCC_CONNECTOR_DIR . '/src/bootstrap.php');

@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WooCommerceLogger;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -86,30 +87,12 @@ class Customer extends BaseController
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
 
-            $customer->setVatNumber((string)$this->getVatId($customerId));
+            $customer->setVatNumber(Util::getVatIdFromCustomer($customerId));
 
             $customers[] = $customer;
         }
 
         return $customers;
-    }
-
-    /**
-     * @param $customerId
-     * @return mixed|string
-     */
-    protected function getVatId($customerId)
-    {
-        $vatIdPlugins = [
-            'b2b_uid' => SupportedPlugins::PLUGIN_B2B_MARKET,
-            'billing_vat' => SupportedPlugins::PLUGIN_GERMAN_MARKET,
-            'billing_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-            'shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
-        ];
-
-        return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
-            return \get_user_meta($id, $metaKey, true);
-        });
     }
 
     private function pullGuests($limit)
@@ -144,7 +127,8 @@ class Customer extends BaseController
                 ->setCreationDate($order->get_date_created())
                 ->setCustomerGroupId($this->getDefaultCustomerGroup())
                 ->setIsActive(false)
-                ->setHasCustomerAccount(false);
+                ->setHasCustomerAccount(false)
+                ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
@@ -183,11 +167,34 @@ class Customer extends BaseController
             $wcCustomer->set_billing_email($customer->getEMail());
             $wcCustomer->set_billing_phone($customer->getPhone());
             $wcCustomer->save();
+
+            if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
+                wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
+            }
+
         } catch (\Exception $exception) {
-            WooCommerceLogger::getInstance()->writeLog($exception->getTraceAsString());
+            WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
 
         return $customer;
+    }
+
+    /**
+     * @param $customerGroupId
+     */
+    protected function getWpCustomerRole($customerGroupId): ?\WP_Role
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $customerGroups = get_posts(['post_type' => 'customer_groups']);
+            foreach ($customerGroups as $customerGroup) {
+                $role = get_role($customerGroup->post_name);
+                if ($role instanceof \WP_Role && (int)$customerGroupId === $customerGroup->ID) {
+                    return $role;
+                }
+            }
+        }
+
+        return null;
     }
 
     public function getStats()

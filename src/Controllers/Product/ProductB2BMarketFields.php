@@ -111,10 +111,11 @@ class ProductB2BMarketFields extends BaseController
     private function updateRRP(ProductModel $product, \WC_Product $wcProduct)
     {
         $rrp = $product->getRecommendedRetailPrice();
-        $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== 0) {
+        $rrp = round($rrp, 4);
+        $oldValue = (float) \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+        if ($rrp !== 0.) {
             if ($rrp !== $oldValue) {
-                if (!$product->getMasterProductId()->getHost() === 0) {
+                if ($product->getMasterProductId()->getHost() !== 0) {
                     $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
                     \update_post_meta(
                         $wcProduct->get_parent_id(),
@@ -122,20 +123,22 @@ class ProductB2BMarketFields extends BaseController
                         $rrp,
                         \get_post_meta($wcProduct->get_parent_id(), $vKey, true)
                     );
+                }else {
+                    \update_post_meta(
+                        $wcProduct->get_id(),
+                        'bm_rrp',
+                        $rrp,
+                        \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
+                    );
                 }
-                \update_post_meta(
-                    $wcProduct->get_id(),
-                    'bm_rrp',
-                    $rrp,
-                    \get_post_meta($wcProduct->get_id(), 'bm_rrp', true)
-                );
             }
         } else {
-            if (!$product->getMasterProductId()->getHost() === 0) {
+            if ($product->getMasterProductId()->getHost() !== 0) {
                 $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
                 \delete_post_meta($wcProduct->get_parent_id(), $vKey);
+            } else {
+                \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
             }
-            \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
         }
     }
 }

@@ -159,31 +159,13 @@ trait ImageTrait
         );
     }
     
-    public static function imageCategoryDelete($id)
-    {
-        list($table, $column) = CategoryUtil::getTermMetaData();
-        
-        return sprintf("
-            SELECT COUNT({$column})
-            FROM {$table}
-            WHERE meta_key = '%s' AND meta_value = {$id}",
-            ImageCtrl::CATEGORY_THUMBNAIL
-        );
-    }
-    
-    public static function imageManufacturerDelete($id)
+    public static function countTermMetaImages($attachementId, $metaKey)
     {
         global $wpdb;
-        
-        return sprintf("
-            SELECT COUNT(term_id)
-            FROM {$wpdb->termmeta}
-            WHERE meta_key = '%s' AND meta_value = {$id}",
-            ImageCtrl::MANUFACTURER_KEY
-        );
+        return sprintf("SELECT COUNT(term_id) FROM %s WHERE meta_key = '%s' AND meta_value = %s", $wpdb->termmeta, $metaKey, $attachementId);
     }
-    
-    public static function imageProductDelete($id)
+
+    public static function countRelatedProducts($attachementId)
     {
         global $wpdb;
         
@@ -191,9 +173,9 @@ trait ImageTrait
             SELECT COUNT(meta_id)
             FROM {$wpdb->postmeta}
             WHERE (meta_key = '%s'
-            AND meta_value = {$id})
+            AND meta_value = {$attachementId})
             OR (meta_key = '%s'
-            AND FIND_IN_SET({$id}, meta_value) > 0)",
+            AND FIND_IN_SET({$attachementId}, meta_value) > 0)",
             ImageCtrl::PRODUCT_THUMBNAIL, ImageCtrl::GALLERY_KEY
         );
     }

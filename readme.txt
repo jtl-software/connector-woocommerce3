@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.2
-Stable tag: 1.13.0
+WC tested up to: 4.5
+Stable tag: 1.15.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,37 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.15.2 =
+* Bugfix - CO-1213 - Delete product image if not used
+* Bugfix - CO-1193 - Fixed tax id import
+
+= 1.15.1 =
+* Entchancement - Fixed tax rate calculation
+
+= 1.15.0 =
+* Entchancement - Product price refactoring, unified normal and quick sync calls to one method
+* Bugfix - Fixed setting bulk prices
+* Bugfix - Fixed setting standard price when B2B Market is active
+* Bugfix - Reverted transfer priceGross on customer order pull, set item price precision to minimum of 4
+* Bugfix - Increased tax rate calculation precision to 4
+* Bugfix - CO-1161 - DHL postnumber is now correctly transfered
+* Bugfix - CO-1174 - Customer group can be changed on customer update
+
+= 1.14.2 =
+* Bugfix - Price decimal precision increased to minimum of 4
+
+= 1.14.1 =
+* Bugfix - Price quicksync set price to 0
+
+= 1.14.0 =
+* Bugfix - CO-1175 - Fixed split tax on shipping when there are two or more tax rates
+* Enhancement - CO-1139 - Product/Category with special in name is now correctly imported
+* Enhancement - CO-1045 - Allow to change price import precision. Setting is basing on WooCommerce decimal prices setting for frontend
+* Bugfix - CO-982 - RRP/UVP price in B2B market is not set correctly
+
+= 1.13.1 =
+* Bugfix - CO-1160 - Removed deprecated PHP function call get_magic_quotes_gpc()
 
 = 1.13.0 =
 * Bugfix - CO-1134 - Invalid customer group id sent on pull

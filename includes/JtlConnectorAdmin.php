@@ -1717,6 +1717,13 @@ final class JtlConnectorAdmin
             case '1.11.1':
             case '1.12.0':
             case '1.13.0':
+            case '1.13.1':
+            case '1.14.0':
+            case '1.14.1':
+            case '1.14.2':
+            case '1.15.0':
+            case '1.15.1':
+            case '1.15.2':
             default:
                 self::activate_linking();
         }
@@ -2027,7 +2034,7 @@ final class JtlConnectorAdmin
             JTLWCC_TEXT_DOMAIN));
     }
 
-    public function default_customer_group_not_updated()
+    public static function default_customer_group_not_updated()
     {
         $message = __('The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings',
             JTLWCC_TEXT_DOMAIN);
