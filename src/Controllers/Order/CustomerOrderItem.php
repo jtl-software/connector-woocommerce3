@@ -118,7 +118,7 @@ class CustomerOrderItem extends BaseController
             }
 
             $priceNet = (float)$order->get_item_subtotal($item, false, false);
-            $priceGross = (float)$order->get_item_subtotal($item, true, false);
+            $priceGross = (float)$order->get_item_subtotal($item, true, true);
             $orderItem
                 ->setVat($vat)
                 ->setPrice(round($priceNet, Util::getPriceDecimals()))
