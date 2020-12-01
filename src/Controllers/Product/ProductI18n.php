@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -54,7 +55,7 @@ class ProductI18n extends BaseController
     private function name(\WC_Product $product)
     {
         if ($product instanceof \WC_Product_Variation) {
-            switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT, '')) {
+            switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT, '')) {
                 case 'space':
                     return $product->get_name() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets':

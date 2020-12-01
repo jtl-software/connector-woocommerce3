@@ -9,6 +9,8 @@
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 
+use JtlWooCommerceConnector\Utilities\Config;
+
 trait PaymentTrait
 {
     public static function paymentCompletedPull($includeCompletedOrders, $limit = null)
@@ -34,7 +36,7 @@ trait PaymentTrait
             $status = "(p.post_status = 'wc-completed' OR {$status})";
         }
 
-        $since = \get_option(\JtlConnectorAdmin::OPTIONS_PULL_ORDERS_SINCE);
+        $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $where = (!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
 
         return "
