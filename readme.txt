@@ -154,6 +154,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.16.0 =
+* Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
 * Bugfix - CO-1240 - Fixed vat calculation comparing values
 * Bugfix - CO-1239 - Fixed price transfer precision, price gross item is now rounded at pull
 * Bugfix - CO-1221 - Fixed 'not all images were sent' error
