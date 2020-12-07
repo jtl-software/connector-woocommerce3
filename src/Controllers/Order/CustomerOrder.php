@@ -149,12 +149,6 @@ class CustomerOrder extends BaseController
     {
         if ($order->has_status(self::STATUS_COMPLETED)) {
             return CustomerOrderModel::PAYMENT_STATUS_COMPLETED;
-        } elseif ($order->has_status(self::STATUS_PROCESSING)) {
-            if (in_array($order->get_payment_method(), ['cod', 'invoice'])) {
-                return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
-            }
-            
-            return CustomerOrderModel::PAYMENT_STATUS_COMPLETED;
         }
         
         return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
