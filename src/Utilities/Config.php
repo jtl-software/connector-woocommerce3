@@ -88,8 +88,12 @@ class Config
      */
     public static function set(string $name, $value): bool
     {
+        $allowedKeys = self::JTLWCC_CONFIG;
+        $allowedKeys[Config::OPTIONS_INSTALLED_VERSION] = 'string';
+        $allowedKeys[Config::OPTIONS_TOKEN] = 'string';
+
         $result = false;
-        if (in_array($name, array_keys(self::JTLWCC_CONFIG))) {
+        if (in_array($name, array_keys($allowedKeys))) {
             $oldValue = self::get($name);
             if (is_null($oldValue)) {
                 $result = add_option($name, $value);

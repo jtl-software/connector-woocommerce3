@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.16.1
+* Bugfix - fresh installation process missing token
+
 ## 1.16.0
 * Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
 * Bugfix - CO-1240 - Fixed vat calculation comparing values
