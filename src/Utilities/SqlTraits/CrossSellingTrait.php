@@ -27,8 +27,7 @@ trait CrossSellingTrait
         $select = 'SELECT pm.post_id, pm.meta_value, pm.meta_key';
         $groupBy = '';
         if ($limit === null) {
-            $select = 'SELECT COUNT(pm.post_id) as total';
-            $groupBy = 'GROUP BY pm.post_id';
+            $select = 'SELECT COUNT(DISTINCT pm.post_id) as total';
             $limitQuery = 'LIMIT 1';
         }
 
