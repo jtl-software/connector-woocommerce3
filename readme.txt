@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.4
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 4.5
-Stable tag: 1.15.1
+WC tested up to: 4.6
+Stable tag: 1.16.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,15 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.16.1 =
+* Bugfix - fresh installation process missing token
+
+= 1.16.0 =
+* Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
+* Bugfix - CO-1240 - Fixed vat calculation comparing values
+* Bugfix - CO-1239 - Fixed price transfer precision, price gross item is now rounded at pull
+* Bugfix - CO-1221 - Fixed 'not all images were sent' error
 
 = 1.15.2 =
 * Bugfix - CO-1213 - Delete product image if not used

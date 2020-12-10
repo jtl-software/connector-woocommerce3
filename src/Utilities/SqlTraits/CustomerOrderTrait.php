@@ -8,6 +8,7 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
@@ -36,7 +37,7 @@ trait CustomerOrderTrait
             $status .= ", 'wc-completed'";
         }
 
-        $since = \get_option(\JtlConnectorAdmin::OPTIONS_PULL_ORDERS_SINCE);
+        $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $where = (!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
 
         return "

@@ -2,15 +2,24 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.16.1
+* Bugfix - fresh installation process missing token
+
+## 1.16.0
+* Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
+* Bugfix - CO-1240 - Fixed vat calculation comparing values
+* Bugfix - CO-1239 - Fixed price transfer precision, price gross item is now rounded at pull 
+* Bugfix - CO-1221 - Fixed 'not all images were sent' error
+
 ## 1.15.2
 * Bugfix - CO-1213 - Delete product image if not used
 * Bugfix - CO-1193 - Fixed tax id import
 
 ## 1.15.1
-* Entchancement - Fixed tax rate calculation    
+* Enhancement - Fixed tax rate calculation    
 
 ## 1.15.0
-* Entchancement - Product price refactoring, unified normal and quick sync calls to one method
+* Enhancement - Product price refactoring, unified normal and quick sync calls to one method
 * Bugfix - Fixed setting bulk prices
 * Bugfix - Fixed setting standard price when B2B Market is active
 * Bugfix - Reverted transfer priceGross on customer order pull, set item price precision to minimum of 4
