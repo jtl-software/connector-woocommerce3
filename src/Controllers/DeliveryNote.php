@@ -72,24 +72,27 @@ class DeliveryNote extends BaseController
                         if (!empty($shipments)) {
                             foreach ($shipments as $shipment) {
                                 $orderShippingMethod = $shipment->get_shipping_method();
-                                $shippingMethod = substr($orderShippingMethod, 0, strpos($orderShippingMethod, ':'));
+                                $shippingMethodDelimiter = strpos($orderShippingMethod, ':');
+                                if ($shippingMethodDelimiter !== false) {
+                                    $shippingMethod = substr($orderShippingMethod, 0, $shippingMethodDelimiter);
 
-                                $wcShippingMethods = \WC()->shipping()->get_shipping_methods();
-                                $mappedWcShippingMethod = null;
-                                foreach($wcShippingMethods as $wcShippingMethod){
-                                    if($shippingMethod === $wcShippingMethod->id){
-                                        $mappedWcShippingMethod = $wcShippingMethod;
-                                        break;
+                                    $wcShippingMethods = \WC()->shipping()->get_shipping_methods();
+                                    $mappedWcShippingMethod = null;
+                                    foreach ($wcShippingMethods as $wcShippingMethod) {
+                                        if ($shippingMethod === $wcShippingMethod->id) {
+                                            $mappedWcShippingMethod = $wcShippingMethod;
+                                            break;
+                                        }
                                     }
-                                }
 
-                                $fullTitleMatch = $mappedWcShippingMethod->get_method_title() === $methodName;
-                                $methodIdMatch = $mappedWcShippingMethod->id === str_replace(' ','_',strtolower($methodName));
+                                    $fullTitleMatch = $mappedWcShippingMethod->get_method_title() === $methodName;
+                                    $methodIdMatch = $mappedWcShippingMethod->id === str_replace(' ', '_', strtolower($methodName));
 
-                                if (!is_null($mappedWcShippingMethod) && ($fullTitleMatch || $methodIdMatch)) {
-                                    $shipment->set_status('shipped', true);
-                                    $shipment->set_tracking_id(join(',', $trackingList->getCodes()));
-                                    $shipment->save();
+                                    if (!is_null($mappedWcShippingMethod) && ($fullTitleMatch || $methodIdMatch)) {
+                                        $shipment->set_status('shipped', true);
+                                        $shipment->set_tracking_id(join(',', $trackingList->getCodes()));
+                                        $shipment->save();
+                                    }
                                 }
                             }
                         }
