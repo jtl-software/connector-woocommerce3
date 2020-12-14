@@ -107,9 +107,11 @@ class Category extends BaseController
         ];
         
         $urlPath = $meta->getUrlPath();
-        
+
         if (!empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
+        } else {
+            $categoryData['slug'] = $meta->getName();
         }
         
         remove_filter('pre_term_description', 'wp_filter_kses');
