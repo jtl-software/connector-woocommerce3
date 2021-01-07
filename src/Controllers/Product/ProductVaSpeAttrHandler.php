@@ -13,6 +13,7 @@ use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use jtl\Connector\Model\Specific;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -198,7 +199,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
             $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
 
-            $jtlNewProductSpecifics = array_map(function (\jtl\Connector\Model\ProductSpecific $productSpecific) {
+            $jtlNewProductSpecifics = array_map(function (ProductSpecificModel $productSpecific) {
                 return $productSpecific->getId()->getEndpoint();
             }, $product->getSpecifics());
 
