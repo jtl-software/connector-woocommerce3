@@ -1,9 +1,10 @@
 name: Deploy to Wordpress
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
 
 jobs:
   test:
@@ -47,15 +48,12 @@ jobs:
           sudo mv composer.phar /usr/local/bin/composer
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Fetch tags
-        run: |
-          git fetch --tags
       - name: Build and deploy
         env:
           USERNAME: ${{ secrets.username }}
           PASSWORD: ${{ secrets.password }}
         run: |
-          VERSION=$(git describe --tags --abbrev=0)
+          VERSION=${{ github.event.inputs.tag }}
           echo "Building: $VERSION"
           git checkout tags/$VERSION -b tmp
           svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
@@ -66,10 +64,3 @@ jobs:
           cp -R woo-jtl-zip/woo-jtl-connector/* woo-jtl-connector/trunk/
           cd woo-jtl-connector/trunk
           svn status
-          svn add --force *
-          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $VERSION"
-          cd ..
-          svn copy trunk/ tags/$VERSION
-          cd tags/$VERSION
-          svn status
-          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $VERSION"
