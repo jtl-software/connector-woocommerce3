@@ -1,0 +1,74 @@
+name: Deploy to Wordpress
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ ubuntu-latest ]
+        php-versions: [ '7.1', '7.2', '7.3', '7.4', '8.0' ]
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, intl
+          tools: phpunit
+
+      - name: Run composer
+        uses: php-actions/composer@v2
+
+      - name: Run unit tests
+        uses: php-actions/phpunit@v7
+        with:
+          configuration: ./phpunit.xml
+          bootstrap: ./vendor/autoload.php
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shivammathur/setup-php@v1
+        with:
+          php-version: '7.1'
+      - name: System praparation
+        run: |
+          sudo apt-get update -yqq
+          sudo apt-get install -yqq subversion unzip zlib1g-dev libzip-dev php-zip
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+      - name: Checkout
+        uses: actions/checkout@v2
+        run: |
+          git fetch --tags
+      - name: Build and deploy
+        env:
+          USERNAME: ${{ secrets.username }}
+          PASSWORD: ${{ secrets.password }}
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "Building: $VERSION"
+          git checkout tags/$VERSION -b tmp
+          svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
+          svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
+          sh zip-build.sh
+          unzip -q '*.zip' -d woo-jtl-zip
+          rm -f -R woo-jtl-connector/trunk/*
+          cp -R woo-jtl-zip/woo-jtl-connector/* woo-jtl-connector/trunk/
+          cd woo-jtl-connector/trunk
+          svn status
+          svn add --force *
+          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $VERSION"
+          cd ..
+          svn copy trunk/ tags/$VERSION
+          cd tags/$VERSION
+          svn status
+          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $VERSION"
