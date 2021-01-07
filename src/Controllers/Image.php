@@ -168,7 +168,7 @@ class Image extends BaseController
             $imageIds = $product->get_gallery_image_ids();
 
             if (!empty($imageIds)) {
-                $attachmentIds = array_merge($attachmentIds, $product->get_gallery_image_ids());
+                $attachmentIds = array_merge($attachmentIds, $imageIds);
             }
         }
 
