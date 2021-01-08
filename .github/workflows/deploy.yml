@@ -73,7 +73,7 @@ jobs:
         env:
           USERNAME: ${{ secrets.username }}
           PASSWORD: ${{ secrets.password }}
-        run:
+        run: |
           svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
           svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
           rm -f -R woo-jtl-connector/trunk/*
