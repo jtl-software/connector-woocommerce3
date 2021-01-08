@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Info - WooCommerce compatibility updated to 4.8, Wordpress compatibility updated to 5.6
+
 ## 1.16.1
 * Bugfix - fresh installation process missing token
 
