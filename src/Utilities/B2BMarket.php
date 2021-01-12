@@ -5,7 +5,7 @@ namespace JtlWooCommerceConnector\Utilities;
 use jtl\Connector\Model\DataModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
-class B2BMarket
+class B2BMarket extends WordpressUtils
 {
     /**
      * @param array $customerGroupsIds
