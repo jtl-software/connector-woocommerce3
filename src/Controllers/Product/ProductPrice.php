@@ -388,7 +388,7 @@ class ProductPrice extends BaseController
      */
     protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd = null): float
     {
-        if (\wc_prices_include_tax()) {
+        if ($this->idWcPricesIncludeTax()) {
             $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
         } else {
             $regularPrice = $item->getNetPrice();
@@ -399,5 +399,13 @@ class ProductPrice extends BaseController
         }
 
         return $regularPrice;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function idWcPricesIncludeTax(): bool
+    {
+        return \wc_prices_include_tax();
     }
 }
