@@ -239,7 +239,7 @@ class ProductPrice extends BaseController
 
             if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
                 foreach ($productPrice->getItems() as $item) {
-                    $this->updateDefaultProductPrice($item, $productId, $vat, $pd);
+                    $this->updateDefaultProductPrice($item, $productId, $vat);
                 }
             } elseif (!is_null($customerGroupMeta) && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
                 $customerGroup = get_post($customerGroupId);
@@ -362,21 +362,20 @@ class ProductPrice extends BaseController
      * @param ProductPriceItemModel $item
      * @param int $productId
      * @param float $vat
-     * @param int $pd
      */
-    protected function updateDefaultProductPrice(ProductPriceItemModel $item, int $productId, float $vat, int $pd)
+    protected function updateDefaultProductPrice(ProductPriceItemModel $item, int $productId, float $vat)
     {
-        $regularPrice = $this->getRegularPrice($item, $vat, $pd);
+        $regularPrice = $this->getRegularPrice($item, $vat);
 
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
-                \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice, $pd),
+                \update_post_meta($productId, '_price', \wc_format_decimal($regularPrice),
                     \get_post_meta($productId, '_price', true));
             }
 
-            \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice, $pd),
+            \update_post_meta($productId, '_regular_price', \wc_format_decimal($regularPrice),
                 \get_post_meta($productId, '_regular_price', true));
         }
     }
@@ -384,15 +383,18 @@ class ProductPrice extends BaseController
     /**
      * @param ProductPriceItemModel $item
      * @param float $vat
-     * @param int $pd
+     * @param int|null $pd
      * @return float
      */
-    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd): float
+    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd = null): float
     {
         if (\wc_prices_include_tax()) {
-            $regularPrice = round($item->getNetPrice() * (1 + $vat / 100), $pd);
+            $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
         } else {
             $regularPrice = $item->getNetPrice();
+        }
+
+        if (!is_null($pd)) {
             $regularPrice = round($regularPrice, $pd);
         }
 
