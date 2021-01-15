@@ -41,7 +41,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "JtlWooCommerceConnector\\Tests\\": "tests/"
+      "JtlWooCommerceConnector\\Tests\\": "tests/src"
     }
   }
 }
