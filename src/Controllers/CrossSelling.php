@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
@@ -38,12 +39,8 @@ class CrossSelling extends BaseController
         $result = $this->database->query(SqlHelper::crossSellingPull($limit));
 
         foreach ($result as $row) {
-            if (!isset($row['meta_value']) || !isset($row['meta_key'])) {
-                continue;
-            }
-
-            $relatedProducts = unserialize($row['meta_value']);
             $type = $row['meta_key'];
+            $relatedProducts = unserialize($row['meta_value']);
 
             $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type);
 
@@ -57,11 +54,19 @@ class CrossSelling extends BaseController
                     ->setId(new Identity($row['post_id']))
                     ->setProductId(new Identity($row['post_id']));
 
+                $crosssellingProducts = [];
                 foreach ($relatedProducts as $product) {
-                    $crossSelling[$row['post_id']]->addItem((new CrossSellingItem())
-                        ->setCrossSellingGroupId($crossSellingGroup->getId())
-                        ->addProductId(new Identity($product)));
+                    $crosssellingProducts[] = new Identity($product);
                 }
+
+                $crossSelling[$row['post_id']]->addItem(
+                    (new CrossSellingItem())
+                        ->setCrossSellingGroupId($crossSellingGroup->getId())
+                        ->setProductIds($crosssellingProducts)
+                );
+
+            } else {
+                WpErrorLogger::getInstance()->logError(sprintf('CrossSelling values for product id %s are empty', $row['post_id']));
             }
 
             reset($crossSelling);
@@ -140,23 +145,7 @@ class CrossSelling extends BaseController
      */
     protected function getStats()
     {
-        $count = 0;
-
-        $result = $this->database->query(SqlHelper::crossSellingPull());
-
-        foreach ($result as $row) {
-            if (!isset($row['meta_value'])) {
-                continue;
-            }
-
-            $relatedProducts = unserialize($row['meta_value']);
-
-            if (!empty($relatedProducts)) {
-                ++$count;
-            }
-        }
-
-        return $count;
+        return (int)$this->database->queryOne(SqlHelper::crossSellingPull());
     }
 
     /**
