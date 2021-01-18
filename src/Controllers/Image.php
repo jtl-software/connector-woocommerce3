@@ -158,7 +158,7 @@ class Image extends BaseController
     {
         $attachmentIds = [];
 
-        $pictureId = (int)$product->get_image_id();
+        $pictureId = (int)$product->get_image_id('edit');
 
         if (!empty($pictureId)) {
             $attachmentIds[] = $pictureId;
@@ -168,7 +168,7 @@ class Image extends BaseController
             $imageIds = $product->get_gallery_image_ids();
 
             if (!empty($imageIds)) {
-                $attachmentIds = array_merge($attachmentIds, $product->get_gallery_image_ids());
+                $attachmentIds = array_merge($attachmentIds, $imageIds);
             }
         }
 
@@ -311,6 +311,9 @@ class Image extends BaseController
         foreach ($productImagesMappings as $productImagesMapping) {
             $productId = (int)$productImagesMapping['ID'];
             $galleryImageIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
+            $galleryImageIds = array_filter($galleryImageIds, function ($galleryId) {
+                return $galleryId !== 0;
+            });
             $galleryImageIds = $this->filterAlreadyLinkedProducts($galleryImageIds, $productId);
 
             $count += count($galleryImageIds);
