@@ -153,6 +153,16 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.17.0 =
+* Bugfix - CO-1254 - fixed empty values in Cross-Selling pull
+* Bugfix - CO-1274 - fixed parent images are attached to children
+* Bugfix - CO-1272 - fixed saving category slug when url path is empty
+* Bugfix - CO-1241 - fixed saving images with same name
+* Bugfix - CO-1304 - partially shiped orders have now status pending
+* Bugfix - CO-1261 - German Market: pay by invoice(kauf auf rechnung) orders are now unpaid
+* Enhancement - CO-1243 - allow saving html tags in attribute values
+* Info - WooCommerce compatibility updated to 4.8, Wordpress compatibility updated to 5.6
+
 = 1.16.1 =
 * Bugfix - fresh installation process missing token
 
