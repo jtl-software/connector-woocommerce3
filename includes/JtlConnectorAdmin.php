@@ -1740,6 +1740,7 @@ final class JtlConnectorAdmin
                 if (empty(Config::get(Config::OPTIONS_TOKEN))) {
                     Config::set(Config::OPTIONS_TOKEN, self::create_password());
                 }
+            case '1.17.0':
             default:
                 self::activate_linking();
         }
