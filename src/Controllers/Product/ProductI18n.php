@@ -47,6 +47,19 @@ class ProductI18n extends BaseController
                      ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
                      ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
             }
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+            $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
+            if ( ! is_null($tmpMeta) && count($tmpMeta) > 0) {
+                /*   'title'
+                   'metaDesc'
+                   'keywords'
+                   'permlink'
+                */
+                $i18n->setMetaDescription(is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
+                     ->setMetaKeywords(is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
+                     ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
+                     ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
+            }
         }
         
         return $i18n;

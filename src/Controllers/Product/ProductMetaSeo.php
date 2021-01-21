@@ -49,6 +49,33 @@ class ProductMetaSeo extends BaseController
             } catch (Exception $e) {
             
             }
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+            $productId = $product->getId()->getEndpoint();
+            try {
+                $wcProduct = \wc_get_product($newPostId);
+                if (!$wcProduct instanceof \WC_Product) {
+                    throw new Exception('Can´t find Product');
+                }
+                
+                /* Debug
+                            $var1 = $wcProduct->get_slug();
+                            $var2 = $tmpMeta->getUrlPath();
+                */
+                if ($wcProduct->get_slug() !== $tmpMeta->getUrlPath()) {
+                    $tmpWcProduct = \wc_get_product((int)$product->getId()->getEndpoint());
+                    if (!$tmpWcProduct instanceof \WC_Product) {
+                        throw new Exception('Can´t find Product');
+                    }
+                    $tmpWcProduct->set_name($tmpMeta->getUrlPath());
+                }
+                
+                $updated_title = update_post_meta($productId, 'rank_math_title', $tmpMeta->getTitleTag());
+                $updated_desc = update_post_meta($productId, 'rank_math_description', $tmpMeta->getMetaDescription());
+                $updated_kw = update_post_meta($productId, 'rank_math_focus_keyword', $tmpMeta->getMetaKeywords());
+                
+            } catch (Exception $e) {
+            
+            }
         }
     }
     
@@ -81,7 +108,29 @@ class ProductMetaSeo extends BaseController
                 }
                 
             }
+        } elseif(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+
+            $values = [
+                'titleTag' => get_post_meta($productId, 'rank_math_title'),
+                'metaDesc' => get_post_meta($productId, 'rank_math_description'),
+                'keywords' => get_post_meta($productId, 'rank_math_focus_keyword'),
+                'permlink' => $product->get_slug(),
+                //$product->get_permalink()
+            ];
+            
+            foreach ($values as $key => $value) {
+                if (strcmp($key, 'permalink') === 0) {
+                    continue;
+                }
+                if (is_array($value) && count($value) > 0) {
+                    $values[$key] = $value[0];
+                }
+                
+            }
+
         }
+
+
         
         return $values;
     }

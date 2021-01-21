@@ -55,6 +55,8 @@ class Manufacturer extends BaseController
                         }
                     }
                 }
+
+                // TODO: Rank Math SEO support
                 
                 $manufacturer->addI18n(
                     $i18n
@@ -183,6 +185,9 @@ class Manufacturer extends BaseController
                         
                         \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
                     }
+
+                    // TODO: Rank Math SEO support
+
                 }
             }
         }

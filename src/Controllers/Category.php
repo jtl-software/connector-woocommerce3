@@ -63,6 +63,18 @@ class Category extends BaseController
                         }
                     }
                 }
+            } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+                $taxonomySeo = get_option('wpseo_taxonomy_meta');
+                
+                if (isset($taxonomySeo['product_cat'])) {
+                    foreach ($taxonomySeo['product_cat'] as $catId => $seoData) {
+                        if ($catId === (int)$categoryDataSet['category_id']) {
+                            $i18n->setMetaDescription(isset($seoData['rank_math_description']) ? $seoData['rank_math_description'] : '')
+                                ->setMetaKeywords(isset($seoData['rank_math_focus_keyword']) ? $seoData['rank_math_focus_keyword'] : $categoryDataSet['name'])
+                                ->setTitleTag(isset($seoData['rank_math_title']) ? $seoData['rank_math_title'] : $categoryDataSet['name']);
+                        }
+                    }
+                }
             }
             
             $categories[] = $category->addI18n($i18n);
@@ -167,7 +179,38 @@ class Category extends BaseController
             }
         
             \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
+    
+        if ($taxonomySeo === false) {
+            $taxonomySeo = ['product_cat' => []];
         }
+    
+        if (!isset($taxonomySeo['product_cat'])) {
+            $taxonomySeo['product_cat'] = [];
+        }
+        $exists = false;
+    
+        foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
+            if ($catKey === (int)$result['term_id']) {
+                $exists = true;
+                $taxonomySeo['product_cat'][$catKey]['rank_math_description'] = $meta->getMetaDescription();
+                $taxonomySeo['product_cat'][$catKey]['rank_math_focus_keyword'] = $meta->getMetaKeywords();
+                $taxonomySeo['product_cat'][$catKey]['rank_math_title'] = strcmp($meta->getTitleTag(),
+                    '') === 0 ? $meta->getName() : $meta->getTitleTag();
+            }
+        }
+        if ($exists === false) {
+            $taxonomySeo['product_cat'][(int)$result['term_id']] = [
+                'rank_math_description'    => $meta->getMetaDescription(),
+                'rank_math_focus_keyword' => $meta->getMetaKeywords(),
+                'rank_math_title'   => strcmp($meta->getTitleTag(),
+                    '') === 0 ? $meta->getName() : $meta->getTitleTag(),
+            ];
+        }
+    
+        \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+    }
         
         $category->getId()->setEndpoint($result['term_id']);
         self::$idCache[$category->getId()->getHost()] = $result['term_id'];
