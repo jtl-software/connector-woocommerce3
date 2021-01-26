@@ -597,9 +597,14 @@ class ProductAttr extends BaseController
     
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes)
     {
+        $value = $i18n->getValue();
+        if ((bool)Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES, false) === false) {
+            $value = \wc_clean($i18n->getValue());
+        }
+
         $this->addNewAttributeOrEditExisting($i18n, [
             'name'             => \wc_clean($i18n->getName()),
-            'value'            => \wc_clean($i18n->getValue()),
+            'value'            => $value,
             'isCustomProperty' => $attribute->getIsCustomProperty(),
         ], $attributes);
     }

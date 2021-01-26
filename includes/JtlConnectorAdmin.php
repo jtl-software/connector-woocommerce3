@@ -843,6 +843,17 @@ final class JtlConnectorAdmin
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
+        //Allow html in attributes
+        $fields[] = [
+            'title' => __('Allow HTML in product attributes', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to allow saving HTML in product attributes', JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES,
+            'value' => Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //Add variation select field
         $fields[] = [
             'title' => __('Variation name format', JTLWCC_TEXT_DOMAIN),
@@ -1729,6 +1740,7 @@ final class JtlConnectorAdmin
                 if (empty(Config::get(Config::OPTIONS_TOKEN))) {
                     Config::set(Config::OPTIONS_TOKEN, self::create_password());
                 }
+            case '1.17.0':
             default:
                 self::activate_linking();
         }

@@ -57,7 +57,11 @@ class ProductStockLevel extends BaseController
             return;
         }
 
-        $stockLevel = $product->getStockLevel()->getStockLevel();
+        $stockLevel = 0;
+        if(!is_null($product->getStockLevel())){
+            $stockLevel = $product->getStockLevel()->getStockLevel();
+        }
+
         $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock());
 
         if ('yes' == get_option('woocommerce_manage_stock')) {

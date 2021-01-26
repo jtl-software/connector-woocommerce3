@@ -26,6 +26,7 @@ class Config
         OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format',
         OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group',
         OPTIONS_USE_GTIN_FOR_EAN = 'jtlconnector_use_gtin_for_ean',
+        OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES = 'jtlconnector_allow_html_in_product_attributes',
         OPTIONS_COMPLETED_ORDERS = 'jtlconnector_completed_orders',
         OPTIONS_DISABLED_ZERO_DELIVERY_TIME = 'jtlconnector_disabled_zero_delivery_time',
         OPTIONS_UPDATE_FAILED = 'jtlconnector_update_failed',
@@ -41,6 +42,7 @@ class Config
         Config::OPTIONS_SEND_CUSTOM_PROPERTIES => true,
         Config::OPTIONS_VARIATION_NAME_FORMAT => '',
         Config::OPTIONS_USE_GTIN_FOR_EAN => true,
+        Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => false,
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
@@ -64,6 +66,7 @@ class Config
         Config::OPTIONS_SEND_CUSTOM_PROPERTIES => 'bool',
         Config::OPTIONS_VARIATION_NAME_FORMAT => 'string',
         Config::OPTIONS_USE_GTIN_FOR_EAN => 'bool',
+        Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => 'bool',
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'string',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => 'bool',

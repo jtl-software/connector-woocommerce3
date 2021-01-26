@@ -158,7 +158,7 @@ class Image extends BaseController
     {
         $attachmentIds = [];
 
-        $pictureId = (int)$product->get_image_id();
+        $pictureId = (int)$product->get_image_id('edit');
 
         if (!empty($pictureId)) {
             $attachmentIds[] = $pictureId;
@@ -168,7 +168,7 @@ class Image extends BaseController
             $imageIds = $product->get_gallery_image_ids();
 
             if (!empty($imageIds)) {
-                $attachmentIds = array_merge($attachmentIds, $product->get_gallery_image_ids());
+                $attachmentIds = array_merge($attachmentIds, $imageIds);
             }
         }
 
@@ -311,6 +311,9 @@ class Image extends BaseController
         foreach ($productImagesMappings as $productImagesMapping) {
             $productId = (int)$productImagesMapping['ID'];
             $galleryImageIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
+            $galleryImageIds = array_filter($galleryImageIds, function ($galleryId) {
+                return $galleryId !== 0;
+            });
             $galleryImageIds = $this->filterAlreadyLinkedProducts($galleryImageIds, $productId);
 
             $count += count($galleryImageIds);
@@ -348,6 +351,7 @@ class Image extends BaseController
 
     private function saveImage(ImageModel $image)
     {
+        $endpointId = $image->getId()->getEndpoint();
         $post = null;
 
         $nameInfo = pathinfo($image->getName());
@@ -368,6 +372,11 @@ class Image extends BaseController
         $fileName = $name . '.' . $extension;
 
         $uploadDir = \wp_upload_dir();
+
+        if (empty($endpointId)) {
+            $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        }
+
         $destination = $uploadDir['path'] . DIRECTORY_SEPARATOR . $fileName;
 
         if (copy($image->getFilename(), $destination)) {
@@ -380,8 +389,6 @@ class Image extends BaseController
                 'post_content' => '',
                 'post_status' => 'inherit',
             ];
-
-            $endpointId = $image->getId()->getEndpoint();
 
             if (!empty($endpointId)) {
                 $attachment['ID'] = $endpointId;
@@ -402,6 +409,29 @@ class Image extends BaseController
         }
 
         return $post;
+    }
+
+    /**
+     * @param $name
+     * @param $extension
+     * @param $uploadDir
+     * @return string
+     */
+    protected function getNextAvailableImageFilename($name, $extension, $uploadDir)
+    {
+        $i = 1;
+        $originalName = $name;
+        do {
+            $fileName = sprintf('%s.%s', $name, $extension);
+
+            $fileFullPath = sprintf('%s%s%s', $uploadDir, DIRECTORY_SEPARATOR, $fileName);
+
+            if ($fileExists = file_exists($fileFullPath)) {
+                $name = sprintf('%s-%s', $originalName, $i++);
+            }
+        } while ($fileExists);
+
+        return $fileName;
     }
 
     /**

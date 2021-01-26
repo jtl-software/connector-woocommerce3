@@ -2,11 +2,21 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.17.0
+* Bugfix - CO-1254 - fixed empty values in Cross-Selling pull
+* Bugfix - CO-1274 - fixed parent images are attached to children
+* Bugfix - CO-1272 - fixed saving category slug when url path is empty
+* Bugfix - CO-1241 - fixed saving images with same name
+* Bugfix - CO-1304 - partially shiped orders have now status pending
+* Bugfix - CO-1261 - German Market: pay by invoice(kauf auf rechnung) orders are now unpaid
+* Enhancement - CO-1243 - allow saving html tags in attribute values
+* Info - WooCommerce compatibility updated to 4.8, Wordpress compatibility updated to 5.6
+
 ## 1.16.1
 * Bugfix - fresh installation process missing token
 
 ## 1.16.0
-* Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
+* Enhancement - Unified connector config to database config, removed all items except developer logging from config.json file
 * Bugfix - CO-1240 - Fixed vat calculation comparing values
 * Bugfix - CO-1239 - Fixed price transfer precision, price gross item is now rounded at pull 
 * Bugfix - CO-1221 - Fixed 'not all images were sent' error

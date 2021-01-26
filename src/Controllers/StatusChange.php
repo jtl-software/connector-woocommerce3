@@ -14,6 +14,10 @@ class StatusChange extends BaseController
 {
     use PushTrait;
 
+    /**
+     * @param StatusChangeModel $statusChange
+     * @return StatusChangeModel
+     */
     public function pushData(StatusChangeModel $statusChange)
     {
         $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
@@ -26,13 +30,20 @@ class StatusChange extends BaseController
                 }, 10, 2);
             }
 
-            $order->set_status($this->mapStatus($statusChange));
-            $order->save();
+            $newStatus = $this->mapStatus($statusChange);
+            if ($newStatus !== null) {
+                $order->set_status($newStatus);
+                $order->save();
+            }
         }
 
         return $statusChange;
     }
 
+    /**
+     * @param StatusChangeModel $statusChange
+     * @return string|null
+     */
     private function mapStatus(StatusChangeModel $statusChange)
     {
         if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
@@ -49,6 +60,8 @@ class StatusChange extends BaseController
             }
 
             return 'wc-on-hold';
+        } elseif ($statusChange->getOrderStatus() === CustomerOrder::STATUS_PARTIALLY_SHIPPED) {
+            return 'wc-processing';
         }
 
         return null;
