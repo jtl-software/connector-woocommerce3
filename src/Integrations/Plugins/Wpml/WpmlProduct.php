@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductI18n;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeo;
@@ -70,7 +71,7 @@ class WpmlProduct extends AbstractComponent
                             continue;
                         }
                         foreach ($variationValue->getI18ns() as $i18n) {
-                            if ($wpmlPlugin->isDefaultLanguage($i18n->getLanguageISO())) {
+                            if ($wpmlPlugin->isDefaultLanguage($i18n->getLanguageISO()) || $variationI18n->getLanguageISO() !== $i18n->getLanguageISO()) {
                                 continue;
                             }
 
@@ -132,7 +133,8 @@ class WpmlProduct extends AbstractComponent
      * @param $jtlProduct
      * @param $productI18n
      * @param $masterProductId
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @param $trid
+     * @throws LanguageException
      */
     protected function saveTranslation(
         $translationInfo,
@@ -145,55 +147,54 @@ class WpmlProduct extends AbstractComponent
     ) {
         $wpmlPlugin = $this->getCurrentPlugin();
         $productController = (new \JtlWooCommerceConnector\Controllers\Product\Product());
-        $productType = $productController->getType($jtlProduct);
         $type = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
 
-        $translationElementId = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;
+        $wcProductId = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;
         $masterProductId = isset($masterProductTranslations[$languageCode]) ? $masterProductTranslations[$languageCode]->element_id : 0;
 
         if($type === self::POST_TYPE_VARIATION && $masterProductId === 0){
             return;
         }
 
-        $translationElementId = $wpmlPlugin
+        $wcProductId = $wpmlPlugin
             ->getPluginsManager()
             ->get(WooCommerce::class)
             ->getComponent(WooCommerceProduct::class)
             ->saveProduct(
-                $translationElementId,
+                $wcProductId,
                 $masterProductId,
                 $jtlProduct,
                 $productI18n
             );
 
-        if (!is_null($translationElementId)) {
-            $wcProduct = wc_get_product($translationElementId);
+        if (!is_null($wcProductId)) {
+            $wcProduct = wc_get_product($wcProductId);
             $wcProduct->set_parent_id($masterProductId);
             $wcProduct->save();
 
-            if ($type === self::POST_TYPE_VARIATION) {
+            switch ($type) {
+                case self::POST_TYPE_VARIATION:
+                    remove_filter('content_save_pre', 'wp_filter_post_kses');
+                    remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+                    $productController->updateVariationCombinationChild($wcProduct, $jtlProduct, $productI18n);
+                    add_filter('content_save_pre', 'wp_filter_post_kses');
+                    add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-                remove_filter('content_save_pre', 'wp_filter_post_kses');
-                remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-                $productController->updateVariationCombinationChild($wcProduct, $jtlProduct, $productI18n);
-                add_filter('content_save_pre', 'wp_filter_post_kses');
-                add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-
-                $productController->updateProductType($jtlProduct, $wcProduct);
-                $wpmlPlugin
-                    ->getComponent(WpmlProductVariation::class)
-                    ->setChildTranslation($translationElementId, $jtlProduct->getVariations(), $languageCode);
+                    $wpmlPlugin
+                        ->getComponent(WpmlProductVariation::class)
+                        ->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
+                    break;
+                case self::POST_TYPE:
+                    (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $productI18n);
+                    break;
             }
 
-            if ($type === self::POST_TYPE) {
-                (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $productI18n);
-                $productController->updateProductType($jtlProduct, $wcProduct);
-            }
+            $productController->updateProductType($jtlProduct, $wcProduct);
 
-            (new ProductMetaSeo)->pushData($translationElementId, $productI18n);
+            (new ProductMetaSeo)->pushData($wcProductId, $productI18n);
 
             $wpmlPlugin->getSitepress()->set_element_language_details(
-                $translationElementId,
+                $wcProductId,
                 $type,
                 $trid,
                 $languageCode
@@ -277,7 +278,8 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @return \WC_Product[]
+     * @return array
+     * @throws \Exception
      */
     public function getWooCommerceProductTranslations(\WC_Product $wcProduct): array
     {
@@ -337,19 +339,41 @@ class WpmlProduct extends AbstractComponent
         return $translatedAttribute;
     }
 
-
     /**
      * @param int $productId
+     * @param string $elementType
      * @return array
+     * @throws \Exception
      */
-    public function getProductTranslationInfo(int $productId): array
+    public function getProductTranslationInfo(int $productId, $elementType = self::POST_TYPE): array
     {
         return $this
             ->getCurrentPlugin()
             ->getComponent(WpmlTermTranslation::class)
             ->getTranslations(
-                $this->getCurrentPlugin()->getElementTrid($productId, self::POST_TYPE),
-                self::POST_TYPE
+                $this->getCurrentPlugin()->getElementTrid($productId, $elementType),
+                $elementType
             );
+    }
+
+    /**
+     * @param \WC_Product $wcProduct
+     * @return bool
+     * @throws \Exception
+     */
+    public function deleteTranslations(\WC_Product $wcProduct): bool
+    {
+        $elementType = $wcProduct->get_type() === 'variation' ? WpmlProduct::POST_TYPE_VARIATION : WpmlProduct::POST_TYPE;
+        $productTranslationInfo = $this->getProductTranslationInfo($wcProduct->get_id(), $elementType);
+        /** @var Wpml $wpml */
+        $wpml = $this->getCurrentPlugin();
+
+        foreach ($productTranslationInfo as $wpmlLanguageCode => $translationInfo) {
+            \wp_delete_post($translationInfo->element_id, true);
+            \wc_delete_product_transients($translationInfo->element_id);
+
+            $wpml->getSitepress()->delete_element_translation($translationInfo->trid, $elementType, $wpmlLanguageCode);
+        }
+        return true;
     }
 }

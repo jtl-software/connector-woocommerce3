@@ -8,6 +8,7 @@ use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WpmlProductVariation
@@ -70,38 +71,29 @@ class WpmlProductVariation extends AbstractComponent
     }
 
     /**
-     * @param $productId
+     * @param \WC_Product $wcProduct
      * @param $pushedVariations
      * @param $languageCode
      * @return array
      */
-    public function setChildTranslation($productId, $pushedVariations, $languageCode)
+    public function setChildTranslation(\WC_Product $wcProduct, $pushedVariations, $languageCode)
     {
         $updatedAttributeKeys = [];
-        $wcProduct = wc_get_product($productId);
+        $languageIso = $this->getCurrentPlugin()->convertLanguageToWawi($languageCode);
         if ($wcProduct instanceof \WC_Product) {
             foreach ($pushedVariations as $variation) {
                 foreach ($variation->getValues() as $variationValue) {
                     foreach ($variation->getI18ns() as $variationI18n) {
-                        if ($this->getCurrentPlugin()->convertLanguageToWawi($languageCode) !== $variationI18n->getLanguageISO()) {
+                        if ($languageIso !== $variationI18n->getLanguageISO()) {
                             continue;
                         }
                         foreach ($variationValue->getI18ns() as $i18n) {
-                            if ($this->getCurrentPlugin()->convertLanguageToWawi($languageCode) !== $i18n->getLanguageISO()) {
+                            if ($languageIso !== $i18n->getLanguageISO()) {
                                 continue;
                             }
-                            $metaKey =
-                                'attribute_pa_' . wc_sanitize_taxonomy_name(
-                                    substr(
-                                        trim(
-                                            $variationI18n->getName()
-                                        ),
-                                        0,
-                                        27
-                                    )
-                                );
+                            $metaKey = Util::createVariantTaxonomyName($variationI18n->getName());
                             $updatedAttributeKeys[] = $metaKey;
-                            \update_post_meta($productId, $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
+                            \update_post_meta($wcProduct->get_id(), $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
                         }
                     }
                 }

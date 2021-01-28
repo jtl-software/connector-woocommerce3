@@ -546,16 +546,7 @@ class ProductVariation extends BaseController
                             continue;
                         }
 
-                        $metaKey =
-                            'attribute_pa_' . wc_sanitize_taxonomy_name(
-                                substr(
-                                    trim(
-                                        $variationI18n->getName()
-                                    ),
-                                    0,
-                                    27
-                                )
-                            );
+                        $metaKey = Util::createVariantTaxonomyName($variationI18n->getName());
                         $updatedAttributeKeys[] = $metaKey;
 
                         \update_post_meta($productId, $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));

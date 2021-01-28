@@ -300,15 +300,24 @@ class Product extends BaseController
     /**
      * @param ProductModel $product
      * @return ProductModel
+     * @throws \Exception
      */
     protected function deleteData(ProductModel $product)
     {
         $productId = (int)$product->getId()->getEndpoint();
 
-        \wp_delete_post($productId, true);
-        \wc_delete_product_transients($productId);
+        $wcProduct = wc_get_product($productId);
 
-        unset(self::$idCache[$product->getId()->getHost()]);
+        if ($wcProduct instanceof \WC_Product) {
+            \wp_delete_post($productId, true);
+            \wc_delete_product_transients($productId);
+
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml->getComponent(WpmlProduct::class)->deleteTranslations($wcProduct);
+            }
+
+            unset(self::$idCache[$product->getId()->getHost()]);
+        }
 
         return $product;
     }

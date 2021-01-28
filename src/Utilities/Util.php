@@ -495,12 +495,29 @@ final class Util extends Singleton
     /**
      * @return int
      */
-    public static function getPriceDecimals()
+    public static function getPriceDecimals(): int
     {
         $pd = \wc_get_price_decimals();
         if ($pd < 4) {
             $pd = 4;
         }
         return $pd;
+    }
+
+    /**
+     * @param $name
+     * @return string
+     */
+    public static function createVariantTaxonomyName($name): string
+    {
+        return 'attribute_pa_'.wc_sanitize_taxonomy_name(
+            substr(
+                trim(
+                    $name
+                ),
+                0,
+                27
+            )
+        );
     }
 }
