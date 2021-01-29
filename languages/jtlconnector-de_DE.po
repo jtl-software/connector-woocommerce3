@@ -152,6 +152,18 @@ msgstr "Bestellung neu berechnen, wenn mindestens ein Coupon hinzugefügt wurde"
 #: includes/JtlConnectorAdmin.php:1051
 msgid "Sometimes WooCommerce calculates an order wrong when a coupon is applied. Recalculation of the order can fix this in most cases."
 msgstr "Manchmal wird eine Bestellung falsch berechnet, wenn ein Coupon hinzugefügt wurde. Durch Neuberechnnung der Bestellung, kann das Problem in den meisten Fällen behoben werden."
+
+#: includes/JtlConnectorAdmin.php:848
+msgid "Allow HTML in product attributes"
+msgstr "HTML in Produktattributen zulassen"
+
+#: includes/JtlConnectorAdmin.php:850
+msgid "Enable if you want to allow saving HTML in product attributes"
+msgstr "Aktivieren Sie diese, um die HTML in Produktattributen zulassen möchten. (Standard : Deaktiviert)"
+
+#: includes/JtlConnectorAdmin.php:932
+msgid "If you set this option to active, custom fields from JTL-Wawi will be transferred. After changing this option, full-sync is required (Default : Enabled)."
+msgstr "Wenn Sie diese Option aktiv setzen, werden Eigene Felder aus JTL-Wawi als Attribute angezeigt. Führen Sie nach einer Änderung dieser Option einen Komplettabgleich in JTL-Wawi durch (Default : Aktiviert)."
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "
 #~ "help."
