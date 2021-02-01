@@ -4,6 +4,7 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductVariation;
+use jtl\Connector\Model\ProductVariationI18n;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
@@ -84,13 +85,15 @@ class WpmlProductVariation extends AbstractComponent
             foreach ($pushedVariations as $variation) {
                 foreach ($variation->getValues() as $variationValue) {
                     foreach ($variation->getI18ns() as $variationI18n) {
-                        if ($languageIso !== $variationI18n->getLanguageISO()) {
+                        if ($this->getCurrentPlugin()->isDefaultLanguage($variationI18n->getLanguageISO()) === false) {
                             continue;
                         }
+
                         foreach ($variationValue->getI18ns() as $i18n) {
                             if ($languageIso !== $i18n->getLanguageISO()) {
                                 continue;
                             }
+
                             $metaKey = Util::createVariantTaxonomyName($variationI18n->getName());
                             $updatedAttributeKeys[] = $metaKey;
                             \update_post_meta($wcProduct->get_id(), $metaKey, wc_sanitize_taxonomy_name($i18n->getName()));
