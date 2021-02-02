@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 2.3.0-dev
+* Info - Merged state with current release
+* Bugfix - CO-1335 - Fixed various bugs related to variable products 
+* Bugfix - Fixed problems with quicksync and product stock sync  
+
 ## 2.2.0-dev
 * Info - Merged state with current release
 * Bugfix - Fixed setProductType bug
