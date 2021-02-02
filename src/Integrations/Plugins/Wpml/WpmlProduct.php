@@ -6,6 +6,7 @@ use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductI18n;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeo;
+use JtlWooCommerceConnector\Controllers\Product\ProductStockLevel;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandler;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
@@ -172,6 +173,8 @@ class WpmlProduct extends AbstractComponent
             $wcProduct->set_parent_id($masterProductId);
             $wcProduct->save();
 
+            $productStockLevel = new ProductStockLevel();
+
             switch ($type) {
                 case self::POST_TYPE_VARIATION:
                     remove_filter('content_save_pre', 'wp_filter_post_kses');
@@ -183,9 +186,12 @@ class WpmlProduct extends AbstractComponent
                     $wpmlPlugin
                         ->getComponent(WpmlProductVariation::class)
                         ->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
+
+                    $productStockLevel->pushDataChild($wcProduct, $jtlProduct);
                     break;
                 case self::POST_TYPE:
                     (new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $productI18n);
+                    $productStockLevel->pushDataParent($wcProduct, $jtlProduct);
                     break;
             }
 

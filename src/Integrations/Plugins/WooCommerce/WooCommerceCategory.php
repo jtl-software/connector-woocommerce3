@@ -83,11 +83,8 @@ class WooCommerceCategory extends AbstractComponent
             'parent' => $parentCategoryId->getEndpoint(),
             'name' => $categoryI18n->getName(),
             'taxonomy' => \wc_sanitize_taxonomy_name($categoryI18n->getName()),
+            'slug' => !empty($categoryI18n->getUrlPath()) ? $categoryI18n->getUrlPath() : $categoryI18n->getName()
         ];
-        $urlPath = $categoryI18n->getUrlPath();
-        if (!empty($urlPath)) {
-            $categoryData['slug'] = $urlPath;
-        }
 
         remove_filter('pre_term_description', 'wp_filter_kses');
         if (empty($categoryId)) {

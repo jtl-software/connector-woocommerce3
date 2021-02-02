@@ -375,7 +375,7 @@ class Product extends BaseController
         //variations
         if ($productType === Product::TYPE_CHILD) {
             $this->updateVariationCombinationChild($wcProduct, $jtlProduct, $jtlProductDefaultI18n);
-            (new ProductStockLevel)->pushDataChild($jtlProduct);
+            (new ProductStockLevel)->pushDataChild($wcProduct, $jtlProduct);
         }
 
         $this->updateProductType($jtlProduct, $wcProduct);
@@ -581,7 +581,7 @@ class Product extends BaseController
 
         \update_post_meta($productId, '_visibility', 'visible');
 
-        (new ProductStockLevel)->pushDataParent($product);
+        (new ProductStockLevel)->pushDataParent($wcProduct, $product);
 
         if ($product->getIsMasterProduct()) {
             Util::getInstance()->addMasterProductToSync($productId);

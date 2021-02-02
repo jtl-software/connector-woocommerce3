@@ -6,14 +6,10 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as JtlProductPrice;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Controllers\Product\Product;
-use JtlWooCommerceConnector\Controllers\Product\ProductPrice as MainProductPrice;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice
@@ -32,19 +28,26 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
         if ($wcProduct !== false) {
             $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
-            parent::pushData(
-                $wcProduct,
-                $vat,
-                $this->getJtlProductType($wcProduct),
-                ...[$productPrice]
-            );
-
-            // Update the max and min prices for the parent product
-            if ($wcProduct->is_type('variation')) {
-                \WC_Product_Variable::sync($wcProduct->get_id());
+            $wcProducts = [$wcProduct];
+            if ($this->wpml->canBeUsed()) {
+                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
+                $wcProducts = array_merge($wcProducts, $wcProductTranslations);
             }
+            foreach ($wcProducts as $wcProduct) {
+                parent::pushData(
+                    $wcProduct,
+                    $vat,
+                    $this->getJtlProductType($wcProduct),
+                    ...[$productPrice]
+                );
 
-            \wc_delete_product_transients($wcProduct->get_id());
+                // Update the max and min prices for the parent product
+                if ($wcProduct->is_type('variation')) {
+                    \WC_Product_Variable::sync($wcProduct->get_id());
+                }
+
+                \wc_delete_product_transients($wcProduct->get_id());
+            }
         }
 
         return $productPrice;
