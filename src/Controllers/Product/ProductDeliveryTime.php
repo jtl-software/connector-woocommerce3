@@ -29,11 +29,11 @@ class ProductDeliveryTime extends BaseController
         $this->removeDeliveryTimeTerm($productId);
         $this->removeDeliveryTimeTerm($productId, $germanizedDeliveryTimeTaxonomyName);
 
-        if ($time === 0 && Config::get(\JtlConnectorAdmin::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
+        if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
             return;
         }
 
-        if (Config::get(\JtlConnectorAdmin::OPTIONS_USE_DELIVERYTIME_CALC)) {
+        if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC)) {
             //FUNCTION ATTRIBUTE BY JTL
             $offset = 0;
             $pushedAttributes = $product->getAttributes();
@@ -64,9 +64,9 @@ class ProductDeliveryTime extends BaseController
             $deliveryTimeString = trim(
                 sprintf(
                     '%s %s %s',
-                    Config::get(\JtlConnectorAdmin::OPTIONS_PRAEFIX_DELIVERYTIME),
+                    Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME),
                     $time,
-                    Config::get(\JtlConnectorAdmin::OPTIONS_SUFFIX_DELIVERYTIME)
+                    Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME)
                 )
             );
 

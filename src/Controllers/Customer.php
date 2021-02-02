@@ -14,6 +14,7 @@ use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -235,7 +236,7 @@ class Customer extends BaseController
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroupIdentity = new Identity();
 
-            $defaultCustomerGroupId = (int)get_option(\JtlConnectorAdmin::OPTIONS_DEFAULT_CUSTOMER_GROUP);
+            $defaultCustomerGroupId = (int)Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
             $groups = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
                 if ($defaultCustomerGroupId === $id) {

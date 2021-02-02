@@ -61,7 +61,7 @@ class GlobalData extends BaseController
             }
             $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());
         }
-
+        
         return [$globalData];
     }
 
@@ -74,7 +74,7 @@ class GlobalData extends BaseController
     {
         (new Currency)->pushData($data->getCurrencies());
         (new ShippingClass)->pushData($data->getShippingClasses());
-
+        
         return $data;
     }
 }

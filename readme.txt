@@ -2,12 +2,11 @@
 Contributors: papryk, ntbyk, chakratos, drieschel, messtech
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.4
+Tested up to: 5.6
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 4.5
 Stable tag: 2.2.0-dev
-Stable tag: 1.15.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -163,6 +162,25 @@ This section describes how to install the plugin and get it working.
 
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
+
+= 1.17.0 =
+* Bugfix - CO-1254 - fixed empty values in Cross-Selling pull
+* Bugfix - CO-1274 - fixed parent images are attached to children
+* Bugfix - CO-1272 - fixed saving category slug when url path is empty
+* Bugfix - CO-1241 - fixed saving images with same name
+* Bugfix - CO-1304 - partially shiped orders have now status pending
+* Bugfix - CO-1261 - German Market: pay by invoice(kauf auf rechnung) orders are now unpaid
+* Enhancement - CO-1243 - allow saving html tags in attribute values
+* Info - WooCommerce compatibility updated to 4.8, Wordpress compatibility updated to 5.6
+
+= 1.16.1 =
+* Bugfix - fresh installation process missing token
+
+= 1.16.0 =
+* Entchancement - Unified connector config to database config, removed all items except developer logging from config.json file
+* Bugfix - CO-1240 - Fixed vat calculation comparing values
+* Bugfix - CO-1239 - Fixed price transfer precision, price gross item is now rounded at pull
+* Bugfix - CO-1221 - Fixed 'not all images were sent' error
 
 = 1.15.2 =
 * Bugfix - CO-1213 - Delete product image if not used

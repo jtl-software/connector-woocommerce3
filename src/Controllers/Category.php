@@ -25,7 +25,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 class Category extends BaseController
 {
     use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-
+    
     private static $idCache = [];
 
     /**
@@ -67,7 +67,7 @@ class Category extends BaseController
                 ->setId(new Identity($categoryDataSet['category_id']))
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
-
+            
             if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
@@ -112,7 +112,7 @@ class Category extends BaseController
 
             $categories[] = $category;
         }
-
+        
         return $categories;
     }
 
@@ -127,17 +127,18 @@ class Category extends BaseController
         if (!$category->getIsActive()) {
             return $category;
         }
-
+        
         \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
-
+        
         $parentCategoryId = $category->getParentCategoryId();
+        
         if ($parentCategoryId !== null && isset(self::$idCache[$parentCategoryId->getHost()])) {
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
 
         $defaultLanguageI18n = null;
         $categoryId = (int)$category->getId()->getEndpoint();
-
+        
         foreach ($category->getI18ns() as $i18n) {
             if ($this->wpml->canBeUsed()) {
                 if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
@@ -182,21 +183,21 @@ class Category extends BaseController
     protected function deleteData(CategoryModel $specific)
     {
         $categoryId = $specific->getId()->getEndpoint();
-
+        
         if (!empty($categoryId)) {
             update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
 
             $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
-
+            
             if ($result instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($result);
-
+                
                 return $specific;
             }
-
+            
             unset(self::$idCache[$specific->getId()->getHost()]);
         }
-
+        
         return $specific;
     }
 
