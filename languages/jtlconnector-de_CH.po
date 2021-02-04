@@ -155,11 +155,11 @@ msgstr "Manchmal wird eine Bestellung falsch berechnet, wenn ein Coupon hinzugef
 
 #: includes/JtlConnectorAdmin.php:848
 msgid "Allow HTML in product attributes"
-msgstr "HTML in Produktattributen zulassen"
+msgstr "HTML in Produktattributen erlauben"
 
 #: includes/JtlConnectorAdmin.php:850
 msgid "Enable if you want to allow saving HTML in product attributes"
-msgstr "Aktivieren Sie diese, um die HTML in Produktattributen zulassen möchten. (Standard : Deaktiviert)"
+msgstr "Aktivieren Sie diese Option, wenn Sie HTML in Produktattributen erlauben wollen. (Standard : Deaktiviert)"
 
 #: includes/JtlConnectorAdmin.php:932
 msgid "If you set this option to active, custom fields from JTL-Wawi will be transferred. After changing this option, full-sync is required (Default : Enabled)."
