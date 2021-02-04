@@ -70,121 +70,98 @@ class Manufacturer extends BaseController
     protected function pushData(ManufacturerModel $manufacturer)
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $meta = null;
-            $defaultAvailable = false;
-            
+            $meta = (new ManufacturerI18nModel())
+                ->setManufacturerId($manufacturer->getId());
+
             foreach ($manufacturer->getI18ns() as $i18n) {
-                $languageSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
-                
-                if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                    $defaultAvailable = true;
-                }
-                
-                if ($languageSet) {
+                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
                     $meta = $i18n;
                     break;
                 }
             }
-            
-            //Fallback 'ger' if incorrect language code was given
-            if ($meta === null && $defaultAvailable) {
-                foreach ($manufacturer->getI18ns() as $i18n) {
-                    if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                        $meta = $i18n;
-                    }
-                }
-            }
-            
-            if ($meta !== null) {
-                
-                $name = wc_sanitize_taxonomy_name(substr(trim($manufacturer->getName()), 0, 27));
-                
-                $term = get_term_by('slug', $name, 'pwb-brand');
-                
-                remove_filter('pre_term_description', 'wp_filter_kses');
-                
-                if ($term === false) {
-                    //Add term
-                    /** @var \WP_Term $newTerm */
-                    $newTerm = \wp_insert_term(
-                        $manufacturer->getName(),
-                        'pwb-brand',
-                        [
-                            'description' => $meta->getDescription(),
-                            'slug'        => $name,
-                        ]
-                    );
-                    
-                    if ($newTerm instanceof WP_Error) {
-                        //  var_dump($newTerm);
-                        // die();
-                        $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
-                        WpErrorLogger::getInstance()->logError($error);
-                        WpErrorLogger::getInstance()->logError($newTerm);
-                    }
-                    $term = $newTerm;
-                    
-                    if (!$term instanceof \WP_Term) {
-                        if (array_key_exists('term_id', $term)) {
-                            $term = get_term_by('id', $term['term_id'], 'pwb-brand');
-                        }
-                    }
-                    
-                } else {
-                    
-                    wp_update_term($term->term_id, 'pwb-brand', [
-                        'name'        => $manufacturer->getName(),
+
+            $name = wc_sanitize_taxonomy_name(substr(trim($manufacturer->getName()), 0, 27));
+            $term = get_term_by('slug', $name, 'pwb-brand');
+
+            remove_filter('pre_term_description', 'wp_filter_kses');
+
+            if ($term === false) {
+                //Add term
+                /** @var \WP_Term $newTerm */
+                $newTerm = \wp_insert_term(
+                    $manufacturer->getName(),
+                    'pwb-brand',
+                    [
                         'description' => $meta->getDescription(),
-                    ]);
+                        'slug' => $name,
+                    ]
+                );
+
+                if ($newTerm instanceof WP_Error) {
+                    //  var_dump($newTerm);
+                    // die();
+                    $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
+                    WpErrorLogger::getInstance()->logError($error);
+                    WpErrorLogger::getInstance()->logError($newTerm);
                 }
-                
-                add_filter('pre_term_description', 'wp_filter_kses');
-                
-                if ($term instanceof \WP_Term) {
-                    $manufacturer->getId()->setEndpoint($term->term_id);
-                    foreach ($manufacturer->getI18ns() as $i18n) {
-                        /** @var ManufacturerI18nModel $i18n */
-                        $i18n->getManufacturerId()->setEndpoint($term->term_id);
+                $term = $newTerm;
+
+                if (!$term instanceof \WP_Term) {
+                    $term = get_term_by('id', $term['term_id'], 'pwb-brand');
+                }
+
+            } else {
+                wp_update_term($term->term_id, 'pwb-brand', [
+                    'name' => $manufacturer->getName(),
+                    'description' => $meta->getDescription(),
+                ]);
+            }
+
+            add_filter('pre_term_description', 'wp_filter_kses');
+
+            if ($term instanceof \WP_Term) {
+                $manufacturer->getId()->setEndpoint($term->term_id);
+                foreach ($manufacturer->getI18ns() as $i18n) {
+                    /** @var ManufacturerI18nModel $i18n */
+                    $i18n->getManufacturerId()->setEndpoint($term->term_id);
+                }
+
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
+                ) {
+                    $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
+
+                    if ($taxonomySeo === false) {
+                        $taxonomySeo = ['pwb-brand' => []];
                     }
 
-                    if (
-                        (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-                            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM))
-                        && (isset($i18n))
-                    ) {
-                        $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
-                        
-                        if ($taxonomySeo === false) {
-                            $taxonomySeo = ['pwb-brand' => []];
-                        }
-                        
-                        if (!isset($taxonomySeo['pwb-brand'])) {
-                            $taxonomySeo['pwb-brand'] = [];
-                        }
-                        $exists = false;
-                        
-                        foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
-                            if ($brandKey === (int)$term->term_id) {
-                                $exists = true;
-                                $taxonomySeo['pwb-brand'][$brandKey]['wpseo_desc'] = $i18n->getMetaDescription();
-                                $taxonomySeo['pwb-brand'][$brandKey]['wpseo_focuskw'] = $i18n->getMetaKeywords();
-                                $taxonomySeo['pwb-brand'][$brandKey]['wpseo_title'] = strcmp($i18n->getTitleTag(),
-                                    '') === 0 ? $manufacturer->getName() : $i18n->getTitleTag();
-                            }
-                        }
-                        if ($exists === false) {
-                            $taxonomySeo['pwb-brand'][(int)$term->term_id] = [
-                                'wpseo_desc'    => $i18n->getMetaDescription(),
-                                'wpseo_focuskw' => $i18n->getMetaKeywords(),
-                                'wpseo_title'   => strcmp($i18n->getTitleTag(),
-                                    '') === 0 ? $manufacturer->getName() : $i18n->getTitleTag(),
-                            ];
-                        }
-                        
-                        \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+                    if (!isset($taxonomySeo['pwb-brand'])) {
+                        $taxonomySeo['pwb-brand'] = [];
                     }
+                    $exists = false;
+
+                    foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
+                        if ($brandKey === (int)$term->term_id) {
+                            $exists = true;
+                            $taxonomySeo['pwb-brand'][$brandKey]['wpseo_desc'] = $meta->getMetaDescription();
+                            $taxonomySeo['pwb-brand'][$brandKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
+                            $taxonomySeo['pwb-brand'][$brandKey]['wpseo_title'] = strcmp($meta->getTitleTag(),
+                                '') === 0 ? $manufacturer->getName() : $meta->getTitleTag();
+                        }
+                    }
+                    if ($exists === false) {
+                        $taxonomySeo['pwb-brand'][(int)$term->term_id] = [
+                            'wpseo_desc' => $meta->getMetaDescription(),
+                            'wpseo_focuskw' => $meta->getMetaKeywords(),
+                            'wpseo_title' => strcmp($meta->getTitleTag(),
+                                '') === 0 ? $manufacturer->getName() : $meta->getTitleTag(),
+                        ];
+                    }
+
+                    \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
                 }
             }
+
         }
         
         return $manufacturer;
