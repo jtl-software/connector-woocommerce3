@@ -15,123 +15,85 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 class ProductMetaSeo extends BaseController
 {
     /**
-     * @param ProductModel     $product
-     * @param                  $newPostId
+     * @param $newPostId
      * @param ProductI18nModel $tmpMeta
      */
-    public function pushData(ProductModel $product, $newPostId, ProductI18nModel $tmpMeta)
+    public function pushData($newPostId, ProductI18nModel $tmpMeta)
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-            $productId = $product->getId()->getEndpoint();
-            try {
-                $wcProduct = \wc_get_product($newPostId);
-                if (!$wcProduct instanceof \WC_Product) {
-                    throw new Exception('Can´t find Product');
-                }
-                
-                /* Debug
-                            $var1 = $wcProduct->get_slug();
-                            $var2 = $tmpMeta->getUrlPath();
-                */
-                if ($wcProduct->get_slug() !== $tmpMeta->getUrlPath()) {
-                    $tmpWcProduct = \wc_get_product((int)$product->getId()->getEndpoint());
-                    if (!$tmpWcProduct instanceof \WC_Product) {
-                        throw new Exception('Can´t find Product');
-                    }
-                    $tmpWcProduct->set_name($tmpMeta->getUrlPath());
-                }
-                
-                $updated_title = update_post_meta($productId, '_yoast_wpseo_title', $tmpMeta->getTitleTag());
-                $updated_desc = update_post_meta($productId, '_yoast_wpseo_metadesc', $tmpMeta->getMetaDescription());
-                $updated_kw = update_post_meta($productId, '_yoast_wpseo_focuskw', $tmpMeta->getMetaKeywords());
-                
-            } catch (Exception $e) {
-            
-            }
+            $this->setSeoValues($newPostId, $tmpMeta, '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw');
         } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
-            $productId = $product->getId()->getEndpoint();
-            try {
-                $wcProduct = \wc_get_product($newPostId);
-                if (!$wcProduct instanceof \WC_Product) {
-                    throw new Exception('Can´t find Product');
-                }
-                
-                /* Debug
-                            $var1 = $wcProduct->get_slug();
-                            $var2 = $tmpMeta->getUrlPath();
-                */
-                if ($wcProduct->get_slug() !== $tmpMeta->getUrlPath()) {
-                    $tmpWcProduct = \wc_get_product((int)$product->getId()->getEndpoint());
-                    if (!$tmpWcProduct instanceof \WC_Product) {
-                        throw new Exception('Can´t find Product');
-                    }
-                    $tmpWcProduct->set_name($tmpMeta->getUrlPath());
-                }
-                
-                $updated_title = update_post_meta($productId, 'rank_math_title', $tmpMeta->getTitleTag());
-                $updated_desc = update_post_meta($productId, 'rank_math_description', $tmpMeta->getMetaDescription());
-                $updated_kw = update_post_meta($productId, 'rank_math_focus_keyword', $tmpMeta->getMetaKeywords());
-                
-            } catch (Exception $e) {
-            
-            }
+            $this->setSeoValues($newPostId, $tmpMeta, 'rank_math_title', 'rank_math_description', 'rank_math_focus_keyword');
         }
     }
-    
+
     /**
-     * @param \WC_Product  $product
+     * @param \WC_Product $wcProduct
      * @param ProductModel $model
-     *
      * @return array|null
      */
-    public function pullData(\WC_Product $product, ProductModel $model)
+    public function pullData(\WC_Product $wcProduct, ProductModel $model): ?array
     {
-        $productId = $model->getId()->getEndpoint();
         $values = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-            $values = [
-                'titleTag' => get_post_meta($productId, '_yoast_wpseo_title'),
-                'metaDesc' => get_post_meta($productId, '_yoast_wpseo_metadesc'),
-                'keywords' => get_post_meta($productId, '_yoast_wpseo_focuskw'),
-                'permlink' => $product->get_slug(),
-                //$product->get_permalink()
-            ];
-            
-            foreach ($values as $key => $value) {
-                if (strcmp($key, 'permalink') === 0) {
-                    continue;
-                }
-                if (is_array($value) && count($value) > 0) {
-                    $values[$key] = $value[0];
-                }
-                
-            }
-        } elseif(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
-
-            $values = [
-                'titleTag' => get_post_meta($productId, 'rank_math_title'),
-                'metaDesc' => get_post_meta($productId, 'rank_math_description'),
-                'keywords' => get_post_meta($productId, 'rank_math_focus_keyword'),
-                'permlink' => $product->get_slug(),
-                //$product->get_permalink()
-            ];
-            
-            foreach ($values as $key => $value) {
-                if (strcmp($key, 'permalink') === 0) {
-                    continue;
-                }
-                if (is_array($value) && count($value) > 0) {
-                    $values[$key] = $value[0];
-                }
-                
-            }
-
+            $values = $this->getSeoValues($wcProduct, '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw');
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+            $values = $this->getSeoValues($wcProduct, 'rank_math_title', 'rank_math_description', 'rank_math_focus_keyword');
         }
 
+        if (is_array($values)) {
+            foreach ($values as $key => $value) {
+                if (strcmp($key, 'permalink') === 0) {
+                    continue;
+                }
+                if (is_array($value) && count($value) > 0) {
+                    $values[$key] = $value[0];
+                }
+            }
+        }
 
-        
         return $values;
+    }
+
+    /**
+     * @param int $productId
+     * @param ProductI18nModel $tmpMeta
+     * @param string $metaTitle
+     * @param string $metaDescription
+     * @param string $metaKeywords
+     */
+    protected function setSeoValues(int $productId, ProductI18nModel $tmpMeta, string $metaTitle, string $metaDescription, string $metaKeywords)
+    {
+        $wcProduct = \wc_get_product($productId);
+        if (!$wcProduct instanceof \WC_Product) {
+            return;
+        }
+
+        if ($wcProduct->get_slug() !== $tmpMeta->getUrlPath()) {
+            $wcProduct->set_name($tmpMeta->getUrlPath());
+        }
+
+        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_title', $tmpMeta->getTitleTag());
+        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_metadesc', $tmpMeta->getMetaDescription());
+        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_focuskw', $tmpMeta->getMetaKeywords());
+    }
+
+    /**
+     * @param \WC_Product $wcProduct
+     * @param string $metaTitle
+     * @param string $metaDescription
+     * @param string $metaKeywords
+     * @return array
+     */
+    protected function getSeoValues(\WC_Product $wcProduct, string $metaTitle, string $metaDescription, string $metaKeywords): array
+    {
+        return [
+            'titleTag' => get_post_meta($wcProduct->get_id(), $metaTitle),
+            'metaDesc' => get_post_meta($wcProduct->get_id(), $metaDescription),
+            'keywords' => get_post_meta($wcProduct->get_id(), $metaKeywords),
+            'permlink' => $wcProduct->get_slug()
+        ];
     }
 }
