@@ -32,6 +32,7 @@ final class SupportedPlugins
     const PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE = 'VR pay eCommerce - WooCommerce';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE = 'WPC Product Quantity for WooCommerce';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM = 'WPC Product Quantity for WooCommerce (Premium)';
+    const PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE = 'Additional Variation Images Gallery for WooCommerce';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -67,7 +68,8 @@ final class SupportedPlugins
         self::PLUGIN_BACKUPBUDDY,
         self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
         self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE,
-        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM
+        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM,
+        self::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
     ];
 
     const INCOMPATIBLE_PLUGINS = [
