@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 2.4.0-dev
+* Info - Merged state with current release
+* Changed compatibility info to WooCommerce 5
+* Removed platform version from Connector identify call
+
 ## 2.3.0-dev
 * Info - Merged state with current release
 * Bugfix - CO-1335 - Fixed various bugs related to variable products 
