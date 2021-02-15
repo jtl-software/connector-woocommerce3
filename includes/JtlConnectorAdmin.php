@@ -1741,6 +1741,7 @@ final class JtlConnectorAdmin
                     Config::set(Config::OPTIONS_TOKEN, self::create_password());
                 }
             case '1.17.0':
+            case '1.18.0':
             case '2.0.0':
             case '2.1.0':
             case '2.2.0':

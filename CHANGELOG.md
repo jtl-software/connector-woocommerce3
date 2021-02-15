@@ -17,6 +17,10 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.18.0
+* Changed compatibility info to WooCommerce 5
+* Removed platform version from Connector identify call
+
 ## 1.17.0
 * Bugfix - CO-1254 - fixed empty values in Cross-Selling pull
 * Bugfix - CO-1274 - fixed parent images are attached to children
