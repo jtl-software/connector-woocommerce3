@@ -56,7 +56,7 @@ class GlobalData extends BaseController
         }
 
         if ($this->getPluginsManager()->get(GermanMarket::class)->canBeUsed() && !$this->getPluginsManager()->get(Germanized::class)->canBeUsed()) {
-            if (Config::get(JtlConnectorAdmin::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
+            if (Config::get(Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS)) {
                 $this->getPluginsManager()->get(GermanMarket::class)->setAutoOptions();
             }
             $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());

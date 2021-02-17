@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use DateTime;
+use JtlWooCommerceConnector\Utilities\Config;
 
 /**
  * Class WooCommerceProduct
@@ -132,7 +133,7 @@ class WooCommerceProduct extends AbstractComponent
     {
         $name = html_entity_decode($product->get_name());
         if ($product instanceof \WC_Product_Variation) {
-            switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT, '')) {
+            switch (\get_option(Config::OPTIONS_VARIATION_NAME_FORMAT, '')) {
                 case 'space':
                     $name = $product->get_name() . ' ' . \wc_get_formatted_variation($product, true);
                     break;
