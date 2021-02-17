@@ -2,6 +2,12 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.19.0
+* Bugfix - CO-1372 - fixed customer group update
+* Bugfix - CO-1343 - fixed cross-selling pull
+* Bugfix - CO-1338 - fixed sanitizing image name on push
+* Bugfix - CO-1337 - fixed paypal payment method mapping
+
 ## 1.18.0
 * Changed compatibility info to WooCommerce 5
 * Removed platform version from Connector identify call

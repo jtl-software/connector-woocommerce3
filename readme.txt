@@ -6,7 +6,7 @@ Tested up to: 5.6
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 5.0
-Stable tag: 1.18.0
+Stable tag: 1.19.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.19.0 =
+* Bugfix - CO-1372 - fixed customer group update
+* Bugfix - CO-1343 - fixed cross-selling pull
+* Bugfix - CO-1338 - fixed sanitizing image name on push
+* Bugfix - CO-1337 - fixed paypal payment method mapping
 
 = 1.18.0 =
 * Changed compatibility info to WooCommerce 5
