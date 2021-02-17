@@ -388,6 +388,8 @@ class Image extends BaseController
             $name = html_entity_decode($nameInfo['filename']);
         }
 
+        $name = $this->sanitizeImageName($name);
+
         if (empty($nameInfo['extension'])) {
             $extension = $fileNameInfo['extension'];
         } else {
@@ -434,6 +436,20 @@ class Image extends BaseController
         }
 
         return $post;
+    }
+
+    /**
+     * @param $name
+     * @return false|string\
+     */
+    private function sanitizeImageName($name): string
+    {
+        $name = iconv('utf-8', 'ascii//translit', $name);
+        $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = preg_replace('#-{2,}#', '-', $name);
+        $name = trim($name, '-');
+
+        return mb_substr($name, 0, 180);
     }
 
     /**
