@@ -371,8 +371,9 @@ final class Util extends WordpressUtils
             case 'paypal_plus':
                 return PaymentTypes::TYPE_PAYPAL_PLUS;
             case 'express_checkout':
-            case 'paypal':
                 return PaymentTypes::TYPE_PAYPAL_EXPRESS;
+            case 'paypal':
+                return PaymentTypes::TYPE_PAYPAL;
             case 'cod':
                 return PaymentTypes::TYPE_CASH_ON_DELIVERY;
             case 'bacs':
