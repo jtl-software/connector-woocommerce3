@@ -9,6 +9,8 @@
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 
+use JtlWooCommerceConnector\Utilities\Config;
+
 trait PaymentTrait
 {
     public static function paymentCompletedPull($includeCompletedOrders, $limit = null)
@@ -28,13 +30,13 @@ trait PaymentTrait
         }
 
         // Usually processing means paid but exception for Cash on delivery
-        $status = "p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_value = 'cod')";
+        $status = "p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_value = 'cod' OR pm.meta_value = 'german_market_purchase_on_account')";
 
         if ($includeCompletedOrders) {
             $status = "(p.post_status = 'wc-completed' OR {$status})";
         }
 
-        $since = \get_option(\JtlConnectorAdmin::OPTIONS_PULL_ORDERS_SINCE);
+        $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $where = (!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
 
         return "

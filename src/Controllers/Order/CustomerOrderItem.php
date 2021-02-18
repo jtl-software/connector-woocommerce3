@@ -28,7 +28,7 @@ class CustomerOrderItem extends BaseController
     {
         $customerOrderItems = [];
 
-        if (Config::get(\JtlConnectorAdmin::OPTIONS_RECALCULATE_COUPONS_ON_PULL) === true && count($order->get_items('coupon')) > 0) {
+        if (Config::get(Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL) === true && count($order->get_items('coupon')) > 0) {
             $order->recalculate_coupons();
         }
 
@@ -89,7 +89,7 @@ class CustomerOrderItem extends BaseController
                 $orderItem->setProductId(new Identity($product->get_id()));
 
                 if ($product instanceof \WC_Product_Variation) {
-                    switch (\get_option(\JtlConnectorAdmin::OPTIONS_VARIATION_NAME_FORMAT)) {
+                    switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT)) {
                         case 'space_parent':
                         case 'space':
                             $format = '%s %s';
@@ -118,7 +118,7 @@ class CustomerOrderItem extends BaseController
             }
 
             $priceNet = (float)$order->get_item_subtotal($item, false, false);
-            $priceGross = (float)$order->get_item_subtotal($item, true, false);
+            $priceGross = (float)$order->get_item_subtotal($item, true, true);
             $orderItem
                 ->setVat($vat)
                 ->setPrice(round($priceNet, Util::getPriceDecimals()))
@@ -331,7 +331,9 @@ class CustomerOrderItem extends BaseController
 
         $totalGrossCalculated = round(($totalNet * ($vat / 100 + 1)), $wooCommerceRoundPrecision);
 
-        if ($vatRoundPrecision <= 6 && $vat !== .0 && $totalGrossCalculated !== $totalGross) {
+        $isCalcualtedGrossSame = abs($totalGrossCalculated - $totalGross) < 0.00001;
+
+        if ($vatRoundPrecision <= 6 && $vat !== .0 && $isCalcualtedGrossSame === false) {
             return $this->calculateVat($totalNet, $totalGross, $wooCommerceRoundPrecision, $vatRoundPrecision + 1);
         }
 

@@ -14,6 +14,7 @@ use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -181,11 +182,12 @@ class Customer extends BaseController
 
     /**
      * @param $customerGroupId
+     * @return \WP_Role|null
      */
     protected function getWpCustomerRole($customerGroupId): ?\WP_Role
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $customerGroups = get_posts(['post_type' => 'customer_groups']);
+            $customerGroups = get_posts(['post_type' => 'customer_groups', 'numberposts' => -1]);
             foreach ($customerGroups as $customerGroup) {
                 $role = get_role($customerGroup->post_name);
                 if ($role instanceof \WP_Role && (int)$customerGroupId === $customerGroup->ID) {
@@ -239,7 +241,7 @@ class Customer extends BaseController
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroupIdentity = new Identity();
 
-            $defaultCustomerGroupId = (int)get_option(\JtlConnectorAdmin::OPTIONS_DEFAULT_CUSTOMER_GROUP);
+            $defaultCustomerGroupId = (int)Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
             $groups = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
                 if ($defaultCustomerGroupId === $id) {

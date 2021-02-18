@@ -1,0 +1,90 @@
+name: Deploy to Wordpress
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        description: 'Tag to deploy'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ ubuntu-latest ]
+        php-versions: [ '7.1', '7.2', '7.3', '7.4' ]
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, intl
+
+      - name: Run composer
+        uses: php-actions/composer@v2
+
+      - name: Run unit tests
+        uses: php-actions/phpunit@v2
+        with:
+          version: 7
+          php_version: ${{ matrix.php-versions }}
+          configuration: ./phpunit.xml
+          bootstrap: ./vendor/autoload.php
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      CONNECTOR_VERSION: ${{ github.event.inputs.tag }}
+    steps:
+      - uses: shivammathur/setup-php@v1
+        with:
+          php-version: '7.1'
+
+      - name: System praparation
+        run: |
+          sudo apt-get update -yqq
+          sudo apt-get install -yqq subversion unzip zlib1g-dev libzip-dev php-zip
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build connector
+        run: |
+          echo "RELEASE_NAME=woo-jtl-connector-$CONNECTOR_VERSION.zip" >> $GITHUB_ENV
+          git fetch --all --tags
+          git checkout tags/$CONNECTOR_VERSION -b tmp
+          sh zip-build.sh
+          unzip -q '*.zip' -d woo-jtl-zip
+
+      - name: Create artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: connector-build
+          path: ./${{ env.RELEASE_NAME }}
+          if-no-files-found: error
+
+      - name: Deploy to Wordpress
+        env:
+          USERNAME: ${{ secrets.username }}
+          PASSWORD: ${{ secrets.password }}
+        run: |
+          svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
+          svn checkout --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
+          rm -f -R woo-jtl-connector/trunk/*
+          cp -R woo-jtl-zip/woo-jtl-connector/* woo-jtl-connector/trunk/
+          cd woo-jtl-connector/trunk
+          svn status
+          svn add --force *
+          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $CONNECTOR_VERSION"
+          cd ..
+          svn copy trunk/ tags/$CONNECTOR_VERSION
+          cd tags/$CONNECTOR_VERSION
+          svn status
+          svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $CONNECTOR_VERSION"

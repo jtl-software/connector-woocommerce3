@@ -373,8 +373,9 @@ final class Util extends Singleton
             case 'paypal_plus':
                 return PaymentTypes::TYPE_PAYPAL_PLUS;
             case 'express_checkout':
-            case 'paypal':
                 return PaymentTypes::TYPE_PAYPAL_EXPRESS;
+            case 'paypal':
+                return PaymentTypes::TYPE_PAYPAL;
             case 'cod':
                 return PaymentTypes::TYPE_CASH_ON_DELIVERY;
             case 'bacs':
@@ -437,10 +438,10 @@ final class Util extends Singleton
      */
     public static function sendCustomPropertiesEnabled()
     {
-        if (Config::has(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES)) {
-            $result = (boolean)Config::get(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES);
+        if (Config::has(Config::OPTIONS_SEND_CUSTOM_PROPERTIES)) {
+            $result = (boolean)Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES);
         } else {
-            Config::set(JtlConnectorAdmin::OPTIONS_SEND_CUSTOM_PROPERTIES, true);
+            Config::set(Config::OPTIONS_SEND_CUSTOM_PROPERTIES, true);
             $result = true;
         }
 
@@ -452,10 +453,10 @@ final class Util extends Singleton
      */
     public static function useGtinAsEanEnabled()
     {
-        if (Config::has(JtlConnectorAdmin::OPTIONS_USE_GTIN_FOR_EAN)) {
-            $result = (boolean)Config::get(JtlConnectorAdmin::OPTIONS_USE_GTIN_FOR_EAN);
+        if (Config::has(Config::OPTIONS_USE_GTIN_FOR_EAN)) {
+            $result = (boolean)Config::get(Config::OPTIONS_USE_GTIN_FOR_EAN);
         } else {
-            Config::set(JtlConnectorAdmin::OPTIONS_USE_GTIN_FOR_EAN, true);
+            Config::set(Config::OPTIONS_USE_GTIN_FOR_EAN, true);
             $result = true;
         }
 
@@ -467,14 +468,7 @@ final class Util extends Singleton
      */
     public static function showVariationSpecificsOnProductPageEnabled()
     {
-        if (Config::has(JtlConnectorAdmin::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE)) {
-            $result = (boolean)Config::get(JtlConnectorAdmin::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE);
-        } else {
-            Config::set(JtlConnectorAdmin::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE, true);
-            $result = true;
-        }
-
-        return $result;
+        return (bool)Config::get(Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE);
     }
 
     /**
@@ -482,7 +476,7 @@ final class Util extends Singleton
      */
     public static function includeCompletedOrders()
     {
-        $includeCompletedOrdersOption = \get_option(\JtlConnectorAdmin::OPTIONS_COMPLETED_ORDERS, 'yes');
+        $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
         return in_array($includeCompletedOrdersOption, ['yes', '1'], true);
     }
 
