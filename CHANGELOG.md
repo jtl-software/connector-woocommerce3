@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.20.0
+* Feature - CO-1295 - added support for blacklist products and categories in B2BMarket
+* Feature - CO-1251 - added new attribute 'wc_notify_customer_on_overselling' (true/false) to set notify option on oversell
+* Feature - CO-1376 - when available get vat rate from product price model in price quick sync   
+
 ## 1.19.0
 * Bugfix - CO-1372 - fixed customer group update
 * Bugfix - CO-1343 - fixed cross-selling pull
