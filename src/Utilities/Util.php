@@ -20,7 +20,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
  *
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Util extends Singleton
+final class Util extends WordpressUtils
 {
     const TO_SYNC = 'jtlconnector_master_products_to_sync';
     const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
