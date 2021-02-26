@@ -108,26 +108,33 @@ class CustomerOrderItem extends BaseController
                 }
             }
 
+            $taxes = $item->get_taxes();
+            $useWcTaxes = false;
+            if(!empty($taxes) && isset($taxes['subtotal']) && is_array($taxes['subtotal'])){
+                $useWcTaxes = true;
+                $taxesTotal = array_sum($taxes['subtotal']);
+                $taxesTotal /= $item->get_quantity();
+
+                $priceNet = (float)$order->get_item_subtotal($item, false, false);
+                $priceGross = (float)($priceNet + $taxesTotal);
+            }
 
             if (isset($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
-                $priceNet = (float)$order->get_item_subtotal($item, false, true);
-                $priceGross = (float)$order->get_item_subtotal($item, true, true);
-
-                $taxes = $item->get_taxes();
-                if(!empty($taxes) && isset($taxes['subtotal']) && is_array($taxes['subtotal'])){
-                    $taxesTotal = array_sum($taxes['subtotal']);
-                    $taxesTotal /= $item->get_quantity();
-
-                    $priceNet = (float)$order->get_item_subtotal($item, false, false);
-                    $priceGross = (float)($priceNet + $taxesTotal);
+                if ($useWcTaxes === false) {
+                    $priceNet = (float)$order->get_item_subtotal($item, false, true);
+                    $priceGross = (float)$order->get_item_subtotal($item, true, true);
                 }
+
                 $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
             }
 
-            $priceNet = (float)$order->get_item_subtotal($item, false, false);
-            $priceGross = (float)$order->get_item_subtotal($item, true, true);
+            if ($useWcTaxes === false) {
+                $priceNet = (float)$order->get_item_subtotal($item, false, false);
+                $priceGross = (float)$order->get_item_subtotal($item, true, true);
+            }
+
             $orderItem
                 ->setVat($vat)
                 ->setPrice(round($priceNet, Util::getPriceDecimals()))
