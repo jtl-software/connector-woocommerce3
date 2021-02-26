@@ -26,9 +26,9 @@
       "delete": false
     },
     "CategoryInvisibility": {
-      "pull": false,
-      "push": false,
-      "delete": false
+      "pull": true,
+      "push": true,
+      "delete": true
     },
     "ConfigGroup": {
       "pull": false,
@@ -256,9 +256,9 @@
       "delete": false
     },
     "ProductInvisibility": {
-      "pull": false,
-      "push": false,
-      "delete": false
+      "pull": true,
+      "push": true,
+      "delete": true
     },
     "ProductMediaFile": {
       "pull": false,
