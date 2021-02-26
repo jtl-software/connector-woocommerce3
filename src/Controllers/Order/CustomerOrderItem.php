@@ -109,6 +109,10 @@ class CustomerOrderItem extends BaseController
             }
 
             $taxes = $item->get_taxes();
+
+            $priceNet = (float)$order->get_item_subtotal($item, false, true);
+            $priceGross = (float)$order->get_item_subtotal($item, true, true);
+
             $useWcTaxes = false;
             if(!empty($taxes) && isset($taxes['subtotal']) && is_array($taxes['subtotal'])){
                 $useWcTaxes = true;
@@ -122,17 +126,11 @@ class CustomerOrderItem extends BaseController
             if (isset($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
-                if ($useWcTaxes === false) {
-                    $priceNet = (float)$order->get_item_subtotal($item, false, true);
-                    $priceGross = (float)$order->get_item_subtotal($item, true, true);
-                }
-
                 $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
             }
 
             if ($useWcTaxes === false) {
                 $priceNet = (float)$order->get_item_subtotal($item, false, false);
-                $priceGross = (float)$order->get_item_subtotal($item, true, true);
             }
 
             $orderItem
