@@ -561,4 +561,5 @@ final class Util extends WordpressUtils
                     break;
             }
         }
+    }
 }
