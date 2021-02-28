@@ -75,9 +75,9 @@ class ProductMetaSeo extends BaseController
             $wcProduct->set_name($tmpMeta->getUrlPath());
         }
 
-        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_title', $tmpMeta->getTitleTag());
-        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_metadesc', $tmpMeta->getMetaDescription());
-        update_post_meta($wcProduct->get_id(), '_yoast_wpseo_focuskw', $tmpMeta->getMetaKeywords());
+        update_post_meta($wcProduct->get_id(), $metaTitle, $tmpMeta->getTitleTag());
+        update_post_meta($wcProduct->get_id(), $metaDescription, $tmpMeta->getMetaDescription());
+        update_post_meta($wcProduct->get_id(), $metaKeywords, $tmpMeta->getMetaKeywords());
     }
 
     /**
