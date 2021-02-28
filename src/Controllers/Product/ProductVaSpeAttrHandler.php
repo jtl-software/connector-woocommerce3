@@ -35,7 +35,8 @@ class ProductVaSpeAttrHandler extends BaseController
     const VIRTUAL_ATTR = 'wc_virtual';
     const PURCHASE_NOTE_ATTR = 'wc_purchase_note';
     const PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually';
-    
+    const NOTIFY_CUSTOMER_ON_OVERSELLING = 'wc_notify_customer_on_overselling';
+
     //GERMAN MARKET
     const GM_DIGITAL_ATTR = 'wc_gm_digital';
     const GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note';
