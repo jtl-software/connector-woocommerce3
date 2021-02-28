@@ -11,6 +11,9 @@ use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\Model\ProductAttr;
 use jtl\Connector\Model\ProductAttrI18n;
+use jtl\Connector\Model\CategoryI18n;
+use jtl\Connector\Model\DataModel;
+use jtl\Connector\Model\ManufacturerI18n;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
@@ -500,7 +503,6 @@ final class Util extends WordpressUtils
         return $pd;
     }
 
-
     /**
      * @param string $attributeName
      * @param string $languageIso
@@ -519,5 +521,44 @@ final class Util extends WordpressUtils
             }
         }
         return $attribute;
+
     }
+    
+    /**
+     * @param array $dataSet
+     * @param int $termId
+     */
+    public static function updateTermMeta(array $dataSet, int $termId)
+    {
+        foreach ($dataSet as $metaKey => $metaValue) {
+            if (!empty($metaValue)) {
+                $oldTermMeta = get_term_meta($termId, $metaKey, true);
+                if (empty($oldTermMeta)) {
+                    add_term_meta($oldTermMeta, $metaKey, $metaKey);
+                } else {
+                    update_term_meta($termId, $metaKey, $metaValue, $oldTermMeta);
+                }
+            }
+        }
+    }
+  
+    /**
+     * @param CategoryI18n|ManufacturerI18n $i18n
+     * @param array $rankMathSeoData
+     */
+    public static function setI18nRankMathSeo(DataModel $i18n, array $rankMathSeoData)
+    {
+        foreach($rankMathSeoData as $termMeta){
+            switch ($termMeta['meta_key']) {
+                case 'rank_math_title':
+                    $i18n->setTitleTag($termMeta['rank_math_title']);
+                    break;
+                case 'rank_math_description':
+                    $i18n->setMetaDescription($termMeta['rank_math_description']);
+                    break;
+                case 'rank_math_focus_keyword':
+                    $i18n->setMetaKeywords($termMeta['rank_math_focus_keyword']);
+                    break;
+            }
+        }
 }
