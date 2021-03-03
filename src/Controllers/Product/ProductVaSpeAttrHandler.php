@@ -193,7 +193,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $finishedVarSpecifics = [];
             }
             
-            $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
+            $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics, true);
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
             
@@ -331,6 +331,12 @@ class ProductVaSpeAttrHandler extends BaseController
                     'is_taxonomy'  => 0,
                 ];
             }
+        }
+
+        if (!empty($variationSpecificData)) {
+            uasort($variationSpecificData, function ($a, $b) {
+                return $a['position'] <=> $b['position'];
+            });
         }
         
         return $variationSpecificData;
@@ -750,8 +756,13 @@ class ProductVaSpeAttrHandler extends BaseController
     ) {
         return ($a->getSort() - $b->getSort());
     }
-    
-    private function mergeAttributes(array &$newProductAttributes, array $attributes)
+
+    /**
+     * @param array $newProductAttributes
+     * @param array $attributes
+     * @param bool $sort
+     */
+    private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false)
     {
         foreach ($attributes as $slug => $attr) {
             if (array_key_exists($slug, $newProductAttributes)) {
@@ -766,6 +777,10 @@ class ProductVaSpeAttrHandler extends BaseController
                     $valuesString = implode(' ' . WC_DELIMITER . ' ', $values);
                     $newProductAttributes[$slug]['value'] = $valuesString;
                     $newProductAttributes[$slug]['is_variation'] = $isVariation;
+
+                    if ($sort) {
+                        $newProductAttributes[$slug]['position'] = $attributes[$slug]['position'];
+                    }
                 }
             } else {
                 $newProductAttributes[$slug] = $attr;
