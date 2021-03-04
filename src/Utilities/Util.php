@@ -9,6 +9,8 @@ namespace JtlWooCommerceConnector\Utilities;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Model\ProductAttr;
+use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
@@ -18,7 +20,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
  *
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Util extends Singleton
+final class Util extends WordpressUtils
 {
     const TO_SYNC = 'jtlconnector_master_products_to_sync';
     const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
@@ -371,8 +373,9 @@ final class Util extends Singleton
             case 'paypal_plus':
                 return PaymentTypes::TYPE_PAYPAL_PLUS;
             case 'express_checkout':
-            case 'paypal':
                 return PaymentTypes::TYPE_PAYPAL_EXPRESS;
+            case 'paypal':
+                return PaymentTypes::TYPE_PAYPAL;
             case 'cod':
                 return PaymentTypes::TYPE_CASH_ON_DELIVERY;
             case 'bacs':
@@ -495,5 +498,26 @@ final class Util extends Singleton
             $pd = 4;
         }
         return $pd;
+    }
+
+
+    /**
+     * @param string $attributeName
+     * @param string $languageIso
+     * @param ProductAttr ...$productAttributes
+     * @return ProductAttrI18n|null
+     */
+    public static function findAttributeI18nByName(string $attributeName, string $languageIso, ProductAttr ...$productAttributes): ?ProductAttrI18n
+    {
+        $attribute = null;
+        foreach ($productAttributes as $productAttribute) {
+            foreach ($productAttribute->getI18ns() as $productAttributeI18n) {
+                if ($productAttributeI18n->getLanguageISO() === $languageIso && $attributeName === $productAttributeI18n->getName()) {
+                    $attribute = $productAttributeI18n;
+                    break 2;
+                }
+            }
+        }
+        return $attribute;
     }
 }

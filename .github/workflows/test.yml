@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ ubuntu-latest ]
-        php-versions: [ '7.1', '7.2', '7.3', '7.4', '8.0' ]
+        php-versions: [ '7.1', '7.2', '7.3', '7.4' ]
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     steps:
       - name: Checkout
@@ -19,13 +19,14 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, intl
-          tools: phpunit
 
       - name: Run composer
         uses: php-actions/composer@v2
 
       - name: Run unit tests
-        uses: php-actions/phpunit@v7
+        uses: php-actions/phpunit@v2
         with:
+          version: 7
+          php_version: ${{ matrix.php-versions }}
           configuration: ./phpunit.xml
           bootstrap: ./vendor/autoload.php

@@ -182,11 +182,12 @@ class Customer extends BaseController
 
     /**
      * @param $customerGroupId
+     * @return \WP_Role|null
      */
     protected function getWpCustomerRole($customerGroupId): ?\WP_Role
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $customerGroups = get_posts(['post_type' => 'customer_groups']);
+            $customerGroups = get_posts(['post_type' => 'customer_groups', 'numberposts' => -1]);
             foreach ($customerGroups as $customerGroup) {
                 $role = get_role($customerGroup->post_name);
                 if ($role instanceof \WP_Role && (int)$customerGroupId === $customerGroup->ID) {
