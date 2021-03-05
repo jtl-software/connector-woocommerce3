@@ -14,6 +14,7 @@ use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
@@ -152,50 +153,51 @@ class ProductVaSpeAttrHandler extends BaseController
         $productId = $product->getId()->getEndpoint();
         
         if ($isMaster) {
-            $newProductAttributes = [];
+            $newWcProductAttributes = [];
             //Current Values
-            $curAttributes = $wcProduct->get_attributes();
+            $wcProductAttributes = $wcProduct->get_attributes();
             
             //Filtered
-            $attributesFilteredVariationsAndSpecifics = $this->getVariationAndSpecificAttributes(
-                $curAttributes
+            $currentVariationsAndSpecifics = $this->getVariationAndSpecificAttributes(
+                $wcProductAttributes,
+                $product->getVariations()
             );
-            $attributesFilteredVariationSpecifics = $this->getVariationAttributes(
-                $curAttributes
+            $currentAttributes = $this->getVariationAttributes(
+                $wcProductAttributes
             );
             
             //GENERATE DATA ARRAYS
-            $variationSpecificData = $this->generateVariationSpecificData($product->getVariations());
-            $specificData = $this->generateSpecificData($product->getSpecifics());
+            $jtlVariations = $this->generateVariationSpecificData($product->getVariations());
+            $jtlSpecifics = $this->generateSpecificData($product->getSpecifics());
             
             //handleAttributes
-            $finishedAttr = (new ProductAttr)->pushData(
+            $productAttributes = (new ProductAttr)->pushData(
                 $productId,
                 $product->getAttributes(),
-                $attributesFilteredVariationsAndSpecifics,
+                $currentVariationsAndSpecifics,
                 $product
             );
-            $this->mergeAttributes($newProductAttributes, $finishedAttr);
+            $this->mergeAttributes($newWcProductAttributes, $productAttributes);
             
             // handleSpecifics
-            $finishedSpecifics = (new ProductSpecific)->pushData(
-                $productId, $curAttributes, $specificData, $product->getSpecifics()
+            $productSpecifics = (new ProductSpecific)->pushData(
+                $productId, $wcProductAttributes, $jtlSpecifics, $product->getSpecifics()
             );
-            $this->mergeAttributes($newProductAttributes, $finishedSpecifics);
+            $this->mergeAttributes($newWcProductAttributes, $productSpecifics);
             // handleVarSpecifics
-            $finishedVarSpecifics = (new ProductVariation)->pushMasterData(
+            $productVariations = (new ProductVariation)->pushMasterData(
                 $productId,
-                $variationSpecificData,
-                $attributesFilteredVariationSpecifics
+                $jtlVariations,
+                $currentAttributes
             );
             
-            if (!is_array($finishedVarSpecifics)) {
-                $finishedVarSpecifics = [];
+            if (!is_array($productVariations)) {
+                $productVariations = [];
             }
             
-            $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
+            $this->mergeAttributes($newWcProductAttributes, $productVariations);
             $old = \get_post_meta($productId, '_product_attributes', true);
-            \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
+            \update_post_meta($productId, '_product_attributes', $newWcProductAttributes, $old);
             
         } else {
             (new ProductVariation)->pushChildData(
@@ -208,9 +210,18 @@ class ProductVaSpeAttrHandler extends BaseController
     }
     
     // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
-    private function getVariationAndSpecificAttributes($attributes = [])
+    private function getVariationAndSpecificAttributes(&$attributes = [],$variations = [])
     {
         $filteredAttributes = [];
+        /** @var \jtl\Connector\Model\ProductVariation $variation */
+        $jtlVariations = [];
+        foreach ($variations as $variation) {
+            foreach ($variation->getI18ns() as $productVariationI18n) {
+                if (Util::getInstance()->isWooCommerceLanguage($productVariationI18n->getLanguageISO())) {
+                    $jtlVariations[] = $productVariationI18n->getName();
+                }
+            }
+        }
         
         /**
          * @var string                $slug The attributes unique slug.
@@ -218,15 +229,19 @@ class ProductVaSpeAttrHandler extends BaseController
          */
         foreach ($attributes as $slug => $attribute) {
             if ($attribute->get_variation()) {
-                $filteredAttributes[$slug] = [
-                    'id'           => $attribute->get_id(),
-                    'name'         => $attribute->get_name(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
-                    'position'     => $attribute->get_position(),
-                    'is_visible'   => $attribute->get_visible(),
-                    'is_variation' => $attribute->get_variation(),
-                    'is_taxonomy'  => $attribute->get_taxonomy(),
-                ];
+                if ($attribute->get_taxonomy() === '' && in_array($attribute->get_name(), $jtlVariations)) {
+                    unset($attributes[$slug]);
+                } else {
+                    $filteredAttributes[$slug] = [
+                        'id' => $attribute->get_id(),
+                        'name' => $attribute->get_name(),
+                        'value' => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
+                        'position' => $attribute->get_position(),
+                        'is_visible' => $attribute->get_visible(),
+                        'is_variation' => $attribute->get_variation(),
+                        'is_taxonomy' => $attribute->get_taxonomy(),
+                    ];
+                }
             } elseif (taxonomy_exists($slug)) {
                 $filteredAttributes[$slug] =
                     [
@@ -719,10 +734,7 @@ class ProductVaSpeAttrHandler extends BaseController
     // </editor-fold>
     
     //ALL
-    public function getSpecificValueId(
-        $slug,
-        $value
-    ) {
+    public function getSpecificValueId($slug, $value) {
         $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
         
         if (count($val) === 0) {

@@ -167,20 +167,17 @@ class ProductVariation extends BaseController
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Push">
-    public function pushMasterData(
-        $productId,
-        $variationSpecificData,
-        $attributesFilteredVariationSpecifics
-    ) {
+    public function pushMasterData($productId, $variationSpecificData, $attributesFilteredVariationSpecifics)
+    {
         $result = null;
-        $parent = (new ProductVaSpeAttrHandler);
+        $productVaSpeAttrHandler = new ProductVaSpeAttrHandler();
         
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));
+            $taxonomy = 'pa_'.wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));
             $specificID = $this->database->query(SqlHelper::getSpecificId(sprintf('%s', $key)));
-            $specificExists = isset($specificID[0]['attribute_id']) ? true : false;
+            $specificExists = isset($specificID[0]['attribute_id']);
             $options = [];
-            
+
             if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                 $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
             }
@@ -192,23 +189,12 @@ class ProductVariation extends BaseController
                 foreach ($pushedValues as $pushedValue) {
                     
                     //check if value did not exists
-                    $specificValueId = $parent->getSpecificValueId(
-                        $taxonomy,
-                        trim($pushedValue)
-                    );
-                    
-                    $termId = (int)$specificValueId->getEndpoint();
+                    $termId = (int)$productVaSpeAttrHandler->getSpecificValueId($taxonomy, trim($pushedValue))->getEndpoint();
                     
                     if (!$termId > 0) {
-                        //Add values
-                        $newTerm = \wp_insert_term(
-                            $pushedValue,
-                            $taxonomy
-                        );
+                        $newTerm = \wp_insert_term($pushedValue, $taxonomy);
                         
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
-                            // die();
                             WpErrorLogger::getInstance()->logError($newTerm);
                             continue;
                         }
