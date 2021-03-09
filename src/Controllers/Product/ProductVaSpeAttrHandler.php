@@ -199,9 +199,11 @@ class ProductVaSpeAttrHandler extends BaseController
 
             $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
 
-            $jtlNewProductSpecifics = array_map(function (ProductSpecificModel $productSpecific) {
+            $jtlNewProductSpecifics = array_filter(array_map(function (ProductSpecificModel $productSpecific) {
                 return $productSpecific->getId()->getEndpoint();
-            }, $product->getSpecifics());
+            }, $product->getSpecifics()), function ($value) {
+                return $value !== '';
+            });
 
             $jtlOldProductSpecifics = get_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS);
             update_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS, $jtlNewProductSpecifics);
@@ -297,8 +299,12 @@ class ProductVaSpeAttrHandler extends BaseController
     {
         $specificData = [];
         foreach ($pushedSpecifics as $specific) {
-            $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
-                (int)$specific->getSpecificValueId()->getEndpoint();
+            $endpointId = $specific->getId()->getEndpoint();
+            $specificValueEndpointId = $specific->getSpecificValueId()->getEndpoint();
+            if (empty($endpointId) || empty($specificValueEndpointId)) {
+                continue;
+            }
+            $specificData[(int)$endpointId]['options'][] = (int)$specificValueEndpointId;
         }
         
         return $specificData;
