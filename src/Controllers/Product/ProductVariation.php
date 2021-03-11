@@ -167,7 +167,7 @@ class ProductVariation extends BaseController
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Push">
-    public function pushMasterData($productId, $variationSpecificData, $attributesFilteredVariationSpecifics)
+    public function pushMasterData(string $productId, array $variationSpecificData, array $attributesFilteredVariationSpecifics)
     {
         $result = null;
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandler();

@@ -210,7 +210,7 @@ class ProductVaSpeAttrHandler extends BaseController
     }
     
     // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
-    private function getVariationAndSpecificAttributes(&$attributes = [],$variations = [])
+    private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = [])
     {
         $filteredAttributes = [];
         /** @var \jtl\Connector\Model\ProductVariation $variation */
@@ -734,7 +734,7 @@ class ProductVaSpeAttrHandler extends BaseController
     // </editor-fold>
     
     //ALL
-    public function getSpecificValueId($slug, $value) {
+    public function getSpecificValueId(string $slug, string $value) {
         $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
         
         if (count($val) === 0) {
