@@ -388,12 +388,13 @@ class Image extends BaseController
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
                 'post_title' => preg_replace('/\.[^.]+$/', '', $fileName),
-                'post_content' => '',
                 'post_status' => 'inherit',
+                'ID' => $endpointId,
             ];
 
-            if (!empty($endpointId)) {
-                $attachment['ID'] = $endpointId;
+            if (empty($endpointId)) {
+                unset($attachment['ID']);
+                $attachment['post_content'] = '';
             }
 
             $post = \wp_insert_attachment($attachment, $destination, $image->getForeignKey()->getEndpoint());
