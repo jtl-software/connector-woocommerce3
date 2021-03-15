@@ -41,14 +41,13 @@ class CustomerOrderItem extends BaseController
     }
 
     /**
-     * Add the positions for products. Not that complicated.
-     *
-     * @param \WC_Order $order
-     * @param           $customerOrderItems
+     * @param \WC_Order $wcOrder
+     * @return float|null
      */
-    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
+    protected function getSingleVatRate(\WC_Order $wcOrder): ?float
     {
-        $taxItems = $order->get_items('tax');
+        $singleVatRate = null;
+        $taxItems = $wcOrder->get_items('tax');
         if (is_array($taxItems)) {
             $vatRates = [];
             foreach ($taxItems as $taxItem) {
@@ -59,9 +58,21 @@ class CustomerOrderItem extends BaseController
             }
             $uniqueRates = array_unique($vatRates);
             if (count($uniqueRates) === 1) {
-                $singleVatRate = end($uniqueRates);
+                $singleVatRate = (float)end($uniqueRates);
             }
         }
+        return $singleVatRate;
+    }
+
+    /**
+     * Add the positions for products. Not that complicated.
+     *
+     * @param \WC_Order $order
+     * @param           $customerOrderItems
+     */
+    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
+    {
+        $singleVatRate = $this->getSingleVatRate($order);
 
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
@@ -123,7 +134,7 @@ class CustomerOrderItem extends BaseController
                 $priceGross = (float)($priceNet + $taxesTotal);
             }
 
-            if (isset($singleVatRate)) {
+            if (!is_null($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
                 $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
@@ -215,6 +226,7 @@ class CustomerOrderItem extends BaseController
                 }
             }
         }
+        $singleVatRate = $this->getSingleVatRate($order);
 
         $productTotalByVat = $this->groupProductsByTaxRate($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
@@ -268,7 +280,11 @@ class CustomerOrderItem extends BaseController
                 if ($total != 0) {
 
                     $priceGross = $total + $totalTax;
+
                     $vat = $this->calculateVat($total, $priceGross, wc_get_price_decimals());
+                    if (!is_null($singleVatRate)) {
+                        $vat = $singleVatRate;
+                    }
 
                     $customerOrderItem->setVat($vat)
                         ->setPrice(round($total, Util::getPriceDecimals()))
