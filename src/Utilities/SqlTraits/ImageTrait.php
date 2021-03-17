@@ -37,6 +37,8 @@ trait ImageTrait
             AND tt.taxonomy = '%s'
             AND tm.meta_key = '%s'
             AND tm.meta_value != 0
+            AND p.guid IS NOT NULL
+            AND ID IS NOT NULL
             {$limitQuery}",
             Id::SEPARATOR,
             Id::CATEGORY_PREFIX,
