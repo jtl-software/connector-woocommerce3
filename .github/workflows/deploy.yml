@@ -85,6 +85,8 @@ jobs:
           svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $CONNECTOR_VERSION"
           cd ..
           svn copy trunk/ tags/$CONNECTOR_VERSION
-          cd tags/$CONNECTOR_VERSION
+          cd tags
+          svn add $CONNECTOR_VERTSION
+          cd $CONNECTOR_VERSION
           svn status
           svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $CONNECTOR_VERSION"
