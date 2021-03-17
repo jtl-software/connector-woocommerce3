@@ -84,6 +84,22 @@ trait ManufacturerTrait
             'pwb-brand'
         );
     }
+
+    /**
+     * @param int $termId
+     * @return string
+     */
+    public static function pullRankMathSeoTermData(int $termId): string
+    {
+        global $wpdb;
+        $table = sprintf('%stermmeta', $wpdb->prefix);
+        $metaKeys = [
+            'rank_math_title',
+            'rank_math_description',
+            'rank_math_focus_keyword'
+        ];
+        return sprintf('SELECT meta_key,meta_value FROM %s WHERE term_id = %s AND meta_key IN ("%s")', $table, $termId, join('","', $metaKeys));
+    }
     /*  public static function getSpecificValueId($specificName, $specificValueName)
       {
           global $wpdb;
