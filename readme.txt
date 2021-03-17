@@ -6,7 +6,7 @@ Tested up to: 5.6
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 5.0
-Stable tag: 1.20.0
+Stable tag: 1.21.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.21.0 =
+* Bugfix - CO-1237 - Fixed deleting product specifics
+* Bugfix - CO-1316 - Fixed importing not existing category images
+* Feature - CO-1341 - Added support for "Rank Math SEO" plugin
+* Feature - CO-1356 - Added support for "Additional Variation Images Gallery" plugin
 
 = 1.20.0 =
 * Feature - CO-1295 - added support for blacklist products and categories in B2BMarket
