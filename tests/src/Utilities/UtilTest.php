@@ -141,7 +141,7 @@ class UtilTest extends TestCase
     /**
      *
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         foreach ($this->mockedFunctions as $function) {
             $function->disable();

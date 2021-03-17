@@ -20,6 +20,7 @@ use JtlWooCommerceConnector\Event\HandlePullEvent;
 use JtlWooCommerceConnector\Event\HandlePushEvent;
 use JtlWooCommerceConnector\Event\HandleStatsEvent;
 use JtlWooCommerceConnector\Mapper\PrimaryKeyMapper;
+use JtlWooCommerceConnector\Utilities\B2BMarket;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Connector extends BaseConnector {
@@ -91,6 +92,11 @@ class Connector extends BaseConnector {
 					->setResult( $results )
 					->setError( $result->getError() );
 			}
+
+
+            if (in_array($controllerName = $this->getMethod()->getController(), ['product', 'category'])) {
+                (new B2BMarket())->handleCustomerGroupsBlacklists($controllerName, ...$entities);
+            }
 			
 			return $action;
 		}
