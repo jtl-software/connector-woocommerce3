@@ -38,6 +38,7 @@ class ProductVaSpeAttrHandler extends BaseController
         VIRTUAL_ATTR = 'wc_virtual',
         PURCHASE_NOTE_ATTR = 'wc_purchase_note',
         PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually',
+        NOTIFY_CUSTOMER_ON_OVERSELLING = 'notify_customer_on_overselling',
     
         //GERMAN MARKET
         GM_DIGITAL_ATTR = 'wc_gm_digital',
