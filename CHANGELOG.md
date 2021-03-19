@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.21.1
+* Bugfix - Added missing constant
+
 ## 1.21.0
 * Bugfix - CO-1237 - Fixed deleting product specifics
 * Bugfix - CO-1316 - Fixed importing not existing category images

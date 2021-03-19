@@ -1745,6 +1745,7 @@ final class JtlConnectorAdmin
             case '1.19.0':
             case '1.20.0':
             case '1.21.0':
+            case '1.21.1':
             default:
                 self::activate_linking();
         }
