@@ -255,8 +255,10 @@ class Product extends BaseController
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-            (new ProductMetaSeo)->pushData($product, $newPostId, $tmpI18n);
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+        ) {
+            (new ProductMetaSeo)->pushData((int)$newPostId, $tmpI18n);
         }
 
         remove_filter('content_save_pre', 'wp_filter_post_kses');

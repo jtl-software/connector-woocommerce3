@@ -25,33 +25,39 @@ class ProductI18n extends BaseController
             ->setDescription(html_entity_decode($product->get_description()))
             ->setShortDescription(html_entity_decode($product->get_short_description()))
             ->setUrlPath($product->get_slug());
-        
+
         if ((SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
             && Germanized::getInstance()->hasUnitProduct($product)) {
             $i18n->setMeasurementUnitName(Germanized::getInstance()->getUnit($product));
         }
-        
+
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+        ) {
             $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
-            if ( ! is_null($tmpMeta) && count($tmpMeta) > 0) {
-                /*   'title'
-                   'metaDesc'
-                   'keywords'
-                   'permlink'
-                */
-                $i18n->setMetaDescription(is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
-                     ->setMetaKeywords(is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
-                     ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
-                     ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
+            if (is_array($tmpMeta)) {
+                $this->setI18nSeoData($i18n, $tmpMeta);
             }
         }
-        
+
         return $i18n;
     }
-    
+
+    /**
+     * @param ProductI18nModel $i18n
+     * @param array $tmpMeta
+     */
+    protected function setI18nSeoData(ProductI18nModel $i18n, array $tmpMeta)
+    {
+        $i18n->setMetaDescription(is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
+            ->setMetaKeywords(is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
+            ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
+            ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
+    }
+
     private function name(\WC_Product $product)
     {
         if ($product instanceof \WC_Product_Variation) {
@@ -62,15 +68,15 @@ class ProductI18n extends BaseController
                     return sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
                 case 'space_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    
+
                     return $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    
+
                     return sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
             }
         }
-        
+
         return $product->get_name();
     }
 }

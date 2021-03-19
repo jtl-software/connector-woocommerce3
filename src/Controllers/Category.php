@@ -63,6 +63,12 @@ class Category extends BaseController
                         }
                     }
                 }
+            } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+                $sql = SqlHelper::pullRankMathSeoTermData((int) $categoryDataSet['category_id']);
+                $categorySeoData = $this->database->query($sql);
+                if (is_array($categorySeoData)) {
+                    Util::setI18nRankMathSeo($i18n, $categorySeoData);
+                }
             }
             
             $categories[] = $category->addI18n($i18n);
@@ -167,6 +173,13 @@ class Category extends BaseController
             }
         
             \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+            $updateRankMathSeoData = [
+                'rank_math_title' => $i18n->getTitleTag(),
+                'rank_math_description' => $i18n->getMetaDescription(),
+                'rank_math_focus_keyword' => $i18n->getMetaKeywords()
+            ];
+            Util::updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
         
         $category->getId()->setEndpoint($result['term_id']);
