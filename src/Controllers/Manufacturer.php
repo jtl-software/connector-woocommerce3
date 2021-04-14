@@ -54,6 +54,12 @@ class Manufacturer extends BaseController
                             }
                         }
                     }
+                } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+                    $sql = SqlHelper::pullRankMathSeoTermData((int) $manufacturer->getId()->getEndpoint());
+                    $manufacturerSeoData = $this->database->query($sql);
+                    if (is_array($manufacturerSeoData)) {
+                        Util::setI18nRankMathSeo($i18n, $manufacturerSeoData);
+                    }
                 }
                 
                 $manufacturer->addI18n(
@@ -182,6 +188,13 @@ class Manufacturer extends BaseController
                         }
                         
                         \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+                    } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+                        $updateRankMathSeoData = [
+                            'rank_math_title' => $i18n->getTitleTag(),
+                            'rank_math_description' => $i18n->getMetaDescription(),
+                            'rank_math_focus_keyword' => $i18n->getMetaKeywords()
+                        ];
+                        Util::updateTermMeta($updateRankMathSeoData, (int)$term->term_id);
                     }
                 }
             }
