@@ -75,7 +75,7 @@ class ProductAttr extends BaseController
                 
                 $attrName = strtolower(trim($i18n->getName()));
                 
-                if (preg_match('/^(wc_)[a-zA-Z\_]+$/', $attrName)
+                if (preg_match('/^(wc_)[a-zA-Z0-9-\_]+$/', $attrName)
                     || in_array($attrName, [
                         'nosearch',
                         'payable',
@@ -136,11 +136,7 @@ class ProductAttr extends BaseController
                         }
                     }
                     
-                    if (
-                        preg_match(
-                            '/^(wc_gm_v_preselect_)[a-zA-Z\_]+$/',
-                            $attrName
-                        )
+                    if (preg_match('/^(wc_gm_v_preselect_)[a-zA-Z0-9-\_]+$/',$attrName)
                         && $product->getMasterProductId()->getHost() === 0
                     ) {
                         $attrName = substr($attrName, 18);
@@ -156,11 +152,7 @@ class ProductAttr extends BaseController
                         }
                     }
                     
-                    if (
-                        preg_match(
-                            '/^(wc_v_preselect_)[a-zA-Z\_]+$/',
-                            $attrName
-                        )
+                    if (preg_match('/^(wc_v_preselect_)[a-zA-Z0-9-\_]+$/', $attrName)
                         && $product->getMasterProductId()->getHost() === 0
                     ) {
                         $attrName = substr($attrName, 15);
