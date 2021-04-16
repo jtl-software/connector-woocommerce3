@@ -32,12 +32,26 @@ class StatusChange extends BaseController
 
             $newStatus = $this->mapStatus($statusChange);
             if ($newStatus !== null) {
+                if($newStatus === 'wc-completed'){
+                    $this->linkIfPaymentIsNotLinked($statusChange);
+                }
+
                 $order->set_status($newStatus);
                 $order->save();
             }
         }
 
         return $statusChange;
+    }
+
+    protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange)
+    {
+        global $wpdb;
+        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
+        $paymentLink = $this->database->queryOne('SELECT * FROM %s WHERE `endpoint_id` = %s', $jclp, $endpointId = $statusChange->getCustomerOrderId()->getEndpoint());
+        if (empty($paymentLink)) {
+            $this->database->query('INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)', $jclp, $endpointId, 0);
+        }
     }
 
     /**

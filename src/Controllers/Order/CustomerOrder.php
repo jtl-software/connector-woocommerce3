@@ -73,7 +73,7 @@ class CustomerOrder extends BaseController
                 ->setOrderNumber($order->get_order_number())
                 ->setShippingMethodName($order->get_shipping_method())
                 ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
-                ->setPaymentStatus($this->paymentStatus($order))
+                ->setPaymentStatus(CustomerOrderModel::PAYMENT_STATUS_UNPAID)
                 ->setStatus($this->status($order))
                 ->setTotalSum((float)$totalSum);
             
@@ -143,15 +143,6 @@ class CustomerOrder extends BaseController
 
             $customerOrder->setPui($pui);
         }
-    }
-    
-    protected function paymentStatus(\WC_Order $order)
-    {
-        if ($order->has_status(self::STATUS_COMPLETED)) {
-            return CustomerOrderModel::PAYMENT_STATUS_COMPLETED;
-        }
-        
-        return CustomerOrderModel::PAYMENT_STATUS_UNPAID;
     }
     
     protected function status(\WC_Order $order)
