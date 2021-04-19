@@ -15,6 +15,8 @@ use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
+use jtl\Connector\Model\Specific;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
@@ -30,32 +32,36 @@ if (!defined('WC_DELIMITER')) {
 
 class ProductVaSpeAttrHandler extends BaseController
 {
-    const PRODUCT_TYPE_ATTR = 'wc_product_type';
-    const DELIVERY_TIME_ATTR = 'wc_dt_offset';
-    const DOWNLOADABLE_ATTR = 'wc_downloadable';
-    const FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility';
-    const FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status';
-    const PAYABLE_ATTR = 'wc_payable';
-    const NOSEARCH_ATTR = 'wc_nosearch';
-    const VIRTUAL_ATTR = 'wc_virtual';
-    const PURCHASE_NOTE_ATTR = 'wc_purchase_note';
-    const PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually';
+    public const
+        PRODUCT_TYPE_ATTR = 'wc_product_type',
+        DELIVERY_TIME_ATTR = 'wc_dt_offset',
+        DOWNLOADABLE_ATTR = 'wc_downloadable',
+        FACEBOOK_VISIBILITY_ATTR = 'wc_fb_visibility',
+        FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status',
+        PAYABLE_ATTR = 'wc_payable',
+        NOSEARCH_ATTR = 'wc_nosearch',
+        VIRTUAL_ATTR = 'wc_virtual',
+        PURCHASE_NOTE_ATTR = 'wc_purchase_note',
+        PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually',
+        NOTIFY_CUSTOMER_ON_OVERSELLING = 'notify_customer_on_overselling',
 
-    //GERMAN MARKET
-    const GM_DIGITAL_ATTR = 'wc_gm_digital';
-    const GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note';
-    const GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice';
+        //GERMAN MARKET
+        GM_DIGITAL_ATTR = 'wc_gm_digital',
+        GM_ALT_DELIVERY_NOTE_ATTR = 'wc_gm_alt_delivery_note',
+        GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice',
 
-    //GERMANIZED
-    const GZD_IS_SERVICE = 'wc_gzd_is_service';
+        //GERMANIZED
+        GZD_IS_SERVICE = 'wc_gzd_is_service',
 
-    const VALUE_TRUE = 'true';
-    const VALUE_FALSE = 'false';
+        //MISC
+        JTL_CURRENT_PRODUCT_SPECIFICS = 'jtl_current_specifics',
+        VALUE_TRUE = 'true',
+        VALUE_FALSE = 'false';
 
     private $productData = [
-        'productVariation' => [],
+        'productVariation'  => [],
         'productAttributes' => [],
-        'productSpecifics' => [],
+        'productSpecifics'  => [],
     ];
 
     /**
@@ -240,6 +246,27 @@ class ProductVaSpeAttrHandler extends BaseController
             }
 
             $this->mergeAttributes($newProductAttributes, $finishedVarSpecifics);
+
+            $jtlNewProductSpecifics = array_filter(array_map(function (ProductSpecificModel $productSpecific) {
+                return $productSpecific->getId()->getEndpoint();
+            }, $product->getSpecifics()), function ($value) {
+                return $value !== '';
+            });
+
+            $jtlOldProductSpecifics = get_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS);
+            update_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS, $jtlNewProductSpecifics);
+
+            if (!empty($jtlOldProductSpecifics)) {
+                $jtlOldProductSpecifics = $jtlOldProductSpecifics[0];
+                $removeSpecifics = array_diff($jtlOldProductSpecifics, $jtlNewProductSpecifics);
+
+                foreach ($newProductAttributes as $index => $attribute) {
+                    if (isset($attribute['id']) && in_array($attribute['id'], $removeSpecifics)) {
+                        unset($newProductAttributes[$index]);
+                    }
+                }
+            }
+
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newProductAttributes, $old);
 
@@ -317,8 +344,12 @@ class ProductVaSpeAttrHandler extends BaseController
     {
         $specificData = [];
         foreach ($pushedSpecifics as $specific) {
-            $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
-                (int)$specific->getSpecificValueId()->getEndpoint();
+            $endpointId = $specific->getId()->getEndpoint();
+            $specificValueEndpointId = $specific->getSpecificValueId()->getEndpoint();
+            if (empty($endpointId) || empty($specificValueEndpointId)) {
+                continue;
+            }
+            $specificData[(int)$endpointId]['options'][] = (int)$specificValueEndpointId;
         }
 
         return $specificData;

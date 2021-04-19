@@ -38,6 +38,8 @@ final class SupportedPlugins
     const PLUGIN_WOOCOMMERCE_MULTILUNGUAL = 'WooCommerce Multilingual';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE = 'WPC Product Quantity for WooCommerce';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM = 'WPC Product Quantity for WooCommerce (Premium)';
+    const PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE = 'Additional Variation Images Gallery for WooCommerce';
+    const PLUGIN_RANK_MATH_SEO = 'Rank Math SEO';
 
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
@@ -79,7 +81,9 @@ final class SupportedPlugins
         self::PLUGIN_WPML_TRANSLATION_MANAGEMENT,
         self::PLUGIN_WOOCOMMERCE_MULTILUNGUAL,
         self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE,
-        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM
+        self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM,
+        self::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE,
+        self::PLUGIN_RANK_MATH_SEO,
     ];
 
     const INCOMPATIBLE_PLUGINS = [

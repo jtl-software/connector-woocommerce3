@@ -9,6 +9,11 @@ namespace JtlWooCommerceConnector\Utilities;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Model\CategoryI18n;
+use jtl\Connector\Model\DataModel;
+use jtl\Connector\Model\ManufacturerI18n;
+use jtl\Connector\Model\ProductAttr;
+use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
@@ -18,7 +23,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
  *
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Util extends Singleton
+final class Util extends WordpressUtils
 {
     const TO_SYNC = 'jtlconnector_master_products_to_sync';
     const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
@@ -513,5 +518,65 @@ final class Util extends Singleton
                 27
             )
         );
+    }
+
+
+    /**
+     * @param string $attributeName
+     * @param string $languageIso
+     * @param ProductAttr ...$productAttributes
+     * @return ProductAttrI18n|null
+     */
+    public static function findAttributeI18nByName(string $attributeName, string $languageIso, ProductAttr ...$productAttributes): ?ProductAttrI18n
+    {
+        $attribute = null;
+        foreach ($productAttributes as $productAttribute) {
+            foreach ($productAttribute->getI18ns() as $productAttributeI18n) {
+                if ($productAttributeI18n->getLanguageISO() === $languageIso && $attributeName === $productAttributeI18n->getName()) {
+                    $attribute = $productAttributeI18n;
+                    break 2;
+                }
+            }
+        }
+        return $attribute;
+    }
+
+    /**
+     * @param array $dataSet
+     * @param int $termId
+     */
+    public static function updateTermMeta(array $dataSet, int $termId)
+    {
+        foreach ($dataSet as $metaKey => $metaValue) {
+            if (!empty($metaValue)) {
+                $oldTermMeta = get_term_meta($termId, $metaKey, true);
+                if (empty($oldTermMeta)) {
+                    add_term_meta($oldTermMeta, $metaKey, $metaKey);
+                } else {
+                    update_term_meta($termId, $metaKey, $metaValue, $oldTermMeta);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param CategoryI18n|ManufacturerI18n $i18n
+     * @param array $rankMathSeoData
+     */
+    public static function setI18nRankMathSeo(DataModel $i18n, array $rankMathSeoData)
+    {
+        foreach($rankMathSeoData as $termMeta){
+            switch ($termMeta['meta_key']) {
+                case 'rank_math_title':
+                    $i18n->setTitleTag($termMeta['rank_math_title']);
+                    break;
+                case 'rank_math_description':
+                    $i18n->setMetaDescription($termMeta['rank_math_description']);
+                    break;
+                case 'rank_math_focus_keyword':
+                    $i18n->setMetaKeywords($termMeta['rank_math_focus_keyword']);
+                    break;
+            }
+        }
     }
 }

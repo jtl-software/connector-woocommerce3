@@ -35,8 +35,8 @@ class ProductStockLevel extends BaseController
         ));
 
         if ($product->getConsiderStock()) {
-            \update_post_meta($product->getId()->getEndpoint(), '_backorders', $product->getPermitNegativeStock() ? 'yes' : 'no');
-            \wc_update_product_stock($wcProductId, \wc_stock_amount($stockLevel));
+            \update_post_meta($product->getId()->getEndpoint(), '_backorders', $this->getBackorderValue($product));
+            \wc_update_product_stock($variationId, \wc_stock_amount($stockLevel));
         } else {
             \delete_post_meta($wcProductId, '_backorders');
             \delete_post_meta($wcProductId, '_stock');
@@ -52,7 +52,7 @@ class ProductStockLevel extends BaseController
         if ('yes' == get_option('woocommerce_manage_stock')) {
             \update_post_meta($wcProductId, '_manage_stock', $product->getConsiderStock() && !$product->getIsMasterProduct() ? 'yes' : 'no');
 
-            \update_post_meta($product->getId()->getEndpoint(), '_backorders', $product->getPermitNegativeStock() ? 'yes' : 'no');
+            \update_post_meta($product->getId()->getEndpoint(), '_backorders', $this->getBackorderValue($product));
 
             if ($product->getConsiderStock()) {
                 if (!$wcProduct->is_type('variable')) {
@@ -70,5 +70,22 @@ class ProductStockLevel extends BaseController
         } elseif (!$wcProduct->is_type('variable')) {
             \wc_update_product_stock_status($wcProductId, $stockStatus);
         }
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return string
+     */
+    protected function getBackorderValue(ProductModel $product): string
+    {
+        $value = $product->getPermitNegativeStock() ? 'yes' : 'no';
+        if ($value === 'yes') {
+            $attribute = Util::findAttributeI18nByName(ProductVaSpeAttrHandler::NOTIFY_CUSTOMER_ON_OVERSELLING, Util::getInstance()->getWooCommerceLanguage(), ...$product->getAttributes());
+            if (!is_null($attribute) && $attribute->getValue() === 'true') {
+                $value = 'notify';
+            }
+        }
+
+        return $value;
     }
 }

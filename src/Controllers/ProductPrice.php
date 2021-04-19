@@ -26,7 +26,10 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
         $wcProduct = \wc_get_product($productPrice->getProductId()->getEndpoint());
 
         if ($wcProduct !== false) {
-            $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+            $vat = $productPrice->getVat();
+            if (is_null($vat)) {
+                $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+            }
 
             $wcProducts = [$wcProduct];
             if ($this->wpml->canBeUsed()) {
