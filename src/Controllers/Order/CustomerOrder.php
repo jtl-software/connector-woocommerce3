@@ -124,21 +124,26 @@ class CustomerOrder extends BaseController
 
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
-                $orderMetaData = $order->get_meta_data();
-                $pui = (sprintf(
-                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
-                    number_format((float)$customerOrder->getTotalSumGross(), 2),
-                    $customerOrder->getCurrencyIso(),
-                    $orderMetaData['payment_due_date'] ?? '',
-                    sprintf(
-                        'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
-                        $orderMetaData['account_holder_name'] ?? '',
-                        $orderMetaData['bank_name'] ?? '',
-                        $orderMetaData['international_bank_account_number'] ?? '',
-                        $orderMetaData['bank_identifier_code'] ?? ''
-                    ),
-                    $orderMetaData['reference_number']
-                ));
+                $orderMetaData = $order->get_meta('_payment_instruction_result');
+                if(!empty($orderMetaData) && $orderMetaData['instruction_type'] === Payment::PAY_UPON_INVOICE) {
+                    $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
+                    if(!empty($bankData)) {
+                        $pui = (sprintf(
+                            'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
+                            number_format((float)$customerOrder->getTotalSumGross(), 2),
+                            $customerOrder->getCurrencyIso(),
+                            $order->get_meta('payment_due_date') ?? '',
+                            sprintf(
+                                'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
+                                $bankData['account_holder_name'] ?? '',
+                                $bankData['bank_name'] ?? '',
+                                $bankData['international_bank_account_number'] ?? '',
+                                $bankData['bank_identifier_code'] ?? ''
+                            ),
+                            $orderMetaData['reference_number']
+                        ));
+                    }
+                }
             }
 
             $customerOrder->setPui($pui);
