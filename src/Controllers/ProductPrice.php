@@ -6,20 +6,12 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductPrice as JtlProductPrice;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Controllers\Product\Product;
-use JtlWooCommerceConnector\Controllers\Product\ProductPrice as MainProductPrice;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice
 {
-    use PushTrait;
-
     /**
      * @param JtlProductPrice $productPrice
      *
@@ -35,7 +27,7 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
                 $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
             }
 
-            parent::pushData(
+            $this->savePrices(
                 $wcProduct,
                 $vat,
                 $this->getJtlProductType($wcProduct),

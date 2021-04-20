@@ -9,14 +9,8 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
@@ -31,7 +25,7 @@ class Product extends BaseController
         TYPE_CHILD = 'child',
         TYPE_SINGLE = 'single';
 
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
+    use WawiProductPriceSchmuddelTrait;
 
     private static $idCache = [];
 
@@ -491,7 +485,7 @@ class Product extends BaseController
         (new Product2Category)->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
 
-        (new ProductPrice)->pushData($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
+        (new ProductPrice)->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
 
         (new ProductSpecialPrice)->pushData($product, $wcProduct, $productType);
     }

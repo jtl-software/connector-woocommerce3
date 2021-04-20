@@ -9,10 +9,6 @@ namespace JtlWooCommerceConnector\Controllers;
 use jtl\Connector\Model\CrossSelling as CrossSellingModel;
 use jtl\Connector\Model\CrossSellingItem;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -23,8 +19,6 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
  */
 class CrossSelling extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-
     const CROSSSELLING_META_KEY = '_crosssell_ids';
     const UPSELLING_META_KEY = '_upsell_ids';
 

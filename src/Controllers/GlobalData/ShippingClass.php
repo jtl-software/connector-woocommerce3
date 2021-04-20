@@ -8,14 +8,10 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ShippingClass as ShippingClassModel;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 
 class ShippingClass
 {
-    use PullTrait, PushTrait;
-    
     const TERM_TAXONOMY = 'product_shipping_class';
     
     public function pullData()

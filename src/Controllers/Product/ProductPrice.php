@@ -205,7 +205,7 @@ class ProductPrice extends BaseController
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
      */
-    public function pushData(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    public function savePrices(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
     {
         Util::deleteB2Bcache();
 
