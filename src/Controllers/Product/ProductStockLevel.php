@@ -36,7 +36,7 @@ class ProductStockLevel extends BaseController
 
         if ($product->getConsiderStock()) {
             \update_post_meta($product->getId()->getEndpoint(), '_backorders', $this->getBackorderValue($product));
-            \wc_update_product_stock($variationId, \wc_stock_amount($stockLevel));
+            \wc_update_product_stock($wcProductId, \wc_stock_amount($stockLevel));
         } else {
             \delete_post_meta($wcProductId, '_backorders');
             \delete_post_meta($wcProductId, '_stock');

@@ -7,10 +7,7 @@
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\GlobalData as GlobalDataModel;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\GermanMarket\GermanMarket;
 use JtlWooCommerceConnector\Utilities\Config;
@@ -21,8 +18,6 @@ use JtlWooCommerceConnector\Utilities\Config;
  */
 class GlobalData extends BaseController
 {
-    use PullTrait, PushTrait;
-
     /**
      * @return array
      * @throws \jtl\Connector\Core\Exception\LanguageException

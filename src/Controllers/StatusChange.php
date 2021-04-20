@@ -8,12 +8,9 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\CustomerOrder;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 
 class StatusChange extends BaseController
 {
-    use PushTrait;
-
     /**
      * @param StatusChangeModel $statusChange
      * @return StatusChangeModel

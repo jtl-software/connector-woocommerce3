@@ -10,19 +10,13 @@ use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\GermanMarket\GermanMarket;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
-use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -40,7 +34,7 @@ class Product extends BaseController
         TYPE_CHILD = 'child',
         TYPE_SINGLE = 'single';
 
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
+    use WawiProductPriceSchmuddelTrait;
 
     /**
      * @var array
@@ -359,7 +353,7 @@ class Product extends BaseController
 
         $this->fixProductPriceForCustomerGroups($jtlProduct, $wcProduct);
 
-        (new ProductPrice)->pushData($wcProduct, $jtlProduct->getVat(), $productType, ...$jtlProduct->getPrices());
+        (new ProductPrice)->updatePrices($wcProduct, $jtlProduct->getVat(), $productType, ...$jtlProduct->getPrices());
 
         (new ProductSpecialPrice)->pushData($jtlProduct, $wcProduct, $productType);
 

@@ -7,14 +7,11 @@
 namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductStockLevel extends BaseController
 {
-    use PushTrait;
-
     public function pushData(ProductStockLevelModel $productStockLevel)
     {
         $productId = $productStockLevel->getProductId()->getEndpoint();

@@ -4,7 +4,6 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\CrossSellingGroupI18n;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 
 /**
@@ -13,8 +12,6 @@ use JtlWooCommerceConnector\Models\CrossSellingGroup;
  */
 class CrossSellingGroups extends BaseController
 {
-    use PullTrait;
-
     /**
      * @return array
      * @throws \jtl\Connector\Core\Exception\LanguageException

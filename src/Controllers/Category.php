@@ -10,10 +10,6 @@ use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
@@ -24,8 +20,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Category extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-    
     private static $idCache = [];
 
     /**

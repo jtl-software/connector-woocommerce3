@@ -9,10 +9,6 @@ namespace JtlWooCommerceConnector\Controllers;
 use jtl\Connector\Model\Customer as CustomerModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
-use JtlWooCommerceConnector\Logger\WooCommerceLogger;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
@@ -23,8 +19,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Customer extends BaseController
 {
-    use PullTrait, PushTrait, StatsTrait;
-
     public function pullData($limit)
     {
         $customers = $this->pullCustomers($limit);

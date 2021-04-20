@@ -9,7 +9,6 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\CustomerGroupI18n;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -18,8 +17,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroup
 {
-    use PullTrait;
-    
     const DEFAULT_GROUP = 'customer';
     
     public function pullData()

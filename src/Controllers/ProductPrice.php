@@ -8,18 +8,15 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\ProductPrice as JtlProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\Product;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice
 {
-    use PushTrait;
-
     /**
      * @param JtlProductPrice $productPrice
-     *
      * @return JtlProductPrice
+     * @throws \Exception
      */
     public function pushData(JtlProductPrice $productPrice)
     {
@@ -37,7 +34,7 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
                 $wcProducts = array_merge($wcProducts, $wcProductTranslations);
             }
             foreach ($wcProducts as $wcProduct) {
-                parent::pushData(
+                parent::updatePrices(
                     $wcProduct,
                     $vat,
                     $this->getJtlProductType($wcProduct),
