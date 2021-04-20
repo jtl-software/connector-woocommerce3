@@ -41,6 +41,7 @@ class Manufacturer extends BaseController
     protected function pullData($limit)
     {
         $manufacturers = [];
+        /** @var PerfectWooCommerceBrands $perfectWooCommerceBrands */
         $perfectWooCommerceBrands = $this->getPluginsManager()->get(PerfectWooCommerceBrands::class);
 
         if ($perfectWooCommerceBrands->canBeUsed()) {
@@ -49,11 +50,9 @@ class Manufacturer extends BaseController
                 $manufacturerData = $this->wpml
                     ->getComponent(WpmlPerfectWooCommerceBrands::class)
                     ->getManufacturers((int)$limit);
-
             } else {
                 $manufacturerData = $perfectWooCommerceBrands->getManufacturers((int)$limit);
             }
-
 
             foreach ($manufacturerData as $manufacturerDataSet) {
 
@@ -85,9 +84,7 @@ class Manufacturer extends BaseController
                         );
 
                         if (isset($term['term_id'])) {
-                            $i18n = $this
-                                ->getPluginsManager()
-                                ->get(PerfectWooCommerceBrands::class)
+                            $i18n = $perfectWooCommerceBrands
                                 ->createManufacturerI18n(
                                     $manufacturer,
                                     Language::convert($translation->language_code),

@@ -278,9 +278,7 @@ class Product extends BaseController
             (new ProductB2BMarketFields)->pushData($product);
         }
 
-        if ($this->getPluginsManager()->get(YoastSeo::class)->canBeUsed()) {
-            (new ProductMetaSeo)->pushData($newPostId, $defaultI18n);
-        }
+        (new ProductMetaSeo)->pushData($newPostId, $defaultI18n);
 
         remove_filter('content_save_pre', 'wp_filter_post_kses');
         remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');

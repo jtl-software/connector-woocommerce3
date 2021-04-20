@@ -7,6 +7,7 @@ use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Category;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
@@ -60,15 +61,21 @@ class WpmlCategory extends AbstractComponent
                 ->saveWooCommerceCategory($categoryI18n, $parentCategoryId, $categoryId);
 
             if (!empty($result)) {
-                $categoryId = $result['term_id'];
+                $categoryId = (int) $result['term_id'];
 
+                /** @var YoastSeo $yoastSeo */
                 $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
+                /** @var RankMathSeo $rankMathSeo */
+                $rankMathSeo = $this->getCurrentPlugin()->getPluginsManager()->get(RankMathSeo::class);
+
                 if ($yoastSeo->canBeUsed()) {
-                    $yoastSeo->setCategorySeoData((int)$categoryId, $categoryI18n);
+                    $yoastSeo->setCategorySeoData($categoryId, $categoryI18n);
+                } elseif ($rankMathSeo->canBeUsed()) {
+                    $rankMathSeo->updateWpSeoTaxonomyMeta($categoryId, $categoryI18n);
                 }
 
                 $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                    $result['term_id'],
+                    $categoryId,
                     self::PRODUCT_CATEGORY_TYPE,
                     $trid,
                     $languageCode

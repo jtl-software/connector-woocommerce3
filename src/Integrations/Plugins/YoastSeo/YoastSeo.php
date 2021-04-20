@@ -7,6 +7,7 @@ use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Model\ManufacturerI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class YoastSeo

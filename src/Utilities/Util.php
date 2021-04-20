@@ -551,7 +551,7 @@ final class Util extends WordpressUtils
             if (!empty($metaValue)) {
                 $oldTermMeta = get_term_meta($termId, $metaKey, true);
                 if (empty($oldTermMeta)) {
-                    add_term_meta($oldTermMeta, $metaKey, $metaKey);
+                    add_term_meta($termId, $metaKey, $metaValue);
                 } else {
                     update_term_meta($termId, $metaKey, $metaValue, $oldTermMeta);
                 }

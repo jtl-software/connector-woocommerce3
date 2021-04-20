@@ -11,8 +11,8 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductMetaSeo extends BaseController
 {
@@ -23,10 +23,9 @@ class ProductMetaSeo extends BaseController
      */
     public function pushData($newPostId, ProductI18nModel $tmpMeta)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+        if ($this->getPluginsManager()->get(YoastSeo::class)->canBeUsed()) {
             $this->setSeoValues($newPostId, $tmpMeta, '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw');
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        } elseif ($this->getPluginsManager()->get(RankMathSeo::class)->canBeUsed()) {
             $this->setSeoValues($newPostId, $tmpMeta, 'rank_math_title', 'rank_math_description', 'rank_math_focus_keyword');
         }
     }
@@ -35,14 +34,14 @@ class ProductMetaSeo extends BaseController
      * @param \WC_Product $wcProduct
      * @param ProductModel $model
      * @return array|null
+     * @throws Exception
      */
     public function pullData(\WC_Product $wcProduct, ProductModel $model): ?array
     {
         $values = null;
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
+        if ($this->getPluginsManager()->get(YoastSeo::class)->canBeUsed()) {
             $values = $this->getSeoValues($wcProduct, '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw');
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        } elseif ($this->getPluginsManager()->get(RankMathSeo::class)->canBeUsed()) {
             $values = $this->getSeoValues($wcProduct, 'rank_math_title', 'rank_math_description', 'rank_math_focus_keyword');
         }
 

@@ -6,6 +6,7 @@ use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use DateTime;
@@ -110,6 +111,9 @@ class WooCommerceProduct extends AbstractComponent
             $i18n->setMeasurementUnitName($germanized->getUnit($wcProduct));
         }
 
+        /** @var RankMathSeo $rankMathSeo */
+        $rankMathSeo = $this->getPluginsManager()->get(RankMathSeo::class);
+        /** @var YoastSeo $yoastSeo */
         $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $tmpMeta = $yoastSeo->findProductSeoData($wcProduct);
@@ -119,6 +123,8 @@ class WooCommerceProduct extends AbstractComponent
                     ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
                     ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
             }
+        } elseif ($rankMathSeo->canBeUsed()) {
+            $rankMathSeo->setProductSeoData($wcProduct, $i18n);
         }
 
         return $i18n;

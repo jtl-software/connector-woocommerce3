@@ -23,6 +23,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlStringTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Utilities\Db;
 
@@ -67,6 +68,7 @@ class PluginsManager
             )
         )
             ->addPlugin(new YoastSeo())
+            ->addPlugin(new RankMathSeo())
             ->addPlugin(new PerfectWooCommerceBrands())
             ->addPlugin(new Germanized())
             ->addPlugin(new GermanMarket())

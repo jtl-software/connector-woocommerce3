@@ -95,7 +95,7 @@ class Connector extends BaseConnector {
 
 
             if (in_array($controllerName = $this->getMethod()->getController(), ['product', 'category'])) {
-                (new B2BMarket())->handleCustomerGroupsBlacklists($controllerName, ...$entities);
+                B2BMarket::getInstance()->handleCustomerGroupsBlacklists($controllerName, ...$entities);
             }
 			
 			return $action;

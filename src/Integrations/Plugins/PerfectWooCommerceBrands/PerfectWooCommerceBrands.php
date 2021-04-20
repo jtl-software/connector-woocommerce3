@@ -5,10 +5,12 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands;
 use jtl\Connector\Model\Manufacturer;
 use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use \WP_Error;
 
 /**
@@ -46,6 +48,8 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
         /** @var YoastSeo $yoastSeo */
         $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
+        /** @var RankMathSeo $rankMathSeo */
+        $rankMathSeo = $this->getPluginsManager()->get(RankMathSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $seoData = $yoastSeo->findManufacturerSeoData($termId);
             if (!empty($seoData)) {
@@ -53,7 +57,13 @@ class PerfectWooCommerceBrands extends AbstractPlugin
                     ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $manufacturer->getName())
                     ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $manufacturer->getName());
             }
+        } elseif($rankMathSeo->canBeUsed()){
+            $seoData = $rankMathSeo->findManufacturerSeoData($termId);
+            if (!empty($seoData)) {
+                Util::setI18nRankMathSeo($i18n, $seoData);
+            }
         }
+
 
         return $i18n;
     }
@@ -100,9 +110,14 @@ class PerfectWooCommerceBrands extends AbstractPlugin
                 $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);
             }
 
+            /** @var RankMathSeo $rankMathSeo */
+            $rankMathSeo = $this->getPluginsManager()->get(RankMathSeo::class);
+            /** @var YoastSeo $yoastSeo */
             $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
             if ($yoastSeo->canBeUsed()) {
                 $yoastSeo->setManufacturerSeoData((int)$manufacturerTerm->term_id, $manufacturerI18n);
+            } elseif ($rankMathSeo->canBeUsed()) {
+                $rankMathSeo->updateWpSeoTaxonomyMeta((int)$manufacturerTerm->term_id, $manufacturerI18n);
             }
         }
 

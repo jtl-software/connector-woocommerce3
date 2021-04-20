@@ -7,6 +7,7 @@ use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Model\CategoryI18n as CategoryI18nModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
@@ -113,9 +114,14 @@ class WooCommerceCategory extends AbstractComponent
 
         $categoryId = (int) $result['term_id'];
 
+        /** @var RankMathSeo $rankMathSeo */
+        $rankMathSeo = $this->getCurrentPlugin()->getPluginsManager()->get(RankMathSeo::class);
+        /** @var YoastSeo $yoastSeo */
         $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $yoastSeo->setCategorySeoData($categoryId, $categoryI18n);
+        } elseif ($rankMathSeo->canBeUsed()) {
+            $rankMathSeo->updateWpSeoTaxonomyMeta($categoryId, $categoryI18n);
         }
 
         return $result;

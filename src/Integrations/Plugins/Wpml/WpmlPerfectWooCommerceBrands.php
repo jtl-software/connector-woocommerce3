@@ -6,6 +6,7 @@ use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -90,11 +91,16 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 WpErrorLogger::getInstance()->logError($result);
             } else {
                 if (isset($result['term_id'])) {
-                    $manufacturerId = $result['term_id'];
+                    $manufacturerId = (int)$result['term_id'];
 
+                    /** @var YoastSeo $yoastSeo */
                     $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
+                    /** @var RankMathSeo $rankMathSeo */
+                    $rankMathSeo = $this->getCurrentPlugin()->getPluginsManager()->get(RankMathSeo::class);
                     if ($yoastSeo->canBeUsed()) {
-                        $yoastSeo->setManufacturerSeoData((int)$manufacturerId, $manufacturerI18n);
+                        $yoastSeo->setManufacturerSeoData($manufacturerId, $manufacturerI18n);
+                    } elseif ($rankMathSeo->canBeUsed()) {
+                        $rankMathSeo->updateWpSeoTaxonomyMeta($manufacturerId, $manufacturerI18n);
                     }
 
                     $this->getCurrentPlugin()->getSitepress()->set_element_language_details(

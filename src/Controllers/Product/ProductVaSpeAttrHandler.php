@@ -15,7 +15,6 @@ use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
-use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use jtl\Connector\Model\Specific;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -249,7 +248,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
             $jtlNewProductSpecifics = array_filter(array_map(function (ProductSpecificModel $productSpecific) {
                 return $productSpecific->getId()->getEndpoint();
-            }, $product->getSpecifics()), function ($value) {
+            }, $jtlProduct->getSpecifics()), function ($value) {
                 return $value !== '';
             });
 
