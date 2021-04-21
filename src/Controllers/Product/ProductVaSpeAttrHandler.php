@@ -779,7 +779,7 @@ class ProductVaSpeAttrHandler extends BaseController
             && !is_null($val[0]['endpoint_id'])
             && !is_null($val[0]['host_id'])
                 ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+                : (new Identity)->setEndpoint($val[0]['term_id']);
         }
         
         return $result;
