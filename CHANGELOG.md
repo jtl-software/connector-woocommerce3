@@ -2,6 +2,12 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.22.0
+* Bugfix - CO-1370 - Improved setting shipping vat rate
+* Bugfix - CO-1406 - Fixed problem with duplicated variations after initial import
+* Bugfix - CO-1452 - Fixed setting invalid variation value
+* Bugfix - CO-1484 - Fixed variants preselection
+
 ## 1.21.1
 * Bugfix - Added missing constant
 
