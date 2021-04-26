@@ -130,7 +130,7 @@ class CustomerOrder extends BaseController
                     if(!empty($bankData)) {
                         $pui = (sprintf(
                             'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
-                            number_format((float)$customerOrder->getTotalSumGross(), 2),
+                            number_format((float)$order->get_total(), 2),
                             $customerOrder->getCurrencyIso(),
                             $order->get_meta('payment_due_date') ?? '',
                             sprintf(
