@@ -48,9 +48,10 @@ class StatusChange extends BaseController
     {
         global $wpdb;
         $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
-        $paymentLink = $this->database->queryOne('SELECT * FROM %s WHERE `endpoint_id` = %s', $jclp, $endpointId = $statusChange->getCustomerOrderId()->getEndpoint());
+        $endpointId = $statusChange->getCustomerOrderId()->getEndpoint();
+        $paymentLink = $this->database->queryOne(sprintf('SELECT * FROM %s WHERE `endpoint_id` = %s', $jclp, $endpointId));
         if (empty($paymentLink)) {
-            $this->database->query('INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)', $jclp, $endpointId, 0);
+            $this->database->query(sprintf('INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)', $jclp, $endpointId, 0));
         }
     }
 
