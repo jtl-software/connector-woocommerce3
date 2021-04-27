@@ -14,7 +14,7 @@ use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class CustomerOrderBillingAddress extends BaseController
+class CustomerOrderBillingAddress extends CustomerOrderAddress
 {
     public function pullData(\WC_Order $order)
     {
@@ -26,17 +26,12 @@ class CustomerOrderBillingAddress extends BaseController
             ->setExtraAddressLine($order->get_billing_address_2())
             ->setZipCode($order->get_billing_postcode())
             ->setCity($order->get_billing_city())
-            ->setState($order->get_billing_state())
+            ->setState($this->getState($order->get_billing_country(), $order->get_billing_state()))
             ->setCountryIso($order->get_billing_country())
             ->setEMail($order->get_billing_email())
             ->setCompany($order->get_billing_company())
             ->setPhone($order->get_billing_phone())
-            ->setCustomerId(new Identity($order->get_customer_id() !== 0
-                ? $order->get_customer_id()
-                : Id::link([
-                    Id::GUEST_PREFIX,
-                    $order->get_id(),
-                ])))
+            ->setCustomerId($this->getCustomerId($order))
             ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
         
         if (strcmp($address->getCity(), '') === 0) {

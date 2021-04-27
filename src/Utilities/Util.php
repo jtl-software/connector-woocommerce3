@@ -572,4 +572,12 @@ final class Util extends WordpressUtils
             }
         }
     }
+
+    /**
+     * @return array|false
+     */
+    public static function getStates()
+    {
+        return WC()->countries->get_states();
+    }
 }
