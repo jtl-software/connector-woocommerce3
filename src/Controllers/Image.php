@@ -384,18 +384,17 @@ class Image extends BaseController
         if (copy($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(basename($destination), null);
 
-            $attachment = [
+            $attachment = [];
+            if($endpointId !== '') {
+                $attachment = \get_post($endpointId, ARRAY_A);
+            }
+
+            $attachment = array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
                 'post_title' => preg_replace('/\.[^.]+$/', '', $fileName),
                 'post_status' => 'inherit',
-                'ID' => $endpointId,
-            ];
-
-            if (empty($endpointId)) {
-                unset($attachment['ID']);
-                $attachment['post_content'] = '';
-            }
+            ]);
 
             $post = \wp_insert_attachment($attachment, $destination, $image->getForeignKey()->getEndpoint());
 
