@@ -20,7 +20,7 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @param string $taxonomy
      * @param SpecificValue $specificValue
      * @param SpecificValueI18n $specificValueI18n
-     * @param null $slug
+     * @param int $endValId
      * @return SpecificValue|null
      * @throws \Exception
      */
@@ -28,11 +28,11 @@ class WooCommerceSpecificValue extends AbstractComponent
         string $taxonomy,
         SpecificValue $specificValue,
         SpecificValueI18n $specificValueI18n,
-        $slug = null
+        $endValId = 0
     ): ?SpecificValue {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
-            'slug' => $slug ?? wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
+            'slug' => wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
         ];
 
         $exValId = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(
@@ -51,8 +51,6 @@ class WooCommerceSpecificValue extends AbstractComponent
         } else {
             $exValId = null;
         }
-
-        $endValId = (int)$specificValue->getId()->getEndpoint();
 
         if (is_null($exValId) && $endValId === 0) {
             $newTerm = \wp_insert_term(

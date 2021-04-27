@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 use jtl\Connector\Model\Specific;
 use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlSpecific
@@ -57,30 +58,35 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param SpecificI18nModel $defaultTranslation
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws InjectionException
      */
     public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation)
     {
-        foreach ($specific->getI18ns() as $specificI18n) {
+        $originalSlug = wc_sanitize_taxonomy_name(substr(trim($defaultTranslation->getName()), 0, 27));
+
+        /** @var WpmlStringTranslation $stringTranslationComponent */
+        $stringTranslationComponent = $this->getCurrentPlugin()->getComponent(WpmlStringTranslation::class);
+        $stringTranslationComponent->registerString($originalSlug, $defaultTranslation->getName(), $defaultTranslation->getLanguageISO());
+
+        $translations = [];
+
+        foreach ($specific->getI18ns() as $specificI18n){
             $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificI18n->getLanguageISO());
             if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
                 continue;
             }
+            $slug = wc_sanitize_taxonomy_name(substr(trim($specificI18n->getName()), 0, 27));
 
-            $translatedName = apply_filters('wpml_translate_single_string', $defaultTranslation->getName(), 'WordPress',
-                $specificI18n->getName(), $languageCode);
+            $translations[$languageCode] = $slug;
 
-            if ($translatedName !== $specificI18n->getName()) {
-                icl_register_string(
-                    'WordPress',
-                    sprintf('taxonomy singular name: %s', $defaultTranslation->getName()),
-                    $specificI18n->getName(),
-                    false,
-                    $languageCode
-                );
+            $originalGeneralName = sprintf('Produkt %s',$defaultTranslation->getName());
 
-            }
+            $stringTranslationComponent->translate($originalSlug, $slug, $specificI18n->getLanguageISO());
+            $stringTranslationComponent->translate($originalGeneralName, $specificI18n->getName(), $specificI18n->getLanguageISO());
+            $stringTranslationComponent->translate($defaultTranslation->getName(), $specificI18n->getName(), $specificI18n->getLanguageISO());
         }
+
+        return $translations;
     }
 
     /**

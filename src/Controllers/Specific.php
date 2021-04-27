@@ -98,21 +98,7 @@ class Specific extends BaseController
     {
         //WooFix
         $specific->setType('string');
-        $defaultSpecificTranslation = null;
-
-        foreach ($specific->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {
-                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
-                    $defaultSpecificTranslation = $i18n;
-                    break;
-                }
-            } else {
-                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    $defaultSpecificTranslation = $i18n;
-                    break;
-                }
-            }
-        }
+        $defaultSpecificTranslation = $this->getDefaultTranslation($specific->getI18ns());
 
         if ($defaultSpecificTranslation !== null) {
 
@@ -128,14 +114,13 @@ class Specific extends BaseController
             $attrName = wc_sanitize_taxonomy_name(Util::removeSpecialchars($defaultSpecificTranslation->getName()));
 
             //Get taxonomy
-            $taxonomy = $attrName ? 'pa_' . wc_sanitize_taxonomy_name(substr(trim($defaultSpecificTranslation->getName()),
-                    0, 27)) : '';
+            $taxonomy = $attrName ? 'pa_' . wc_sanitize_taxonomy_name(substr(trim($defaultSpecificTranslation->getName()), 0, 27)) : '';
 
             //Register taxonomy for current request
             register_taxonomy($taxonomy, null);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml
+                $translations = $this->wpml
                     ->getComponent(WpmlSpecific::class)
                     ->setTranslations($specific, $defaultSpecificTranslation);
             }
@@ -143,34 +128,22 @@ class Specific extends BaseController
             /** @var SpecificValueModel $value */
             foreach ($specific->getValues() as $key => $value) {
                 $value->getSpecificId()->setEndpoint($specific->getId()->getEndpoint());
-                $defaultSpecificValueTranslation = null;
-
-                foreach ($value->getI18ns() as $i18n) {
-                    if ($this->wpml->canBeUsed()) {
-                        if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
-                            $defaultSpecificValueTranslation = $i18n;
-                            break;
-                        }
-                    } else {
-                        if (Util::getInstance()->getWooCommerceLanguage() === $i18n->getLanguageISO()) {
-                            $defaultSpecificValueTranslation = $i18n;
-                            break;
-                        }
-                    }
-                }
+                $defaultSpecificValueTranslation = $this->getDefaultTranslation($value->getI18ns());
 
                 if (!is_null($defaultSpecificValueTranslation)) {
+                    $endValId = (int)$value->getId()->getEndpoint();
                     $this->getPluginsManager()
                         ->get(WooCommerce::class)
                         ->getComponent(WooCommerceSpecificValue::class)
-                        ->save($taxonomy, $value, $defaultSpecificValueTranslation);
+                        ->save($taxonomy, $value, $defaultSpecificValueTranslation, $endValId);
+
+                    if ($this->wpml->canBeUsed()) {
+                        $this->wpml
+                            ->getComponent(WpmlSpecificValue::class)
+                            ->setTranslations($taxonomy, $value);
+                    }
                 }
 
-                if ($this->wpml->canBeUsed()) {
-                    $this->wpml
-                        ->getComponent(WpmlSpecificValue::class)
-                        ->setTranslations($taxonomy, $value);
-                }
             }
         }
 

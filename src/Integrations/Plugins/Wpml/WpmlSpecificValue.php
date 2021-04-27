@@ -42,7 +42,7 @@ class WpmlSpecificValue extends AbstractComponent
     public function setTranslations(string $taxonomy, SpecificValue $specificValue)
     {
         $type = 'tax_' . $taxonomy;
-        $trid = $this->getCurrentPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
+        $trid = (int)$this->getCurrentPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
             $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
@@ -50,24 +50,22 @@ class WpmlSpecificValue extends AbstractComponent
                 continue;
             }
 
-            $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
+            $specificTranslation = $this->findSpecificValueTranslation($trid, $taxonomy, $languageCode);
             $specificId = null;
             if (isset($specificTranslation['term_taxonomy_id'])) {
                 $specificValue->getId()->setEndpoint($specificTranslation['term_taxonomy_id']);
             }
 
-            $slug = wc_sanitize_taxonomy_name($specificValueI18n->getValue()) . '-' . $languageCode;
-
             /** @var SpecificValue $specificValue |null */
-            $specificValueSaved = $this->getCurrentPlugin()
+            $this->getCurrentPlugin()
                 ->getPluginsManager()
                 ->get(WooCommerce::class)
                 ->getComponent(WooCommerceSpecificValue::class)
-                ->save($taxonomy, $specificValue, $specificValueI18n, $slug);
+                ->save($taxonomy, $specificValue, $specificValueI18n);
 
-            if (!is_null($specificValueSaved) && !empty($specificValueSaved->getId()->getEndpoint())) {
+            if (!is_null($specificValue) && !empty($specificValue->getId()->getEndpoint())) {
                 $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                    $specificValueSaved->getId()->getEndpoint(),
+                    $specificValue->getId()->getEndpoint(),
                     $type,
                     $trid,
                     $languageCode

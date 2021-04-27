@@ -3,6 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlStringTranslation
@@ -14,6 +15,7 @@ class WpmlStringTranslation extends AbstractComponent
      * @param string $sourceName
      * @param string $targetName
      * @param string $wawiIsoLanguage
+     * @throws InjectionException
      */
     public function translate(string $sourceName, string $targetName, string $wawiIsoLanguage)
     {
@@ -27,24 +29,20 @@ class WpmlStringTranslation extends AbstractComponent
     }
 
     /**
-     * @param $taxonomy
-     * @param $name
-     * @param $wawiIsoLanguage
+     * @param string $taxonomy
+     * @param string $name
+     * @param string $wawiIsoLanguage
+     * @throws InjectionException
      */
     public function registerString(string $taxonomy, string $name, string $wawiIsoLanguage)
     {
         $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
         $context = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
 
-        icl_register_string($context, sprintf("URL %s tax slug", $taxonomy), $taxonomy, false,
-            $languageCode);
+        icl_register_string($context, sprintf("URL: %s tax slug", $taxonomy), $taxonomy, false, $languageCode);
         $nameSingular = $name;
-        icl_register_string($context,
-            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_SINGULAR . $nameSingular, $nameSingular,
-            false, $languageCode);
+        icl_register_string($context, \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_SINGULAR . $nameSingular, $nameSingular, false, $languageCode);
         $nameGeneral = 'Produkt ' . $name;
-        icl_register_string($context,
-            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_GENERAL . $nameGeneral, $nameGeneral, false,
-            $languageCode);
+        icl_register_string($context, \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_GENERAL . $nameGeneral, $nameGeneral, false, $languageCode);
     }
 }

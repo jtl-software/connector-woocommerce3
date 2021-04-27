@@ -8,8 +8,15 @@
 namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Core\Controller\Controller;
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\Language;
+use jtl\Connector\Model\CategoryI18n;
+use jtl\Connector\Model\ManufacturerI18n;
+use jtl\Connector\Model\ProductI18n;
+use jtl\Connector\Model\SpecificI18n;
+use jtl\Connector\Model\SpecificValueI18n;
 use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Integrations\IntegrationsManager;
@@ -19,6 +26,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use ReflectionClass;
 
 abstract class BaseController extends Controller
@@ -175,5 +183,30 @@ abstract class BaseController extends Controller
         }
 
         return $action;
+    }
+
+    /**
+     * @param array $i18ns
+     * @return CategoryI18n|ManufacturerI18n|ProductI18n|SpecificI18n|null
+     * @throws LanguageException
+     */
+    protected function getDefaultTranslation(array $i18ns)
+    {
+        $defaultSpecificTranslation = null;
+        /** @var ProductI18n|SpecificI18n|CategoryI18n|ManufacturerI18n $i18n */
+        foreach ($i18ns as $i18n) {
+            if ($this->wpml->canBeUsed()) {
+                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
+                    $defaultSpecificTranslation = $i18n;
+                    break;
+                }
+            } else {
+                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $defaultSpecificTranslation = $i18n;
+                    break;
+                }
+            }
+        }
+        return $defaultSpecificTranslation;
     }
 }
