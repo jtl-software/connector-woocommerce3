@@ -2,6 +2,14 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.23.0
+* Bugfix - CO-1485 - Paypal PUI text fix
+* Bugfix - CO-1476 - Importing manual orders fix
+* Bugfix - CO-1410 - Fixed German Market digital product set
+* Bugfix - CO-1397 - Fixed overwriting image description
+* Bugfix - CO-1285 - Save manufacturer even without transferred i18ns
+* Feature - CO-1277 - Added variation sorting support
+
 ## 1.22.0
 * Bugfix - CO-1370 - Improved setting shipping vat rate
 * Bugfix - CO-1406 - Fixed problem with duplicated variations after initial import
