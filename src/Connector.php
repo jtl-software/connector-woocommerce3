@@ -21,6 +21,7 @@ use JtlWooCommerceConnector\Event\HandlePushEvent;
 use JtlWooCommerceConnector\Event\HandleStatsEvent;
 use JtlWooCommerceConnector\Mapper\PrimaryKeyMapper;
 use JtlWooCommerceConnector\Utilities\B2BMarket;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Connector extends BaseConnector {
@@ -75,7 +76,9 @@ class Connector extends BaseConnector {
 			if ( ! is_array( $requestPacket->getParams() ) ) {
 				throw new \Exception( "Expecting request array, invalid data given" );
 			}
-			
+
+            $this->disableGermanMarketActions();
+
 			$results  = [];
 			$action   = new Action();
 			$entities = $requestPacket->getParams();
@@ -103,6 +106,15 @@ class Connector extends BaseConnector {
 		
 		return $this->controller->{$this->action}( $requestPacket->getParams() );
 	}
+
+    protected function disableGermanMarketActions()
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
+            if ($this->getMethod()->getController() === 'product') {
+                remove_action('save_post', ['WGM_Product', 'save_product_digital_type']);
+            }
+        }
+    }
 	
 	public function getController() {
 		return $this->controller;
