@@ -192,21 +192,21 @@ abstract class BaseController extends Controller
      */
     protected function getDefaultTranslation(array $i18ns)
     {
-        $defaultSpecificTranslation = null;
+        $defaultTranslation = null;
         /** @var ProductI18n|SpecificI18n|CategoryI18n|ManufacturerI18n $i18n */
         foreach ($i18ns as $i18n) {
             if ($this->wpml->canBeUsed()) {
                 if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
-                    $defaultSpecificTranslation = $i18n;
+                    $defaultTranslation = $i18n;
                     break;
                 }
             } else {
                 if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    $defaultSpecificTranslation = $i18n;
+                    $defaultTranslation = $i18n;
                     break;
                 }
             }
         }
-        return $defaultSpecificTranslation;
+        return $defaultTranslation;
     }
 }

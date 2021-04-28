@@ -120,7 +120,7 @@ class Specific extends BaseController
             register_taxonomy($taxonomy, null);
 
             if ($this->wpml->canBeUsed()) {
-                $translations = $this->wpml
+                $this->wpml
                     ->getComponent(WpmlSpecific::class)
                     ->setTranslations($specific, $defaultSpecificTranslation);
             }
@@ -131,11 +131,11 @@ class Specific extends BaseController
                 $defaultSpecificValueTranslation = $this->getDefaultTranslation($value->getI18ns());
 
                 if (!is_null($defaultSpecificValueTranslation)) {
-                    $endValId = (int)$value->getId()->getEndpoint();
+                    $wcSpecificValueId = (int)$value->getId()->getEndpoint();
                     $this->getPluginsManager()
                         ->get(WooCommerce::class)
                         ->getComponent(WooCommerceSpecificValue::class)
-                        ->save($taxonomy, $value, $defaultSpecificValueTranslation, $endValId);
+                        ->save($taxonomy, $value, $defaultSpecificValueTranslation, $wcSpecificValueId);
 
                     if ($this->wpml->canBeUsed()) {
                         $this->wpml
