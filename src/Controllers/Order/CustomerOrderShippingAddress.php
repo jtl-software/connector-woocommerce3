@@ -28,7 +28,7 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
             ->setCountryIso($order->get_shipping_country())
             ->setCompany($order->get_shipping_company())
-            ->setCustomerId($this->getCustomerId($order));
+            ->setCustomerId($this->createCustomerId($order));
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)

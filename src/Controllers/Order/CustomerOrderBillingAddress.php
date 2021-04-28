@@ -31,7 +31,7 @@ class CustomerOrderBillingAddress extends CustomerOrderAddress
             ->setEMail($order->get_billing_email())
             ->setCompany($order->get_billing_company())
             ->setPhone($order->get_billing_phone())
-            ->setCustomerId($this->getCustomerId($order))
+            ->setCustomerId($this->createCustomerId($order))
             ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
         
         if (strcmp($address->getCity(), '') === 0) {
