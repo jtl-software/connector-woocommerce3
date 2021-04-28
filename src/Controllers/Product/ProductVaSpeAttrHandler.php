@@ -14,9 +14,7 @@ use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
-use jtl\Connector\Model\Specific;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
@@ -199,7 +197,7 @@ class ProductVaSpeAttrHandler extends BaseController
             if (!is_array($productVariations)) {
                 $productVariations = [];
             }
-            
+
             $this->mergeAttributes($newWcProductAttributes, $productVariations);
 
             $jtlNewProductSpecifics = array_filter(array_map(function (ProductSpecificModel $productSpecific) {
@@ -377,7 +375,13 @@ class ProductVaSpeAttrHandler extends BaseController
                 ];
             }
         }
-        
+
+        if (!empty($variationSpecificData)) {
+            uasort($variationSpecificData, function ($a, $b) {
+                return $a['position'] <=> $b['position'];
+            });
+        }
+
         return $variationSpecificData;
     }
     // </editor-fold>
@@ -792,8 +796,13 @@ class ProductVaSpeAttrHandler extends BaseController
     ) {
         return ($a->getSort() - $b->getSort());
     }
-    
-    private function mergeAttributes(array &$newProductAttributes, array $attributes)
+
+    /**
+     * @param array $newProductAttributes
+     * @param array $attributes
+     * @param bool $sort
+     */
+    private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false)
     {
         foreach ($attributes as $slug => $attr) {
             if (array_key_exists($slug, $newProductAttributes)) {
@@ -808,6 +817,10 @@ class ProductVaSpeAttrHandler extends BaseController
                     $valuesString = implode(' ' . WC_DELIMITER . ' ', $values);
                     $newProductAttributes[$slug]['value'] = $valuesString;
                     $newProductAttributes[$slug]['is_variation'] = $isVariation;
+
+                    if ($sort) {
+                        $newProductAttributes[$slug]['position'] = $attributes[$slug]['position'];
+                    }
                 }
             } else {
                 $newProductAttributes[$slug] = $attr;
