@@ -37,10 +37,7 @@ class WpmlCategory extends AbstractComponent
         Identity $parentCategoryId
     ): void {
         $trid = (int)$this->getCurrentPlugin()
-            ->getElementTrid(
-                (int)$wooCommerceMainCategory['term_id'],
-            self::PRODUCT_CATEGORY_TYPE
-            );
+            ->getElementTrid((int)$wooCommerceMainCategory['term_taxonomy_id'], self::PRODUCT_CATEGORY_TYPE);
 
         foreach ($jtlCategory->getI18ns() as $categoryI18n) {
             $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($categoryI18n->getLanguageISO());
@@ -75,7 +72,7 @@ class WpmlCategory extends AbstractComponent
                 }
 
                 $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                    $categoryId,
+                    (int) $result['term_taxonomy_id'],
                     self::PRODUCT_CATEGORY_TYPE,
                     $trid,
                     $languageCode
@@ -117,16 +114,16 @@ class WpmlCategory extends AbstractComponent
         $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
 
         $sql = sprintf("SELECT 
-                tt.parent, tt.description, cl.*, t.name, t.slug, tt.count, wpmlt.*        
+                tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*        
                 FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
                     LEFT JOIN 
                 `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
                     LEFT JOIN
-                `%sjtl_connector_category_level` cl ON tt.term_id = cl.category_id
+                `%sjtl_connector_category_level` cl ON tt.term_taxonomy_id = cl.category_id
                     LEFT JOIN
                 `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
                     LEFT JOIN
-                `%sicl_translations` wpmlt ON t.term_id = wpmlt.element_id
+                `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
             WHERE
                 tt.taxonomy = 'product_cat'
                     AND wpmlt.element_type = 'tax_product_cat'
@@ -157,7 +154,7 @@ class WpmlCategory extends AbstractComponent
                     LEFT JOIN
                 `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
                     LEFT JOIN
-                `%sicl_translations` wpmlt ON t.term_id = wpmlt.element_id
+                `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
             WHERE
                 tt.taxonomy = 'product_cat'
                     AND wpmlt.element_type = 'tax_product_cat'
@@ -194,11 +191,11 @@ class WpmlCategory extends AbstractComponent
 
         $categories = Db::getInstance()->query(
             sprintf("
-            SELECT tt.term_id, tt.parent, IF(tm.meta_key IS NULL, 0, tm.meta_value) as sort
+            SELECT tt.term_taxonomy_id, tt.term_id, tt.parent, IF(tm.meta_key IS NULL, 0, tm.meta_value) as sort
             FROM `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt
             LEFT JOIN `{$this->getCurrentPlugin()->getWpDb()->terms}` t ON tt.term_id = t.term_id
             LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id AND tm.meta_key = 'order'
-            LEFT JOIN `%sicl_translations` wpmlt ON t.term_id = wpmlt.element_id
+            LEFT JOIN `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
             WHERE tt.taxonomy = '%s' {$where}
               AND wpmlt.element_type = 'tax_product_cat'
               AND wpmlt.source_language_code IS NULL
