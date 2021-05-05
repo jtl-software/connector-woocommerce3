@@ -75,7 +75,7 @@ trait SpecificTrait
         return "SELECT  lsv.host_id , lsv.endpoint_id, t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
-                  LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
+                  LEFT JOIN {$jclsv} lsv ON tt.term_id = lsv.endpoint_id
                 WHERE tt.taxonomy LIKE '{$specificName}' AND t.name = '{$specificValueName}';
         ";
     }
@@ -88,7 +88,7 @@ trait SpecificTrait
         return "SELECT  lsv.host_id , lsv.endpoint_id, t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
-                  LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
+                  LEFT JOIN {$jclsv} lsv ON tt.term_id = lsv.endpoint_id
                 WHERE tt.taxonomy LIKE '{$specificName}' AND t.slug = '{$specificValueName}';
         ";
     }

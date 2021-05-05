@@ -186,7 +186,7 @@ class ProductVariation extends BaseController
                 
                 //Get existing values
                 $pushedValues = explode(' ' . WC_DELIMITER . ' ', $variationSpecific['value']);
-                foreach ($pushedValues as $pushedValue) {
+                foreach ($pushedValues as $position => $pushedValue) {
                     
                     //check if value did not exists
                     $termId = (int)$productVaSpeAttrHandler->getSpecificValueId($taxonomy, trim($pushedValue))->getEndpoint();
@@ -201,6 +201,8 @@ class ProductVariation extends BaseController
                         
                         $termId = $newTerm['term_id'];
                     }
+
+                    $this->updateTermPosition(++$position, $termId);
                     
                     if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                         $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
@@ -264,11 +266,7 @@ class ProductVariation extends BaseController
                 $attributeId = wc_create_attribute($endpoint);
                 
                 if ($attributeId instanceof WP_Error) {
-                    //var_dump($attributeId);
-                    //die();
-                    //return $termId->get_error_message();
                     WpErrorLogger::getInstance()->logError($attributeId);
-                    
                     return null;
                 }
                 
@@ -276,10 +274,12 @@ class ProductVariation extends BaseController
                 register_taxonomy($taxonomy, null);
                 
                 $assignedValueIds = [];
-                
+
+                $position = 0;
                 foreach ($options as $optionKey => $optionValue) {
                     $slug = wc_sanitize_taxonomy_name($optionValue);
-                    
+                    $position++;
+
                     $endpointValue = [
                         'name' => $optionValue,
                         'slug' => $slug,
@@ -294,23 +294,21 @@ class ProductVariation extends BaseController
                     
                     if (count($exValId) >= 1) {
                         if (isset($exValId[0]['term_id'])) {
-                            $exValId = $exValId[0]['term_id'];
+                            $termId = $exValId[0]['term_id'];
                         } else {
-                            $exValId = null;
+                            $termId = null;
                         }
                     } else {
-                        $exValId = null;
+                        $termId = null;
                     }
                     
-                    if (is_null($exValId)) {
+                    if (is_null($termId)) {
                         $newTerm = \wp_insert_term(
                             $endpointValue['name'],
                             $taxonomy
                         );
                         
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
-                            // die();
                             WpErrorLogger::getInstance()->logError($newTerm);
                             continue;
                         }
@@ -318,14 +316,14 @@ class ProductVariation extends BaseController
                         $termId = $newTerm['term_id'];
                         
                         if ($termId instanceof WP_Error) {
-                            // var_dump($termId);
-                            // die();
                             WpErrorLogger::getInstance()->logError($termId);
                             continue;
                         }
                         
                         $assignedValueIds[] = $termId;
                     }
+
+                    $this->updateTermPosition($position, $termId);
                 }
                 
                 $attributesFilteredVariationSpecifics[$taxonomy] = [
@@ -351,6 +349,15 @@ class ProductVariation extends BaseController
         }
         
         return $result;
+    }
+
+    /**
+     * @param int $position
+     * @param int $termId
+     */
+    protected function updateTermPosition(int $position, int $termId)
+    {
+        update_term_meta($termId, 'order', $position, get_term_meta($termId, 'order', true));
     }
     
     public function pushChildData(

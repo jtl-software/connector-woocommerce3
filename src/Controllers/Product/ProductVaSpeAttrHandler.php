@@ -331,30 +331,17 @@ class ProductVaSpeAttrHandler extends BaseController
             /** @var ProductVariationI18nModel $variationI18n */
             foreach ($variation->getI18ns() as $variationI18n) {
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
-                $customSort = false;
                 
                 if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                     continue;
                 }
                 
                 $values = [];
+
+                $variationValues = $variation->getValues();
+                usort($variationValues, [$this, 'sortI18nValues']);
                 
-                $this->values = $variation->getValues();
-                
-                foreach ($this->values as $vv) {
-                    if ($vv->getSort() !== 0) {
-                        $customSort = true;
-                    }
-                }
-                
-                if ($customSort) {
-                    usort($this->values, [
-                        $this,
-                        'sortI18nValues',
-                    ]);
-                }
-                
-                foreach ($this->values as $vv) {
+                foreach ($variationValues as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
                     foreach ($vv->getI18ns() as $valueI18n) {
                         if (!Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {

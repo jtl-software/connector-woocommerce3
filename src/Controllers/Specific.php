@@ -56,7 +56,7 @@ class Specific extends BaseController
             
             foreach ($specificValueData as $specificValueDataSet) {
                 $specificValue = (new SpecificValueModel)
-                    ->setId(new Identity($specificValueDataSet['term_taxonomy_id']))
+                    ->setId(new Identity($specificValueDataSet['term_id']))
                     ->setSpecificId($specific->getId());
                 
                 $specificValue->addI18n((new SpecificValueI18nModel)
