@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.23.2
+* Payment pull hotfix
+
 ## 1.23.1
 * Merged missing CO-1397 functionality 
 
