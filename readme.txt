@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.6
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.0
-Stable tag: 1.21.1
+WC tested up to: 5.1
+Stable tag: 1.23.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,26 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.23.2 =
+* Payment pull hotfix
+
+= 1.23.1 =
+* Merged missing CO-1397 functionality
+
+= 1.23.0 =
+* Bugfix - CO-1485 - Paypal PUI text fix
+* Bugfix - CO-1476 - Importing manual orders fix
+* Bugfix - CO-1410 - Fixed German Market digital product set
+* Bugfix - CO-1397 - Fixed overwriting image description
+* Bugfix - CO-1285 - Save manufacturer even without transferred i18ns
+* Feature - CO-1277 - Added variation sorting support
+
+= 1.22.0 =
+* Bugfix - CO-1370 - Improved setting shipping vat rate
+* Bugfix - CO-1406 - Fixed problem with duplicated variations after initial import
+* Bugfix - CO-1452 - Fixed setting invalid variation value
+* Bugfix - CO-1484 - Fixed variants preselection
 
 = 1.21.1 =
 * Bugfix - Added missing constant

@@ -42,7 +42,7 @@ class Payment extends BaseController
         return $payments;
     }
 
-    protected function pushData(PaymentModel $data)
+    public function pushData(PaymentModel $data)
     {
         $order = \wc_get_order((int)$data->getCustomerOrderId()->getEndpoint());
 

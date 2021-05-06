@@ -503,6 +503,16 @@ final class Util extends WordpressUtils
         return $pd;
     }
 
+    /**
+     * @param float $number
+     * @return int
+     */
+    public static function getDecimalPrecision(float $number): int
+    {
+        $explode = explode('.', (string)$number);
+        return isset($explode[1]) ? strlen($explode[1]) : 0;
+    }
+
 
     /**
      * @param string $attributeName
