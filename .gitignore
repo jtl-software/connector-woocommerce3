@@ -3,6 +3,7 @@ plugins/
 composer.lock
 vendor/**
 config/config.json
+config/features.json
 /build/
 /dist/
 db/
