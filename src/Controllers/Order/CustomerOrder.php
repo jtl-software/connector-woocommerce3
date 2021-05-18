@@ -192,7 +192,7 @@ class CustomerOrder extends BaseController
         $customerOrder->addAttribute(
             (new CustomerOrderAttr())
                 ->setKey('dhl_wunschpaket_feeder_system')
-                ->setValue('woocommerce')
+                ->setValue('wooc')
         );
 
         //foreach each item mach
