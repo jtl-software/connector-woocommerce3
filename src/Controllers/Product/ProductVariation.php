@@ -202,7 +202,7 @@ class ProductVariation extends BaseController
                         $termId = $newTerm['term_id'];
                     }
 
-                    $this->updateTermPosition(++$position, $termId);
+                    $this->updateTermPosition($position, $termId);
                     
                     if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                         $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
@@ -278,7 +278,6 @@ class ProductVariation extends BaseController
                 $position = 0;
                 foreach ($options as $optionKey => $optionValue) {
                     $slug = wc_sanitize_taxonomy_name($optionValue);
-                    $position++;
 
                     $endpointValue = [
                         'name' => $optionValue,
@@ -323,6 +322,7 @@ class ProductVariation extends BaseController
                         $assignedValueIds[] = $termId;
                     }
 
+                    $position++;
                     $this->updateTermPosition($position, $termId);
                 }
                 
