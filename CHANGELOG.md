@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.24.0
+* Feature - CO-1530 - Allow selecting order statuses to import
+
 ## 1.23.2
 * Payment pull hotfix
 

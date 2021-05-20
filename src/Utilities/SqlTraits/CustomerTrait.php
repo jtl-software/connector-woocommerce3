@@ -23,25 +23,19 @@ trait CustomerTrait {
 			$select     = 'DISTINCT(pm.meta_value)';
 			$limitQuery = 'LIMIT ' . $limit;
 		}
-		
-		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-		
-		if ( Util::includeCompletedOrders() ) {
-			$status .= ", 'wc-completed'";
-		}
-		
-		return "
-            SELECT {$select}
-            FROM `{$wpdb->postmeta}` pm
-            LEFT JOIN `{$wpdb->posts}` p
-            ON p.ID = pm.post_id
-            LEFT JOIN {$jclc} l
-            ON l.endpoint_id = pm.meta_value * 1 AND l.is_guest = 0
+
+        $status = Util::getOrderStatusesToImport();
+
+        return sprintf("
+            SELECT %s
+            FROM `%s` pm
+            LEFT JOIN `%s` p ON p.ID = pm.post_id
+            LEFT JOIN %s l ON l.endpoint_id = pm.meta_value * 1 AND l.is_guest = 0
             WHERE l.host_id IS NULL
-            AND p.post_status IN ({$status})
+            AND p.post_status IN ('%s')
             AND pm.meta_key = '_customer_user'
-            AND pm.meta_value != 0
-            {$limitQuery}";
+            AND pm.meta_value != 0 
+            %s", $select, $wpdb->postmeta, $wpdb->postmeta, $jclc, join("','", $status), $limitQuery);
 	}
 	
 	public static function guestNotLinked( $limit ) {
@@ -57,24 +51,20 @@ trait CustomerTrait {
 			$select     = "DISTINCT(CONCAT('{$guestPrefix}', p.ID)) as id";
 			$limitQuery = 'LIMIT ' . $limit;
 		}
+
+        $status = Util::getOrderStatusesToImport();
 		
-		$status = "'wc-pending', 'wc-processing', 'wc-on-hold'";
-		
-		if ( Util::includeCompletedOrders() ) {
-			$status .= ", 'wc-completed'";
-		}
-		
-		return "
-            SELECT {$select}
-            FROM {$wpdb->posts} p
-            LEFT JOIN {$wpdb->postmeta} pm
+		return sprintf("
+            SELECT %s
+            FROM %s p
+            LEFT JOIN %s pm
             ON p.ID = pm.post_id
-            LEFT JOIN {$jclc} l
-            ON l.endpoint_id = CONCAT('{$guestPrefix}', p.ID) AND l.is_guest = 1
+            LEFT JOIN %s l
+            ON l.endpoint_id = CONCAT('%s', p.ID) AND l.is_guest = 1
             WHERE l.host_id IS NULL
-            AND p.post_status IN ({$status})
+            AND p.post_status IN ('%s')
             AND pm.meta_key = '_customer_user'
-            AND pm.meta_value = 0
-            {$limitQuery}";
+            AND pm.meta_value = 0 
+            %s",$select, $wpdb->posts, $wpdb->postmeta, $jclc, $guestPrefix, join("','",$status,$limitQuery));
 	}
 }

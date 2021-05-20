@@ -8,6 +8,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Payment as PaymentModel;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrder;
 use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;

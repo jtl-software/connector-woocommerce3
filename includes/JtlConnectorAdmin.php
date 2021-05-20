@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Symfony\Component\Yaml\Yaml;
 
 if (!defined('ABSPATH')) {
@@ -392,6 +393,12 @@ final class JtlConnectorAdmin
             [
                 'JtlConnectorAdmin',
                 'jtl_connector_select',
+            ]
+        );
+        add_action('woocommerce_admin_field_jtl_connector_multiselect',
+            [
+                'JtlConnectorAdmin',
+                'jtl_connector_multiselect',
             ]
         );
         add_action('woocommerce_admin_field_dev_log_btn',
@@ -928,16 +935,7 @@ final class JtlConnectorAdmin
         ];
 
         //Add variation specific radio field
-        $fields[] = [
-            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
-            'type' => 'active_true_false_radio',
-            'desc' => __('Do not choose when having a large amount of data and low server specifications.',
-                JTLWCC_TEXT_DOMAIN),
-            'id' => Config::OPTIONS_COMPLETED_ORDERS,
-            'value' => Config::get(Config::OPTIONS_COMPLETED_ORDERS),
-            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-        ];
+
         //Add pull order since date field
         $fields[] = [
             'title' => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
@@ -957,6 +955,15 @@ final class JtlConnectorAdmin
             'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
+        $fields[] = [
+            'title' => __('Default order statuses to import', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_multiselect',
+            'options'=>wc_get_order_statuses(),
+            'id' => Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT,
+            'value' => Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, ['wc-pending', 'wc-processing', 'wc-on-hold']),
+            'helpBlock' => __('Order statuses that should be imported separated by comma like : wc-pending, wc-processing, wc-on-hold', JTLWCC_TEXT_DOMAIN),
+        ];
+
 
         //Add sectionend
         $fields[] = [
@@ -1456,6 +1463,31 @@ final class JtlConnectorAdmin
         <?php
     }
 
+    public static function jtl_connector_multiselect(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>[]">
+                <?php
+                if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
+                    foreach ($field['options'] as $key => $ovalue) { ?>
+                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) { print 'selected="selected"'; } ?>><?php print $ovalue; ?> </option>
+                <?php } } ?>
+            </select>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
     public static function dev_log_btn(array $field)
     {
         ?>
@@ -1542,6 +1574,9 @@ final class JtlConnectorAdmin
                     break;
                 case 'float':
                     $value = (float)$item;
+                    break;
+                case 'array':
+                    $value = $item;
                     break;
                 default:
                     $value = trim($item);
@@ -1750,6 +1785,8 @@ final class JtlConnectorAdmin
             case '1.23.0':
             case '1.23.1':
             case '1.23.2':
+            case '1.24.0':
+                self::setupDefaultOrderStatusesToImport();
             default:
                 self::activate_linking();
         }
@@ -1757,7 +1794,21 @@ final class JtlConnectorAdmin
         Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
     }
-    // </editor-fold>
+
+    protected static function setupDefaultOrderStatusesToImport()
+    {
+        $statusList = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+            $statusList[] = 'wc-payment-accepted';
+        }
+
+        $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
+        if (in_array($includeCompletedOrdersOption, ['yes', '1'], true)) {
+            $statusList[] = 'wc-completed';
+        }
+
+        Config::set(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $statusList);
+    }
 
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()
