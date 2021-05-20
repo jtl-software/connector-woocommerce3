@@ -961,7 +961,7 @@ final class JtlConnectorAdmin
             'options'=>wc_get_order_statuses(),
             'id' => Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT,
             'value' => Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, ['wc-pending', 'wc-processing', 'wc-on-hold']),
-            'helpBlock' => __('Order statuses that should be imported separated by comma like : wc-pending, wc-processing, wc-on-hold', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('Order statuses that should be imported. Default: pending, processing, on hold, completed', JTLWCC_TEXT_DOMAIN),
         ];
 
 
