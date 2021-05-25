@@ -39,13 +39,20 @@ class CustomerOrderShippingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
 
-            $postNumber = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
-            if (empty($postNumber)) {
-                $postNumber = $order->get_meta('_shipping_dhl_postnumber', true);
+            $dhlPostNumber = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
+            if (empty($dhlPostNumber)) {
+                $dhlPostNumber = $order->get_meta('_shipping_dhl_postnumber', true);
             }
 
-            if (!empty($postNumber)) {
-                $address->setExtraAddressLine((string) $postNumber);
+            if (!empty($dhlPostNumber)) {
+                $address->setExtraAddressLine($address->getStreet())
+                    ->setStreet($dhlPostNumber);
+            }
+
+        } else if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+            if (!empty($dhlPostNumber = get_post_meta($order->get_id(), '_shipping_dhl_postnum', true))) {
+                $address->setExtraAddressLine($address->getStreet())
+                    ->setStreet($dhlPostNumber);
             }
         }
 
