@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.6
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.1
-Stable tag: 1.23.2
+WC tested up to: 5.3
+Stable tag: 1.24.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.24.0 =
+* Feature - CO-1429 - Get full state name if available on customer order pull
+* Bugfix - CO-1513 - Tax rate calculation improvements
 
 = 1.23.2 =
 * Payment pull hotfix
