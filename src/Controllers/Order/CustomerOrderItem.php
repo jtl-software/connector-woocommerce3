@@ -279,13 +279,18 @@ class CustomerOrderItem extends BaseController
 
                 if ($total != 0) {
 
-                    $priceGross = $total + $totalTax;
+                    $detailedTax = $totalTax;
+                    if (isset($taxes['total']) && is_array($taxes['total'])) {
+                        $detailedTax = array_sum($taxes['total']);
+                    }
 
-                    $vat = $this->calculateVat($total, $priceGross, wc_get_price_decimals());
+                    $detailedPriceGross = $total + $detailedTax;
+                    $vat = $this->calculateVat($total, $detailedPriceGross, wc_get_price_decimals());
                     if (!is_null($singleVatRate)) {
                         $vat = $singleVatRate;
                     }
 
+                    $priceGross = $total + $totalTax;
                     $customerOrderItem->setVat($vat)
                         ->setPrice(round($total, Util::getPriceDecimals()))
                         ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
