@@ -158,7 +158,7 @@ msgid "Allow HTML in product attributes"
 msgstr "HTML in Produktattributen erlauben"
 
 #: includes/JtlConnectorAdmin.php:850
-msgid "Enable if you want to allow saving HTML in product attributes"
+msgid "Enable if you want to allow saving HTML in product attributes (Default : Disabled)"
 msgstr "Aktivieren Sie diese Option, wenn Sie HTML in Produktattributen erlauben wollen. (Standard : Deaktiviert)"
 
 #: includes/JtlConnectorAdmin.php:932

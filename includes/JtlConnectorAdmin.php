@@ -847,7 +847,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Allow HTML in product attributes', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to allow saving HTML in product attributes. (Default : Disabled)', JTLWCC_TEXT_DOMAIN),
+            'desc' => __('Enable if you want to allow saving HTML in product attributes (Default : Disabled)', JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES,
             'value' => Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES),
             'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
