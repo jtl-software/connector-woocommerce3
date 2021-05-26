@@ -20,7 +20,7 @@ class CustomerOrderAddress extends BaseController
      */
     public function getState(string $countryIso, string $state): string
     {
-        return Util::getStates()[$countryIso][$state] ?? '';
+        return Util::getStates()[$countryIso][$state] ?? $state;
     }
 
     /**
