@@ -157,5 +157,5 @@ msgid "Enable if you want to allow saving HTML in product attributes. (Default :
 msgstr ""
 
 #: includes/JtlConnectorAdmin.php:932
-msgid "If you set this option to active, custom fields from JTL-Wawi will be transferred. After changing this option, full-sync is required (Default : Enabled)."
+msgid "If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled)."
 msgstr ""

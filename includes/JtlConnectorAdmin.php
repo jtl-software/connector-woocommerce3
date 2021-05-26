@@ -823,7 +823,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('If you set this option to active, custom fields from JTL-Wawi will be transferred. After changing this option, full-sync is required (Default : Enabled).',
+            'desc' => __('If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_SEND_CUSTOM_PROPERTIES,
             'value' => Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES),

@@ -162,8 +162,8 @@ msgid "Enable if you want to allow saving HTML in product attributes"
 msgstr "Aktivieren Sie diese Option, wenn Sie HTML in Produktattributen erlauben wollen. (Standard : Deaktiviert)"
 
 #: includes/JtlConnectorAdmin.php:932
-msgid "If you set this option to active, custom fields from JTL-Wawi will be transferred. After changing this option, full-sync is required (Default : Enabled)."
-msgstr "Wenn Sie diese Option aktiv setzen, werden Eigene Felder aus JTL-Wawi als Attribute angezeigt. Führen Sie nach einer Änderung dieser Option einen Komplettabgleich in JTL-Wawi durch (Default : Aktiviert)."
+msgid "If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled)."
+msgstr "Wenn Sie diese Option aktivieren, werden Eigene Felder aus JTL-Wawi als Attribute im Shop behandelt. Führen Sie nach einer Änderung dieser Option einen Komplettabgleich in JTL-Wawi durch (Default : Aktiviert)"
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "
 #~ "help."
