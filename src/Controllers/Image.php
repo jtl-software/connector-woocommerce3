@@ -171,6 +171,14 @@ class Image extends BaseController
                 $attachmentIds = array_merge($attachmentIds, $imageIds);
             }
         }
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
+            if ($product->is_type('variation')) {
+                $images = get_post_meta($product->get_id(), 'woo_variation_gallery_images', true);
+                if (!empty($images)) {
+                    $attachmentIds = array_merge($attachmentIds, $images);
+                }
+            }
+        }
 
         return $attachmentIds;
     }
@@ -363,6 +371,8 @@ class Image extends BaseController
             $name = html_entity_decode($nameInfo['filename']);
         }
 
+        $name = $this->sanitizeImageName($name);
+
         if (empty($nameInfo['extension'])) {
             $extension = $fileNameInfo['extension'];
         } else {
@@ -382,17 +392,17 @@ class Image extends BaseController
         if (copy($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(basename($destination), null);
 
-            $attachment = [
+            $attachment = [];
+            if($endpointId !== '') {
+                $attachment = \get_post($endpointId, ARRAY_A);
+            }
+
+            $attachment = array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
                 'post_title' => preg_replace('/\.[^.]+$/', '', $fileName),
-                'post_content' => '',
                 'post_status' => 'inherit',
-            ];
-
-            if (!empty($endpointId)) {
-                $attachment['ID'] = $endpointId;
-            }
+            ]);
 
             $post = \wp_insert_attachment($attachment, $destination, $image->getForeignKey()->getEndpoint());
 
@@ -409,6 +419,20 @@ class Image extends BaseController
         }
 
         return $post;
+    }
+
+    /**
+     * @param $name
+     * @return false|string\
+     */
+    private function sanitizeImageName($name): string
+    {
+        $name = iconv('utf-8', 'ascii//translit', $name);
+        $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = preg_replace('#-{2,}#', '-', $name);
+        $name = trim($name, '-');
+
+        return mb_substr($name, 0, 180);
     }
 
     /**
@@ -460,8 +484,9 @@ class Image extends BaseController
     private function pushProductImage(ImageModel $image)
     {
         $productId = (int)$image->getForeignKey()->getEndpoint();
+        $wcProduct = \wc_get_product($productId);
 
-        if (!\wc_get_product($productId) instanceof \WC_Product) {
+        if (!$wcProduct instanceof \WC_Product) {
             return null;
         }
 
@@ -475,6 +500,17 @@ class Image extends BaseController
                 return null;
             }
         } else {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
+                if ($wcProduct->get_type() === 'variation') {
+                    $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
+                    if(!is_array($oldImages)){
+                        $oldImages = [];
+                    }
+                    $newImages = array_unique(array_merge([$attachmentId], $oldImages));
+                    update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
+                }
+            }
+
             $galleryImages = $this->getGalleryImages($productId);
             $galleryImages[] = (int)$attachmentId;
             $galleryImages = implode(self::GALLERY_DIVIDER, array_unique($galleryImages));
@@ -574,6 +610,11 @@ class Image extends BaseController
         $productId = (int)$ids[1];
         $attachmentId = (int)$ids[0];
 
+        $wcProduct = \wc_get_product($productId);
+        if (!$wcProduct instanceof \WC_Product) {
+            return;
+        }
+
         if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
             $this->deleteAllProductImages($image, $productId);
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
@@ -581,6 +622,19 @@ class Image extends BaseController
             if ($this->isCoverImage($image)) {
                 \set_post_thumbnail($productId, 0);
             } else {
+                if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
+                    if ($wcProduct->get_type() === 'variation') {
+                        $newImages = $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
+                        if (!empty($oldImages)) {
+                            $keyToRemove = array_search($attachmentId, $oldImages);
+                            if ($keyToRemove !== false) {
+                                unset($newImages[$keyToRemove]);
+                                update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
+                            }
+                        }
+                    }
+                }
+
                 $galleryImages = $this->getGalleryImages($productId);
                 $galleryImages = implode(self::GALLERY_DIVIDER, array_diff($galleryImages, [$attachmentId]));
                 \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);

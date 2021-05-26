@@ -2,6 +2,50 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.23.2
+* Payment pull hotfix
+
+## 1.23.1
+* Merged missing CO-1397 functionality 
+
+## 1.23.0
+* Bugfix - CO-1485 - Paypal PUI text fix
+* Bugfix - CO-1476 - Importing manual orders fix
+* Bugfix - CO-1410 - Fixed German Market digital product set
+* Bugfix - CO-1397 - Fixed overwriting image description
+* Bugfix - CO-1285 - Save manufacturer even without transferred i18ns
+* Feature - CO-1277 - Added variation sorting support
+
+## 1.22.0
+* Bugfix - CO-1370 - Improved setting shipping vat rate
+* Bugfix - CO-1406 - Fixed problem with duplicated variations after initial import
+* Bugfix - CO-1452 - Fixed setting invalid variation value
+* Bugfix - CO-1484 - Fixed variants preselection
+
+## 1.21.1
+* Bugfix - Added missing constant
+
+## 1.21.0
+* Bugfix - CO-1237 - Fixed deleting product specifics
+* Bugfix - CO-1316 - Fixed importing not existing category images
+* Feature - CO-1341 - Added support for "Rank Math SEO" plugin
+* Feature - CO-1356 - Added support for "Additional Variation Images Gallery" plugin
+
+## 1.20.0
+* Feature - CO-1295 - added support for blacklist products and categories in B2BMarket
+* Feature - CO-1251 - added new attribute 'wc_notify_customer_on_overselling' (true/false) to set notify option on oversell
+* Feature - CO-1376 - when available get vat rate from product price model in price quick sync   
+
+## 1.19.0
+* Bugfix - CO-1372 - fixed customer group update
+* Bugfix - CO-1343 - fixed cross-selling pull
+* Bugfix - CO-1338 - fixed sanitizing image name on push
+* Bugfix - CO-1337 - fixed paypal payment method mapping
+
+## 1.18.0
+* Changed compatibility info to WooCommerce 5
+* Removed platform version from Connector identify call
+
 ## 1.17.0
 * Bugfix - CO-1254 - fixed empty values in Cross-Selling pull
 * Bugfix - CO-1274 - fixed parent images are attached to children

@@ -41,14 +41,13 @@ class CustomerOrderItem extends BaseController
     }
 
     /**
-     * Add the positions for products. Not that complicated.
-     *
-     * @param \WC_Order $order
-     * @param           $customerOrderItems
+     * @param \WC_Order $wcOrder
+     * @return float|null
      */
-    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
+    protected function getSingleVatRate(\WC_Order $wcOrder): ?float
     {
-        $taxItems = $order->get_items('tax');
+        $singleVatRate = null;
+        $taxItems = $wcOrder->get_items('tax');
         if (is_array($taxItems)) {
             $vatRates = [];
             foreach ($taxItems as $taxItem) {
@@ -59,9 +58,21 @@ class CustomerOrderItem extends BaseController
             }
             $uniqueRates = array_unique($vatRates);
             if (count($uniqueRates) === 1) {
-                $singleVatRate = end($uniqueRates);
+                $singleVatRate = (float)end($uniqueRates);
             }
         }
+        return $singleVatRate;
+    }
+
+    /**
+     * Add the positions for products. Not that complicated.
+     *
+     * @param \WC_Order $order
+     * @param           $customerOrderItems
+     */
+    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
+    {
+        $singleVatRate = $this->getSingleVatRate($order);
 
         /** @var \WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
@@ -108,17 +119,31 @@ class CustomerOrderItem extends BaseController
                 }
             }
 
+            $taxes = $item->get_taxes();
 
-            if (isset($singleVatRate)) {
+            $priceNet = (float)$order->get_item_subtotal($item, false, true);
+            $priceGross = (float)$order->get_item_subtotal($item, true, true);
+
+            $useWcTaxes = false;
+            if(!empty($taxes) && isset($taxes['subtotal']) && is_array($taxes['subtotal'])){
+                $useWcTaxes = true;
+                $taxesTotal = array_sum($taxes['subtotal']);
+                $taxesTotal /= $item->get_quantity();
+
+                $priceNet = (float)$order->get_item_subtotal($item, false, false);
+                $priceGross = (float)($priceNet + $taxesTotal);
+            }
+
+            if (!is_null($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
-                $priceNet = (float)$order->get_item_subtotal($item, false, true);
-                $priceGross = (float)$order->get_item_subtotal($item, true, true);
                 $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
             }
 
-            $priceNet = (float)$order->get_item_subtotal($item, false, false);
-            $priceGross = (float)$order->get_item_subtotal($item, true, true);
+            if ($useWcTaxes === false) {
+                $priceNet = (float)$order->get_item_subtotal($item, false, false);
+            }
+
             $orderItem
                 ->setVat($vat)
                 ->setPrice(round($priceNet, Util::getPriceDecimals()))
@@ -201,6 +226,7 @@ class CustomerOrderItem extends BaseController
                 }
             }
         }
+        $singleVatRate = $this->getSingleVatRate($order);
 
         $productTotalByVat = $this->groupProductsByTaxRate($customerOrderItems);
         $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
@@ -254,7 +280,11 @@ class CustomerOrderItem extends BaseController
                 if ($total != 0) {
 
                     $priceGross = $total + $totalTax;
+
                     $vat = $this->calculateVat($total, $priceGross, wc_get_price_decimals());
+                    if (!is_null($singleVatRate)) {
+                        $vat = $singleVatRate;
+                    }
 
                     $customerOrderItem->setVat($vat)
                         ->setPrice(round($total, Util::getPriceDecimals()))
@@ -320,21 +350,24 @@ class CustomerOrderItem extends BaseController
     /**
      * @param float $totalNet
      * @param float $totalGross
+     * @param int $wooCommerceRoundPrecision
+     * @param int $vatRoundPrecision
      * @return float
      */
     private function calculateVat(float $totalNet, float $totalGross, $wooCommerceRoundPrecision = 2, int $vatRoundPrecision = 2): float
     {
+        $totalGrossPrecision = Util::getDecimalPrecision($totalGross);
         $vat = .0;
         if ($totalNet > 0 && $totalGross > 0 && $totalGross > $totalNet) {
             $vat = round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100;
         }
 
-        $totalGrossCalculated = round(($totalNet * ($vat / 100 + 1)), $wooCommerceRoundPrecision);
+        $totalGrossCalculated = round(($totalNet * ($vat / 100 + 1)), $totalGrossPrecision);
 
-        $isCalcualtedGrossSame = abs($totalGrossCalculated - $totalGross) < 0.00001;
+        $isCalculatedGrossSame = abs($totalGrossCalculated - $totalGross) < 0.00001;
 
-        if ($vatRoundPrecision <= 6 && $vat !== .0 && $isCalcualtedGrossSame === false) {
-            return $this->calculateVat($totalNet, $totalGross, $wooCommerceRoundPrecision, $vatRoundPrecision + 1);
+        if ($vatRoundPrecision <= 6 && $vat !== .0 && $isCalculatedGrossSame === false) {
+            return $this->calculateVat($totalNet, $totalGross, $totalGrossPrecision, $vatRoundPrecision + 1);
         }
 
         return round($vat, 2);

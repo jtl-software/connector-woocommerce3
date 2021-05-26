@@ -52,8 +52,12 @@ class ProductSpecific extends BaseController
         
         /** @var ProductSpecificModel $specific */
         foreach ($pushedSpecifics as $specific) {
-            $specificData[(int)$specific->getId()->getEndpoint()]['options'][] =
-                (int)$specific->getSpecificValueId()->getEndpoint();
+            $endpointId = $specific->getId()->getEndpoint();
+            $specificValueId = $specific->getSpecificValueId()->getEndpoint();
+            if (empty($endpointId) || empty($specificValueId)) {
+                continue;
+            }
+            $specificData[(int)$endpointId]['options'][] = (int)$specificValueId;
         }
         
         /**
@@ -75,7 +79,6 @@ class ProductSpecific extends BaseController
                 preg_match('/^pa_/', $slug)
                 && array_key_exists($productSpecific->get_id(), $specificData)
             ) {
-                // $cOptions    = $specificData[$productSpecific->get_id()]['options'];
                 $cOldOptions = $productSpecific->get_options();
                 unset($specificData[$slug]);
                 

@@ -1741,6 +1741,15 @@ final class JtlConnectorAdmin
                     Config::set(Config::OPTIONS_TOKEN, self::create_password());
                 }
             case '1.17.0':
+            case '1.18.0':
+            case '1.19.0':
+            case '1.20.0':
+            case '1.21.0':
+            case '1.21.1':
+            case '1.22.0':
+            case '1.23.0':
+            case '1.23.1':
+            case '1.23.2':
             default:
                 self::activate_linking();
         }

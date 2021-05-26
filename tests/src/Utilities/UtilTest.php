@@ -141,7 +141,7 @@ class UtilTest extends TestCase
     /**
      *
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         foreach ($this->mockedFunctions as $function) {
             $function->disable();
@@ -174,5 +174,33 @@ class UtilTest extends TestCase
 
         $getActiveAndValidPlugins->enable();
         $this->mockedFunctions[] = $getActiveAndValidPlugins;
+    }
+
+    /**
+     * @dataProvider getDecimalPrecisionDataProvider
+     *
+     * @param float $number
+     * @param int $expectedPrecision
+     */
+    public function testGetDecimalPrecision(float $number, int $expectedPrecision)
+    {
+        $precision = Util::getDecimalPrecision($number);
+        $this->assertSame($expectedPrecision, $precision);
+    }
+
+    /**
+     * @return array
+     */
+    public function getDecimalPrecisionDataProvider(): array
+    {
+        return [
+            [1.123, 3],
+            [0.1 + 0.2 - 0.3, 17],
+            [1, 0],
+            [1.1231, 4],
+            [0, 0],
+            [1.00004, 5],
+            [-1.00004, 5]
+        ];
     }
 }

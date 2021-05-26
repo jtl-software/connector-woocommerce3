@@ -36,9 +36,10 @@ class CrossSelling extends BaseController
     {
         $crossSelling = [];
 
-        $result = $this->database->query(SqlHelper::crossSellingPull($limit));
+        $results = $this->database->query(SqlHelper::crossSellingPull($limit));
+        $formattedResults = $this->formatResults($results);
 
-        foreach ($result as $row) {
+        foreach ($formattedResults as $row) {
             $type = $row['meta_key'];
             $relatedProducts = unserialize($row['meta_value']);
 
@@ -46,7 +47,7 @@ class CrossSelling extends BaseController
 
             if (!empty($relatedProducts)) {
 
-                if(!isset($crossSelling[$row['post_id']])){
+                if (!isset($crossSelling[$row['post_id']])) {
                     $crossSelling[$row['post_id']] = (new CrossSellingModel());
                 }
 
@@ -73,6 +74,31 @@ class CrossSelling extends BaseController
         }
 
         return $crossSelling;
+    }
+
+    /**
+     * @param array $result
+     * @return array
+     */
+    protected function formatResults(array $result): array
+    {
+        $formattedResults = [];
+        foreach ($result as $row) {
+            $types = explode('||', $row['meta_key']);
+            $values = explode('||', $row['meta_value']);
+
+            foreach ($types as $i => $type) {
+                if (empty($type) || !isset($values[$i])) {
+                    continue;
+                }
+                $formattedResults[] = [
+                    'meta_value' => $values[$i],
+                    'meta_key' => $type,
+                    'post_id' => $row['post_id'],
+                ];
+            }
+        }
+        return $formattedResults;
     }
 
     /**
