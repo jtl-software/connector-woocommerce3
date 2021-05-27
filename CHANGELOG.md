@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.24.1
+* Hotfix taxClassId problem
+
 ## 1.24.0
 * Feature - CO-1429 - Get full state name if available on customer order pull
 * Bugfix - CO-1513 - Tax rate calculation improvements 
