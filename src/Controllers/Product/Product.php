@@ -11,6 +11,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Model\TaxRate;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
@@ -20,6 +21,7 @@ use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -458,8 +460,11 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
-        $taxClass = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat()));
-        $wcProduct->set_tax_class(is_null($taxClass) ? '' : $taxClass);
+        if (empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
+            $taxClassName = $this->findTaxClassName(...$product->getTaxRates());
+            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+        }
+        $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
 
         $wcProduct->save();
 
@@ -576,5 +581,25 @@ class Product extends BaseController
         }
 
         return $creationDate->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * @param TaxRate ...$jtlTaxRates
+     * @return string
+     */
+    public function findTaxClassName(TaxRate ...$jtlTaxRates): string
+    {
+        $wooTaxRates = $this->database->query(SqlHelper::getAllTaxRates());
+        $wooTaxRates = array_combine(array_column($wooTaxRates, 'tax_rate_country'), $wooTaxRates);
+
+        $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
+            return $taxRate->getCountryIso();
+        }, $jtlTaxRates), $jtlTaxRates);
+
+        $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $wooTaxRates));
+
+        $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$commonTaxRates));
+
+        return is_array($foundTaxClasses) && count($foundTaxClasses) === 1 ? $foundTaxClasses[0]['taxClassName'] : '';
     }
 }
