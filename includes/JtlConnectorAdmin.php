@@ -1773,8 +1773,8 @@ final class JtlConnectorAdmin
             CREATE TABLE IF NOT EXISTS `%s%s` (
                 `endpoint_id` VARCHAR(200) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
-                PRIMARY KEY (`endpoint_id`, `host_id`),
-                INDEX (`host_id`)
+                PRIMARY KEY (`endpoint_id`),
+                UNIQUE (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
 
         $wpdb->query(sprintf($query, $wpdb->prefix, 'jtl_connector_link_tax_class'));

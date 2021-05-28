@@ -461,8 +461,8 @@ class Product extends BaseController
         }
 
         if (empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
-            $taxClassName = $this->findTaxClassName(...$product->getTaxRates());
-            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            $taxClassName = $this->findTaxClassName($product->getVat(), ...$product->getTaxRates());
+//            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
         }
         $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
 
@@ -584,10 +584,11 @@ class Product extends BaseController
     }
 
     /**
+     * @param float $productTaxRate
      * @param TaxRate ...$jtlTaxRates
      * @return string
      */
-    public function findTaxClassName(TaxRate ...$jtlTaxRates): string
+    public function findTaxClassName(float $productTaxRate, TaxRate ...$jtlTaxRates): string
     {
         $wooTaxRates = $this->database->query(SqlHelper::getAllTaxRates());
         $wooTaxRates = array_combine(array_column($wooTaxRates, 'tax_rate_country'), $wooTaxRates);
@@ -600,6 +601,12 @@ class Product extends BaseController
 
         $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$commonTaxRates));
 
-        return is_array($foundTaxClasses) && count($foundTaxClasses) === 1 ? $foundTaxClasses[0]['taxClassName'] : '';
+        $taxClassName = $foundTaxClasses[0]['taxClassName'] ?? false;
+        if ($taxClassName === false) {
+            $taxClass = $this->database->queryOne(SqlHelper::taxClassByRate($productTaxRate));
+            $taxClassName = is_null($taxClass) ? '' : $taxClass;
+        }
+
+        return $taxClassName;
     }
 }
