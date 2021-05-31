@@ -290,10 +290,9 @@ class CustomerOrderItem extends BaseController
                         $vat = $singleVatRate;
                     }
 
-                    $priceGross = $total + $totalTax;
                     $customerOrderItem->setVat($vat)
                         ->setPrice(round($total, Util::getPriceDecimals()))
-                        ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
+                        ->setPriceGross(round($detailedPriceGross, Util::getPriceDecimals()));
                 }
 
                 if ($type === CustomerOrderItemModel::TYPE_SHIPPING && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
