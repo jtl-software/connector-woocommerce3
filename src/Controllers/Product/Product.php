@@ -460,14 +460,14 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
-        if (is_null($product->getTaxClassId()) || empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
-            $taxClassName = $this->findTaxClassName($product->getVat(), ...$product->getTaxRates());
-            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
-                $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
-            }
-        }
-        $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
+        $taxClassName = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat())) ?? '';
 
+        if (!is_null($product->getTaxClassId()) && count($product->getTaxRates()) > 0 && empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
+            $taxClassName = $this->findTaxClassName(...$product->getTaxRates()) ?? $taxClassName;
+            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+        }
+
+        $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
         $wcProduct->save();
 
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
@@ -586,11 +586,10 @@ class Product extends BaseController
     }
 
     /**
-     * @param float $productTaxRate
      * @param TaxRate ...$jtlTaxRates
-     * @return string
+     * @return string|null
      */
-    public function findTaxClassName(float $productTaxRate, TaxRate ...$jtlTaxRates): string
+    public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {
         $wooTaxRates = $this->database->query(SqlHelper::getAllTaxRates());
         $wooTaxRates = array_combine(array_column($wooTaxRates, 'tax_rate_country'), $wooTaxRates);
@@ -603,12 +602,6 @@ class Product extends BaseController
 
         $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$commonTaxRates));
 
-        $taxClassName = $foundTaxClasses[0]['taxClassName'] ?? false;
-        if ($taxClassName === false) {
-            $taxClass = $this->database->queryOne(SqlHelper::taxClassByRate($productTaxRate));
-            $taxClassName = is_null($taxClass) ? '' : $taxClass;
-        }
-
-        return $taxClassName;
+        return $foundTaxClasses[0]['taxClassName'] ?? null;
     }
 }
