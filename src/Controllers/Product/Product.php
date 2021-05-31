@@ -460,9 +460,11 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
-        if (empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
+        if (is_null($product->getTaxClassId()) || empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
             $taxClassName = $this->findTaxClassName($product->getVat(), ...$product->getTaxRates());
-            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
+                $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            }
         }
         $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
 
