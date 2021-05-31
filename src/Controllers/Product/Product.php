@@ -462,7 +462,7 @@ class Product extends BaseController
 
         if (empty($taxClassName = $product->getTaxClassId()->getEndpoint())) {
             $taxClassName = $this->findTaxClassName($product->getVat(), ...$product->getTaxRates());
-//            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
         }
         $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
 
