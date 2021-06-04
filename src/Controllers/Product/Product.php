@@ -594,17 +594,7 @@ class Product extends BaseController
      */
     public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {
-        $wooTaxRates = $this->database->query(SqlHelper::getAllTaxRates());
-        $wooTaxRates = array_combine(array_column($wooTaxRates, 'tax_rate_country'), $wooTaxRates);
-
-        $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
-            return $taxRate->getCountryIso();
-        }, $jtlTaxRates), $jtlTaxRates);
-
-        $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $wooTaxRates));
-
-        $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$commonTaxRates));
-
+        $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$jtlTaxRates));
         return $foundTaxClasses[0]['taxClassName'] ?? null;
     }
 }
