@@ -243,9 +243,9 @@ class Image extends BaseController
 
         foreach ($attachmentIds as $attachmentId) {
             $endpointId = Id::link([$attachmentId, $productId]);
-            
-            if ( ! in_array($endpointId, $this->alreadyLinked)) {
-                $filtered[]            = $attachmentId;
+
+            if (!in_array($endpointId, $this->alreadyLinked)) {
+                $filtered[] = $attachmentId;
                 $this->alreadyLinked[] = $endpointId;
             }
         }
@@ -362,38 +362,18 @@ class Image extends BaseController
         $endpointId = $image->getId()->getEndpoint();
         $post = null;
 
-        $nameInfo = pathinfo($image->getName());
-        $fileNameInfo = pathinfo($image->getFilename());
-
-        if (empty($nameInfo['filename'])) {
-            $name = html_entity_decode($fileNameInfo['filename'], ENT_QUOTES, 'UTF-8');
-        } else {
-            $name = html_entity_decode($nameInfo['filename']);
-        }
-
-        $name = $this->sanitizeImageName($name);
-
-        if (empty($nameInfo['extension'])) {
-            $extension = $fileNameInfo['extension'];
-        } else {
-            $extension = $nameInfo['extension'];
-        }
-
-        $fileName = $name . '.' . $extension;
-
+        $fileInfo = pathinfo($image->getFilename());
+        $name = $this->sanitizeImageName(!empty($image->getName()) ? $image->getName() : $fileInfo['filename']);
+        $extension = $fileInfo['extension'];
         $uploadDir = \wp_upload_dir();
-
-        if (empty($endpointId)) {
-            $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
-        }
-
-        $destination = $uploadDir['path'] . DIRECTORY_SEPARATOR . $fileName;
+        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        $destination = self::createFilePath($uploadDir['path'], $fileName);
 
         if (copy($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(basename($destination), null);
 
             $attachment = [];
-            if($endpointId !== '') {
+            if ($endpointId !== '') {
                 $attachment = \get_post($endpointId, ARRAY_A);
             }
 
@@ -425,7 +405,7 @@ class Image extends BaseController
      * @param $name
      * @return false|string\
      */
-    private function sanitizeImageName($name): string
+    private function sanitizeImageName(string $name): string
     {
         $name = iconv('utf-8', 'ascii//translit', $name);
         $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
@@ -447,9 +427,7 @@ class Image extends BaseController
         $originalName = $name;
         do {
             $fileName = sprintf('%s.%s', $name, $extension);
-
-            $fileFullPath = sprintf('%s%s%s', $uploadDir, DIRECTORY_SEPARATOR, $fileName);
-
+            $fileFullPath = self::createFilePath($uploadDir, $fileName);
             if ($fileExists = file_exists($fileFullPath)) {
                 $name = sprintf('%s-%s', $originalName, $i++);
             }
@@ -503,7 +481,7 @@ class Image extends BaseController
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                 if ($wcProduct->get_type() === 'variation') {
                     $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
-                    if(!is_array($oldImages)){
+                    if (!is_array($oldImages)) {
                         $oldImages = [];
                     }
                     $newImages = array_unique(array_merge([$attachmentId], $oldImages));
@@ -700,4 +678,14 @@ class Image extends BaseController
         return array_map('intval', explode(self::GALLERY_DIVIDER, $galleryImages));
     }
     // </editor-fold>
+
+    /**
+     * @param string $destinationDir
+     * @param string $fileName
+     * @return string
+     */
+    public static function createFilePath(string $destinationDir, string $fileName): string
+    {
+        return sprintf('%s/%s', rtrim($destinationDir, '/'), $fileName);
+    }
 }
