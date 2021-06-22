@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.25.0
+* Feature - CO-1461 - Added product tax class guessing on product push
+
 ## 1.24.1
 * Hotfix taxClassId problem
 
