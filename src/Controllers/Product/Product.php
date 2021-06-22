@@ -404,7 +404,7 @@ class Product extends BaseController
 
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
     {
-        $parent = $parent = $product->getMasterProductId()->getEndpoint();
+        $parent = $product->getMasterProductId()->getEndpoint();
 
         $wcProduct->set_sku($product->getSku());
         $wcProduct->set_parent_id(empty($parent) ? 0 : (int)$parent);
@@ -466,7 +466,7 @@ class Product extends BaseController
             $taxClassName = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat())) ?? '';
             if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
                 $taxClassName = $this->findTaxClassName(...$product->getTaxRates()) ?? $taxClassName;
-                $product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+                //$product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
             }
         }
 
