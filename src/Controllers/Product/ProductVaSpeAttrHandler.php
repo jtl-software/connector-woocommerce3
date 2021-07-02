@@ -276,9 +276,20 @@ class ProductVaSpeAttrHandler extends BaseController
         delete_transient('wc_attribute_taxonomies');
     }
 
-    private function getVariationAndSpecificAttributes($attributes = [])
+    // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
+    private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = [])
     {
         $filteredAttributes = [];
+
+        /** @var \jtl\Connector\Model\ProductVariation $variation */
+        $jtlVariations = [];
+        foreach ($variations as $variation) {
+            foreach ($variation->getI18ns() as $productVariationI18n) {
+                if (Util::getInstance()->isWooCommerceLanguage($productVariationI18n->getLanguageISO())) {
+                    $jtlVariations[] = $productVariationI18n->getName();
+                }
+            }
+        }
 
         /**
          * @var string $slug The attributes unique slug.
@@ -286,15 +297,19 @@ class ProductVaSpeAttrHandler extends BaseController
          */
         foreach ($attributes as $slug => $attribute) {
             if ($attribute->get_variation()) {
-                $filteredAttributes[$slug] = [
-                    'id' => $attribute->get_id(),
-                    'name' => $attribute->get_name(),
-                    'value' => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
-                    'position' => $attribute->get_position(),
-                    'is_visible' => $attribute->get_visible(),
-                    'is_variation' => $attribute->get_variation(),
-                    'is_taxonomy' => $attribute->get_taxonomy(),
-                ];
+                if ($attribute->get_taxonomy() === '' && in_array($attribute->get_name(), $jtlVariations)) {
+                    unset($attributes[$slug]);
+                } else {
+                    $filteredAttributes[$slug] = [
+                        'id' => $attribute->get_id(),
+                        'name' => $attribute->get_name(),
+                        'value' => implode(' ' . WC_DELIMITER . ' ', $attribute->get_options()),
+                        'position' => $attribute->get_position(),
+                        'is_visible' => $attribute->get_visible(),
+                        'is_variation' => $attribute->get_variation(),
+                        'is_taxonomy' => $attribute->get_taxonomy(),
+                    ];
+                }
             } elseif (taxonomy_exists($slug)) {
                 $filteredAttributes[$slug] =
                     [
@@ -401,6 +416,12 @@ class ProductVaSpeAttrHandler extends BaseController
                     'is_taxonomy' => 0,
                 ];
             }
+        }
+
+        if (!empty($variationSpecificData)) {
+            uasort($variationSpecificData, function ($a, $b) {
+                return $a['position'] <=> $b['position'];
+            });
         }
 
         return $variationSpecificData;
@@ -785,10 +806,7 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     //ALL
-    public function getSpecificValueId(
-        $slug,
-        $value
-    ) {
+    public function getSpecificValueId(string $slug, string $value) {
         $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
 
         if (count($val) === 0) {
@@ -803,7 +821,7 @@ class ProductVaSpeAttrHandler extends BaseController
             && !is_null($val[0]['endpoint_id'])
             && !is_null($val[0]['host_id'])
                 ? (new Identity)->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-                : (new Identity)->setEndpoint($val[0]['term_taxonomy_id']);
+                : (new Identity)->setEndpoint($val[0]['term_id']);
         }
 
         return $result;
@@ -817,7 +835,12 @@ class ProductVaSpeAttrHandler extends BaseController
         return ($a->getSort() - $b->getSort());
     }
 
-    private function mergeAttributes(array &$newProductAttributes, array $attributes)
+    /**
+     * @param array $newProductAttributes
+     * @param array $attributes
+     * @param bool $sort
+     */
+    private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false)
     {
         foreach ($attributes as $slug => $attr) {
             if (array_key_exists($slug, $newProductAttributes)) {
@@ -832,6 +855,10 @@ class ProductVaSpeAttrHandler extends BaseController
                     $valuesString = implode(' ' . WC_DELIMITER . ' ', $values);
                     $newProductAttributes[$slug]['value'] = $valuesString;
                     $newProductAttributes[$slug]['is_variation'] = $isVariation;
+
+                    if ($sort) {
+                        $newProductAttributes[$slug]['position'] = $attributes[$slug]['position'];
+                    }
                 }
             } else {
                 $newProductAttributes[$slug] = $attr;

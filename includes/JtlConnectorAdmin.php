@@ -1746,6 +1746,14 @@ final class JtlConnectorAdmin
             case '1.20.0':
             case '1.21.0':
             case '1.21.1':
+            case '1.22.0':
+            case '1.23.0':
+            case '1.23.1':
+            case '1.23.2':
+            case '1.24.0':
+            case '1.24.1':
+            case '1.25.0':
+                self::createTaxClassLinkingTable();
             case '2.0.0':
             case '2.1.0':
             case '2.2.0':
@@ -1760,6 +1768,24 @@ final class JtlConnectorAdmin
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
     }
     // </editor-fold>
+
+    /**
+     *
+     */
+    protected static function createTaxClassLinkingTable()
+    {
+        global $wpdb;
+
+        $query = '
+            CREATE TABLE IF NOT EXISTS `%s%s` (
+                `endpoint_id` VARCHAR(200) NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                PRIMARY KEY (`endpoint_id`),
+                UNIQUE (`host_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+
+        $wpdb->query(sprintf($query, $wpdb->prefix, 'jtl_connector_link_tax_class'));
+    }
 
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()

@@ -10,6 +10,8 @@ use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Model\TaxRate;
+use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\GermanMarket\GermanMarket;
@@ -19,6 +21,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -512,9 +515,17 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
-        $taxClass = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat()));
-        $wcProduct->set_tax_class(is_null($taxClass) ? '' : $taxClass);
+        if (!is_null($product->getTaxClassId()) && !empty($product->getTaxClassId()->getEndpoint())) {
+            $taxClassName = $product->getTaxClassId()->getEndpoint();
+        } else {
+            $taxClassName = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat())) ?? '';
+            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
+                $taxClassName = $this->findTaxClassName(...$product->getTaxRates()) ?? $taxClassName;
+                //$product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            }
+        }
 
+        $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
         $wcProduct->save();
 
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
@@ -617,5 +628,29 @@ class Product extends BaseController
             return self::TYPE_CHILD;
         }
         return self::TYPE_SINGLE;
+    }
+
+    private function getCreationDate(DateTime $creationDate, $gmt = false)
+    {
+        if (is_null($creationDate)) {
+            return null;
+        }
+
+        if ($gmt) {
+            $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
+            $creationDate->sub(date_interval_create_from_date_string($shopTimeZone->getOffset($creationDate) / 3600 . ' hours'));
+        }
+
+        return $creationDate->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * @param TaxRate ...$jtlTaxRates
+     * @return string|null
+     */
+    public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
+    {
+        $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$jtlTaxRates));
+        return $foundTaxClasses[0]['taxClassName'] ?? null;
     }
 }

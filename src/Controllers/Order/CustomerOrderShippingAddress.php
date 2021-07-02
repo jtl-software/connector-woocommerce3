@@ -13,7 +13,7 @@ use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class CustomerOrderShippingAddress extends BaseController
+class CustomerOrderShippingAddress extends CustomerOrderAddress
 {
     public function pullData(\WC_Order $order)
     {
@@ -25,12 +25,10 @@ class CustomerOrderShippingAddress extends BaseController
             ->setExtraAddressLine($order->get_shipping_address_2())
             ->setZipCode($order->get_shipping_postcode())
             ->setCity($order->get_shipping_city())
-            ->setState($order->get_shipping_state())
+            ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
             ->setCountryIso($order->get_shipping_country())
             ->setCompany($order->get_shipping_company())
-            ->setCustomerId(new Identity($order->get_customer_id() !== 0
-                ? $order->get_customer_id()
-                : Id::link([Id::GUEST_PREFIX, $order->get_id()])));
+            ->setCustomerId($this->createCustomerId($order));
 
         if ($this->getPluginsManager()->get(\JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized::class)->canBeUsed()) {
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);

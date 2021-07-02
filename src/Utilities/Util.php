@@ -504,6 +504,17 @@ final class Util extends WordpressUtils
     }
 
     /**
+     * @param float $number
+     * @return int
+     */
+    public static function getDecimalPrecision(float $number): int
+    {
+        $explode = explode('.', (string)$number);
+        $precision = isset($explode[1]) ? strlen($explode[1]) : 0;
+        return $precision < 2 && $precision !== 0 ? 2 : $precision;
+    }
+
+    /**
      * @param $name
      * @return string
      */
@@ -578,5 +589,13 @@ final class Util extends WordpressUtils
                     break;
             }
         }
+    }
+
+    /**
+     * @return array|false
+     */
+    public static function getStates()
+    {
+        return WC()->countries->get_states();
     }
 }

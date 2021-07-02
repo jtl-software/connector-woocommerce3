@@ -21,10 +21,7 @@ class CustomerOrderItemTest extends AbstractTestCase
      */
     public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate)
     {
-        $grossPricePrecision = strlen(substr((string)$priceGross, strpos((string)$priceGross, '.'))) - 1;
-        $grossPricePrecision = $grossPricePrecision < 2 ? 2 : $grossPricePrecision;
-
-        $vatRate = $this->invokeMethodFromObject(new CustomerOrderItem(), 'calculateVat', $priceNet, $priceGross, $grossPricePrecision);
+        $vatRate = $this->invokeMethodFromObject(new CustomerOrderItem(), 'calculateVat', $priceNet, $priceGross);
         $this->assertEquals($expectedVatRate, $vatRate);
     }
 
@@ -51,8 +48,19 @@ class CustomerOrderItemTest extends AbstractTestCase
             [7.66, 8.21, 7.2],
             [0, 0, 0.],
             [2, 2, 0.],
-            [9.99, 11.99, 20.],
+            [9.99, 11.99, 20],
             [9.95, 11.94, 20.],
+            [3.2750, 3.8973, 19],
+            [13.4, 15.54, 16],
+            [1.7155, 1.99, 16],
+            [1.2845, 1.49, 16],
+            [0, 100, 0],
+            [100, 0, 0],
+            [100.14526, 119, 19],
+            [0.08, 0.0952, 19.],
+            [3.89899, 4.1719193333333, 7.],
+            [9.19, 9.897799, 7.7],
+            [9.19, 9.9, 7.7]
         ];
     }
 }

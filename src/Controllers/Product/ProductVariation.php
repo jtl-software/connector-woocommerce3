@@ -361,8 +361,8 @@ class ProductVariation extends BaseController
                                 ' ' . WC_DELIMITER . ' ',
                                 $options
                             ),
-                            'position' => 0,
-                            'is_visible' => Util::showVariationSpecificsOnProductPageEnabled(),
+                            'position'     => $variationSpecific['position'] ?? 0,
+                            'is_visible'   => Util::showVariationSpecificsOnProductPageEnabled(),
                             'is_variation' => true,
                             'is_taxonomy' => $taxonomy,
                         ];
