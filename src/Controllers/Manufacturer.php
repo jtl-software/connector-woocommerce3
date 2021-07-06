@@ -9,10 +9,6 @@ namespace JtlWooCommerceConnector\Controllers;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Manufacturer as ManufacturerModel;
 use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -21,8 +17,6 @@ use WP_Error;
 
 class Manufacturer extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-    
     private static $idCache = [];
     
     protected function pullData($limit)

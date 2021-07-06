@@ -13,19 +13,14 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Payment;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use TheIconic\NameParser\Parser;
-use WCPayPalPlus\Payment\PaymentExecutionSuccess;
 
 class CustomerOrder extends BaseController
 {
-    use PullTrait, StatsTrait;
-    
     /** Order received (unpaid) */
     const STATUS_PENDING = 'pending';
     /** Payment received – the order is awaiting fulfillment */

@@ -7,17 +7,13 @@
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\GlobalData as GlobalDataModel;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
+use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class GlobalData extends BaseController
 {
-    use PullTrait, PushTrait;
-    
     public function pullData()
     {
         $globalData = (new GlobalDataModel())
@@ -26,7 +22,7 @@ class GlobalData extends BaseController
             ->setProductTypes((new ProductType())->pullData())
             ->setShippingClasses((new ShippingClass())->pullData())
             ->setShippingMethods((new ShippingMethod())->pullData())
-            ->setCrossSellingGroups((new CrossSellingGroups())->pullData())
+            ->setCrossSellingGroups(CrossSellingGroup::all())
             ->setTaxRates((new TaxRate())->pullData());
 
         $hasDefaultCustomerGroup = false;
