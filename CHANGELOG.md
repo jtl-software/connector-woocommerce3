@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.26.0
+* Feature - Controllers refactoring to fix PHP8 compatibility
+
 ## 1.25.0
 * Feature - CO-1461 - Added product tax class guessing on product push
 
