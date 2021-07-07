@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 2.5.0-dev
+* Info - Merged state with current release
+* Bugfix - Fixed invalid term translations
+
 ## 2.4.1-dev
 * Info - Merged state with current release
 * Bugfix - Fixed invalid constant reference
