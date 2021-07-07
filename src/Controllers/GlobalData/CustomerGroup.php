@@ -69,8 +69,6 @@ class CustomerGroup
                             isset($meta['bm_vat_type'])
                             && isset($meta['bm_vat_type'][0])
                             && $meta['bm_vat_type'][0] === 'off'
-                                ? true
-                                : false
                         )
                         ->setId(new Identity($group['ID']))
                         ->setIsDefault($isDefaultGroup);
