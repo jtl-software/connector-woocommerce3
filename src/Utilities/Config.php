@@ -34,7 +34,8 @@ class Config
         OPTIONS_PRAEFIX_DELIVERYTIME = 'jtlconnector_praefix_deliverytime',
         OPTIONS_DEVELOPER_LOGGING = 'developer_logging',
         OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce',
-        OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
+        OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market',
+        OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -49,6 +50,7 @@ class Config
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'ca. ',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => ' Werktage',
+        Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => false,
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => true,
         Config::OPTIONS_PULL_ORDERS_SINCE => '',
