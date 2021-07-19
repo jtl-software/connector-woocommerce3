@@ -27,7 +27,7 @@ class StatusChange extends BaseController
                 }, 10, 2);
             }
 
-            $newStatus = $this->mapStatus($statusChange);
+            $newStatus = $this->mapStatus($statusChange, $order);
             if ($newStatus !== null) {
                 if($newStatus === 'wc-completed'){
                     $this->linkIfPaymentIsNotLinked($statusChange);
@@ -54,9 +54,10 @@ class StatusChange extends BaseController
 
     /**
      * @param StatusChangeModel $statusChange
+     * @param \WC_Order $wcOrder
      * @return string|null
      */
-    private function mapStatus(StatusChangeModel $statusChange)
+    private function mapStatus(StatusChangeModel $statusChange, \WC_Order $wcOrder)
     {
         if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
             return 'wc-cancelled';
@@ -69,6 +70,10 @@ class StatusChange extends BaseController
         } elseif ($statusChange->getOrderStatus() === CustomerOrder::STATUS_SHIPPED) {
             if ($statusChange->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED) {
                 return 'wc-completed';
+            }
+
+            if ($wcOrder->has_downloadable_item() === false) {
+                return 'wc-processing';
             }
 
             return 'wc-on-hold';
