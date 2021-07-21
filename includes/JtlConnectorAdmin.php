@@ -1755,6 +1755,7 @@ final class JtlConnectorAdmin
             case '1.25.0':
                 self::createTaxClassLinkingTable();
             case '1.26.0':
+            case '1.26.1':
             default:
                 self::activate_linking();
         }

@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.26.1
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
+
 ## 1.26.0
 * Feature - Controllers refactoring to fix PHP8 compatibility
 

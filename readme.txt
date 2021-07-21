@@ -6,7 +6,7 @@ Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 5.5
-Stable tag: 1.26.0
+Stable tag: 1.26.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.26.1 =
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
 
 = 1.26.0 =
 * Feature - Controllers refactoring to fix PHP8 compatibility
