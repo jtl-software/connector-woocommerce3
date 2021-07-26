@@ -1144,7 +1144,7 @@ final class JtlConnectorAdmin
         }
 
         //CURRENT DISBALED THIS
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && false) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $fields[] = [
                 'title' => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
                 'type' => 'active_true_false_radio',
@@ -1155,15 +1155,15 @@ final class JtlConnectorAdmin
                 'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
-            $fields[] = [
-                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
-                'type' => 'jtlwcc_card',
-                'color' => 'border-info',
-                'text-color' => 'text-info',
-                'center' => false,
-                'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
-                    JTLWCC_TEXT_DOMAIN),
-            ];
+//            $fields[] = [
+//                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+//                'type' => 'jtlwcc_card',
+//                'color' => 'border-info',
+//                'text-color' => 'text-info',
+//                'center' => false,
+//                'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+//                    JTLWCC_TEXT_DOMAIN),
+//            ];
         }
 
         //Add sectionend
