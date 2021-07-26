@@ -95,7 +95,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
                 false);
-        }elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
+        } elseif (in_array($type, [IdentityLinker::TYPE_CUSTOMER_GROUP, IdentityLinker::TYPE_TAX_CLASS])) {
             $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveString($endpointId, $hostId, $tableName),
                 false);
         } else {
@@ -185,6 +185,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_specific';
             case IdentityLinker::TYPE_SPECIFIC_VALUE:
                 return 'jtl_connector_link_specific_value';
+            case IdentityLinker::TYPE_TAX_CLASS:
+                return 'jtl_connector_link_tax_class';
+
         }
         
         return null;
