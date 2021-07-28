@@ -116,7 +116,7 @@ class ProductPrice extends BaseController
         \WC_Product $product,
         ProductModel $model
     ) {
-        if ($model->getIsMasterProduct()) {
+        if (in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
         } else {
