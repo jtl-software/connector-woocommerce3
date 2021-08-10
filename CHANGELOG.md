@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.26.2
+* Bugfix - CO-1722 - bulk prices import
+
 ## 1.26.1
 * Hotfix detailed shipping gross price
 * Updated tested up to versions
