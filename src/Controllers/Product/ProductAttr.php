@@ -18,6 +18,12 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductAttr extends BaseController
 {
+    public const
+        VISIBILITY_HIDDEN = 'hidden',
+        VISIBILITY_CATALOG = 'catalog',
+        VISIBILITY_SEARCH = 'search',
+        VISIBILITY_VISIBLE = 'visible';
+
     // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(
         \WC_Product $product,
@@ -101,11 +107,11 @@ class ProductAttr extends BaseController
                             }
                             $fbStatusCode = true;
                         }
-                        
+
                         /* if (strcmp($attrName, self::FACEBOOK_VISIBILITY_ATTR) === 0) {
                              $value = strcmp(trim($i18n->getValue()), 'true') === 0;
                              $value = $value ? '1' : '0';
-                             
+
                              if (!add_post_meta(
                                  $productId,
                                  substr($attrName, 3),
@@ -320,7 +326,7 @@ class ProductAttr extends BaseController
                             $payable = true;
                         }
                     }
-                    
+
                     if ($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR || $attrName === 'nosearch') {
                         if (strcmp(trim($i18n->getValue()), 'true') === 0) {
                             \update_post_meta(
@@ -329,7 +335,7 @@ class ProductAttr extends BaseController
                                 'catalog',
                                 \get_post_meta($productId, '_visibility', true)
                             );
-                            
+
                             /*
                             "   exclude-from-catalog"
                             "   exclude-from-search"
@@ -339,6 +345,32 @@ class ProductAttr extends BaseController
                             wp_set_object_terms($productId, ['exclude-from-search'], 'product_visibility', true);
                             $nosearch = true;
                         }
+                    }
+
+                    if ($attrName === ProductVaSpeAttrHandler::VISIBILITY) {
+                        $value = $i18n->getValue();
+                        wp_remove_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'], 'product_visibility');
+                        switch ($value) {
+                            case self::VISIBILITY_HIDDEN:
+                                wp_set_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'], 'product_visibility');
+                                break;
+                            case self::VISIBILITY_CATALOG:
+                                wp_set_object_terms($productId, ['exclude-from-search'], 'product_visibility');
+                                break;
+                            case self::VISIBILITY_SEARCH:
+                                wp_set_object_terms($productId, ['exclude-from-catalog'], 'product_visibility');
+                                break;
+                        }
+
+                        if (in_array($value, [self::VISIBILITY_HIDDEN, self::VISIBILITY_CATALOG, self::VISIBILITY_SEARCH, self::VISIBILITY_VISIBLE])) {
+                            \update_post_meta(
+                                $productId,
+                                '_visibility',
+                                $value,
+                                \get_post_meta($productId, '_visibility', true)
+                            );
+                        }
+                        $nosearch = true;
                     }
                     
                     unset($pushedAttributes[$key]);
@@ -403,9 +435,9 @@ class ProductAttr extends BaseController
                 );
             }
         }
-        
+
         if (!$nosearch) {
-            
+
             if (!\add_post_meta(
                 $productId,
                 '_visibility',
@@ -421,7 +453,7 @@ class ProductAttr extends BaseController
             }
             \wp_remove_object_terms($productId, ['exclude-from-search'], 'product_visibility');
         }
-        
+
         if (!$purchaseNote) {
             if (!\add_post_meta(
                 $productId,
