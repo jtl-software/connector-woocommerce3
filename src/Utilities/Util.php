@@ -389,6 +389,8 @@ final class Util extends WordpressUtils
             case 'invoice':
             case 'german_market_purchase_on_account':
                 return PaymentTypes::TYPE_INVOICE;
+            case 'amazon_payments_advanced':
+                return PaymentTypes::TYPE_AMAPAY;
             default:
                 return $order->get_payment_method_title();
         }
