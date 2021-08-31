@@ -8,6 +8,7 @@
 namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Linker\IdentityLinker;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
@@ -337,7 +338,7 @@ class Image extends BaseController
         if (!empty($foreignKey)) {
             $id = null;
             // Delete image with the same id
-            $this->deleteData($image);
+            $this->deleteData($image, false);
 
             if (ImageRelationType::TYPE_PRODUCT === $image->getRelationType()) {
                 $image->getId()->setEndpoint($this->pushProductImage($image));
@@ -351,7 +352,12 @@ class Image extends BaseController
         return $image;
     }
 
-    private function saveImage(ImageModel $image)
+    /**
+     * @param ImageModel $image
+     * @return int|null
+     * @throws \Exception
+     */
+    private function saveImage(ImageModel $image): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
         $post = null;
@@ -362,15 +368,21 @@ class Image extends BaseController
         $uploadDir = \wp_upload_dir();
 
         $attachment = [];
+        $relinkImage = false;
+
+        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
         if ($endpointId !== '') {
             $id = Id::unlink($endpointId);
             $attachment = \get_post($id[0], ARRAY_A) ?? [];
-        }
 
-        if(empty($attachment)) {
-            $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
-        } else{
-            $fileName = basename(get_attached_file($attachment['ID']));
+            if(!empty($attachment)){
+                if ($this->isImageUsedInOtherPlaces($image, $attachment['ID'])) {
+                    $attachment = [];
+                    $relinkImage = true;
+                } else {
+                    $fileName = basename(get_attached_file($attachment['ID']));
+                }
+            }
         }
 
         $destination = self::createFilePath($uploadDir['path'], $fileName);
@@ -397,10 +409,44 @@ class Image extends BaseController
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
+
+            if ($relinkImage) {
+                $this->relinkImage($post, $image);
+            }
         }
 
         return $post;
     }
+
+    /**
+     * @param int $newEndpointId
+     * @param ImageModel $image
+     * @throws \Exception
+     */
+    protected function relinkImage(int $newEndpointId, ImageModel $image)
+    {
+        $primaryKeyMapper = Application()->getConnector()->getPrimaryKeyMapper();
+
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_PRODUCT:
+                $newEndpoint = Id::linkProductImage($newEndpointId, $image->getForeignKey()->getEndpoint());
+                break;
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $newEndpoint = Id::linkManufacturerImage($newEndpointId);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+                $newEndpoint = Id::linkCategoryImage($newEndpointId);
+                break;
+            default:
+                throw new \Exception(sprintf('Relation type %s is not supported.', $image->getRelationType()));
+        }
+
+        $primaryKeyMapper->delete($image->getId()->getEndpoint(), $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
+        $primaryKeyMapper->save($newEndpoint, $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
+
+        $image->getId()->setEndpoint($newEndpoint);
+    }
+
 
     /**
      * @param $name
@@ -573,7 +619,7 @@ class Image extends BaseController
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers($image, $id);
+            $this->deleteIfNotUsedByOthers($image, (int) $id);
         }
     }
 
@@ -620,17 +666,37 @@ class Image extends BaseController
             }
 
             if ($realDelete) {
-                $this->deleteIfNotUsedByOthers($image, $attachmentId);
+                $this->deleteIfNotUsedByOthers($image, (int)$attachmentId);
             }
         }
     }
 
-    private function deleteIfNotUsedByOthers(ImageModel $image, $attachmentId)
+    /**
+     * @param ImageModel $image
+     * @param int $attachmentId
+     * @throws \Exception
+     */
+    private function deleteIfNotUsedByOthers(ImageModel $image, int $attachmentId)
     {
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
 
+        if ($this->isImageUsedInOtherPlaces($image, $attachmentId) === false) {
+            if (\get_attached_file($attachmentId) !== false) {
+                \wp_delete_attachment($attachmentId, true);
+            }
+        }
+    }
+
+    /**
+     * @param ImageModel $image
+     * @param int $attachmentId
+     * @return bool
+     * @throws \Exception
+     */
+    protected function isImageUsedInOtherPlaces(ImageModel $image, int $attachmentId): bool
+    {
         switch ($image->getRelationType()) {
             case ImageRelationType::TYPE_PRODUCT:
                 $query = SqlHelper::countRelatedProducts($attachmentId);
@@ -645,11 +711,7 @@ class Image extends BaseController
                 throw new \Exception(sprintf("Cannot find relation %s for attachement id %s when deleting image", $image->getRelationType(), $attachmentId));
         }
 
-        if ((int)$this->database->queryOne($query) <= 1) {
-            if (\get_attached_file($attachmentId) !== false) {
-                \wp_delete_attachment($attachmentId, true);
-            }
-        }
+        return (int)$this->database->queryOne($query) > 1;
     }
 
     private function isCoverImage(ImageModel $image)
@@ -661,11 +723,11 @@ class Image extends BaseController
     {
         $thumbnail = \get_post_thumbnail_id($productId);
         \set_post_thumbnail($productId, 0);
-        $this->deleteIfNotUsedByOthers($image, $thumbnail);
+        $this->deleteIfNotUsedByOthers($image, (int)$thumbnail);
         $galleryImages = $this->getGalleryImages($productId);
         \update_post_meta($productId, self::GALLERY_KEY, '');
         foreach ($galleryImages as $galleryImage) {
-            $this->deleteIfNotUsedByOthers($image, $galleryImage);
+            $this->deleteIfNotUsedByOthers($image, (int)$galleryImage);
         }
     }
 
