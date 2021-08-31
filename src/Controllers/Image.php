@@ -337,7 +337,7 @@ class Image extends BaseController
         if (!empty($foreignKey)) {
             $id = null;
             // Delete image with the same id
-            $this->deleteData($image, false);
+            $this->deleteData($image);
 
             if (ImageRelationType::TYPE_PRODUCT === $image->getRelationType()) {
                 $image->getId()->setEndpoint($this->pushProductImage($image));
