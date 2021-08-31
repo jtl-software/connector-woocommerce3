@@ -360,16 +360,23 @@ class Image extends BaseController
         $name = $this->sanitizeImageName(!empty($image->getName()) ? $image->getName() : $fileInfo['filename']);
         $extension = $fileInfo['extension'];
         $uploadDir = \wp_upload_dir();
-        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+
+        $attachment = [];
+        if ($endpointId !== '') {
+            $id = Id::unlink($endpointId);
+            $attachment = \get_post($id[0], ARRAY_A) ?? [];
+        }
+
+        if(empty($attachment)) {
+            $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        } else{
+            $fileName = basename(get_attached_file($attachment['ID']));
+        }
+
         $destination = self::createFilePath($uploadDir['path'], $fileName);
 
         if (copy($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(basename($destination), null);
-
-            $attachment = [];
-            if ($endpointId !== '') {
-                $attachment = \get_post($endpointId, ARRAY_A);
-            }
 
             $attachment = array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
