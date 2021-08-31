@@ -9,10 +9,6 @@ namespace JtlWooCommerceConnector\Controllers;
 use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\CategoryI18n as CategoryI18nModel;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -21,8 +17,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Category extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-    
     private static $idCache = [];
     
     protected function pullData($limit)

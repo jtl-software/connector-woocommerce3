@@ -11,10 +11,6 @@ use jtl\Connector\Model\Specific as SpecificModel;
 use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
 use jtl\Connector\Model\SpecificValue as SpecificValueModel;
 use jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -23,8 +19,6 @@ use WP_Query;
 
 class Specific extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-    
     private static $idCache = [];
     
     protected function pullData($limit)

@@ -6,14 +6,11 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 
 class DeliveryNote extends BaseController
 {
-    use PushTrait;
-
     /**
      * @param \jtl\Connector\Model\DeliveryNote $deliveryNote
      * @return \jtl\Connector\Model\DeliveryNote

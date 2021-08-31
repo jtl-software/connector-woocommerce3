@@ -8,17 +8,12 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Payment as PaymentModel;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Payment extends BaseController
 {
     const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
-
-    use PullTrait, PushTrait, StatsTrait;
 
     public function pullData($limit)
     {

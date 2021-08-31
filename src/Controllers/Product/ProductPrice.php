@@ -116,7 +116,7 @@ class ProductPrice extends BaseController
         \WC_Product $product,
         ProductModel $model
     ) {
-        if ($model->getIsMasterProduct()) {
+        if (in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
         } else {
@@ -205,7 +205,7 @@ class ProductPrice extends BaseController
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
      */
-    public function pushData(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    public function savePrices(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
     {
         Util::deleteB2Bcache();
 

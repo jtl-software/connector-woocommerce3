@@ -2,6 +2,29 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.26.2
+* Bugfix - CO-1722 - bulk prices import
+
+## 1.26.1
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
+
+## 1.26.0
+* Feature - Controllers refactoring to fix PHP8 compatibility
+
+## 1.25.0
+* Feature - CO-1461 - Added product tax class guessing on product push
+
+## 1.24.1
+* Hotfix taxClassId problem
+
+## 1.24.0
+* Feature - CO-1429 - Get full state name if available on customer order pull
+* Bugfix - CO-1513 - Tax rate calculation improvements 
+
+## 1.23.2
+* Payment pull hotfix
+
 ## 1.23.1
 * Merged missing CO-1397 functionality 
 

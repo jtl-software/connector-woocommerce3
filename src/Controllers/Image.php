@@ -12,10 +12,6 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -24,8 +20,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Image extends BaseController
 {
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait;
-
     const GALLERY_DIVIDER = ',';
     const PRODUCT_THUMBNAIL = '_thumbnail_id';
     const CATEGORY_THUMBNAIL = 'thumbnail_id';
