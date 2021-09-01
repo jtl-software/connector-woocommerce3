@@ -1797,17 +1797,19 @@ final class JtlConnectorAdmin
 
     protected static function setupDefaultOrderStatusesToImport()
     {
-        $statusList = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
-            $statusList[] = 'wc-payment-accepted';
-        }
+        if(Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT) === null) {
+            $statusList = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+                $statusList[] = 'wc-payment-accepted';
+            }
 
-        $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
-        if (in_array($includeCompletedOrdersOption, ['yes', '1'], true)) {
-            $statusList[] = 'wc-completed';
-        }
+            $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
+            if (in_array($includeCompletedOrdersOption, ['yes', '1'], true)) {
+                $statusList[] = 'wc-completed';
+            }
 
-        Config::set(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $statusList);
+            Config::set(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $statusList);
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
