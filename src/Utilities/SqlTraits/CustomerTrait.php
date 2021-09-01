@@ -35,7 +35,7 @@ trait CustomerTrait {
             AND p.post_status IN ('%s')
             AND pm.meta_key = '_customer_user'
             AND pm.meta_value != 0 
-            %s", $select, $wpdb->postmeta, $wpdb->postmeta, $jclc, join("','", $status), $limitQuery);
+            %s", $select, $wpdb->postmeta, $wpdb->posts, $jclc, join("','", $status), $limitQuery);
 	}
 	
 	public static function guestNotLinked( $limit ) {
