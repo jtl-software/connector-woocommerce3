@@ -26,6 +26,7 @@ final class SupportedPlugins
     const PLUGIN_YOAST_SEO = 'Yoast SEO';
     const PLUGIN_YOAST_SEO_PREMIUM = 'Yoast SEO Premium';
     const PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE = 'Advanced Shipment Tracking for WooCommerce';
+    const PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO = 'Advanced Shipment Tracking Pro';
     const PLUGIN_DHL_FOR_WOOCOMMERCE = 'DHL for WooCommerce';
     const PLUGIN_BACKUPBUDDY = 'BackupBuddy';
     const PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE = 'UpdraftPlus - Backup/Restore';
@@ -64,6 +65,7 @@ final class SupportedPlugins
         self::PLUGIN_YOAST_SEO,
         self::PLUGIN_YOAST_SEO_PREMIUM,
         self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE,
+        self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO,
         self::PLUGIN_DHL_FOR_WOOCOMMERCE,
         self::PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE,
         self::PLUGIN_BACKUPBUDDY,
