@@ -75,6 +75,7 @@ class Config
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'string',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => 'string',
+        Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => 'bool',
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => 'bool',
         Config::OPTIONS_PULL_ORDERS_SINCE => 'date',
