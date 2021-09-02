@@ -51,7 +51,7 @@ class CustomerGroup
             if (count($result) > 0) {
                 foreach ($result as $group) {
 
-                    if (Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS)) {
+                    if (Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true)) {
                         $allProductsKey = 'bm_all_products';
                         \update_post_meta(
                             $group['ID'],
