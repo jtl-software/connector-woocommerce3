@@ -54,6 +54,16 @@ class ProductDeliveryTime extends BaseController
                 }
             }
 
+            if (Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE, false)) {
+                if ($product->getStockLevel()->getStockLevel() <= 0 && !is_null($product->getNextAvailableInflowDate())) {
+                    $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
+                    $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+                    if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
+                        $time = $product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days;
+                    }
+                }
+            }
+
             if ($offset !== 0) {
                 $min = $time - $offset <= 0 ? 1 : $time - $offset;
                 $max = $time + $offset;

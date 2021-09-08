@@ -8,6 +8,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
+use AST_Pro_Actions;
 
 class DeliveryNote extends BaseController
 {
@@ -17,7 +18,8 @@ class DeliveryNote extends BaseController
      */
     protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE) ||
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
 
             $orderId = $deliveryNote->getCustomerOrderId()->getEndpoint();
 
@@ -27,7 +29,7 @@ class DeliveryNote extends BaseController
                 return $deliveryNote;
             }
 
-            $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
+            $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
             foreach ($deliveryNote->getTrackingLists() as $trackingList) {
 
@@ -56,6 +58,22 @@ class DeliveryNote extends BaseController
     }
 
     /**
+     * @return AST_Pro_Actions|object|WC_Advanced_Shipment_Tracking_Actions|null
+     */
+    protected function getShipmentTrackingActions()
+    {
+        $shipmentTrackingActions = null;
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {
+            $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
+        } else {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
+                $shipmentTrackingActions = AST_Pro_Actions::get_instance();
+            }
+        }
+        return $shipmentTrackingActions;
+    }
+
+    /**
      * @param string $shippingMethodName
      * @param array $trackingProviders
      * @return string|null
@@ -63,26 +81,25 @@ class DeliveryNote extends BaseController
     private function findTrackingProviderSlug($shippingMethodName, $trackingProviders)
     {
         $searchResultSlug = null;
-        $searchResultLength  = 0;
+        $searchResultLength = 0;
         $sameSearchResultQuantity = 0;
 
-        foreach($trackingProviders as $trackingProviderSlug => $trackingProvider){
+        foreach ($trackingProviders as $trackingProviderSlug => $trackingProvider) {
 
             $providerName = $trackingProvider['provider_name'];
             $providerNameLength = strlen($providerName);
 
             $shippingMethodNameStartsWithProviderName
-                = substr($shippingMethodName,0,$providerNameLength) === $providerName;
+                = substr($shippingMethodName, 0, $providerNameLength) === $providerName;
             $newResultIsMoreSimilarThanPrevious = $providerNameLength > $searchResultLength;
             $newResultHasSameLengthAsPrevious = $providerNameLength === $searchResultLength;
 
-            if($shippingMethodNameStartsWithProviderName){
-                if($newResultIsMoreSimilarThanPrevious){
-                    $searchResultSlug = (string) $trackingProviderSlug;
+            if ($shippingMethodNameStartsWithProviderName) {
+                if ($newResultIsMoreSimilarThanPrevious) {
+                    $searchResultSlug = (string)$trackingProviderSlug;
                     $searchResultLength = $providerNameLength;
                     $sameSearchResultQuantity = 0;
-                }
-                elseif($newResultHasSameLengthAsPrevious){
+                } elseif ($newResultHasSameLengthAsPrevious) {
                     $searchResultSlug = null;
                     $sameSearchResultQuantity++;
                 }

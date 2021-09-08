@@ -25,6 +25,7 @@ class Config
         OPTIONS_SUFFIX_DELIVERYTIME = 'jtlconnector_suffix_deliverytime',
         OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format',
         OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group',
+        OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT = 'jtlconnector_default_order_statuses_to_import',
         OPTIONS_USE_GTIN_FOR_EAN = 'jtlconnector_use_gtin_for_ean',
         OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES = 'jtlconnector_allow_html_in_product_attributes',
         OPTIONS_COMPLETED_ORDERS = 'jtlconnector_completed_orders',
@@ -34,7 +35,8 @@ class Config
         OPTIONS_PRAEFIX_DELIVERYTIME = 'jtlconnector_praefix_deliverytime',
         OPTIONS_DEVELOPER_LOGGING = 'developer_logging',
         OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce',
-        OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market';
+        OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market',
+        OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -44,11 +46,13 @@ class Config
         Config::OPTIONS_USE_GTIN_FOR_EAN => true,
         Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => false,
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
+        Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'ca. ',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => ' Werktage',
+        Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => false,
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => true,
         Config::OPTIONS_PULL_ORDERS_SINCE => '',
@@ -68,11 +72,13 @@ class Config
         Config::OPTIONS_USE_GTIN_FOR_EAN => 'bool',
         Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => 'bool',
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'string',
+        Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => 'array',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => 'bool',
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'string',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => 'string',
+        Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => 'bool',
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => 'bool',
         Config::OPTIONS_PULL_ORDERS_SINCE => 'date',
