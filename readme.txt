@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.5
-Stable tag: 1.26.2
+WC tested up to: 5.6
+Stable tag: 1.27.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,15 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.27.0 =
+* Feature - CO-1743 - Updated integration with Advanced Shipping Pro plugin
+* Bugfix - CO-1587 -  Fixed order status change for invoice payment method
+* Bugfix - CO-1534 - Fixed DHL Packstation number transfer
+* Feature - CO-1530 - Added config option to select additional order statuses
+* Feature - CO-1349 - Added support for Custom Product Tabs plugin
+* Bugfix - CO-1318 - Added config option to disable recommended B2B Market settings
+* Feature - CO-1288 - Added config option to support nextAvailableInflowDate
 
 = 1.26.2 =
 * Bugfix - CO-1722 - bulk prices import

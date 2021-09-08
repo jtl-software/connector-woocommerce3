@@ -1803,6 +1803,7 @@ final class JtlConnectorAdmin
             case '1.26.0':
             case '1.26.1':
             case '1.26.2':
+            case '1.27.0':
                 self::setupDefaultOrderStatusesToImport();
             default:
                 self::activate_linking();
