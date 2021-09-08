@@ -1034,6 +1034,17 @@ final class JtlConnectorAdmin
             'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
         ];
 
+        //Use next available inflow date if needed
+        $fields[] = [
+            'title' => __('Consider available inflow date for shipping', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want that connector calculate shipping time based on next available inflow date from supplier when stock is 0', JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE,
+            'value' => Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
