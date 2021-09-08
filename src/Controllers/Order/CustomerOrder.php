@@ -23,19 +23,20 @@ use TheIconic\NameParser\Parser;
 class CustomerOrder extends BaseController
 {
     /** Order received (unpaid) */
-    const STATUS_PENDING = 'pending';
-    /** Payment received – the order is awaiting fulfillment */
-    const STATUS_PROCESSING = 'processing';
-    /** Order fulfilled and complete */
-    const STATUS_COMPLETED = 'completed';
-    /** Awaiting payment – stock is reduced, but you need to confirm payment */
-    const STATUS_ON_HOLD = 'on-hold';
-    /** Payment failed or was declined (unpaid) */
-    const STATUS_FAILED = 'failed';
-    /** Cancelled by an admin or the customer */
-    const STATUS_CANCELLED = 'cancelled';
-    /** Already paid */
-    const STATUS_REFUNDED = 'refunded';
+    public const
+        STATUS_PENDING = 'pending',
+        /** Payment received – the order is awaiting fulfillment */
+         STATUS_PROCESSING = 'processing',
+        /** Order fulfilled and complete */
+         STATUS_COMPLETED = 'completed',
+        /** Awaiting payment – stock is reduced, but you need to confirm payment */
+         STATUS_ON_HOLD = 'on-hold',
+        /** Payment failed or was declined (unpaid) */
+         STATUS_FAILED = 'failed',
+        /** Cancelled by an admin or the customer */
+         STATUS_CANCELLED = 'cancelled',
+        /** Already paid */
+         STATUS_REFUNDED = 'refunded';
     
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';

@@ -30,6 +30,22 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.27.0
+* Feature - CO-1743 - Updated integration with Advanced Shipping Pro plugin
+* Bugfix - CO-1587 -  Fixed order status change for invoice payment method
+* Bugfix - CO-1534 - Fixed DHL Packstation number transfer   
+* Feature - CO-1530 - Added config option to select additional order statuses
+* Feature - CO-1349 - Added support for Custom Product Tabs plugin
+* Bugfix - CO-1318 - Added config option to disable recommended B2B Market settings 
+* Feature - CO-1288 - Added config option to support nextAvailableInflowDate
+
+## 1.26.2
+* Bugfix - CO-1722 - bulk prices import
+
+## 1.26.1
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
+
 ## 1.26.0
 * Feature - Controllers refactoring to fix PHP8 compatibility
 

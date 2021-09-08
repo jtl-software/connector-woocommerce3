@@ -2,10 +2,10 @@
 Contributors: papryk, ntbyk, chakratos, drieschel, messtech
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.6
+Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.3
+WC tested up to: 5.6
 Stable tag: 2.5.0-dev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
@@ -180,6 +180,22 @@ This section describes how to install the plugin and get it working.
 
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
+
+= 1.27.0 =
+* Feature - CO-1743 - Updated integration with Advanced Shipping Pro plugin
+* Bugfix - CO-1587 -  Fixed order status change for invoice payment method
+* Bugfix - CO-1534 - Fixed DHL Packstation number transfer
+* Feature - CO-1530 - Added config option to select additional order statuses
+* Feature - CO-1349 - Added support for Custom Product Tabs plugin
+* Bugfix - CO-1318 - Added config option to disable recommended B2B Market settings
+* Feature - CO-1288 - Added config option to support nextAvailableInflowDate
+
+= 1.26.2 =
+* Bugfix - CO-1722 - bulk prices import
+
+= 1.26.1 =
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
 
 = 1.26.0 =
 * Feature - Controllers refactoring to fix PHP8 compatibility

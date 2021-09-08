@@ -17,6 +17,7 @@ use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrder;
 
 /**
  * Class Util
@@ -479,8 +480,26 @@ final class Util extends WordpressUtils
      */
     public static function includeCompletedOrders()
     {
-        $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
-        return in_array($includeCompletedOrdersOption, ['yes', '1'], true);
+        return Util::canPullOrderStatus(CustomerOrder::STATUS_COMPLETED);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getOrderStatusesToImport(): array
+    {
+        $defaultStatuses = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
+        return Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+    }
+
+    /**
+     * @param string $stateName
+     * @return bool
+     */
+    public static function canPullOrderStatus(string $stateName): bool
+    {
+        $orderImportStates = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT);
+        return is_array($orderImportStates) ? in_array(sprintf('wc-%s',$stateName), $orderImportStates) : false;
     }
 
     /**
