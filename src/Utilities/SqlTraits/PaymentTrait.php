@@ -27,20 +27,13 @@ trait PaymentTrait
         if (is_null($limit)) {
             $select = 'COUNT(DISTINCT(p.ID))';
             $limitQuery = '';
-            $onlyLined = '';
         } else {
             $select = 'DISTINCT(p.ID)';
             $limitQuery = 'LIMIT ' . $limit;
-            $onlyLined = 'AND o.endpoint_id IS NOT NULL';
         }
+        $onlyLined = 'AND o.endpoint_id IS NOT NULL';
 
-        $manualPaymentMethods = [
-            'cod',
-            'german_market_purchase_on_account',
-            'german_market_sepa_direct_debit',
-            'cheque',
-            'bacs',
-        ];
+        $manualPaymentMethods = self::getManualPaymentMethods();
 
         // Usually processing means paid but exception for Cash on delivery
         $status = sprintf("(p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_value IN ('%s'))", $wpdb->postmeta, join("','", $manualPaymentMethods));
@@ -63,5 +56,19 @@ trait PaymentTrait
             %s";
 
         return sprintf($sql, $select, $wpdb->posts, $jclp, $jclo, $status, $where, $onlyLined, $limitQuery);
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getManualPaymentMethods(): array
+    {
+        return [
+            'cod',
+            'german_market_purchase_on_account',
+            'german_market_sepa_direct_debit',
+            'cheque',
+            'bacs',
+        ];
     }
 }
