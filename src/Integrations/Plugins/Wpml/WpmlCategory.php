@@ -3,7 +3,6 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Category;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;

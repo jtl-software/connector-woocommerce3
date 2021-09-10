@@ -10,7 +10,6 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductManufacturer extends BaseController
 {

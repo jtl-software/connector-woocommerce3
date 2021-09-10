@@ -8,10 +8,7 @@ namespace JtlWooCommerceConnector\Controllers\Order;
 
 use jtl\Connector\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
-use JtlWooCommerceConnector\Utilities\Id;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderBillingAddress extends CustomerOrderAddress

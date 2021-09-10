@@ -441,7 +441,7 @@ class Image extends BaseController
 
     /**
      * @param $name
-     * @return false|string\
+     * @return string
      */
     private function sanitizeImageName($name): string
     {

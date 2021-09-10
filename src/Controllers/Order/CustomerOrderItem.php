@@ -10,7 +10,6 @@ use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;

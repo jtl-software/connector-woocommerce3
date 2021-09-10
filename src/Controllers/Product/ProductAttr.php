@@ -9,11 +9,9 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductAttr extends BaseController
 {

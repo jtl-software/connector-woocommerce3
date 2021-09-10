@@ -6,11 +6,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 class ProductSpecific extends BaseController
 {

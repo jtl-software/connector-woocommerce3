@@ -13,12 +13,10 @@ use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Integrations\IntegrationsManager;
-use JtlWooCommerceConnector\Integrations\Plugins\PluginInterface;
 use JtlWooCommerceConnector\Integrations\Plugins\PluginsManager;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use ReflectionClass;
 
 abstract class BaseController extends Controller

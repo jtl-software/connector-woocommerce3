@@ -15,7 +15,6 @@ use jtl\Connector\Model\ManufacturerI18n;
 use jtl\Connector\Model\ProductAttr;
 use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Controllers\Order\CustomerOrder;
 

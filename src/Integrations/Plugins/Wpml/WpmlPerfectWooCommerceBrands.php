@@ -2,14 +2,12 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
  * Class WpmlPerfectWooCommerceBrands

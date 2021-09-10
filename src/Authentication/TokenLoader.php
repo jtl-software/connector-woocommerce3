@@ -8,7 +8,6 @@ namespace JtlWooCommerceConnector\Authentication;
 
 use jtl\Connector\Authentication\ITokenLoader;
 use jtl\Connector\Core\Exception\ConnectorException;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Utilities\Config;
 
 class TokenLoader implements ITokenLoader
