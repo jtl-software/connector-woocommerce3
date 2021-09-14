@@ -1805,6 +1805,7 @@ final class JtlConnectorAdmin
             case '1.26.2':
             case '1.27.0':
                 self::setupDefaultOrderStatusesToImport();
+            case '1.27.1':
             case '2.0.0':
             case '2.1.0':
             case '2.2.0':

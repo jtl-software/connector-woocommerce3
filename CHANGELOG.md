@@ -30,6 +30,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.27.1
+* Hotfix - Fixed not linked guest sql method
+
 ## 1.27.0
 * Feature - CO-1743 - Updated integration with Advanced Shipping Pro plugin
 * Bugfix - CO-1587 -  Fixed order status change for invoice payment method
