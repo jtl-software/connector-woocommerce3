@@ -14,6 +14,8 @@ use jtl\Connector\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -434,6 +436,10 @@ class Image extends BaseController
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
+
+            if ($this->wpml->canWpmlMediaBeUsed()) {
+                $this->wpml->getComponent(WpmlMedia::class)->saveAttachmentTranslations($post, $image->getI18ns());
+            }
         }
 
         return $post;

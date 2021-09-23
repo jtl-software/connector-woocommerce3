@@ -55,15 +55,20 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
      */
     public function saveTranslations(Manufacturer $jtlManufacturer)
     {
-        $mainTermId = (int)$jtlManufacturer->getId()->getEndpoint();
+        remove_filter('pre_term_description', 'wp_filter_kses');
+        $mainManufacturerId = (int)$jtlManufacturer->getId()->getEndpoint();
 
         $termTranslations = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
 
         $elementType = 'tax_pwb-brand';
 
-        $trid = $this->getCurrentPlugin()->getElementTrid($mainTermId, $elementType);
+        $manufacturerTerm = get_term_by('id', $mainManufacturerId, 'pwb-brand');
+
+        $trid = $this->getCurrentPlugin()->getElementTrid($manufacturerTerm->term_taxonomy_id, $elementType);
 
         $translation = $termTranslations->getTranslations($trid, $elementType);
+
+        $perfectWooCommerceBrands = $this->getCurrentPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class);
 
         foreach ($jtlManufacturer->getI18ns() as $manufacturerI18n) {
 
@@ -72,37 +77,34 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 continue;
             }
 
-            $perfectWooCommerceBrands = $this->getCurrentPlugin()->getPluginsManager()->get(PerfectWooCommerceBrands::class);
-
             if (!isset($translation[$languageCode])) {
                 $slug = $perfectWooCommerceBrands->sanitizeSlug($jtlManufacturer->getName(), $languageCode);
-                $result = $perfectWooCommerceBrands->createManufacturer($slug, $jtlManufacturer->getName(),
-                    $manufacturerI18n);
+                $result = $perfectWooCommerceBrands->createManufacturer($slug, $jtlManufacturer->getName(), $manufacturerI18n);
             } else {
-                $manufacturerId = $translation[$languageCode]->term_id;
-
-                $result = $perfectWooCommerceBrands
-                    ->updateManufacturer($manufacturerId, $jtlManufacturer->getName(), $manufacturerI18n);
+                $termTranslations->disableGetTermAdjustId();
+                $translatedManufacturerId = $translation[$languageCode]->term_id;
+                $result = $perfectWooCommerceBrands->updateManufacturer($translatedManufacturerId, $jtlManufacturer->getName(), $manufacturerI18n);
+                $termTranslations->enableGetTermAdjustId();
             }
 
             if ($result instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($result);
             } else {
                 if (isset($result['term_id'])) {
-                    $manufacturerId = (int)$result['term_id'];
+                    $translatedManufacturerId = (int)$result['term_id'];
 
                     /** @var YoastSeo $yoastSeo */
                     $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
                     /** @var RankMathSeo $rankMathSeo */
                     $rankMathSeo = $this->getCurrentPlugin()->getPluginsManager()->get(RankMathSeo::class);
                     if ($yoastSeo->canBeUsed()) {
-                        $yoastSeo->setManufacturerSeoData($manufacturerId, $manufacturerI18n);
+                        $yoastSeo->setManufacturerSeoData($translatedManufacturerId, $manufacturerI18n);
                     } elseif ($rankMathSeo->canBeUsed()) {
-                        $rankMathSeo->updateWpSeoTaxonomyMeta($manufacturerId, $manufacturerI18n);
+                        $rankMathSeo->updateWpSeoTaxonomyMeta($translatedManufacturerId, $manufacturerI18n);
                     }
 
                     $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                        $manufacturerId,
+                        $result['term_taxonomy_id'],
                         $elementType,
                         $trid,
                         $languageCode
@@ -110,6 +112,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 }
             }
         }
+        add_filter('pre_term_description', 'wp_filter_kses');
     }
 
     /**
