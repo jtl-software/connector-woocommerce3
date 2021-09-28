@@ -1,5 +1,5 @@
 === WooCommerce JTL-Connector ===
-Contributors: papryk, ntbyk, chakratos, drieschel, messtech
+Contributors: papryk, ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
 Tested up to: 5.8
