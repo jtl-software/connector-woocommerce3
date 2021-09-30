@@ -49,15 +49,11 @@ class ProductSpecialPrice extends BaseController
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
-                
-                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
-                    !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                    || ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
-                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                        && version_compare(
-                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                            '1.0.3',
-                            '<='))
+
+                $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
+
+                if ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) ||
+                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','<='))
                 ) {
                     $salePrice = $product->get_sale_price();
                     
@@ -68,7 +64,7 @@ class ProductSpecialPrice extends BaseController
                             ->setPriceNet((float)$this->getPriceNet($salePrice, $product));
                     }
                 } else {
-                    $groupSlug = $groupController->getSlugById($customerGroup->getId()->getEndpoint());
+                    $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
                     $defaultSpecialPrice = false;
                     $salePrice = $product->get_sale_price();
                     
@@ -127,19 +123,6 @@ class ProductSpecialPrice extends BaseController
         return $netPrice;
     }
     
-    /*protected function priceNet(\WC_Product $product)
-    {
-        $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
-        
-        if (\wc_prices_include_tax() && $taxRate != 0) {
-            $netPrice = ((float)$product->get_sale_price()) / ($taxRate + 100) * 100;
-        } else {
-            $netPrice = round((float)$product->get_sale_price(), \wc_get_price_decimals());
-        }
-        
-        return $netPrice;
-    }*/
-    
     public function pushData(ProductModel $product, \WC_Product $wcProduct, string $productType)
     {
         $pd = Util::getPriceDecimals();
@@ -148,11 +131,7 @@ class ProductSpecialPrice extends BaseController
         $masterProductId = $product->getMasterProductId();
         $specialPrices = $product->getSpecialPrices();
         
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && version_compare(
-                (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                '1.0.3',
-                '>')) {
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -169,11 +148,7 @@ class ProductSpecialPrice extends BaseController
         }
         
         if (count($specialPrices) > 0) {
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                && version_compare(
-                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                    '1.0.3',
-                    '>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
                 foreach ($specialPrices as $specialPrice) {
                     foreach ($specialPrice->getItems() as $item) {
                         $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -499,11 +474,7 @@ class ProductSpecialPrice extends BaseController
             
             $customerGroups = (new CustomerGroup)->pullData();
             
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                && version_compare(
-                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                    '1.0.3',
-                    '>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
                 foreach ($customerGroups as $customerGroup) {
                     $endpoint = $customerGroup->getId()->getEndpoint();
                     if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
