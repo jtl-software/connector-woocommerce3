@@ -38,7 +38,7 @@ class ProductPrice extends BaseController
         } else {
             $customerGroups = $groupController->pullData();
 
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '1.0.3', '>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 $prices[] = (new ProductPriceModel())
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
@@ -57,7 +57,7 @@ class ProductPrice extends BaseController
                 $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
 
                 if ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) ||
-                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '1.0.3', '<='))
+                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '<=', '1.0.3'))
                 ){
                     $items[] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
@@ -101,7 +101,7 @@ class ProductPrice extends BaseController
     {
         $price = null;
 
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '1.0.8.0', '>=')) {
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>=', '1.0.8.0')) {
 
             $pricesMetaKey = sprintf('bm_%s_group_prices', $groupSlug);
             $priceGroupMeta = get_post_meta($wcProduct->get_id(), $pricesMetaKey, true);
@@ -195,7 +195,7 @@ class ProductPrice extends BaseController
         foreach ($jtlProductPrices as $price) {
             $endpoint = $price->getCustomerGroupId()->getEndpoint();
 
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
                     $groupedProductPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
@@ -207,7 +207,7 @@ class ProductPrice extends BaseController
             if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
                     $endpoint = self::GUEST_CUSTOMER_GROUP;
-                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '1.0.3', '>')) {
+                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                         $endpoint = CustomerGroup::DEFAULT_GROUP;
                     }
                 }
@@ -332,7 +332,7 @@ class ProductPrice extends BaseController
         $pd = Util::getPriceDecimals();
         $productId = $wcProduct->get_id();
 
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '1.0.8.0', '>=')) {
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>=', '1.0.8.0')) {
 
             $metaKey = sprintf('bm_%s_group_prices', $customerGroup->post_name);
 

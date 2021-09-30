@@ -53,7 +53,7 @@ class ProductSpecialPrice extends BaseController
                 $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
 
                 if ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) ||
-                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','<='))
+                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '<=', '1.0.3'))
                 ) {
                     $salePrice = $product->get_sale_price();
                     
@@ -131,7 +131,7 @@ class ProductSpecialPrice extends BaseController
         $masterProductId = $product->getMasterProductId();
         $specialPrices = $product->getSpecialPrices();
         
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -148,7 +148,7 @@ class ProductSpecialPrice extends BaseController
         }
         
         if (count($specialPrices) > 0) {
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 foreach ($specialPrices as $specialPrice) {
                     foreach ($specialPrice->getItems() as $item) {
                         $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -474,7 +474,7 @@ class ProductSpecialPrice extends BaseController
             
             $customerGroups = (new CustomerGroup)->pullData();
             
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET,'1.0.3','>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 foreach ($customerGroups as $customerGroup) {
                     $endpoint = $customerGroup->getId()->getEndpoint();
                     if ($endpoint === Config::get('jtlconnector_default_customer_group')) {

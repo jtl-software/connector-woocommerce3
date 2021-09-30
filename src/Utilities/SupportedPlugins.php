@@ -205,11 +205,11 @@ final class SupportedPlugins
 
     /**
      * @param string $pluginName
-     * @param string $version
      * @param string $operator
+     * @param string $version
      * @return bool
      */
-    public static function comparePluginVersion(string $pluginName, string $version, string $operator): bool
+    public static function comparePluginVersion(string $pluginName, string $operator, string $version): bool
     {
         return self::isActive($pluginName) && version_compare(self::getVersionOf($pluginName), $version, $operator);
     }
