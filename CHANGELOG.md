@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Bugfix - increased minimum decimal precision in vat rate calculation to 2
+
 ## 1.27.1
 * Hotfix - Fixed not linked guest sql method
 
