@@ -59,7 +59,6 @@ class ProductAttr extends BaseController
         $nosearch = false;
         $fbStatusCode = false;
         $purchaseNote = false;
-        /* $fbVisibility = false;*/
         //GERMAN MARKET
         $digital = false;
         $altDeliveryNote = false;
@@ -83,8 +82,7 @@ class ProductAttr extends BaseController
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)) {
                         
                         if (strcmp($attrName, ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR) === 0) {
-                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                            $value = $value ? '1' : '';
+                            $value = Util::isTrue($i18n->getValue()) ? '1' : '';
                             
                             if (!add_post_meta(
                                 $productId,
@@ -101,37 +99,16 @@ class ProductAttr extends BaseController
                             }
                             $fbStatusCode = true;
                         }
-                        
-                        /* if (strcmp($attrName, self::FACEBOOK_VISIBILITY_ATTR) === 0) {
-                             $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                             $value = $value ? '1' : '0';
-                             
-                             if (!add_post_meta(
-                                 $productId,
-                                 substr($attrName, 3),
-                                 $value,
-                                 true
-                             )) {
-                                 update_post_meta(
-                                     $productId,
-                                     substr($attrName, 3),
-                                     $value
-                                 );
-                             }
-                             $fbVisibility = true;
-                         }*/
                     }
                     if(SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)){
                         if($i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
-                            $value = $i18n->getValue();
-                            if (in_array($value, ['yes', 'no'])) {
-                                $metaKey = '_service';
+                            $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $metaKey = '_service';
 
-                                if (!add_post_meta($productId, $metaKey, $value, true)) {
-                                    update_post_meta($productId, $metaKey, $value,
-                                        \get_post_meta($productId, $metaKey, true)
-                                    );
-                                }
+                            if (!add_post_meta($productId, $metaKey, $value, true)) {
+                                update_post_meta($productId, $metaKey, $value,
+                                    \get_post_meta($productId, $metaKey, true)
+                                );
                             }
                         }
                     }
@@ -171,8 +148,7 @@ class ProductAttr extends BaseController
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                         
                         if (strcmp($attrName, ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) === 0) {
-                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                            $value = $value ? 'yes' : 'no';
+                            $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
                             $metaKey = substr($attrName, 5);
                             if (!add_post_meta(
                                 $productId,
@@ -191,8 +167,7 @@ class ProductAttr extends BaseController
                         }
                         
                         if (strcmp($attrName, ProductVaSpeAttrHandler::GM_SUPPRESS_SHIPPPING_NOTICE) === 0) {
-                            $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                            $value = $value ? 'on' : '';
+                            $value = Util::isTrue($i18n->getValue()) ? 'on' : '';
                             if ($value) {
                                 if (!add_post_meta(
                                     $productId,
@@ -251,8 +226,7 @@ class ProductAttr extends BaseController
                     }
                     
                     if (strcmp($attrName, ProductVaSpeAttrHandler::DOWNLOADABLE_ATTR) === 0) {
-                        $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                        $value = $value ? 'yes' : 'no';
+                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
                         
                         if (!add_post_meta(
                             $productId,
@@ -271,8 +245,7 @@ class ProductAttr extends BaseController
                     }
                     
                     if (strcmp($attrName, ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR) === 0) {
-                        $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                        $value = $value ? 'yes' : 'no';
+                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
                         
                         if (!add_post_meta(
                             $productId,
@@ -291,8 +264,7 @@ class ProductAttr extends BaseController
                     }
                     
                     if (strcmp($attrName, ProductVaSpeAttrHandler::VIRTUAL_ATTR) === 0) {
-                        $value = strcmp(trim($i18n->getValue()), 'true') === 0;
-                        $value = $value ? 'yes' : 'no';
+                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
                         
                         if (!add_post_meta(
                             $productId,
@@ -312,7 +284,7 @@ class ProductAttr extends BaseController
                     }
                     
                     if ($attrName === ProductVaSpeAttrHandler::PAYABLE_ATTR || $attrName === 'payable') {
-                        if (strcmp(trim($i18n->getValue()), 'false') === 0) {
+                        if (Util::isTrue($i18n->getValue()) === false) {
                             \wp_update_post([
                                 'ID'          => $productId,
                                 'post_status' => 'private',
@@ -322,7 +294,7 @@ class ProductAttr extends BaseController
                     }
                     
                     if ($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR || $attrName === 'nosearch') {
-                        if (strcmp(trim($i18n->getValue()), 'true') === 0) {
+                        if (Util::isTrue($i18n->getValue())) {
                             \update_post_meta(
                                 $productId,
                                 '_visibility',
@@ -492,21 +464,6 @@ class ProductAttr extends BaseController
                     );
                 }
             }
-            
-            /*if (!$fbVisibility) {
-                if (!add_post_meta(
-                    $productId,
-                    substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
-                    '1',
-                    true
-                )) {
-                    update_post_meta(
-                        $productId,
-                        substr(self::FACEBOOK_VISIBILITY_ATTR, 3),
-                        '1'
-                    );
-                }
-            }*/
         }
         
         if (!$payable) {
