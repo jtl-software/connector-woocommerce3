@@ -830,7 +830,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
+            'desc' => __('If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_SEND_CUSTOM_PROPERTIES,
             'value' => Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES),
@@ -854,7 +854,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Allow HTML in product attributes', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to allow saving HTML in product attributes', JTLWCC_TEXT_DOMAIN),
+            'desc' => __('Enable if you want to allow saving HTML in product attributes (Default : Disabled)', JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES,
             'value' => Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES),
             'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
