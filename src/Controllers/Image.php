@@ -645,7 +645,7 @@ class Image extends BaseController
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
-                \set_post_thumbnail($productId, 0);
+                delete_post_thumbnail($productId);
             } else {
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                     if ($wcProduct->get_type() === 'variation') {
