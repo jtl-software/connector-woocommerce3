@@ -154,11 +154,12 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.28.0 =
-* Bugfix - CO-1793 - B2B Market version 1.0.8.0 customer group prices adjustments
-* Feature - CO-1744 - Added support for set product visibility by attribute
 * Feature - CO-1745 - Added support for Amazon Pay transactions
-* Bugfix - Increased minimum decimal precision in vat rate calculation to 2
+* Feature - CO-1744 - Added support for set product visibility by attribute
+* Feature - CO-1268 - Added support for 'Extra Product Options (Product Addons) for WooCommerce' plugin
 * Feature - CO-1223 - Updated translations
+* Bugfix - CO-1793 - B2B Market version 1.0.8.0 customer group prices adjustments
+* Bugfix - Increased minimum decimal precision in vat rate calculation to 2
 * Removed inactive contributors
 
 = 1.27.1 =
