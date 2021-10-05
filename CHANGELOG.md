@@ -2,8 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
-## Unreleased
+## 1.28.0
+* Feature - CO-1745 - Added support for Amazon Pay transactions 
 * Bugfix - increased minimum decimal precision in vat rate calculation to 2
+* Removed inactive contributors
 
 ## 1.27.1
 * Hotfix - Fixed not linked guest sql method
