@@ -39,7 +39,7 @@ final class SupportedPlugins
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
     const PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan';
-    const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
+//    const PLUGIN_SMUSH = 'Smush Image Compression and Optimization'; removed from incompatible list in 1.28.0
     const PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan';
     const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
@@ -79,7 +79,7 @@ final class SupportedPlugins
     const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
         self::PLUGIN_CERBER_SECURITY,
-        self::PLUGIN_SMUSH,
+//        self::PLUGIN_SMUSH,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
         self::PLUGIN_WP_MULTILANG,
