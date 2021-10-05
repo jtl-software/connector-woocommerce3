@@ -204,6 +204,17 @@ final class SupportedPlugins
     }
 
     /**
+     * @param string $pluginName
+     * @param string $operator
+     * @param string $version
+     * @return bool
+     */
+    public static function comparePluginVersion(string $pluginName, string $operator, string $version): bool
+    {
+        return self::isActive($pluginName) && version_compare(self::getVersionOf($pluginName), $version, $operator);
+    }
+
+    /**
      * @return bool
      */
     public static function isPerfectWooCommerceBrandsActive()
@@ -214,16 +225,23 @@ final class SupportedPlugins
         );
     }
 
-    public static function getVersionOf($pluginName = 'WooCommerce'){
+    /**
+     * @param string $pluginName
+     * @return string|null
+     */
+    public static function getVersionOf($pluginName = 'WooCommerce'): ?string
+    {
         $plArray = self::getInstalledAndActivated();
 
+        $version = null;
         foreach ($plArray as $plugin) {
             if (strcmp($pluginName, $plugin['Name']) === 0) {
-                return $plugin['Version'];
+                $version = $plugin['Version'];
+                break;
             }
         }
 
-        return null;
+        return $version;
     }
 
     /**
