@@ -82,6 +82,17 @@ class CustomerOrder extends BaseController
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
 
+            if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_AMAPAY) {
+                $amazonChargePermissionId = $order->get_meta('amazon_charge_permission_id');
+                if (!empty($amazonChargePermissionId)) {
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('AmazonPay-Referenz')
+                            ->setValue($amazonChargePermissionId)
+                    );
+                }
+            }
+
             if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_PAYPAL_PLUS) {
                 $this->setPayPalPlusPaymentInfo($order, $customerOrder);
             }

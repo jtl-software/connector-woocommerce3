@@ -8,13 +8,25 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Payment as PaymentModel;
+use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
+/**
+ * Class Payment
+ * @package JtlWooCommerceConnector\Controllers
+ */
 class Payment extends BaseController
 {
+    /**
+     *
+     */
     const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
+    /**
+     * @param $limit
+     * @return array
+     */
     public function pullData($limit)
     {
         $payments = [];
@@ -30,18 +42,41 @@ class Payment extends BaseController
                 continue;
             }
 
+            $paymentModuleCode = Util::getInstance()->mapPaymentModuleCode($order);
+
             $payments[] = (new PaymentModel())
                 ->setId(new Identity($order->get_id()))
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setTotalSum((float)$order->get_total())
-                ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
-                ->setTransactionId($order->get_transaction_id())
+                ->setPaymentModuleCode($paymentModuleCode)
+                ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
                 ->setCreationDate($order->get_date_paid() ? $order->get_date_paid() : $order->get_date_completed());
         }
 
         return $payments;
     }
 
+    /**
+     * @param string $paymentModuleCode
+     * @param \WC_Order $order
+     * @return string
+     */
+    protected function getTransactionId(string $paymentModuleCode, \WC_Order $order): string
+    {
+        $transactionId = $order->get_transaction_id();
+        switch ($paymentModuleCode) {
+            case PaymentTypes::TYPE_AMAPAY:
+                $transactionId = $order->get_meta('amazon_charge_id');
+        }
+
+        return (string)$transactionId;
+    }
+
+    /**
+     * @param PaymentModel $data
+     * @return PaymentModel
+     * @throws \WC_Data_Exception
+     */
     public function pushData(PaymentModel $data)
     {
         $order = \wc_get_order((int)$data->getCustomerOrderId()->getEndpoint());
@@ -57,6 +92,9 @@ class Payment extends BaseController
         return $data;
     }
 
+    /**
+     * @return int
+     */
     protected function getStats()
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
