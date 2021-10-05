@@ -376,7 +376,7 @@ class Image extends BaseController
             $attachment = \get_post($id[0], ARRAY_A) ?? [];
 
             if(!empty($attachment)){
-                if ($this->isImageUsedInOtherPlaces($image, $attachment['ID'])) {
+                if ($this->isAttachmentUsedInOtherPlaces($attachment['ID'])) {
                     $attachment = [];
                     $relinkImage = true;
                 } else {
@@ -619,7 +619,7 @@ class Image extends BaseController
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers($image, (int) $id);
+            $this->deleteIfNotUsedByOthers((int) $id);
         }
     }
 
@@ -632,8 +632,8 @@ class Image extends BaseController
             return;
         }
 
-        $productId = (int)$ids[1];
         $attachmentId = (int)$ids[0];
+        $productId = (int)$ids[1];
 
         $wcProduct = \wc_get_product($productId);
         if (!$wcProduct instanceof \WC_Product) {
@@ -641,7 +641,7 @@ class Image extends BaseController
         }
 
         if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
-            $this->deleteAllProductImages($image, $productId);
+            $this->deleteAllProductImages($productId);
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
@@ -666,23 +666,21 @@ class Image extends BaseController
             }
 
             if ($realDelete) {
-                $this->deleteIfNotUsedByOthers($image, (int)$attachmentId);
+                $this->deleteIfNotUsedByOthers((int)$attachmentId);
             }
         }
     }
 
     /**
-     * @param ImageModel $image
      * @param int $attachmentId
-     * @throws \Exception
      */
-    private function deleteIfNotUsedByOthers(ImageModel $image, int $attachmentId)
+    private function deleteIfNotUsedByOthers(int $attachmentId)
     {
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
 
-        if ($this->isImageUsedInOtherPlaces($image, $attachmentId) === false) {
+        if ($this->isAttachmentUsedInOtherPlaces($attachmentId) === false) {
             if (\get_attached_file($attachmentId) !== false) {
                 \wp_delete_attachment($attachmentId, true);
             }
@@ -690,44 +688,41 @@ class Image extends BaseController
     }
 
     /**
-     * @param ImageModel $image
      * @param int $attachmentId
      * @return bool
-     * @throws \Exception
      */
-    protected function isImageUsedInOtherPlaces(ImageModel $image, int $attachmentId): bool
+    protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
     {
-        switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_PRODUCT:
-                $query = SqlHelper::countRelatedProducts($attachmentId);
-                break;
-            case ImageRelationType::TYPE_CATEGORY:
-                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::CATEGORY_THUMBNAIL);
-                break;
-            case ImageRelationType::TYPE_MANUFACTURER:
-                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::MANUFACTURER_KEY);
-                break;
-            default:
-                throw new \Exception(sprintf("Cannot find relation %s for attachement id %s when deleting image", $image->getRelationType(), $attachmentId));
-        }
+        $total = 0;
 
-        return (int)$this->database->queryOne($query) > 1;
+        $total += (int)$this->database->queryOne(SqlHelper::countRelatedProducts($attachmentId));
+        $total += (int)$this->database->queryOne(SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::CATEGORY_THUMBNAIL));
+        $total += (int)$this->database->queryOne(SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::MANUFACTURER_KEY));
+
+        return $total > 1;
     }
 
+    /**
+     * @param ImageModel $image
+     * @return bool
+     */
     private function isCoverImage(ImageModel $image)
     {
         return $image->getSort() === 1;
     }
 
-    private function deleteAllProductImages(ImageModel $image, $productId)
+    /**
+     * @param $productId
+     */
+    private function deleteAllProductImages($productId)
     {
         $thumbnail = \get_post_thumbnail_id($productId);
         \set_post_thumbnail($productId, 0);
-        $this->deleteIfNotUsedByOthers($image, (int)$thumbnail);
+        $this->deleteIfNotUsedByOthers((int)$thumbnail);
         $galleryImages = $this->getGalleryImages($productId);
         \update_post_meta($productId, self::GALLERY_KEY, '');
         foreach ($galleryImages as $galleryImage) {
-            $this->deleteIfNotUsedByOthers($image, (int)$galleryImage);
+            $this->deleteIfNotUsedByOthers((int)$galleryImage);
         }
     }
 
