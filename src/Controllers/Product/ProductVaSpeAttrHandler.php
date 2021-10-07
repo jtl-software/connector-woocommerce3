@@ -36,6 +36,7 @@ class ProductVaSpeAttrHandler extends BaseController
         FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status',
         PAYABLE_ATTR = 'wc_payable',
         NOSEARCH_ATTR = 'wc_nosearch',
+        VISIBILITY = 'wc_visibility',
         VIRTUAL_ATTR = 'wc_virtual',
         PURCHASE_NOTE_ATTR = 'wc_purchase_note',
         PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually',
@@ -485,7 +486,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             ),
-            $this->getNoSearchFunctionAttribute(
+            $this->getVisibilityFunctionAttribute(
                 $product,
                 $languageIso
             ),
@@ -721,29 +722,33 @@ class ProductVaSpeAttrHandler extends BaseController
         return $attribute;
     }
 
-    private function getNoSearchFunctionAttribute(\WC_Product $product, $languageIso = '')
+    private function getVisibilityFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $visibility = get_post_meta($product->get_id(), '_visibility');
+        $terms = get_the_terms($product->get_id(), 'product_visibility');
+        $termNames = is_array($terms) ? wp_list_pluck($terms, 'name') : [];
+        $excludeFromSearch = in_array('exclude-from-search', $termNames, true);
+        $excludeFromCatalog = in_array('exclude-from-catalog', $termNames, true);
 
-        if (count($visibility) > 0 && strcmp($visibility[0], 'catalog') === 0) {
-            $value = self::VALUE_TRUE;
-        } else {
-            $value = self::VALUE_FALSE;
+        $visibility = 'visible';
+        if ( $excludeFromSearch && $excludeFromCatalog ) {
+            $visibility = 'hidden';
+        } elseif ( $excludeFromSearch ) {
+            $visibility = 'catalog';
+        } elseif ( $excludeFromCatalog ) {
+            $visibility = 'search';
         }
-
+        
         $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::NOSEARCH_ATTR))
-            ->setName(self::NOSEARCH_ATTR)
-            ->setValue((string)$value)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::VISIBILITY))
+            ->setName(self::VISIBILITY)
+            ->setValue($visibility)
             ->setLanguageISO($languageIso);
 
-        $attribute = (new ProductAttrModel)
+        return (new ProductAttrModel)
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-
-        return $attribute;
     }
 
     private function getVirtualFunctionAttribute(\WC_Product $product, $languageIso = '')

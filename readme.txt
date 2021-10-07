@@ -1,11 +1,11 @@
 === WooCommerce JTL-Connector ===
-Contributors: papryk, ntbyk, chakratos, drieschel, messtech
+Contributors: papryk, ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
 Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.6
+WC tested up to: 5.7
 Stable tag: 2.5.0-dev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
@@ -180,6 +180,16 @@ This section describes how to install the plugin and get it working.
 
 = 2.0.0-dev =
 * Enhancement - CO-307 - WPML implementation
+
+= 1.28.0 =
+* Feature - CO-1745 - Added support for Amazon Pay transactions
+* Feature - CO-1744 - Added support for set product visibility by attribute
+* Feature - CO-1268 - Added support for 'Extra Product Options (Product Addons) for WooCommerce' plugin
+* Feature - CO-1223 - Updated translations
+* Bugfix - CO-1575 - Split images in push that are used in more than one element
+* Bugfix - CO-1793 - B2B Market version 1.0.8.0 customer group prices adjustments
+* Bugfix - Increased minimum decimal precision in vat rate calculation to 2
+* Removed inactive contributors
 
 = 1.27.1 =
 * Hotfix - Fixed not linked guest sql method

@@ -45,7 +45,7 @@ final class SupportedPlugins
     //Incompatible
     const PLUGIN_ANTISPAM_BEE = 'Antispam Bee';
     const PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan';
-    const PLUGIN_SMUSH = 'Smush Image Compression and Optimization';
+//    const PLUGIN_SMUSH = 'Smush Image Compression and Optimization'; removed from incompatible list in 1.28.0
     const PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan';
     const PLUGIN_THEME_WOODMART_CORE = 'Woodmart Core';
     const PLUGIN_WP_FASTEST_CACHE = 'WP Fastest Cache';
@@ -91,7 +91,7 @@ final class SupportedPlugins
     const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
         self::PLUGIN_CERBER_SECURITY,
-        self::PLUGIN_SMUSH,
+//        self::PLUGIN_SMUSH,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
         self::PLUGIN_WP_MULTILANG,
@@ -216,6 +216,17 @@ final class SupportedPlugins
     }
 
     /**
+     * @param string $pluginName
+     * @param string $operator
+     * @param string $version
+     * @return bool
+     */
+    public static function comparePluginVersion(string $pluginName, string $operator, string $version): bool
+    {
+        return self::isActive($pluginName) && version_compare(self::getVersionOf($pluginName), $version, $operator);
+    }
+
+    /**
      * @return bool
      */
     public static function isPerfectWooCommerceBrandsActive()
@@ -241,18 +252,21 @@ final class SupportedPlugins
 
     /**
      * @param string $pluginName
-     * @return mixed|null
+     * @return string|null
      */
-    public static function getVersionOf($pluginName = 'WooCommerce'){
+    public static function getVersionOf($pluginName = 'WooCommerce'): ?string
+    {
         $plArray = self::getInstalledAndActivated();
 
+        $version = null;
         foreach ($plArray as $plugin) {
             if (strcmp($pluginName, $plugin['Name']) === 0) {
-                return $plugin['Version'];
+                $version = $plugin['Version'];
+                break;
             }
         }
 
-        return null;
+        return $version;
     }
 
     /**

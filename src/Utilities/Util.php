@@ -389,6 +389,8 @@ final class Util extends WordpressUtils
             case 'invoice':
             case 'german_market_purchase_on_account':
                 return PaymentTypes::TYPE_INVOICE;
+            case 'amazon_payments_advanced':
+                return PaymentTypes::TYPE_AMAPAY;
             default:
                 return $order->get_payment_method_title();
         }
@@ -529,7 +531,7 @@ final class Util extends WordpressUtils
     {
         $explode = explode('.', (string)$number);
         $precision = isset($explode[1]) ? strlen($explode[1]) : 0;
-        return $precision < 2 && $precision !== 0 ? 2 : $precision;
+        return $precision < 2 ? 2 : $precision;
     }
 
     /**

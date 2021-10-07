@@ -30,6 +30,16 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.28.0
+* Feature - CO-1745 - Added support for Amazon Pay transactions 
+* Feature - CO-1744 - Added support for set product visibility by attribute  
+* Feature - CO-1268 - Added support for 'Extra Product Options (Product Addons) for WooCommerce' plugin  
+* Feature - CO-1223 - Updated translations
+* Bugfix - CO-1575 - Split images in push that are used in more than one element
+* Bugfix - CO-1793 - B2B Market version 1.0.8.0 customer group prices adjustments  
+* Bugfix - Increased minimum decimal precision in vat rate calculation to 2
+* Removed inactive contributors
+
 ## 1.27.1
 * Hotfix - Fixed not linked guest sql method
 

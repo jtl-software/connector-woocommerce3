@@ -8,14 +8,13 @@
 namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Linker\IdentityLinker;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -60,10 +59,10 @@ class Image extends BaseController
             $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
             $combinedArray = array_merge($combinedArray, $manufacturerImages);
         }
-        
+
         return $combinedArray;
     }
-    
+
     private function addNextImages($images, $type, &$limit)
     {
         $return = [];
@@ -263,9 +262,9 @@ class Image extends BaseController
 
         foreach ($attachmentIds as $attachmentId) {
             $endpointId = Id::link([$attachmentId, $productId]);
-            
-            if ( ! in_array($endpointId, $this->alreadyLinked)) {
-                $filtered[]            = $attachmentId;
+
+            if (!in_array($endpointId, $this->alreadyLinked)) {
+                $filtered[] = $attachmentId;
                 $this->alreadyLinked[] = $endpointId;
             }
         }
@@ -377,45 +376,43 @@ class Image extends BaseController
         return $image;
     }
 
-    private function saveImage(ImageModel $image)
+    /**
+     * @param ImageModel $image
+     * @return int|null
+     * @throws \Exception
+     */
+    private function saveImage(ImageModel $image): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
         $post = null;
 
-        $nameInfo = pathinfo($image->getName());
-        $fileNameInfo = pathinfo($image->getFilename());
-
-        if (empty($nameInfo['filename'])) {
-            $name = html_entity_decode($fileNameInfo['filename'], ENT_QUOTES, 'UTF-8');
-        } else {
-            $name = html_entity_decode($nameInfo['filename']);
-        }
-
-        $name = $this->sanitizeImageName($name);
-
-        if (empty($nameInfo['extension'])) {
-            $extension = $fileNameInfo['extension'];
-        } else {
-            $extension = $nameInfo['extension'];
-        }
-
-        $fileName = $name . '.' . $extension;
-
+        $fileInfo = pathinfo($image->getFilename());
+        $name = $this->sanitizeImageName(!empty($image->getName()) ? $image->getName() : $fileInfo['filename']);
+        $extension = $fileInfo['extension'];
         $uploadDir = \wp_upload_dir();
 
-        if (empty($endpointId)) {
-            $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        $attachment = [];
+        $relinkImage = false;
+
+        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        if ($endpointId !== '') {
+            $id = Id::unlink($endpointId);
+            $attachment = \get_post($id[0], ARRAY_A) ?? [];
+
+            if(!empty($attachment)){
+                if ($this->isAttachmentUsedInOtherPlaces($attachment['ID'])) {
+                    $attachment = [];
+                    $relinkImage = true;
+                } else {
+                    $fileName = basename(get_attached_file($attachment['ID']));
+                }
+            }
         }
 
-        $destination = $uploadDir['path'] . DIRECTORY_SEPARATOR . $fileName;
+        $destination = self::createFilePath($uploadDir['path'], $fileName);
 
         if (copy($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(basename($destination), null);
-
-            $attachment = [];
-            if($endpointId !== '') {
-                $attachment = \get_post($endpointId, ARRAY_A);
-            }
 
             $attachment = array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
@@ -437,6 +434,10 @@ class Image extends BaseController
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
 
+            if ($relinkImage) {
+                $this->relinkImage($post, $image);
+            }
+
             if ($this->wpml->canWpmlMediaBeUsed()) {
                 $this->wpml->getComponent(WpmlMedia::class)->saveAttachmentTranslations($post, $image->getI18ns());
             }
@@ -446,10 +447,40 @@ class Image extends BaseController
     }
 
     /**
+     * @param int $newEndpointId
+     * @param ImageModel $image
+     * @throws \Exception
+     */
+    protected function relinkImage(int $newEndpointId, ImageModel $image)
+    {
+        $primaryKeyMapper = Application()->getConnector()->getPrimaryKeyMapper();
+
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_PRODUCT:
+                $newEndpoint = Id::linkProductImage($newEndpointId, $image->getForeignKey()->getEndpoint());
+                break;
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $newEndpoint = Id::linkManufacturerImage($newEndpointId);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+                $newEndpoint = Id::linkCategoryImage($newEndpointId);
+                break;
+            default:
+                throw new \Exception(sprintf('Relation type %s is not supported.', $image->getRelationType()));
+        }
+
+        $primaryKeyMapper->delete($image->getId()->getEndpoint(), $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
+        $primaryKeyMapper->save($newEndpoint, $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
+
+        $image->getId()->setEndpoint($newEndpoint);
+    }
+
+
+    /**
      * @param $name
      * @return string
      */
-    private function sanitizeImageName($name): string
+    private function sanitizeImageName(string $name): string
     {
         $name = iconv('utf-8', 'ascii//translit', $name);
         $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
@@ -471,9 +502,7 @@ class Image extends BaseController
         $originalName = $name;
         do {
             $fileName = sprintf('%s.%s', $name, $extension);
-
-            $fileFullPath = sprintf('%s%s%s', $uploadDir, DIRECTORY_SEPARATOR, $fileName);
-
+            $fileFullPath = self::createFilePath($uploadDir, $fileName);
             if ($fileExists = file_exists($fileFullPath)) {
                 $name = sprintf('%s-%s', $originalName, $i++);
             }
@@ -526,7 +555,7 @@ class Image extends BaseController
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                 if ($wcProduct->get_type() === 'variation') {
                     $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
-                    if(!is_array($oldImages)){
+                    if (!is_array($oldImages)) {
                         $oldImages = [];
                     }
                     $newImages = array_unique(array_merge([$attachmentId], $oldImages));
@@ -615,7 +644,7 @@ class Image extends BaseController
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers($image, $id);
+            $this->deleteIfNotUsedByOthers((int) $id);
         }
     }
 
@@ -628,8 +657,8 @@ class Image extends BaseController
             return;
         }
 
-        $productId = (int)$ids[1];
         $attachmentId = (int)$ids[0];
+        $productId = (int)$ids[1];
 
         $wcProduct = \wc_get_product($productId);
         if (!$wcProduct instanceof \WC_Product) {
@@ -637,11 +666,11 @@ class Image extends BaseController
         }
 
         if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
-            $this->deleteAllProductImages($image, $productId);
+            $this->deleteAllProductImages($productId);
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
-                \set_post_thumbnail($productId, 0);
+                delete_post_thumbnail($productId);
             } else {
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                     if ($wcProduct->get_type() === 'variation') {
@@ -662,52 +691,63 @@ class Image extends BaseController
             }
 
             if ($realDelete) {
-                $this->deleteIfNotUsedByOthers($image, $attachmentId);
+                $this->deleteIfNotUsedByOthers((int)$attachmentId);
             }
         }
     }
 
-    private function deleteIfNotUsedByOthers(ImageModel $image, $attachmentId)
+    /**
+     * @param int $attachmentId
+     */
+    private function deleteIfNotUsedByOthers(int $attachmentId)
     {
         if (empty($attachmentId) || \get_post($attachmentId) === false) {
             return;
         }
 
-        switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_PRODUCT:
-                $query = SqlHelper::countRelatedProducts($attachmentId);
-                break;
-            case ImageRelationType::TYPE_CATEGORY:
-                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::CATEGORY_THUMBNAIL);
-                break;
-            case ImageRelationType::TYPE_MANUFACTURER:
-                $query = SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::MANUFACTURER_KEY);
-                break;
-            default:
-                throw new \Exception(sprintf("Cannot find relation %s for attachement id %s when deleting image", $image->getRelationType(), $attachmentId));
-        }
-
-        if ((int)$this->database->queryOne($query) <= 1) {
+        if ($this->isAttachmentUsedInOtherPlaces($attachmentId) === false) {
             if (\get_attached_file($attachmentId) !== false) {
                 \wp_delete_attachment($attachmentId, true);
             }
         }
     }
 
+    /**
+     * @param int $attachmentId
+     * @return bool
+     */
+    protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
+    {
+        $total = 0;
+
+        $total += (int)$this->database->queryOne(SqlHelper::countRelatedProducts($attachmentId));
+        $total += (int)$this->database->queryOne(SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::CATEGORY_THUMBNAIL));
+        $total += (int)$this->database->queryOne(SqlHelper::countTermMetaImages($attachmentId, ImageCtrl::MANUFACTURER_KEY));
+
+        return $total > 1;
+    }
+
+    /**
+     * @param ImageModel $image
+     * @return bool
+     */
     private function isCoverImage(ImageModel $image)
     {
         return $image->getSort() === 1;
     }
 
-    private function deleteAllProductImages(ImageModel $image, $productId)
+    /**
+     * @param $productId
+     */
+    private function deleteAllProductImages($productId)
     {
         $thumbnail = \get_post_thumbnail_id($productId);
         \set_post_thumbnail($productId, 0);
-        $this->deleteIfNotUsedByOthers($image, $thumbnail);
+        $this->deleteIfNotUsedByOthers((int)$thumbnail);
         $galleryImages = $this->getGalleryImages($productId);
         \update_post_meta($productId, self::GALLERY_KEY, '');
         foreach ($galleryImages as $galleryImage) {
-            $this->deleteIfNotUsedByOthers($image, $galleryImage);
+            $this->deleteIfNotUsedByOthers((int)$galleryImage);
         }
     }
 
@@ -719,5 +759,16 @@ class Image extends BaseController
         }
 
         return array_map('intval', explode(self::GALLERY_DIVIDER, $galleryImages));
+    }
+    // </editor-fold>
+
+    /**
+     * @param string $destinationDir
+     * @param string $fileName
+     * @return string
+     */
+    public static function createFilePath(string $destinationDir, string $fileName): string
+    {
+        return sprintf('%s/%s', rtrim($destinationDir, '/'), $fileName);
     }
 }
