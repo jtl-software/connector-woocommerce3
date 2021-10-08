@@ -607,6 +607,6 @@ final class Util extends WordpressUtils
      */
     public static function isTrue(string $value): bool
     {
-        return in_array(strtolower(trim($value)), ['yes', '1', 'true']);
+        return !in_array(strtolower(trim($value)), ['no', '0', 'false', ''], true);
     }
 }
