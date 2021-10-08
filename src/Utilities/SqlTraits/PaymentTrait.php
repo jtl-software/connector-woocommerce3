@@ -40,6 +40,8 @@ trait PaymentTrait
             'german_market_sepa_direct_debit',
             'cheque',
             'bacs',
+            'cash_on_delivery',
+            'invoice',
         ];
 
         // Usually processing means paid but exception for Cash on delivery

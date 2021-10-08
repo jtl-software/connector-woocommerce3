@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.28.1
+* Hotfix - added 'invoice' and 'cash_on_delivery' to manual payment methods
+
 ## 1.28.0
 * Feature - CO-1745 - Added support for Amazon Pay transactions 
 * Feature - CO-1744 - Added support for set product visibility by attribute  
