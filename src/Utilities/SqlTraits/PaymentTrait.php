@@ -10,6 +10,7 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Util;
 
 trait PaymentTrait
 {
@@ -34,15 +35,7 @@ trait PaymentTrait
             $onlyLined = 'AND o.endpoint_id IS NOT NULL';
         }
 
-        $manualPaymentMethods = [
-            'cod',
-            'german_market_purchase_on_account',
-            'german_market_sepa_direct_debit',
-            'cheque',
-            'bacs',
-            'cash_on_delivery',
-            'invoice',
-        ];
+        $manualPaymentMethods = Util::getManualPaymentTypes();
 
         // Usually processing means paid but exception for Cash on delivery
         $status = sprintf("(p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_value IN ('%s'))", $wpdb->postmeta, join("','", $manualPaymentMethods));

@@ -494,6 +494,16 @@ final class Util extends WordpressUtils
     }
 
     /**
+     * @return array
+     */
+    public static function getManualPaymentTypes(): array
+    {
+        $defaultManualPayments = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES];
+        return Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+    }
+
+
+    /**
      * @param string $stateName
      * @return bool
      */

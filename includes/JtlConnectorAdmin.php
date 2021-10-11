@@ -964,6 +964,20 @@ final class JtlConnectorAdmin
             'helpBlock' => __('Order statuses that should be imported. Default: pending, processing, on hold, completed', JTLWCC_TEXT_DOMAIN),
         ];
 
+        $paymentGateways = [];
+        if (WC()->payment_gateways()) {
+            $paymentGateways = WC()->payment_gateways->payment_gateways();
+            $paymentGateways = array_combine(array_keys($paymentGateways), array_column($paymentGateways, 'title'));
+        }
+
+        $fields[] = [
+            'title' => __('Specify manual payments', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_multiselect',
+            'options'=> $paymentGateways,
+            'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
+            'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
+            'helpBlock' => __('Manual payment types that shouldn\'t be imported unless order is completed.', JTLWCC_TEXT_DOMAIN),
+        ];
 
         //Add sectionend
         $fields[] = [
@@ -1808,12 +1822,22 @@ final class JtlConnectorAdmin
             case '1.27.1':
             case '1.28.0':
             case '1.28.1':
+            case '1.29.0':
+                self::setupDefaultManualPaymentTypes();
             default:
                 self::activate_linking();
         }
 
         Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
+    }
+
+    protected static function setupDefaultManualPaymentTypes()
+    {
+        if (Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES) === null) {
+            $paymentTypes = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES];
+            Config::set(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $paymentTypes);
+        }
     }
 
     protected static function setupDefaultOrderStatusesToImport()
