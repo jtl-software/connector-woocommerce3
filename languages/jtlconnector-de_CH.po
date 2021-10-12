@@ -164,6 +164,10 @@ msgstr "Aktivieren Sie diese Option, wenn Sie HTML in Produktattributen erlauben
 #: includes/JtlConnectorAdmin.php:932
 msgid "If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled)."
 msgstr "Wenn Sie diese Option aktivieren, werden Eigene Felder aus JTL-Wawi als Attribute im Shop behandelt. Führen Sie nach einer Änderung dieser Option einen Komplettabgleich in JTL-Wawi durch (Default : Aktiviert)"
+
+#: includes/JtlConnectorAdmin.php:974
+msgid "Import payments with following payment types only when order is completed (usually manual payment types)"
+msgstr "Zahlungen von Bestellungen mit folgenden Zahlungsarten erst importieren, nachdem die Bestellung abgeschlossen ist (normalerweise bei manuellen Zahlungsarten)"
 #~ msgid ""
 #~ "The multi shop migration was not successful. Please use the forum for "
 #~ "help."

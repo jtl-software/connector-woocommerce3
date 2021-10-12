@@ -965,18 +965,17 @@ final class JtlConnectorAdmin
         ];
 
         $paymentGateways = [];
-        if (WC()->payment_gateways()) {
+        if (WC()->payment_gateways() instanceof WC_Payment_Gateways) {
             $paymentGateways = WC()->payment_gateways->payment_gateways();
             $paymentGateways = array_combine(array_keys($paymentGateways), array_column($paymentGateways, 'title'));
         }
 
         $fields[] = [
-            'title' => __('Specify manual payments', JTLWCC_TEXT_DOMAIN),
+            'title' => __('Import payments with following payment types only when order is completed (usually manual payment types)', JTLWCC_TEXT_DOMAIN),
             'type' => 'jtl_connector_multiselect',
             'options'=> $paymentGateways,
             'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
             'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
-            'helpBlock' => __('Manual payment types that shouldn\'t be imported unless order is completed.', JTLWCC_TEXT_DOMAIN),
         ];
 
         //Add sectionend
