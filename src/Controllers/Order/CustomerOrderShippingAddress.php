@@ -30,6 +30,8 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setCompany($order->get_shipping_company())
             ->setCustomerId($this->createCustomerId($order));
 
+        $dhlPostNumber = '';
+
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
@@ -37,21 +39,16 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
 
-            $dhlPostNumber = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
+            $dhlPostNumber = $order->get_meta('_shipping_parcelshop_post_number', true);
             if (empty($dhlPostNumber)) {
                 $dhlPostNumber = $order->get_meta('_shipping_dhl_postnumber', true);
             }
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+            $dhlPostNumber = $order->get_meta('_shipping_dhl_postnum', true);
+        }
 
-            if (!empty($dhlPostNumber)) {
-                $address->setExtraAddressLine($address->getStreet())
-                    ->setStreet($dhlPostNumber);
-            }
-
-        } else if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
-            if (!empty($dhlPostNumber = get_post_meta($order->get_id(), '_shipping_dhl_postnum', true))) {
-                $address->setExtraAddressLine($address->getStreet())
-                    ->setStreet($dhlPostNumber);
-            }
+        if (!empty($dhlPostNumber)) {
+            $address->setExtraAddressLine($dhlPostNumber);
         }
 
         return $address;
