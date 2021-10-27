@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.29.0
+* Bugfix - CO-1835 - fixed DHL post number transfer
 * Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
 * Feature - CO-1784 - refactored handling of boolean attribute values
 
