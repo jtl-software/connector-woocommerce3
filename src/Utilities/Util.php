@@ -13,6 +13,7 @@ use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\ManufacturerI18n;
 use jtl\Connector\Model\ProductAttr;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
@@ -71,9 +72,9 @@ final class Util extends WordpressUtils
      *
      * @return bool
      */
-    public function isWooCommerceLanguage($language)
+    public function isWooCommerceLanguage($language): bool
     {
-        return $language === self::getWooCommerceLanguage();
+        return $language === $this->getWooCommerceLanguage();
     }
 
     /**
@@ -600,5 +601,25 @@ final class Util extends WordpressUtils
     public static function getStates()
     {
         return WC()->countries->get_states();
+    }
+
+    /**
+     * @param \WC_Product_Attribute $wcProductAttribute
+     * @param ProductAttrModel ...$jtlAttributes
+     * @return string
+     */
+    public static function findAttributeValue(\WC_Product_Attribute $wcProductAttribute, ProductAttrModel ...$jtlAttributes): string
+    {
+        $value = implode(' ' . WC_DELIMITER . ' ', $wcProductAttribute->get_options());
+        foreach ($jtlAttributes as $productAttr) {
+            foreach ($productAttr->getI18ns() as $productAttrI18n) {
+                if ($productAttrI18n->getName() === $wcProductAttribute->get_name() && Util::getInstance()->isWooCommerceLanguage($productAttrI18n->getLanguageISO())) {
+                    $value = $productAttrI18n->getValue();
+                    break 2;
+                }
+            }
+        }
+
+        return $value;
     }
 }
