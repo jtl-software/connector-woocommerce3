@@ -2,6 +2,10 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.29.0
+* Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
+* Feature - CO-1784 - refactored handling of boolean attribute values
+
 ## 1.28.1
 * Hotfix - added 'invoice' and 'cash_on_delivery' to manual payment methods
 

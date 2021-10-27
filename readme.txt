@@ -6,7 +6,7 @@ Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 5.7
-Stable tag: 1.28.1
+Stable tag: 1.29.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,10 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.29.0 =
+* Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
+* Feature - CO-1784 - refactored handling of boolean attribute values
 
 = 1.28.1 =
 * Hotfix - added 'invoice' and 'cash_on_delivery' to manual payment methods
