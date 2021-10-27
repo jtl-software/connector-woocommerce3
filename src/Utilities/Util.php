@@ -611,4 +611,13 @@ final class Util extends WordpressUtils
     {
         return WC()->countries->get_states();
     }
+
+    /**
+     * @param string $value
+     * @return bool
+     */
+    public static function isTrue(string $value): bool
+    {
+        return !in_array(strtolower(trim($value)), ['no', '0', 'false', ''], true);
+    }
 }
