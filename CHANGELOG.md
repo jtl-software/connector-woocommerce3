@@ -30,6 +30,14 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## 2.0.0-dev
 * Enhancement - CO-307 - WPML implementation
 
+## 1.29.0
+* Bugfix - CO-1835 - fixed DHL post number transfer
+* Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
+* Feature - CO-1784 - refactored handling of boolean attribute values
+
+## 1.28.1
+* Hotfix - added 'invoice' and 'cash_on_delivery' to manual payment methods
+
 ## 1.28.0
 * Feature - CO-1745 - Added support for Amazon Pay transactions 
 * Feature - CO-1744 - Added support for set product visibility by attribute  

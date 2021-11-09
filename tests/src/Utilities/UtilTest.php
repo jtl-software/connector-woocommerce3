@@ -1,4 +1,5 @@
 <?php
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use JtlWooCommerceConnector\Tests\TestCase;
@@ -91,7 +92,7 @@ class UtilTest extends TestCase
         $returnOnKeys = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
 
         $getMetaField = function ($id, $metaKey) use ($expectedVatId, $returnOnKeys) {
-            return in_array($metaKey,array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
+            return in_array($metaKey, array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
         };
 
         $enabledPlugins = [
@@ -111,12 +112,13 @@ class UtilTest extends TestCase
 
         $this->assertSame($expectedVatId, $foundVatId);
     }
+
     /**
      *
      */
     public function testFindVatIdNotFound()
     {
-        $getMetaField = function ($id, $metaKey){
+        $getMetaField = function ($id, $metaKey) {
             return false;
         };
 
@@ -201,6 +203,34 @@ class UtilTest extends TestCase
             [0, 2],
             [1.00004, 5],
             [-1.00004, 5]
+        ];
+    }
+
+    /**
+     * @dataProvider checkIfTrueDataProvider
+     * @param string $value
+     * @param bool $expectedResult
+     */
+    public function testCheckIfTrue(string $value, bool $expectedResult)
+    {
+        $this->assertSame($expectedResult, Util::isTrue($value));
+    }
+
+    /**
+     * @return array[]
+     */
+    public function checkIfTrueDataProvider(): array
+    {
+        return [
+            ['1', true],
+            ['0', false],
+            ['', false],
+            [' ', false],
+            [' 1', true],
+            ['YeS', true],
+            ['no', false],
+            ['false', false],
+            [' TruE ', true],
         ];
     }
 }

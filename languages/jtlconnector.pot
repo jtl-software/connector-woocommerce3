@@ -159,3 +159,7 @@ msgstr ""
 #: includes/JtlConnectorAdmin.php:932
 msgid "If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled)."
 msgstr ""
+
+#: includes/JtlConnectorAdmin.php:974
+msgid "Import payments with following payment types only when order is completed (usually manual payment types)"
+msgstr ""
