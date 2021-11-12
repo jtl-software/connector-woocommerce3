@@ -108,12 +108,13 @@ class ProductPrice extends BaseController
 
             if (is_array($priceGroupMeta)) {
                 foreach ($priceGroupMeta as $priceMeta) {
-                    if ($priceMeta['group_price_type'] === 'fix') {
-                        $price = (float)$priceMeta['group_price'];
+                    if (isset($priceMeta['group_price'], $priceMeta['group_price_type']) && $priceMeta['group_price_type'] === 'fix') {
+                        $price = $priceMeta['group_price'];
                         break;
                     }
                 }
             }
+
 
         } else {
             if ($model->getIsMasterProduct() || $wcProduct->is_type('simple')) {
@@ -132,7 +133,7 @@ class ProductPrice extends BaseController
             }
         }
 
-        return $price;
+        return !is_null($price) ? (float)$price : null;
     }
 
 
