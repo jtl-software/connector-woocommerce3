@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.30.0
+* Bugfix - fixed manufacturer missing translations bug
+* Bugfix - CO-1857 - fixed invalid return type in customer group price (B2B Market)
+* Bugfix - CO-1842 - fixed problem with appending values to custom attributes
+
 ## 1.29.0
 * Bugfix - CO-1835 - fixed DHL post number transfer
 * Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
