@@ -24,12 +24,7 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @return SpecificValue|null
      * @throws \Exception
      */
-    public function save(
-        string $taxonomy,
-        SpecificValue $specificValue,
-        SpecificValueI18n $specificValueI18n,
-        $slug = null
-    ): ?SpecificValue {
+    public function save(string $taxonomy, SpecificValue $specificValue, SpecificValueI18n $specificValueI18n, $slug = null): ?int {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
             'slug' => $slug ?? wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
@@ -90,8 +85,6 @@ class WooCommerceSpecificValue extends AbstractComponent
             $termId = $termId['term_id'];
         }
 
-        $specificValue->getId()->setEndpoint($termId);
-
-        return $specificValue;
+        return (int) $termId;
     }
 }

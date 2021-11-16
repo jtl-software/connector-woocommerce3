@@ -159,17 +159,22 @@ class Specific extends BaseController
                     }
                 }
 
+                $mainSpecificValueId = null;
                 if (!is_null($defaultSpecificValueTranslation)) {
-                    $this->getPluginsManager()
+                    $mainSpecificValueId = $this->getPluginsManager()
                         ->get(WooCommerce::class)
                         ->getComponent(WooCommerceSpecificValue::class)
                         ->save($taxonomy, $value, $defaultSpecificValueTranslation);
                 }
 
-                if ($this->wpml->canBeUsed()) {
+                if (!is_null($mainSpecificValueId) && $this->wpml->canBeUsed()) {
                     $this->wpml
                         ->getComponent(WpmlSpecificValue::class)
-                        ->setTranslations($taxonomy, $value);
+                        ->setTranslations($taxonomy, $value, $mainSpecificValueId);
+                }
+
+                if (!is_null($mainSpecificValueId)) {
+                    $value->getId()->setEndpoint($mainSpecificValueId);
                 }
             }
         }

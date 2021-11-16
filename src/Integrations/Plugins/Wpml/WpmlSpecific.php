@@ -67,8 +67,7 @@ class WpmlSpecific extends AbstractComponent
                 continue;
             }
 
-            $translatedName = apply_filters('wpml_translate_single_string', $defaultTranslation->getName(), 'WordPress',
-                $specificI18n->getName(), $languageCode);
+            $translatedName = apply_filters('wpml_translate_single_string', $defaultTranslation->getName(), 'WordPress', $specificI18n->getName(), $languageCode);
 
             if ($translatedName !== $specificI18n->getName()) {
                 icl_register_string(
