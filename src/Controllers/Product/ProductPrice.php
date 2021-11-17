@@ -269,6 +269,11 @@ class ProductPrice extends BaseController
 
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
                     if ($item->getQuantity() === 0) {
+
+                        if ((string)$customerGroup->ID === Config::get('jtlconnector_default_customer_group')) {
+                            $this->updateDefaultProductPrice($item, $productId, $vat);
+                        }
+
                         $this->updateB2BMarketCustomerGroupPrice($customerGroup, $productType, $wcProduct, $regularPrice);
                     } else {
                         $bulkPrices[] = [
