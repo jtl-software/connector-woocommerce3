@@ -244,6 +244,8 @@ class ProductPrice extends BaseController
     {
         $pd = Util::getPriceDecimals();
 
+        $defaultCustomerGroup = Config::get('jtlconnector_default_customer_group');
+
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
             if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId) || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
@@ -270,7 +272,7 @@ class ProductPrice extends BaseController
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
                     if ($item->getQuantity() === 0) {
 
-                        if ((string)$customerGroup->ID === Config::get('jtlconnector_default_customer_group')) {
+                        if ((string)$customerGroup->ID === $defaultCustomerGroup) {
                             $this->updateDefaultProductPrice($item, $productId, $vat);
                         }
 
