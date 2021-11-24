@@ -253,7 +253,7 @@ class ProductVariation extends BaseController
                     'slug'     => $taxonomy,
                     'type'     => 'select',
                     'order_by' => 'menu_order',
-                    //'attribute_public'  => 0,
+                    'has_archives' => false
                 ];
                 
                 $options = explode(

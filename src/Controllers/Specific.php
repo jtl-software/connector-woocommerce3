@@ -120,12 +120,16 @@ class Specific extends BaseController
                 'slug'     => wc_sanitize_taxonomy_name(substr(trim($meta->getName()), 0, 27)),
                 'type'     => 'select',
                 'order_by' => 'menu_order',
-                //'attribute_public'  => 0,
+                'has_archives' => false,
             ];
             
             if ($endpoint['id'] === 0) {
                 $attributeId = wc_create_attribute($endpoint);
             } else {
+                $attributeData = wc_get_attribute($endpoint['id']);
+                if (!is_null($attributeData)) {
+                    $endpoint['has_archives'] = (bool)$attributeData->has_archives;
+                }
                 $attributeId = wc_update_attribute($endpoint['id'], $endpoint);
             }
             
