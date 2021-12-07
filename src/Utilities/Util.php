@@ -40,8 +40,8 @@ final class Util extends WordpressUtils
 
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',
-            'GlobalData'    => 'GlobalData\\',
-            'Product'       => 'Product\\',
+            'GlobalData' => 'GlobalData\\',
+            'Product' => 'Product\\',
         ];
     }
 
@@ -101,7 +101,7 @@ final class Util extends WordpressUtils
 
         $taxRates = \WC_Tax::find_rates([
             'tax_class' => $taxClass,
-            'country'   => $countryIso,
+            'country' => $countryIso,
         ]);
 
         if (!empty($taxRates)) {
@@ -159,11 +159,12 @@ final class Util extends WordpressUtils
      *
      * @return bool|string
      */
-    public static function getNetPriceCutted($price, $pd){
-        $position = strrpos((string)$price,'.');
+    public static function getNetPriceCutted($price, $pd)
+    {
+        $position = strrpos((string)$price, '.');
 
-        if($position > 0){
-            $cut = substr($price,0,$position + 1 + $pd);
+        if ($position > 0) {
+            $cut = substr($price, 0, $position + 1 + $pd);
             $price = $cut;
         }
 

@@ -18,7 +18,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
     public function getHostId($endpointId, $type)
     {
-        $tableName = $this->getTableName($type);
+        $tableName = self::getTableName($type);
         
         if (is_null($tableName)) {
             return null;
@@ -47,7 +47,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     public function getEndpointId($hostId, $type, $relationType = null)
     {
         $clause    = '';
-        $tableName = $this->getTableName($type);
+        $tableName = self::getTableName($type);
         
         if (is_null($tableName)) {
             return null;
@@ -79,7 +79,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     
     public function save($endpointId, $hostId, $type)
     {
-        $tableName = $this->getTableName($type);
+        $tableName = self::getTableName($type);
         
         if (is_null($tableName)) {
             return null;
@@ -106,10 +106,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         return $id !== false;
     }
     
-    public function delete($endpointId = null, $hostId = null, $type)
+    public function delete($endpointId, $hostId, $type)
     {
         $where     = '';
-        $tableName = $this->getTableName($type);
+        $tableName = self::getTableName($type);
         
         if (is_null($tableName)) {
             return null;
