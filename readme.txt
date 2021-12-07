@@ -6,7 +6,7 @@ Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 5.9
-Stable tag: 1.30.0
+Stable tag: 1.31.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,11 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.31.0 =
+* Bugfix - CO-1853 - fixed default product price based on default customer group (B2B Market)
+* Feature - CO-1848 - do not overwrite is archive property for product attributes
+* Updated build process, fixed deprecated parameters order in Primary Key Mapper
 
 = 1.30.0 =
 * Bugfix - fixed manufacturer missing translations bug

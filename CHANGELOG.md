@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.31.0
+* Bugfix - CO-1853 - fixed default product price based on default customer group (B2B Market)
+* Feature - CO-1848 - do not overwrite is archive property for product attributes
+* Updated build process, fixed deprecated parameters order in Primary Key Mapper
+
 ## 1.30.0
 * Bugfix - fixed manufacturer missing translations bug
 * Bugfix - CO-1857 - fixed invalid return type in customer group price (B2B Market)

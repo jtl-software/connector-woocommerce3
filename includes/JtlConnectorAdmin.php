@@ -1824,6 +1824,7 @@ final class JtlConnectorAdmin
             case '1.29.0':
                 self::setupDefaultManualPaymentTypes();
             case '1.30.0':
+            case '1.31.0':
             default:
                 self::activate_linking();
         }
