@@ -391,7 +391,9 @@ class ProductVaSpeAttrHandler extends BaseController
                 
                 foreach ($product->get_children() as $childId) {
                     $child = \wc_get_product($childId);
-                    $isPurchasable = $isPurchasable & $child->is_purchasable();
+                    if ($child instanceof \WC_Product) {
+                        $isPurchasable &= $child->is_purchasable();
+                    }
                 }
             }
             
