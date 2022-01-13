@@ -28,7 +28,8 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
             ->setCountryIso($order->get_shipping_country())
             ->setCompany($order->get_shipping_company())
-            ->setCustomerId($this->createCustomerId($order));
+            ->setCustomerId($this->createCustomerId($order))
+            ->setPhone($order->get_shipping_phone());
 
         $dhlPostNumber = '';
 
