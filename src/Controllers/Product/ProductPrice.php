@@ -245,8 +245,6 @@ class ProductPrice extends BaseController
     {
         $pd = Util::getPriceDecimals();
 
-        $defaultCustomerGroup = Config::get('jtlconnector_default_customer_group');
-
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
             if ((string)$customerGroupId === self::GUEST_CUSTOMER_GROUP || !Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)) {
@@ -260,7 +258,7 @@ class ProductPrice extends BaseController
                 $customerGroupMeta = \get_post_meta($customerGroupId);
             }
 
-            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta) && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
                 foreach ($productPrice->getItems() as $item) {
                     $this->updateDefaultProductPrice($item, $productId, $vat);
                 }
@@ -272,11 +270,6 @@ class ProductPrice extends BaseController
 
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
                     if ($item->getQuantity() === 0) {
-
-                        if ((string)$customerGroup->ID === $defaultCustomerGroup) {
-                            $this->updateDefaultProductPrice($item, $productId, $vat);
-                        }
-
                         $this->updateB2BMarketCustomerGroupPrice($customerGroup, $productType, $wcProduct, $regularPrice);
                     } else {
                         $bulkPrices[] = [
