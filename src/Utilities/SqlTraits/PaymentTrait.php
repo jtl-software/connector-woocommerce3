@@ -38,9 +38,9 @@ trait PaymentTrait
         $manualPaymentMethods = Util::getManualPaymentTypes();
 
         // Usually processing means paid but exception for Cash on delivery
-        $status = sprintf("(p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_value IN ('%s'))", $wpdb->postmeta, join("','", $manualPaymentMethods));
+        $status = sprintf("(p.post_status = 'wc-processing' AND p.ID NOT IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_key = '_payment_method' AND pm.meta_value IN ('%s'))", $wpdb->postmeta, implode("','", $manualPaymentMethods));
         // Import manual payment methods what are in $manualPaymentMethods only when order status is completed
-        $status .= sprintf(" OR p.ID IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_value IN ('%s')) AND p.post_status = 'wc-completed')", $wpdb->postmeta, join("','", $manualPaymentMethods));
+        $status .= sprintf(" OR p.ID IN (SELECT pm.post_id FROM %s pm WHERE pm.meta_key = '_payment_method' AND pm.meta_value IN ('%s')) AND p.post_status = 'wc-completed')", $wpdb->postmeta, implode("','", $manualPaymentMethods));
 
         if ($includeCompletedOrders) {
             $status = "(p.post_status = 'wc-completed' OR {$status})";
