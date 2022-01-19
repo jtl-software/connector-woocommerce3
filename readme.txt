@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 5.9
-Stable tag: 1.31.0
+WC tested up to: 6.0
+Stable tag: 1.32.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.32.0 =
+* Feature - CO-1888 - improved sql payment query
+* Bugfix - CO-1887 - fixed error 'Call to a member function is_purchasable() on bool' in custom property attributes
+* Bugfix - CO-1892 - added missing phone number in order delivery address
+* updated WooCommerce compatibility info to 6.0
 
 = 1.31.0 =
 * Bugfix - CO-1853 - fixed default product price based on default customer group (B2B Market)
