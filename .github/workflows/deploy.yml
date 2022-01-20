@@ -48,7 +48,7 @@ jobs:
       - name: System praparation
         run: |
           sudo apt-get update -yqq
-          sudo apt-get install -y subversion unzip zlib1g-dev libzip-dev php-zip
+          sudo apt-get install -yqq subversion unzip zlib1g-dev libzip-dev php-zip
           curl -sS https://getcomposer.org/installer | php
           sudo mv composer.phar /usr/local/bin/composer
 
