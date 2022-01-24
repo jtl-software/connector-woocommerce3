@@ -8,9 +8,7 @@ namespace JtlWooCommerceConnector\Controllers\Order;
 
 use jtl\Connector\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
-use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class CustomerOrderShippingAddress extends CustomerOrderAddress
@@ -28,8 +26,11 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
             ->setCountryIso($order->get_shipping_country())
             ->setCompany($order->get_shipping_company())
-            ->setCustomerId($this->createCustomerId($order))
-            ->setPhone($order->get_shipping_phone());
+            ->setCustomerId($this->createCustomerId($order));
+
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE, '>=', '5.6.0')) {
+            $address->setPhone($order->get_shipping_phone());
+        }
 
         $dhlPostNumber = '';
 

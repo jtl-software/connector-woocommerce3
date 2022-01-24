@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.32.1
+* Hotfix - fixed phone number in delivery address incompatible with older WooCommerce versions
+
 ## 1.32.0
 * Feature - CO-1888 - improved sql payment query
 * Bugfix - CO-1887 - fixed error 'Call to a member function is_purchasable() on bool' in custom property attributes
