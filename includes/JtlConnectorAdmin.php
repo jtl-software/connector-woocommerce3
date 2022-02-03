@@ -826,6 +826,17 @@ final class JtlConnectorAdmin
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
+        $fields[] = [
+            'title' => __('Delete unknown attributes', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to delete unknown attributes on push (Default : Disabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES,
+            'value' => Config::get(Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //Add custom properties radio field
         $fields[] = [
             'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),

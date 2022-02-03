@@ -15,6 +15,7 @@ use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
@@ -177,7 +178,7 @@ class ProductVaSpeAttrHandler extends BaseController
             $this->mergeAttributes($newWcProductAttributes, $productAttributes);
             
             // handleSpecifics
-            $productSpecifics = (new ProductSpecific)->pushData($productId, $wcProductAttributes, $jtlSpecifics, $product->getSpecifics(), $product->getAttributes());
+              $productSpecifics = (new ProductSpecific)->pushData($productId, $wcProductAttributes, $jtlSpecifics, $product->getSpecifics(), $product->getAttributes());
 
             $this->mergeAttributes($newWcProductAttributes, $productSpecifics);
 
@@ -210,6 +211,10 @@ class ProductVaSpeAttrHandler extends BaseController
                 }
             }
 
+            if (Config::get(Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES])) {
+                $newWcProductAttributes = $this->removeUnknownAttributes($newWcProductAttributes, $product->getAttributes());
+            }
+
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newWcProductAttributes, $old);
             
@@ -221,6 +226,25 @@ class ProductVaSpeAttrHandler extends BaseController
         }
         // remove the transient to renew the cache
         delete_transient('wc_attribute_taxonomies');
+    }
+
+    /**
+     * @param array $newWcProductAttributes
+     * @param array $jtlAttributes
+     * @return array
+     */
+    protected function removeUnknownAttributes(array $newWcProductAttributes, array $jtlAttributes): array
+    {
+        $defaultLanguage = Util::getInstance()->getWooCommerceLanguage();
+        foreach ($newWcProductAttributes as $i => $wcAttribute) {
+            if (!isset($wcAttribute['id']) && $wcAttribute['is_taxonomy'] === '') {
+                $attributeExists = !is_null(Util::findAttributeI18nByName($wcAttribute['name'], $defaultLanguage, ...$jtlAttributes));
+                if ($attributeExists === false) {
+                    unset($newWcProductAttributes[$i]);
+                }
+            }
+        }
+        return $newWcProductAttributes;
     }
     
     // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
