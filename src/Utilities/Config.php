@@ -18,6 +18,7 @@ class Config
         OPTIONS_AUTO_B2B_MARKET_OPTIONS = 'jtlconnector_auto_b2b_market',
         OPTIONS_PULL_ORDERS_SINCE = 'jtlconnector_pull_orders_since',
         OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page',
+        OPTIONS_DELETE_UNKNOWN_ATTRIBUTES = 'jtlconnector_delete_unknown_attributes',
         OPTIONS_TOKEN = 'connector_password',
         OPTIONS_RECALCULATE_COUPONS_ON_PULL = 'jtlconnector_recalculate_coupons_on_pull',
         OPTIONS_SEND_CUSTOM_PROPERTIES = 'jtlconnector_send_custom_properties',
@@ -49,6 +50,7 @@ class Config
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
         Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
+        Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => false,
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
@@ -69,6 +71,7 @@ class Config
     public const JTLWCC_CONFIG = [
         //FIRSTPAGE
         Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
+        Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => 'bool',
         Config::OPTIONS_SEND_CUSTOM_PROPERTIES => 'bool',
         Config::OPTIONS_VARIATION_NAME_FORMAT => 'string',
         Config::OPTIONS_USE_GTIN_FOR_EAN => 'bool',
