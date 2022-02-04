@@ -351,6 +351,11 @@ class ProductGermanMarketFields extends BaseController
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
         
         if ($product->getConsiderBasePrice()) {
+
+            if ($product->getBasePriceQuantity() == 0 || $product->getMeasurementQuantity() == 0) {
+                throw new \Exception('basePriceQuantity or measurementQuantity cannot be 0 when Base price calculation is active');
+            }
+
             $productId = $product->getId()->getEndpoint();
             $metaData = $this->getGermanMarketMeta(\wc_get_product($productId), $metaKeys);
 
@@ -359,7 +364,6 @@ class ProductGermanMarketFields extends BaseController
 
             $measurementUnitCode = strtolower($product->getMeasurementUnitCode());
             $measurementQuantity = $product->getMeasurementQuantity();
-
 
             $ppuType = $this->identifyGermanMarketMetaGroup($basePriceUnitCode);
 
@@ -418,7 +422,7 @@ class ProductGermanMarketFields extends BaseController
                     $divisor = $measurementQuantity / $basePriceQuantity;
 
                     $basePrice = $currentPrice / $divisor;
-                    $baseUnit = str_replace('^2', '²', $basePriceUnitCode);;
+                    $baseUnit = str_replace('^2', '²', $basePriceUnitCode);
                     break;
                 default:
                     $this->clearPPU($product, $metaKeys);
@@ -462,7 +466,7 @@ class ProductGermanMarketFields extends BaseController
             $this->clearPPU($product, $metaKeys);
         }
     }
-    
+
     /**
      * @param ProductModel $product
      * @param              $metaKeys
