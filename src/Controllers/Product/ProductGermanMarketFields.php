@@ -20,7 +20,7 @@ class ProductGermanMarketFields extends BaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product  $wcProduct
+     * @param \WC_Product $wcProduct
      *
      * @throws NonNumericValue
      * @throws NonStringUnitName
@@ -29,10 +29,10 @@ class ProductGermanMarketFields extends BaseController
     {
         $this->setBasePriceProperties($product, $wcProduct);
     }
-    
+
     /**
      * @param ProductModel $product
-     * @param \WC_Product  $wcProduct
+     * @param \WC_Product $wcProduct
      *
      * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
      * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
@@ -40,65 +40,65 @@ class ProductGermanMarketFields extends BaseController
     private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
-        
+
         if ($this->hasGermanMarketUnitPrice($wcProduct, $metaKeys)) {
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
             $metaGroup = $this->identifyGermanMarketMetaGroup($metaData[$metaKeys['unitRegularUnitKey']]);
-            
+
             $price = $metaData[$metaKeys['priceKey']];
             $wcWeightOption = \get_option('woocommerce_weight_unit');
             $wcLengthOption = \get_option('woocommerce_dimension_unit');
             $wcSquareOption = $wcLengthOption . '^2';
             $wcVolumeOption = 'l';
-            
+
             switch ($metaGroup) {
                 case 'weight':
                     $weight = $metaData[$metaKeys['weightKey']];
                     $weightUnit = $metaData[$metaKeys['unitRegularUnitKey']];
                     $weightUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-                    
+
                     if ($wcWeightOption !== $weightUnit) {
                         $mass = new Mass($weightUnitMult, $weightUnit);
                         $mass = $mass->toUnit($wcWeightOption);
                         $weightUnitMult = $mass;
                         $weightUnit = $wcWeightOption;
                     }
-                    
+
                     if ($weight === 0 || !$weight || is_null($weight)) {
                         $weight = (float)$weightUnitMult;
                     }
-                    
+
                     $divisor = $weight / $weightUnitMult;
                     $basePrice = $price / $divisor;
-                    
+
                     $baseQuantity = $weightUnitMult;
                     $productQuantity = $weight;
                     $code = $weightUnit;
                     break;
                 case 'surface':
-                    
+
                     $length = $metaData[$metaKeys['lengthKey']];
                     $width = $metaData[$metaKeys['widthKey']];
                     $squareResult = $length * $width;
-                    
+
                     $squareUnit = $metaData[$metaKeys['unitRegularUnitKey']];
                     $squareUnit = str_replace('2', '^2', $squareUnit);
                     $squareUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-                    
+
                     if ($wcSquareOption !== $squareUnit) {
                         $square = new Area($squareUnitMult, $squareUnit);
                         $square = $square->toUnit($wcSquareOption);
                         $squareUnitMult = $square;
                         $squareUnit = $wcSquareOption;
                     }
-                    
+
                     if ($squareResult === 0 || !$squareResult || is_null($squareResult)) {
                         $squareResult = (float)$squareUnitMult;
                     }
-                    
+
                     $divisor = $squareResult / $squareUnitMult;
                     $basePrice = $price / $divisor;
-                    
+
                     $baseQuantity = $squareUnitMult;
                     $productQuantity = $squareResult;
                     $code = str_replace('^2', '2', $squareUnit);
@@ -107,21 +107,21 @@ class ProductGermanMarketFields extends BaseController
                     $length = $metaData[$metaKeys['lengthKey']];
                     $lengthUnit = $metaData[$metaKeys['unitRegularUnitKey']];
                     $lengthUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-                    
+
                     if ($wcLengthOption !== $lengthUnit) {
                         $range = new Length($lengthUnitMult, $lengthUnit);
                         $range = $range->toUnit($wcLengthOption);
                         $lengthUnitMult = $range;
                         $lengthUnit = $wcLengthOption;
                     }
-                    
+
                     if ($length === 0 || !$length || is_null($length)) {
                         $length = (float)$lengthUnitMult;
                     }
-                    
+
                     $divisor = $length / $lengthUnitMult;
                     $basePrice = $price / $divisor;
-                    
+
                     $baseQuantity = $lengthUnitMult;
                     $productQuantity = $length;
                     $code = $lengthUnit;
@@ -130,27 +130,27 @@ class ProductGermanMarketFields extends BaseController
                     $length = $metaData[$metaKeys['lengthKey']];
                     $width = $metaData[$metaKeys['widthKey']];
                     $height = $metaData[$metaKeys['heightKey']];
-                    
+
                     $volumeResult = $length * $width * $height;
-                    
+
                     $volumeUnit = $metaData[$metaKeys['unitRegularUnitKey']];
                     $volumeUnit = str_replace('3', '^3', strtolower($volumeUnit));
                     $volumeUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-                    
+
                     if ($wcVolumeOption !== $volumeUnit) {
                         $volume = new Volume($volumeUnitMult, $volumeUnit);
                         $volume = $volume->toUnit($wcVolumeOption);
                         $volumeUnitMult = $volume;
                         $volumeUnit = $wcVolumeOption;
                     }
-                    
+
                     if ($volumeResult === 0 || !$volumeResult || is_null($volumeResult)) {
                         $volumeResult = (float)$volumeUnitMult;
                     }
-                    
+
                     $divisor = $volumeResult / $volumeUnitMult;
                     $basePrice = $price / $divisor;
-                    
+
                     $baseQuantity = $volumeUnitMult;
                     $productQuantity = $volumeResult;
                     $volumeUnit = 'L';
@@ -160,22 +160,22 @@ class ProductGermanMarketFields extends BaseController
                     $count = 1;
                     $countUnit = $metaData[$metaKeys['unitRegularUnitKey']];
                     $countUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-                    
+
                     if ($count === 0 || !$count || is_null($count)) {
                         $count = (float)$countUnitMult;
                     }
-                    
+
                     $divisor = $count / $countUnitMult;
                     $basePrice = $price / $divisor;
-                    
+
                     $baseQuantity = $countUnitMult;
                     $productQuantity = $count;
                     $code = $countUnit;
                     break;
             }
-            
+
             $id = new Identity($code);
-            
+
             $product->setMeasurementQuantity((float)$productQuantity);
             $product->setMeasurementUnitId($id);
             $product->setMeasurementUnitCode($code);
@@ -186,7 +186,7 @@ class ProductGermanMarketFields extends BaseController
             $product->setBasePriceUnitName($code);
         }
     }
-    
+
     /**
      * @param bool $isMaster
      *
@@ -196,22 +196,22 @@ class ProductGermanMarketFields extends BaseController
     {
         $result = [
             //Price
-            'priceKey'         => '_price',
+            'priceKey' => '_price',
             //meta keys vars
-            'weightKey'        => '_weight',
-            'lengthKey'        => '_length',
-            'widthKey'         => '_width',
-            'heightKey'        => '_height',
-            'jtlwccStkKey'     => '_jtlwcc_stk',
+            'weightKey' => '_weight',
+            'lengthKey' => '_length',
+            'widthKey' => '_width',
+            'heightKey' => '_height',
+            'jtlwccStkKey' => '_jtlwcc_stk',
             'usedCustomPPUKey' => '_v_used_setting_ppu',
         ];
-        
+
         $keys = [  //meta keys PPU vars
-            'unitRegularUnitKey'                => '_unit_regular_price_per_unit',
-            'unitRegularMultiplikatorKey'       => '_unit_regular_price_per_unit_mult',
+            'unitRegularUnitKey' => '_unit_regular_price_per_unit',
+            'unitRegularMultiplikatorKey' => '_unit_regular_price_per_unit_mult',
             'unitRegularAutoPPUProductQuantity' => '_auto_ppu_complete_product_quantity',
         ];
-        
+
         foreach ($keys as $key => $value) {
             if ($isMaster) {
                 $result[$key] = $value;
@@ -219,10 +219,10 @@ class ProductGermanMarketFields extends BaseController
                 $result[$key] = '_v' . $value;
             }
         }
-        
+
         return $result;
     }
-    
+
     /**
      * @param \WC_Product $wcProduct
      * @param             $metaKeys
@@ -247,10 +247,10 @@ class ProductGermanMarketFields extends BaseController
                 }
             }
         }
-        
+
         return $result;
     }
-    
+
     /**
      * @param \WC_Product $wcProduct
      * @param             $metaKeys
@@ -260,14 +260,14 @@ class ProductGermanMarketFields extends BaseController
     private function getGermanMarketMeta(\WC_Product $wcProduct, $metaKeys)
     {
         $result = [];
-        
+
         foreach ($metaKeys as $metaKey => $meta) {
             $result[$meta] = \get_post_meta($wcProduct->get_id(), $meta, true);
         }
-        
+
         return $result;
     }
-    
+
     /**
      * @param $metaIdent
      *
@@ -284,7 +284,7 @@ class ProductGermanMarketFields extends BaseController
             't',
             'oz',
         ];
-        
+
         $surfaces = [
             'mm2',
             'cm2',
@@ -292,7 +292,7 @@ class ProductGermanMarketFields extends BaseController
             'm2',
             'km2',
         ];
-        
+
         $length = [
             'mm',
             'cm',
@@ -302,7 +302,7 @@ class ProductGermanMarketFields extends BaseController
             'in',
             'yd',
         ];
-        
+
         $volumes = [
             'mm3',
             'cm3',
@@ -315,7 +315,7 @@ class ProductGermanMarketFields extends BaseController
             'cl',
             'dl',
         ];
-        
+
         if (array_search($metaIdent, $weight)) {
             return 'weight';
         } elseif (array_search($metaIdent, $surfaces)) {
@@ -328,7 +328,7 @@ class ProductGermanMarketFields extends BaseController
             return 'standard';
         }
     }
-    
+
     /**
      * @param ProductModel $product
      *
@@ -339,19 +339,19 @@ class ProductGermanMarketFields extends BaseController
     {
         $this->updateGermanMarketPPU($product);
     }
-    
+
     /**
      * @param ProductModel $product
      *
      * @throws NonNumericValue
      * @throws NonStringUnitName
+     * @throws \Exception
      */
     private function updateGermanMarketPPU(ProductModel $product)
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
-        
-        if ($product->getConsiderBasePrice()) {
 
+        if ($product->getConsiderBasePrice()) {
             if ($product->getBasePriceQuantity() == 0 || $product->getMeasurementQuantity() == 0) {
                 throw new \Exception('basePriceQuantity or measurementQuantity cannot be 0 when Base price calculation is active');
             }
