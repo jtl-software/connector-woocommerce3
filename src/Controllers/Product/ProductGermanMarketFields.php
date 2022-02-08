@@ -316,13 +316,13 @@ class ProductGermanMarketFields extends BaseController
             'dl',
         ];
 
-        if (array_search($metaIdent, $weight)) {
+        if (in_array($metaIdent, $weight)) {
             return 'weight';
-        } elseif (array_search($metaIdent, $surfaces)) {
+        } elseif (in_array($metaIdent, $surfaces)) {
             return 'surface';
-        } elseif (array_search($metaIdent, $length)) {
+        } elseif (in_array($metaIdent, $length)) {
             return 'length';
-        } elseif (array_search($metaIdent, $volumes)) {
+        } elseif (in_array($metaIdent, $volumes)) {
             return 'volume';
         } else {
             return 'standard';
@@ -352,7 +352,7 @@ class ProductGermanMarketFields extends BaseController
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
 
         if ($product->getConsiderBasePrice()) {
-            if ($product->getBasePriceQuantity() == 0 || $product->getMeasurementQuantity() == 0) {
+            if ($product->getBasePriceQuantity() === 0.0 || $product->getMeasurementQuantity() === 0.0) {
                 throw new \Exception('basePriceQuantity or measurementQuantity cannot be 0 when Base price calculation is active');
             }
 
