@@ -122,6 +122,7 @@ final class JtlConnectorAdmin
             //not implemented yet
             'specific',
             'specific_value',
+            'tax_class',
         ];
         //self::activate_category_tree();
         foreach ($tables as $key => $table) {
@@ -155,6 +156,8 @@ final class JtlConnectorAdmin
                     self::createImageLinkingTable();
                 } elseif (strcmp($table, 'manufacturer') === 0) {
                     self::createManufacturerLinkingTable();
+                } elseif (strcmp($table, 'tax_class') === 0) {
+                    self::createTaxClassLinkingTable();
                 } else {
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
