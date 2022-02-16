@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.33.0
+* Fixed missing tax_class linking table
+* Fixed - CO-1908 - rolled back changes related to setting base price based on customer group CO-1853
+* Feature - CO-1915 - added config option to delete unknown attributes
+
 ## 1.32.1
 * Hotfix - fixed phone number in delivery address incompatible with older WooCommerce versions
 

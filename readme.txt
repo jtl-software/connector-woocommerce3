@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 6.0
-Stable tag: 1.32.1
+WC tested up to: 6.2
+Stable tag: 1.33.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,11 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.33.0 =
+* Fixed missing tax_class linking table
+* Fixed - CO-1908 - rolled back changes related to setting base price based on customer group CO-1853
+* Feature - CO-1915 - added config option to delete unknown attributes
 
 = 1.32.1 =
 * Hotfix - fixed phone number in delivery address incompatible with older WooCommerce versions
