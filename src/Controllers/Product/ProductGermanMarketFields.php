@@ -34,8 +34,8 @@ class ProductGermanMarketFields extends BaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      *
-     * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
-     * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
+     * @throws NonNumericValue
+     * @throws NonStringUnitName
      */
     private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
     {
@@ -43,147 +43,18 @@ class ProductGermanMarketFields extends BaseController
 
         if ($this->hasGermanMarketUnitPrice($wcProduct, $metaKeys)) {
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
-            $metaGroup = $this->identifyGermanMarketMetaGroup($metaData[$metaKeys['unitRegularUnitKey']]);
 
-            $price = $metaData[$metaKeys['priceKey']];
-            $wcWeightOption = \get_option('woocommerce_weight_unit');
-            $wcLengthOption = \get_option('woocommerce_dimension_unit');
-            $wcSquareOption = $wcLengthOption . '^2';
-            $wcVolumeOption = 'l';
+            $basePriceDivisor = $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']] / $metaData[$metaKeys['unitRegularMultiplikatorKey']];
+            $basePriceFactor = $metaData[$metaKeys['priceKey']] / $basePriceDivisor;
 
-            switch ($metaGroup) {
-                case 'weight':
-                    $weight = $metaData[$metaKeys['weightKey']];
-                    $weightUnit = $metaData[$metaKeys['unitRegularUnitKey']];
-                    $weightUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-
-                    if ($wcWeightOption !== $weightUnit) {
-                        $mass = new Mass($weightUnitMult, $weightUnit);
-                        $mass = $mass->toUnit($wcWeightOption);
-                        $weightUnitMult = $mass;
-                        $weightUnit = $wcWeightOption;
-                    }
-
-                    if ($weight === 0 || !$weight || is_null($weight)) {
-                        $weight = (float)$weightUnitMult;
-                    }
-
-                    $divisor = $weight / $weightUnitMult;
-                    $basePrice = $price / $divisor;
-
-                    $baseQuantity = $weightUnitMult;
-                    $productQuantity = $weight;
-                    $code = $weightUnit;
-                    break;
-                case 'surface':
-
-                    $length = $metaData[$metaKeys['lengthKey']];
-                    $width = $metaData[$metaKeys['widthKey']];
-                    $squareResult = $length * $width;
-
-                    $squareUnit = $metaData[$metaKeys['unitRegularUnitKey']];
-                    $squareUnit = str_replace('2', '^2', $squareUnit);
-                    $squareUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-
-                    if ($wcSquareOption !== $squareUnit) {
-                        $square = new Area($squareUnitMult, $squareUnit);
-                        $square = $square->toUnit($wcSquareOption);
-                        $squareUnitMult = $square;
-                        $squareUnit = $wcSquareOption;
-                    }
-
-                    if ($squareResult === 0 || !$squareResult || is_null($squareResult)) {
-                        $squareResult = (float)$squareUnitMult;
-                    }
-
-                    $divisor = $squareResult / $squareUnitMult;
-                    $basePrice = $price / $divisor;
-
-                    $baseQuantity = $squareUnitMult;
-                    $productQuantity = $squareResult;
-                    $code = str_replace('^2', '2', $squareUnit);
-                    break;
-                case 'length':
-                    $length = $metaData[$metaKeys['lengthKey']];
-                    $lengthUnit = $metaData[$metaKeys['unitRegularUnitKey']];
-                    $lengthUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-
-                    if ($wcLengthOption !== $lengthUnit) {
-                        $range = new Length($lengthUnitMult, $lengthUnit);
-                        $range = $range->toUnit($wcLengthOption);
-                        $lengthUnitMult = $range;
-                        $lengthUnit = $wcLengthOption;
-                    }
-
-                    if ($length === 0 || !$length || is_null($length)) {
-                        $length = (float)$lengthUnitMult;
-                    }
-
-                    $divisor = $length / $lengthUnitMult;
-                    $basePrice = $price / $divisor;
-
-                    $baseQuantity = $lengthUnitMult;
-                    $productQuantity = $length;
-                    $code = $lengthUnit;
-                    break;
-                case 'volume':
-                    $length = $metaData[$metaKeys['lengthKey']];
-                    $width = $metaData[$metaKeys['widthKey']];
-                    $height = $metaData[$metaKeys['heightKey']];
-
-                    $volumeResult = $length * $width * $height;
-
-                    $volumeUnit = $metaData[$metaKeys['unitRegularUnitKey']];
-                    $volumeUnit = str_replace('3', '^3', strtolower($volumeUnit));
-                    $volumeUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-
-                    if ($wcVolumeOption !== $volumeUnit) {
-                        $volume = new Volume($volumeUnitMult, $volumeUnit);
-                        $volume = $volume->toUnit($wcVolumeOption);
-                        $volumeUnitMult = $volume;
-                        $volumeUnit = $wcVolumeOption;
-                    }
-
-                    if ($volumeResult === 0 || !$volumeResult || is_null($volumeResult)) {
-                        $volumeResult = (float)$volumeUnitMult;
-                    }
-
-                    $divisor = $volumeResult / $volumeUnitMult;
-                    $basePrice = $price / $divisor;
-
-                    $baseQuantity = $volumeUnitMult;
-                    $productQuantity = $volumeResult;
-                    $volumeUnit = 'L';
-                    $code = str_replace('^3', '3', $volumeUnit);
-                    break;
-                default:
-                    $count = 1;
-                    $countUnit = $metaData[$metaKeys['unitRegularUnitKey']];
-                    $countUnitMult = (float)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
-
-                    if ($count === 0 || !$count || is_null($count)) {
-                        $count = (float)$countUnitMult;
-                    }
-
-                    $divisor = $count / $countUnitMult;
-                    $basePrice = $price / $divisor;
-
-                    $baseQuantity = $countUnitMult;
-                    $productQuantity = $count;
-                    $code = $countUnit;
-                    break;
-            }
-
-            $id = new Identity($code);
-
-            $product->setMeasurementQuantity((float)$productQuantity);
-            $product->setMeasurementUnitId($id);
-            $product->setMeasurementUnitCode($code);
             $product->setConsiderBasePrice(true);
-            $product->setBasePriceQuantity((float)$baseQuantity);
-            $product->setBasePriceUnitId($id);
-            $product->setBasePriceUnitCode($code);
-            $product->setBasePriceUnitName($code);
+            $product->setMeasurementQuantity((float)$metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]);
+            $product->setMeasurementUnitCode($metaData[$metaKeys['unitRegularUnitKey']]);
+            $product->setBasePriceQuantity((float)$metaData[$metaKeys['unitRegularMultiplikatorKey']]);
+            $product->setBasePriceUnitCode($metaData[$metaKeys['unitRegularUnitKey']]);
+            $product->setBasePriceUnitName($metaData[$metaKeys['unitRegularUnitKey']]);
+            $product->setBasePriceDivisor($basePriceDivisor);
+            $product->setBasePriceFactor($basePriceFactor);
         }
     }
 
@@ -423,6 +294,12 @@ class ProductGermanMarketFields extends BaseController
 
                     $basePrice = $currentPrice / $divisor;
                     $baseUnit = str_replace('^2', '²', $basePriceUnitCode);
+                    break;
+                case 'standard':
+                    $divisor = $measurementQuantity / $basePriceQuantity;
+
+                    $basePrice = $currentPrice / $divisor;
+                    $baseUnit = 'Stück';
                     break;
                 default:
                     $this->clearPPU($product, $metaKeys);
