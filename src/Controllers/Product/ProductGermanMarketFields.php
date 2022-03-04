@@ -21,11 +21,9 @@ class ProductGermanMarketFields extends BaseController
     /**
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
-     *
-     * @throws NonNumericValue
-     * @throws NonStringUnitName
+     * @return void
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct)
+    public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
         $this->setBasePriceProperties($product, $wcProduct);
     }
@@ -33,11 +31,9 @@ class ProductGermanMarketFields extends BaseController
     /**
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
-     *
-     * @throws NonNumericValue
-     * @throws NonStringUnitName
+     * @return void
      */
-    private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct)
+    private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct): void
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
 
@@ -47,23 +43,23 @@ class ProductGermanMarketFields extends BaseController
             $basePriceDivisor = $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']] / $metaData[$metaKeys['unitRegularMultiplikatorKey']];
             $basePriceFactor = $metaData[$metaKeys['priceKey']] / $basePriceDivisor;
 
-            $product->setConsiderBasePrice(true);
-            $product->setMeasurementQuantity((float)$metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]);
-            $product->setMeasurementUnitCode($metaData[$metaKeys['unitRegularUnitKey']]);
-            $product->setBasePriceQuantity((float)$metaData[$metaKeys['unitRegularMultiplikatorKey']]);
-            $product->setBasePriceUnitCode($metaData[$metaKeys['unitRegularUnitKey']]);
-            $product->setBasePriceUnitName($metaData[$metaKeys['unitRegularUnitKey']]);
-            $product->setBasePriceDivisor($basePriceDivisor);
-            $product->setBasePriceFactor($basePriceFactor);
+            $product
+                ->setConsiderBasePrice(true)
+                ->setMeasurementQuantity((float)$metaData[$metaKeys['unitRegularAutoPPUProductQuantity']])
+                ->setMeasurementUnitCode($metaData[$metaKeys['unitRegularUnitKey']])
+                ->setBasePriceQuantity((float)$metaData[$metaKeys['unitRegularMultiplikatorKey']])
+                ->setBasePriceUnitCode($metaData[$metaKeys['unitRegularUnitKey']])
+                ->setBasePriceUnitName($metaData[$metaKeys['unitRegularUnitKey']])
+                ->setBasePriceDivisor($basePriceDivisor)
+                ->setBasePriceFactor($basePriceFactor);
         }
     }
 
     /**
      * @param bool $isMaster
-     *
-     * @return array
+     * @return string[]
      */
-    private function getGermanMarketMetaKeys($isMaster = false)
+    private function getGermanMarketMetaKeys(bool $isMaster = false): array
     {
         $result = [
             //Price
@@ -96,11 +92,10 @@ class ProductGermanMarketFields extends BaseController
 
     /**
      * @param \WC_Product $wcProduct
-     * @param             $metaKeys
-     *
+     * @param array $metaKeys
      * @return bool
      */
-    private function hasGermanMarketUnitPrice(\WC_Product $wcProduct, $metaKeys)
+    private function hasGermanMarketUnitPrice(\WC_Product $wcProduct, array $metaKeys): bool
     {
         $result = false;
         /** @var \WC_Meta_Data $meta */
@@ -124,11 +119,10 @@ class ProductGermanMarketFields extends BaseController
 
     /**
      * @param \WC_Product $wcProduct
-     * @param             $metaKeys
-     *
+     * @param array $metaKeys
      * @return array
      */
-    private function getGermanMarketMeta(\WC_Product $wcProduct, $metaKeys)
+    private function getGermanMarketMeta(\WC_Product $wcProduct, array $metaKeys): array
     {
         $result = [];
 
@@ -140,11 +134,10 @@ class ProductGermanMarketFields extends BaseController
     }
 
     /**
-     * @param $metaIdent
-     *
+     * @param string $metaIdent
      * @return string
      */
-    private function identifyGermanMarketMetaGroup($metaIdent)
+    private function identifyGermanMarketMetaGroup(string $metaIdent): string
     {
         $weight = [
             'mg',
@@ -202,23 +195,22 @@ class ProductGermanMarketFields extends BaseController
 
     /**
      * @param ProductModel $product
-     *
+     * @return void
      * @throws NonNumericValue
      * @throws NonStringUnitName
      */
-    public function pushData(ProductModel $product)
+    public function pushData(ProductModel $product): void
     {
         $this->updateGermanMarketPPU($product);
     }
 
     /**
      * @param ProductModel $product
-     *
+     * @return void
      * @throws NonNumericValue
      * @throws NonStringUnitName
-     * @throws \Exception
      */
-    private function updateGermanMarketPPU(ProductModel $product)
+    private function updateGermanMarketPPU(ProductModel $product): void
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
 
@@ -346,9 +338,10 @@ class ProductGermanMarketFields extends BaseController
 
     /**
      * @param ProductModel $product
-     * @param              $metaKeys
+     * @param array $metaKeys
+     * @return void
      */
-    private function clearPPU(ProductModel $product, $metaKeys)
+    private function clearPPU(ProductModel $product, array $metaKeys): void
     {
         $productId = $product->getId()->getEndpoint();
         $metaData = $this->getGermanMarketMeta(
