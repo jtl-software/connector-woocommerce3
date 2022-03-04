@@ -33,7 +33,7 @@ class ProductGermanMarketFields extends BaseController
      * @param \WC_Product $wcProduct
      * @return void
      */
-    private function setBasePriceProperties(ProductModel &$product, \WC_Product $wcProduct): void
+    private function setBasePriceProperties(ProductModel $product, \WC_Product $wcProduct): void
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
 
