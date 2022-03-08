@@ -173,8 +173,8 @@ class ProductVariation extends BaseController
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandler();
         
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy = 'pa_'.wc_sanitize_taxonomy_name(substr(trim($key), 0, 27));
-            $specificID = $this->database->query(SqlHelper::getSpecificId(sprintf('%s', $key)));
+            $taxonomy = 'pa_'.wc_sanitize_taxonomy_name(substr(trim(wc_check_if_attribute_name_is_reserved($key) ? $key . '_1' : $key), 0, 27));
+            $specificID = $this->database->query(SqlHelper::getSpecificId(substr($taxonomy,3)));
             $specificExists = isset($specificID[0]['attribute_id']);
             $options = [];
 
@@ -260,15 +260,15 @@ class ProductVariation extends BaseController
                     ' ' . WC_DELIMITER . ' ',
                     $variationSpecific['value']
                 );
-                
+
                 $attributeId = wc_create_attribute($endpoint);
-                
+
                 if ($attributeId instanceof WP_Error) {
                     //var_dump($attributeId);
                     //die();
                     //return $termId->get_error_message();
                     WpErrorLogger::getInstance()->logError($attributeId);
-                    
+
                     return null;
                 }
                 
