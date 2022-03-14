@@ -921,17 +921,6 @@ final class JtlConnectorAdmin
             ];
         }
 
-        //Add custom checkout fields input field
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
-            $fields[] = [
-                'title' => __('Custom Checkout Fields', JTLWCC_TEXT_DOMAIN),
-                'type' => 'jtl_text_input',
-                'id' => Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS,
-                'value' => Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS),
-                'helpBlock' => __("Define what custom fields should be imported to Wawi. Comma-separated.", JTLWCC_TEXT_DOMAIN),
-            ];
-        }
-
 
         //Add sectionend
         $fields[] = [
@@ -1003,6 +992,17 @@ final class JtlConnectorAdmin
             'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
             'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
         ];
+
+        //Add custom checkout fields input field
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
+            $fields[] = [
+                'title' => __('Custom Checkout Fields', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtl_text_input',
+                'id' => Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS,
+                'value' => Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS),
+                'helpBlock' => __("Define what custom fields should be imported to Wawi. Comma-separated.", JTLWCC_TEXT_DOMAIN),
+            ];
+        }
 
         //Add sectionend
         $fields[] = [

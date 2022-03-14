@@ -49,10 +49,7 @@ class Config
         Config::OPTIONS_USE_GTIN_FOR_EAN => true,
         Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => false,
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
-        Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
-        Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => false,
-        Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
@@ -63,6 +60,9 @@ class Config
         Config::OPTIONS_COMPLETED_ORDERS => true,
         Config::OPTIONS_PULL_ORDERS_SINCE => '',
         Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL => false,
+        Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
+        Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
+        Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => false,
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
