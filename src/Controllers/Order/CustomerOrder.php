@@ -94,13 +94,15 @@ class CustomerOrder extends BaseController
                 }
             }
 
-            foreach ($order->get_meta_data() as $metaData) {
-                if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))){
-                    $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
-                            ->setKey($metaData->get_data()['key'])
-                            ->setValue($metaData->get_data()['value'])
-                    );
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
+                foreach ($order->get_meta_data() as $metaData) {
+                    if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))) {
+                        $customerOrder->addAttribute(
+                            (new CustomerOrderAttr())
+                                ->setKey($metaData->get_data()['key'])
+                                ->setValue($metaData->get_data()['value'])
+                        );
+                    }
                 }
             }
 
