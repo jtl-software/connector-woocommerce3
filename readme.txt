@@ -155,6 +155,7 @@ This section describes how to install the plugin and get it working.
 
 = 1.34.0 =
 * Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled
+* Feature - CO-1907 - Added support for Checkout Field Editor plugin via Connector settings
 * Bugfix - CO-1923 - Fixed delivery time for Germanized plugin version greater than 3.7.0
 * Bugfix - CO-1789 - Fixed German Market base price set
 
