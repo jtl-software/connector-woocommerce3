@@ -638,7 +638,7 @@ final class JtlConnectorAdmin
             <nav class="nav nav-pills nav-fill flex-column flex-sm-row " id="jtlNavbar">
                 <a class="navbar-brand" href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank">
                     <img src=" https://www.jtl-software.de/site/themes/jtlwebsite/assets/dist/images/logos/jtl-logo.svg"
-                         width="30" height="30" class="d-inline-block align-top" alt="JTL-Software">
+                         width="120" height="30" class="d-inline-block align-top" alt="JTL-Software">
                     Connector
                 </a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
@@ -920,6 +920,18 @@ final class JtlConnectorAdmin
                 'helpBlock' => __('Define which customer group is default.', JTLWCC_TEXT_DOMAIN),
             ];
         }
+
+        //Add custom checkout fields input field
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
+            $fields[] = [
+                'title' => __('Custom Checkout Fields', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtl_text_input',
+                'id' => Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS,
+                'value' => Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS),
+                'helpBlock' => __("Define what custom fields should be imported to Wawi. Comma-separated.", JTLWCC_TEXT_DOMAIN),
+            ];
+        }
+
 
         //Add sectionend
         $fields[] = [

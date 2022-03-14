@@ -38,7 +38,8 @@ class Config
         OPTIONS_DEVELOPER_LOGGING = 'developer_logging',
         OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce',
         OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market',
-        OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date';
+        OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date',
+        OPTIONS_CUSTOM_CHECKOUT_FIELDS = 'jtlconnector_custom_checkout_fields';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -51,6 +52,7 @@ class Config
         Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => false,
+        Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
@@ -79,6 +81,7 @@ class Config
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'string',
         Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => 'array',
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => 'array',
+        Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => 'string',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => 'bool',
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',

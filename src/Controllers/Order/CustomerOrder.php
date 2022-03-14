@@ -13,6 +13,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Payment;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -37,21 +38,12 @@ class CustomerOrder extends BaseController
         /** Already paid */
         STATUS_REFUNDED = 'refunded';
 
-    /** Standard meta data fields */
-    public const
-        WC_ORDER_IS_VAT_EXEMPT = 'is_vat_exempt',
-        WC_ORDER_ORDER_EMAIL_SENT = '_new_order_email_sent';
-
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';
 
     public function pullData($limit)
     {
         $orders = [];
-        $standardMetaFields = [
-            self::WC_ORDER_IS_VAT_EXEMPT,
-            self::WC_ORDER_ORDER_EMAIL_SENT
-        ];
 
         $orderIds = $this->database->queryList(SqlHelper::customerOrderPull($limit));
 
@@ -103,7 +95,7 @@ class CustomerOrder extends BaseController
             }
 
             foreach ($order->get_meta_data() as $metaData) {
-                if (!in_array($metaData->get_data()['key'], $standardMetaFields) && substr($metaData->get_data()['key'], 0, 1) != '_') {
+                if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))){
                     $customerOrder->addAttribute(
                         (new CustomerOrderAttr())
                             ->setKey($metaData->get_data()['key'])
