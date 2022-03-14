@@ -246,7 +246,10 @@ class ProductPrice extends BaseController
         $pd = Util::getPriceDecimals();
 
         $defaultCustomerGroup = Config::get('jtlconnector_default_customer_group');
-        $autoB2BOptions = Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true);
+        $autoB2BOptions = false;
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $autoB2BOptions = Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true);
+        }
 
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
