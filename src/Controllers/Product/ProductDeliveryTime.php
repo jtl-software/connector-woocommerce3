@@ -146,6 +146,11 @@ class ProductDeliveryTime extends BaseController
 
                 if ($germanizedTermId !== false) {
                     wp_set_object_terms($productId, $germanizedTermId, $germanizedDeliveryTimeTaxonomyName, true);
+
+                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                        $oldDeliveryTime = Util::getInstance()->getPostMeta($productId, '_default_delivery_time', true);
+                        Util::getInstance()->updatePostMeta($productId, '_default_delivery_time', $germanizedTerm->slug, $oldDeliveryTime);
+                    }
                 }
             }
 
@@ -169,6 +174,9 @@ class ProductDeliveryTime extends BaseController
                         }
                         wp_remove_object_terms($productId, $term->term_id, $taxonomyName);
                     }
+                }
+                if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                    Util::getInstance()->deletePostMeta($productId, '_default_delivery_time');
                 }
             }
         }
