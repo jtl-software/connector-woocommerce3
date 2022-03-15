@@ -5,8 +5,8 @@ Requires at least: 4.7
 Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
-WC tested up to: 6.2
-Stable tag: 1.33.0
+WC tested up to: 6.3
+Stable tag: 1.34.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,12 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.34.0 =
+* Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled
+* Feature - CO-1907 - Added support for Checkout Field Editor plugin via Connector settings
+* Bugfix - CO-1923 - Fixed delivery time for Germanized plugin version greater than 3.7.0
+* Bugfix - CO-1789 - Fixed German Market base price set
 
 = 1.33.0 =
 * Fixed missing tax_class linking table

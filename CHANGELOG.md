@@ -2,6 +2,12 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.34.0
+* Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled
+* Feature - CO-1907 - Added support for Checkout Field Editor plugin via Connector settings
+* Bugfix - CO-1923 - Fixed delivery time for Germanized plugin version greater than 3.7.0 
+* Bugfix - CO-1789 - Fixed German Market base price set  
+
 ## 1.33.0
 * Fixed missing tax_class linking table
 * Fixed - CO-1908 - rolled back changes related to setting base price based on customer group CO-1853

@@ -175,7 +175,6 @@ class ProductVariation extends BaseController
         foreach ($variationSpecificData as $key => $variationSpecific) {
             $taxonomy = $this->createVariantSlug((string)$key);
             $specificID = $this->database->query(SqlHelper::getSpecificId(substr($taxonomy, 3)));
-
             $specificExists = isset($specificID[0]['attribute_id']);
             $options = [];
 
