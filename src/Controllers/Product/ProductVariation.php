@@ -406,7 +406,7 @@ class ProductVariation extends BaseController
         $slug = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($slug), 0, 27));
 
         if (wc_check_if_attribute_name_is_reserved(substr($slug, 3))) {
-            return $slug . '_1';
+            $slug = substr($slug, 0, 28) . '_1';
         }
 
         return $slug;
