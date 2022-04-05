@@ -168,14 +168,14 @@ class UtilTest extends TestCase
         $getPlugins->enable();
         $this->mockedFunctions[] = $getPlugins;
 
-        $getActiveAndValidPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
-            ->setName('wp_get_active_and_valid_plugins')
-            ->setFunction(function () use ($enabledPlugins) {
-                return array_keys($enabledPlugins);
+        $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
+            ->setName('is_plugin_active')
+            ->setFunction(function () {
+                return true;
             })->build();
 
-        $getActiveAndValidPlugins->enable();
-        $this->mockedFunctions[] = $getActiveAndValidPlugins;
+        $getPlugins->enable();
+        $this->mockedFunctions[] = $getPlugins;
     }
 
     /**
