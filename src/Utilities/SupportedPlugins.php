@@ -11,7 +11,7 @@ final class SupportedPlugins
     //THEMESPECIALS
 
     const
-    //Compatible
+        //Compatible
         PLUGIN_B2B_MARKET = 'B2B Market',
         PLUGIN_GERMAN_MARKET = 'German Market',
         PLUGIN_PERFECT_WOO_BRANDS = 'Perfect WooCommerce Brands',
@@ -38,7 +38,7 @@ final class SupportedPlugins
         PLUGIN_RANK_MATH_SEO = 'Rank Math SEO',
         PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE = 'Checkout Field Editor for WooCommerce',
 
-    //Incompatible
+        //Incompatible
         PLUGIN_ANTISPAM_BEE = 'Antispam Bee',
         PLUGIN_CERBER_SECURITY = 'Cerber Security, Antispam & Malware Scan',
         PLUGIN_WORDFENCE = 'Wordfence Security – Firewall & Malware Scan',
@@ -98,28 +98,15 @@ final class SupportedPlugins
     public static function getInstalledAndActivated()
     {
         $plugins = get_plugins();
-        $plArr = [];
+        $activePlugins = [];
 
-        foreach (wp_get_active_and_valid_plugins() as $activePl) {
-            $tmp = explode('/', $activePl);
-            $count = count($tmp) - 1;
-
-            $string = '';
-
-            if (strcmp('plugins', $tmp[$count - 1]) !== 0) {
-                $string .= (string)$tmp[$count - 1];
-                $string .= '/';
+        foreach ($plugins as $key => $plugin) {
+            if (is_plugin_active($key)) {
+                $activePlugins[] = $plugins[$key];
             }
-
-            $string .= (string)$tmp[$count];
-
-            if (array_key_exists($string, $plugins)) {
-                $plArr[] = $plugins[$string];
-            }
-
         }
 
-        return $plArr;
+        return $activePlugins;
     }
 
     /**
