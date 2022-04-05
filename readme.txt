@@ -6,7 +6,7 @@ Tested up to: 5.8
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 6.3
-Stable tag: 1.34.0
+Stable tag: 1.35.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,13 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.35.0 =
+* Bugfix - CO-1945 - Fixed duplicated slug for categories
+* Feature - CO-1946 - Added multisite plugin detection
+* Bugfix - CO-1955 - Do not display function attributes on frontend
+* Bugfix - CO-1487 - Fixed reserved slug names for product variants
+* Bugfix - include jtl plugins in plugins directory
 
 = 1.34.0 =
 * Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled

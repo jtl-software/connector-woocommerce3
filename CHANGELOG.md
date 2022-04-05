@@ -2,6 +2,13 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.35.0
+* Bugfix - CO-1945 - Fixed duplicated slug for categories
+* Feature - CO-1946 - Added multisite plugin detection 
+* Bugfix - CO-1955 - Do not display function attributes on frontend
+* Bugfix - CO-1487 - Fixed reserved slug names for product variants
+* Bugfix - include jtl plugins in plugins directory
+
 ## 1.34.0
 * Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled
 * Feature - CO-1907 - Added support for Checkout Field Editor plugin via Connector settings
