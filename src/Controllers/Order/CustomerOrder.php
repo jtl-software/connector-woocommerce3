@@ -13,46 +13,43 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\Payment;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use TheIconic\NameParser\Parser;
-use WCPayPalPlus\Payment\PaymentExecutionSuccess;
 
 class CustomerOrder extends BaseController
 {
-    use PullTrait, StatsTrait;
-    
     /** Order received (unpaid) */
-    const STATUS_PENDING = 'pending';
-    /** Payment received – the order is awaiting fulfillment */
-    const STATUS_PROCESSING = 'processing';
-    /** Order fulfilled and complete */
-    const STATUS_COMPLETED = 'completed';
-    /** Awaiting payment – stock is reduced, but you need to confirm payment */
-    const STATUS_ON_HOLD = 'on-hold';
-    /** Payment failed or was declined (unpaid) */
-    const STATUS_FAILED = 'failed';
-    /** Cancelled by an admin or the customer */
-    const STATUS_CANCELLED = 'cancelled';
-    /** Already paid */
-    const STATUS_REFUNDED = 'refunded';
-    
+    public const
+        STATUS_PENDING = 'pending',
+        /** Payment received – the order is awaiting fulfillment */
+        STATUS_PROCESSING = 'processing',
+        /** Order fulfilled and complete */
+        STATUS_COMPLETED = 'completed',
+        /** Awaiting payment – stock is reduced, but you need to confirm payment */
+        STATUS_ON_HOLD = 'on-hold',
+        /** Payment failed or was declined (unpaid) */
+        STATUS_FAILED = 'failed',
+        /** Cancelled by an admin or the customer */
+        STATUS_CANCELLED = 'cancelled',
+        /** Already paid */
+        STATUS_REFUNDED = 'refunded';
+
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';
-    
+
     public function pullData($limit)
     {
         $orders = [];
-        
+
         $orderIds = $this->database->queryList(SqlHelper::customerOrderPull($limit));
-        
+
         foreach ($orderIds as $orderId) {
             $order = \wc_get_order($orderId);
-            
+
             if (!$order instanceof \WC_Order) {
                 continue;
             }
@@ -60,7 +57,7 @@ class CustomerOrder extends BaseController
             $total = $order->get_total();
             $totalTax = $order->get_total_tax();
             $totalSum = $total - $totalTax;
-                
+
             $customerOrder = (new CustomerOrderModel())
                 ->setId(new Identity($order->get_id()))
                 ->setCreationDate($order->get_date_created())
@@ -76,42 +73,65 @@ class CustomerOrder extends BaseController
                 ->setPaymentStatus(CustomerOrderModel::PAYMENT_STATUS_UNPAID)
                 ->setStatus($this->status($order))
                 ->setTotalSum((float)$totalSum);
-            
+
             $customerOrder
                 ->setItems(CustomerOrderItem::getInstance()->pullData($order))
                 ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order))
                 ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order));
-            
+
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
+            }
+
+            if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_AMAPAY) {
+                $amazonChargePermissionId = $order->get_meta('amazon_charge_permission_id');
+                if (!empty($amazonChargePermissionId)) {
+                    $customerOrder->addAttribute(
+                        (new CustomerOrderAttr())
+                            ->setKey('AmazonPay-Referenz')
+                            ->setValue($amazonChargePermissionId)
+                    );
+                }
+            }
+
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
+                foreach ($order->get_meta_data() as $metaData) {
+                    if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))) {
+                        $customerOrder->addAttribute(
+                            (new CustomerOrderAttr())
+                                ->setKey($metaData->get_data()['key'])
+                                ->setValue($metaData->get_data()['value'])
+                        );
+                    }
+                }
             }
 
             if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_PAYPAL_PLUS) {
                 $this->setPayPalPlusPaymentInfo($order, $customerOrder);
             }
-            
+
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 $this->setGermanizedPaymentInfo($customerOrder);
             }
-            
+
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                 $this->setGermanMarketPaymentInfo($customerOrder);
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
 
-                $dhlPreferredDeliveryOptions = get_post_meta( $orderId, '_pr_shipment_dhl_label_items', true );
+                $dhlPreferredDeliveryOptions = get_post_meta($orderId, '_pr_shipment_dhl_label_items', true);
 
                 if (is_array($dhlPreferredDeliveryOptions)) {
                     $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
                 }
             }
-            
+
             $orders[] = $customerOrder;
         }
-        
+
         return $orders;
     }
 
@@ -125,9 +145,9 @@ class CustomerOrder extends BaseController
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
-                if(!empty($orderMetaData) && $orderMetaData['instruction_type'] === Payment::PAY_UPON_INVOICE) {
+                if (!empty($orderMetaData) && $orderMetaData['instruction_type'] === Payment::PAY_UPON_INVOICE) {
                     $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
-                    if(!empty($bankData)) {
+                    if (!empty($bankData)) {
                         $pui = (sprintf(
                             'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
                             number_format((float)$order->get_total(), 2),
@@ -149,7 +169,7 @@ class CustomerOrder extends BaseController
             $customerOrder->setPui($pui);
         }
     }
-    
+
     protected function status(\WC_Order $order)
     {
         if ($order->has_status(self::STATUS_COMPLETED)) {
@@ -157,47 +177,47 @@ class CustomerOrder extends BaseController
         } elseif ($order->has_status([self::STATUS_CANCELLED, self::STATUS_REFUNDED])) {
             return CustomerOrderModel::STATUS_CANCELLED;
         }
-        
+
         return CustomerOrderModel::STATUS_NEW;
     }
-    
+
     protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder)
     {
         $directDebitGateway = new \WC_GZD_Gateway_Direct_Debit();
-        
+
         if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
             $orderId = $customerOrder->getId()->getEndpoint();
-            
+
             $bic = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
             $iban = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_iban', true));
-            
+
             $paymentInfo = (new CustomerOrderPaymentInfo())
                 ->setBic($bic)
                 ->setIban($iban)
                 ->setAccountHolder(\get_post_meta($orderId, '_direct_debit_holder', true));
-            
+
             $customerOrder->setPaymentInfo($paymentInfo);
-            
+
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
             $settings = \get_option('woocommerce_invoice_settings');
-            
+
             if (!empty($settings) && isset($settings['instructions'])) {
                 $customerOrder->setPui($settings['instructions']);
             }
         }
     }
 
-    protected function setPreferredDeliveryOptions(CustomerOrderModel &$customerOrder,$dhlPreferredDeliveryOptions = [])
+    protected function setPreferredDeliveryOptions(CustomerOrderModel &$customerOrder, $dhlPreferredDeliveryOptions = [])
     {
         $customerOrder->addAttribute(
             (new CustomerOrderAttr())
                 ->setKey('dhl_wunschpaket_feeder_system')
-                ->setValue('woocommerce')
+                ->setValue('wooc')
         );
 
         //foreach each item mach
-        foreach($dhlPreferredDeliveryOptions as $optionName=>$optionValue){
-            switch($optionName){
+        foreach ($dhlPreferredDeliveryOptions as $optionName => $optionValue) {
+            switch ($optionName) {
                 case 'pr_dhl_preferred_day':
                     $customerOrder->addAttribute(
                         (new CustomerOrderAttr())
@@ -260,9 +280,9 @@ class CustomerOrder extends BaseController
                     $name = (new Parser())->parse($optionValue);
 
                     $salutation = $name->getSalutation();
-                    $firstName  = $name->getFirstname();
+                    $firstName = $name->getFirstname();
 
-                    if(preg_match("/(herr|frau)/i",$firstName)){
+                    if (preg_match("/(herr|frau)/i", $firstName)) {
                         $salutation = ucfirst(mb_strtolower($firstName));
                         $firstName = $name->getMiddlename();
                     }
@@ -292,11 +312,11 @@ class CustomerOrder extends BaseController
 
 
     }
-    
+
     protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder)
     {
         $orderId = $customerOrder->getId()->getEndpoint();
-        
+
         if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
             $instance = new \WGM_Gateway_Sepa_Direct_Debit();
             $gmSettings = $instance->settings;
@@ -321,7 +341,7 @@ class CustomerOrder extends BaseController
                 '[amount]',
             ];
             $pui = array_key_exists('direct_debit_mandate', $gmSettings) ? $gmSettings['direct_debit_mandate'] : '';
-            
+
             foreach ($settingsKeys as $key => $formValue) {
                 switch ($formValue) {
                     case '[creditor_information]':
@@ -376,32 +396,32 @@ class CustomerOrder extends BaseController
                         $value = '';
                         break;
                 }
-                
+
                 $pui = str_replace(
                     $formValue,
                     $value,
                     $pui
                 );
             }
-            
+
             $paymentInfo = (new CustomerOrderPaymentInfo())
                 ->setBic($bic)
                 ->setIban($iban)
                 ->setAccountHolder($accountHolder);
-            
+
             $customerOrder->setPui($pui);
             $customerOrder->setPaymentInfo($paymentInfo);
-            
+
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
             $instance = new \WGM_Gateway_Purchase_On_Account();
             $gmSettings = $instance->settings;
-    
-            if(array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== ''){
+
+            if (array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== '') {
                 $customerOrder->setPui($gmSettings['direct_debit_mandate']);
             }
         }
     }
-    
+
     public function getStats()
     {
         return $this->database->queryOne(SqlHelper::customerOrderPull(null));

@@ -8,9 +8,12 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
+use \jtl\Connector\Model\ProductAttr;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product_Attribute;
 
 class ProductSpecific extends BaseController
 {
@@ -18,7 +21,7 @@ class ProductSpecific extends BaseController
     public function pullData(
         ProductModel $model,
         \WC_Product $product,
-        \WC_Product_Attribute $attribute,
+        WC_Product_Attribute $attribute,
         $slug
     ) {
         $name = $attribute->get_name();
@@ -43,15 +46,16 @@ class ProductSpecific extends BaseController
      * @param $productId
      * @param $curAttributes
      * @param array $specificData
-     * @param array $pushedSpecifics
+     * @param array $pushedJtlSpecifics
+     * @param array $pushedJtlAttributes
      * @return array
      */
-    public function pushData($productId, $curAttributes, $specificData = [], $pushedSpecifics = [])
+    public function pushData($productId, $curAttributes, $specificData = [], $pushedJtlSpecifics = [], $pushedJtlAttributes = []): array
     {
         $newSpecifics = [];
         
         /** @var ProductSpecificModel $specific */
-        foreach ($pushedSpecifics as $specific) {
+        foreach ($pushedJtlSpecifics as $specific) {
             $endpointId = $specific->getId()->getEndpoint();
             $specificValueId = $specific->getSpecificValueId()->getEndpoint();
             if (empty($endpointId) || empty($specificValueId)) {
@@ -63,36 +67,36 @@ class ProductSpecific extends BaseController
         /**
          * FILTER Attributes & UPDATE EXISTING
          *
-         * @var \WC_Product_Attribute $productSpecific
+         * @var WC_Product_Attribute $wcProductAttribute
          */
-        foreach ($curAttributes as $slug => $productSpecific) {
+        foreach ($curAttributes as $slug => $wcProductAttribute) {
             if (!preg_match('/^pa_/', $slug)) {
                 $newSpecifics[$slug] = [
-                    'name'         => $productSpecific->get_name(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $productSpecific->get_options()),
-                    'position'     => $productSpecific->get_position(),
-                    'is_visible'   => $productSpecific->get_visible(),
-                    'is_variation' => $productSpecific->get_variation(),
-                    'is_taxonomy'  => $productSpecific->get_taxonomy(),
+                    'name'         => $wcProductAttribute->get_name(),
+                    'value'        => Util::getInstance()->findAttributeValue($wcProductAttribute,  ...$pushedJtlAttributes),
+                    'position'     => $wcProductAttribute->get_position(),
+                    'is_visible'   => $wcProductAttribute->get_visible(),
+                    'is_variation' => $wcProductAttribute->get_variation(),
+                    'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             } elseif (
                 preg_match('/^pa_/', $slug)
-                && array_key_exists($productSpecific->get_id(), $specificData)
+                && array_key_exists($wcProductAttribute->get_id(), $specificData)
             ) {
-                $cOldOptions = $productSpecific->get_options();
+                $cOldOptions = $wcProductAttribute->get_options();
                 unset($specificData[$slug]);
                 
                 $newSpecifics[$slug] = [
-                    'name'         => $productSpecific->get_name(),
+                    'name'         => $wcProductAttribute->get_name(),
                     'value'        => '',
-                    'position'     => $productSpecific->get_position(),
-                    'is_visible'   => $productSpecific->get_visible(),
-                    'is_variation' => $productSpecific->get_variation(),
-                    'is_taxonomy'  => $productSpecific->get_taxonomy(),
+                    'position'     => $wcProductAttribute->get_position(),
+                    'is_visible'   => $wcProductAttribute->get_visible(),
+                    'is_variation' => $wcProductAttribute->get_variation(),
+                    'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
                 
                 foreach ($cOldOptions as $value) {
-                    if ($productSpecific->get_variation()) {
+                    if ($wcProductAttribute->get_variation()) {
                         continue;
                     }
                     wp_remove_object_terms($productId, $value, $slug);
@@ -141,7 +145,7 @@ class ProductSpecific extends BaseController
         $name = substr($slug, 3);
         $val = $this->database->query(SqlHelper::getSpecificId($name));
         
-        return isset($val[0]['attribute_id']) ? $val[0]['attribute_id'] : '';
+        return $val[0]['attribute_id'] ?? '';
     }
     
     private function buildProductSpecific($slug, $value, ProductModel $result)
@@ -149,13 +153,12 @@ class ProductSpecific extends BaseController
         $parent = (new ProductVaSpeAttrHandler);
         $valueId = $parent->getSpecificValueId($slug, $value);
         $specificId = (new Identity)->setEndpoint($this->getSpecificId($slug));
-        
-        $specific = (new ProductSpecificModel)
+
+        return (new ProductSpecificModel)
             ->setId($specificId)
             ->setProductId($result->getId())
             ->setSpecificValueId($valueId);
-        
-        return $specific;
     }
+
     // </editor-fold>
 }

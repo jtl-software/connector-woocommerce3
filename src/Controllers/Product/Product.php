@@ -9,17 +9,14 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use DateTime;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Model\TaxRate;
 use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Traits\DeleteTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
-use JtlWooCommerceConnector\Controllers\Traits\PushTrait;
-use JtlWooCommerceConnector\Controllers\Traits\StatsTrait;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -31,7 +28,7 @@ class Product extends BaseController
         TYPE_CHILD = 'child',
         TYPE_SINGLE = 'single';
 
-    use PullTrait, PushTrait, DeleteTrait, StatsTrait, WawiProductPriceSchmuddelTrait;
+    use WawiProductPriceSchmuddelTrait;
 
     private static $idCache = [];
 
@@ -402,7 +399,7 @@ class Product extends BaseController
 
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct)
     {
-        $parent = $parent = $product->getMasterProductId()->getEndpoint();
+        $parent = $product->getMasterProductId()->getEndpoint();
 
         $wcProduct->set_sku($product->getSku());
         $wcProduct->set_parent_id(empty($parent) ? 0 : (int)$parent);
@@ -458,9 +455,17 @@ class Product extends BaseController
             $wcProduct->set_date_modified($product->getModified()->getTimestamp());
         }
 
-        $taxClass = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat()));
-        $wcProduct->set_tax_class(is_null($taxClass) ? '' : $taxClass);
+        if (!is_null($product->getTaxClassId()) && !empty($product->getTaxClassId()->getEndpoint())) {
+            $taxClassName = $product->getTaxClassId()->getEndpoint();
+        } else {
+            $taxClassName = $this->database->queryOne(SqlHelper::taxClassByRate($product->getVat())) ?? '';
+            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
+                $taxClassName = $this->findTaxClassName(...$product->getTaxRates()) ?? $taxClassName;
+                //$product->getTaxClassId()->setEndpoint($taxClassName === '' ? 'default' : $taxClassName);
+            }
+        }
 
+        $wcProduct->set_tax_class($taxClassName === 'default' ? '' : $taxClassName);
         $wcProduct->save();
 
         $tags = array_map('trim', explode(' ', $product->getKeywords()));
@@ -491,7 +496,7 @@ class Product extends BaseController
         (new Product2Category)->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
 
-        (new ProductPrice)->pushData($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
+        (new ProductPrice)->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
 
         (new ProductSpecialPrice)->pushData($product, $wcProduct, $productType);
     }
@@ -576,5 +581,15 @@ class Product extends BaseController
         }
 
         return $creationDate->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * @param TaxRate ...$jtlTaxRates
+     * @return string|null
+     */
+    public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
+    {
+        $foundTaxClasses = $this->database->query(SqlHelper::getTaxClassByTaxRates(...$jtlTaxRates));
+        return $foundTaxClasses[0]['taxClassName'] ?? null;
     }
 }

@@ -96,7 +96,7 @@ class ProductStockLevel extends BaseController
         $value = $product->getPermitNegativeStock() ? 'yes' : 'no';
         if ($value === 'yes') {
             $attribute = Util::findAttributeI18nByName(ProductVaSpeAttrHandler::NOTIFY_CUSTOMER_ON_OVERSELLING, Util::getInstance()->getWooCommerceLanguage(), ...$product->getAttributes());
-            if (!is_null($attribute) && $attribute->getValue() === 'true') {
+            if (!is_null($attribute) && Util::isTrue($attribute->getValue())) {
                 $value = 'notify';
             }
         }

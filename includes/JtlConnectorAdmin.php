@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Symfony\Component\Yaml\Yaml;
 
 if (!defined('ABSPATH')) {
@@ -121,6 +122,7 @@ final class JtlConnectorAdmin
             //not implemented yet
             'specific',
             'specific_value',
+            'tax_class',
         ];
         //self::activate_category_tree();
         foreach ($tables as $key => $table) {
@@ -154,6 +156,8 @@ final class JtlConnectorAdmin
                     self::createImageLinkingTable();
                 } elseif (strcmp($table, 'manufacturer') === 0) {
                     self::createManufacturerLinkingTable();
+                } elseif (strcmp($table, 'tax_class') === 0) {
+                    self::createTaxClassLinkingTable();
                 } else {
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
@@ -394,6 +398,12 @@ final class JtlConnectorAdmin
                 'jtl_connector_select',
             ]
         );
+        add_action('woocommerce_admin_field_jtl_connector_multiselect',
+            [
+                'JtlConnectorAdmin',
+                'jtl_connector_multiselect',
+            ]
+        );
         add_action('woocommerce_admin_field_dev_log_btn',
             [
                 'JtlConnectorAdmin',
@@ -628,7 +638,7 @@ final class JtlConnectorAdmin
             <nav class="nav nav-pills nav-fill flex-column flex-sm-row " id="jtlNavbar">
                 <a class="navbar-brand" href="https://guide.jtl-software.de/jtl-connector/woocommerce/" target="_blank">
                     <img src=" https://www.jtl-software.de/site/themes/jtlwebsite/assets/dist/images/logos/jtl-logo.svg"
-                         width="30" height="30" class="d-inline-block align-top" alt="JTL-Software">
+                         width="120" height="30" class="d-inline-block align-top" alt="JTL-Software">
                     Connector
                 </a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'information_page') === 0) {
@@ -819,11 +829,22 @@ final class JtlConnectorAdmin
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
+        $fields[] = [
+            'title' => __('Delete unknown attributes', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want to delete unknown attributes on push (Default : Disabled).',
+                JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES,
+            'value' => Config::get(Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //Add custom properties radio field
         $fields[] = [
             'title' => __('Custom properties', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to show your customers the custom properties as attribute (Default : Enabled).',
+            'desc' => __('If you activate this option, custom fields from JTL-Wawi will be handled as attributes in the shop. After changing this option, full-sync is required (Default : Enabled).',
                 JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_SEND_CUSTOM_PROPERTIES,
             'value' => Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES),
@@ -847,7 +868,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Allow HTML in product attributes', JTLWCC_TEXT_DOMAIN),
             'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to allow saving HTML in product attributes', JTLWCC_TEXT_DOMAIN),
+            'desc' => __('Enable if you want to allow saving HTML in product attributes (Default : Disabled)', JTLWCC_TEXT_DOMAIN),
             'id' => Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES,
             'value' => Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES),
             'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
@@ -900,6 +921,7 @@ final class JtlConnectorAdmin
             ];
         }
 
+
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
@@ -928,16 +950,7 @@ final class JtlConnectorAdmin
         ];
 
         //Add variation specific radio field
-        $fields[] = [
-            'title' => __('Pull completed orders', JTLWCC_TEXT_DOMAIN),
-            'type' => 'active_true_false_radio',
-            'desc' => __('Do not choose when having a large amount of data and low server specifications.',
-                JTLWCC_TEXT_DOMAIN),
-            'id' => Config::OPTIONS_COMPLETED_ORDERS,
-            'value' => Config::get(Config::OPTIONS_COMPLETED_ORDERS),
-            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-        ];
+
         //Add pull order since date field
         $fields[] = [
             'title' => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
@@ -957,6 +970,39 @@ final class JtlConnectorAdmin
             'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
+        $fields[] = [
+            'title' => __('Default order statuses to import', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_multiselect',
+            'options'=>wc_get_order_statuses(),
+            'id' => Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT,
+            'value' => Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, ['wc-pending', 'wc-processing', 'wc-on-hold']),
+            'helpBlock' => __('Order statuses that should be imported. Default: pending, processing, on hold, completed', JTLWCC_TEXT_DOMAIN),
+        ];
+
+        $paymentGateways = [];
+        if (WC()->payment_gateways() instanceof WC_Payment_Gateways) {
+            $paymentGateways = WC()->payment_gateways->payment_gateways();
+            $paymentGateways = array_combine(array_keys($paymentGateways), array_column($paymentGateways, 'title'));
+        }
+
+        $fields[] = [
+            'title' => __('Import payments with following payment types only when order is completed (usually manual payment types)', JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_multiselect',
+            'options'=> $paymentGateways,
+            'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
+            'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
+        ];
+
+        //Add custom checkout fields input field
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
+            $fields[] = [
+                'title' => __('Custom Checkout Fields', JTLWCC_TEXT_DOMAIN),
+                'type' => 'jtl_text_input',
+                'id' => Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS,
+                'value' => Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS),
+                'helpBlock' => __("Define what custom fields should be imported to Wawi. Comma-separated.", JTLWCC_TEXT_DOMAIN),
+            ];
+        }
 
         //Add sectionend
         $fields[] = [
@@ -1025,6 +1071,17 @@ final class JtlConnectorAdmin
             'id' => Config::OPTIONS_SUFFIX_DELIVERYTIME,
             'value' => Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME),
             'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
+        ];
+
+        //Use next available inflow date if needed
+        $fields[] = [
+            'title' => __('Consider available inflow date for shipping', JTLWCC_TEXT_DOMAIN),
+            'type' => 'active_true_false_radio',
+            'desc' => __('Enable if you want that connector calculate shipping time based on next available inflow date from supplier when stock is 0', JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE,
+            'value' => Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE),
+            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
         //Add sectionend
@@ -1144,7 +1201,7 @@ final class JtlConnectorAdmin
         }
 
         //CURRENT DISBALED THIS
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && false) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $fields[] = [
                 'title' => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
                 'type' => 'active_true_false_radio',
@@ -1155,15 +1212,15 @@ final class JtlConnectorAdmin
                 'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
-            $fields[] = [
-                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
-                'type' => 'jtlwcc_card',
-                'color' => 'border-info',
-                'text-color' => 'text-info',
-                'center' => false,
-                'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
-                    JTLWCC_TEXT_DOMAIN),
-            ];
+//            $fields[] = [
+//                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+//                'type' => 'jtlwcc_card',
+//                'color' => 'border-info',
+//                'text-color' => 'text-info',
+//                'center' => false,
+//                'text' => __('Similar plugins, like the <b>not compatible plugins</b> which are listed here, might be incompatible too!',
+//                    JTLWCC_TEXT_DOMAIN),
+//            ];
         }
 
         //Add sectionend
@@ -1456,6 +1513,31 @@ final class JtlConnectorAdmin
         <?php
     }
 
+    public static function jtl_connector_multiselect(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>[]">
+                <?php
+                if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
+                    foreach ($field['options'] as $key => $ovalue) { ?>
+                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) { print 'selected="selected"'; } ?>><?php print $ovalue; ?> </option>
+                <?php } } ?>
+            </select>
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
     public static function dev_log_btn(array $field)
     {
         ?>
@@ -1542,6 +1624,9 @@ final class JtlConnectorAdmin
                     break;
                 case 'float':
                     $value = (float)$item;
+                    break;
+                case 'array':
+                    $value = $item;
                     break;
                 default:
                     $value = trim($item);
@@ -1750,6 +1835,26 @@ final class JtlConnectorAdmin
             case '1.23.0':
             case '1.23.1':
             case '1.23.2':
+            case '1.24.0':
+            case '1.24.1':
+            case '1.25.0':
+                self::createTaxClassLinkingTable();
+            case '1.26.0':
+            case '1.26.1':
+            case '1.26.2':
+            case '1.27.0':
+                self::setupDefaultOrderStatusesToImport();
+            case '1.27.1':
+            case '1.28.0':
+            case '1.28.1':
+            case '1.29.0':
+                self::setupDefaultManualPaymentTypes();
+            case '1.30.0':
+            case '1.31.0':
+            case '1.32.0':
+            case '1.32.1':
+            case '1.33.0':
+            case '1.34.0':
             default:
                 self::activate_linking();
         }
@@ -1757,7 +1862,49 @@ final class JtlConnectorAdmin
         Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
     }
-    // </editor-fold>
+
+    protected static function setupDefaultManualPaymentTypes()
+    {
+        if (Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES) === null) {
+            $paymentTypes = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES];
+            Config::set(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $paymentTypes);
+        }
+    }
+
+    protected static function setupDefaultOrderStatusesToImport()
+    {
+        if(Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT) === null) {
+            $statusList = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
+                $statusList[] = 'wc-payment-accepted';
+            }
+
+            $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
+            if (in_array($includeCompletedOrdersOption, ['yes', '1'], true)) {
+                $statusList[] = 'wc-completed';
+            }
+
+            Config::set(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $statusList);
+        }
+    }
+
+    /**
+     *
+     */
+    protected static function createTaxClassLinkingTable()
+    {
+        global $wpdb;
+
+        $query = '
+            CREATE TABLE IF NOT EXISTS `%s%s` (
+                `endpoint_id` VARCHAR(200) NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                PRIMARY KEY (`endpoint_id`),
+                UNIQUE (`host_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+
+        $wpdb->query(sprintf($query, $wpdb->prefix, 'jtl_connector_link_tax_class'));
+    }
 
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()

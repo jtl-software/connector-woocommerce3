@@ -8,12 +8,10 @@ namespace JtlWooCommerceConnector\Controllers\Order;
 
 use jtl\Connector\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
-use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class CustomerOrderShippingAddress extends BaseController
+class CustomerOrderShippingAddress extends CustomerOrderAddress
 {
     public function pullData(\WC_Order $order)
     {
@@ -25,12 +23,16 @@ class CustomerOrderShippingAddress extends BaseController
             ->setExtraAddressLine($order->get_shipping_address_2())
             ->setZipCode($order->get_shipping_postcode())
             ->setCity($order->get_shipping_city())
-            ->setState($order->get_shipping_state())
+            ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
             ->setCountryIso($order->get_shipping_country())
             ->setCompany($order->get_shipping_company())
-            ->setCustomerId(new Identity($order->get_customer_id() !== 0
-                ? $order->get_customer_id()
-                : Id::link([Id::GUEST_PREFIX, $order->get_id()])));
+            ->setCustomerId($this->createCustomerId($order));
+
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE, '>=', '5.6.0')) {
+            $address->setPhone($order->get_shipping_phone());
+        }
+
+        $dhlPostNumber = '';
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
@@ -39,14 +41,16 @@ class CustomerOrderShippingAddress extends BaseController
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
 
-            $postNumber = \get_post_meta($order->get_id(), '_shipping_parcelshop_post_number', true);
-            if (empty($postNumber)) {
-                $postNumber = $order->get_meta('_shipping_dhl_postnumber', true);
+            $dhlPostNumber = $order->get_meta('_shipping_parcelshop_post_number', true);
+            if (empty($dhlPostNumber)) {
+                $dhlPostNumber = $order->get_meta('_shipping_dhl_postnumber', true);
             }
+        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+            $dhlPostNumber = $order->get_meta('_shipping_dhl_postnum', true);
+        }
 
-            if (!empty($postNumber)) {
-                $address->setExtraAddressLine((string) $postNumber);
-            }
+        if (!empty($dhlPostNumber)) {
+            $address->setExtraAddressLine($dhlPostNumber);
         }
 
         return $address;
