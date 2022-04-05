@@ -103,15 +103,14 @@ class Category extends BaseController
             'description' => $meta->getDescription(),
             'parent'      => $parentCategoryId->getEndpoint(),
             'name'        => $meta->getName(),
-            'taxonomy'    => \wc_sanitize_taxonomy_name($meta->getName()),
+            'taxonomy'    => wc_sanitize_taxonomy_name(CategoryUtil::TERM_TAXONOMY),
         ];
         
         $urlPath = $meta->getUrlPath();
 
+        $categoryData['slug'] = $meta->getName();
         if (!empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
-        } else {
-            $categoryData['slug'] = $meta->getName();
         }
         
         remove_filter('pre_term_description', 'wp_filter_kses');
@@ -119,8 +118,12 @@ class Category extends BaseController
         if (empty($categoryId)) {
             $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
+            $categoryTerm = get_term($categoryId, CategoryUtil::TERM_TAXONOMY);
+            if ($categoryTerm instanceof \WP_Error) {
+                throw new \Exception(sprintf("Cannot find category %s", $categoryId));
+            }
             // WordPress does not create a unique slug itself if the given already exists
-            if (isset($categoryData['slug'])) {
+            if ($categoryTerm->slug !== $categoryData['slug']) {
                 $categoryData['slug'] = wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
             }
             
