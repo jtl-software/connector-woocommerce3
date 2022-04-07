@@ -33,7 +33,7 @@ class ProductDeliveryTime extends BaseController
             return;
         }
 
-        if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC)) {
+        if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
             //FUNCTION ATTRIBUTE BY JTL
             $offset = 0;
             $pushedAttributes = $product->getAttributes();
@@ -79,6 +79,15 @@ class ProductDeliveryTime extends BaseController
                     Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME)
                 )
             );
+
+            if (
+                (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_status')
+                && (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
+            ) {
+                $deliveryTimeString = $product->getI18ns()[0]->getDeliveryStatus();
+            }
 
             $term = get_term_by('slug', wc_sanitize_taxonomy_name(
                 Util::removeSpecialchars($deliveryTimeString)

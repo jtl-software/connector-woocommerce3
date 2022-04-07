@@ -1034,13 +1034,19 @@ final class JtlConnectorAdmin
         //Add delivery time calculation radio field
         $fields[] = [
             'title' => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
-            'type' => 'active_true_false_radio',
-            'desc' => __('Enable if you want to use delivery time calculation. (Default : Enabled / Required plugin: WooCommerce Germanized).',
-                JTLWCC_TEXT_DOMAIN),
+            'type' => 'jtl_connector_select',
             'id' => Config::OPTIONS_USE_DELIVERYTIME_CALC,
             'value' => Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC),
-            'trueText' => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'options' => [
+                'delivery_time_calc' => __('Lieferzeit Berechnung nutzen', JTLWCC_TEXT_DOMAIN),
+                'delivery_status' => __('Lieferstatus nutzen', JTLWCC_TEXT_DOMAIN),
+                'deactivated' => __('Deaktiviert', JTLWCC_TEXT_DOMAIN),
+            ],
+            'helpBlock' => __   ("Enable if you want to use delivery time calculation. <br>
+                                  Delivery time calculation: Let JTL Wawi calculate the delivery time. <br>
+                                  Delivery status: Use the delivery status as delivery time. <br>
+                                  Deactivated: Don't use delivery time. <br>
+                                (Default : Delivery time calculation / Required plugin: WooCommerce Germanized).", JTLWCC_TEXT_DOMAIN),
         ];
 
         //Add dont use zero values radio field
@@ -1488,7 +1494,6 @@ final class JtlConnectorAdmin
         <div class="form-group row">
             <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
             <select required class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
-                <option></option>
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
