@@ -1759,6 +1759,28 @@ final class JtlConnectorAdmin
     }
     // </editor-fold>
 
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public static function loadFeaturesJson(): void
+    {
+        $features = Config::get(Config::OPTIONS_FEATURES_JSON);
+        $featuresJsonPath = Application()->getFeaturePath();
+        if (!is_null($features)) {
+            $featuresJson = json_decode($features, true);
+            if (is_array($featuresJson)) {
+                $saveResult = file_put_contents($featuresJsonPath, json_encode($featuresJson, JSON_PRETTY_PRINT));
+                if ($saveResult === false) {
+                    throw new Exception(sprintf("Cannot save features in %s file.", $featuresJsonPath), 100);
+                }
+            }
+        } else {
+            $features = json_decode(file_get_contents($featuresJsonPath), true);
+            Config::set(Config::OPTIONS_FEATURES_JSON, json_encode($features));
+        }
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
     private static function update_to_multi_linking()
     {
