@@ -2,6 +2,93 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.35.0
+* Bugfix - CO-1945 - Fixed duplicated slug for categories
+* Feature - CO-1946 - Added multisite plugin detection 
+* Bugfix - CO-1955 - Do not display function attributes on frontend
+* Bugfix - CO-1487 - Fixed reserved slug names for product variants
+* Bugfix - include jtl plugins in plugins directory
+
+## 1.34.0
+* Feature - CO-1950 - Set standard WooCommerce price same as default customer group if recommended B2B market settings is enabled
+* Feature - CO-1907 - Added support for Checkout Field Editor plugin via Connector settings
+* Bugfix - CO-1923 - Fixed delivery time for Germanized plugin version greater than 3.7.0 
+* Bugfix - CO-1789 - Fixed German Market base price set  
+
+## 1.33.0
+* Fixed missing tax_class linking table
+* Fixed - CO-1908 - rolled back changes related to setting base price based on customer group CO-1853
+* Feature - CO-1915 - added config option to delete unknown attributes
+
+## 1.32.1
+* Hotfix - fixed phone number in delivery address incompatible with older WooCommerce versions
+
+## 1.32.0
+* Feature - CO-1888 - improved sql payment query
+* Bugfix - CO-1887 - fixed error 'Call to a member function is_purchasable() on bool' in custom property attributes
+* Bugfix - CO-1892 - added missing phone number in order delivery address
+* updated WooCommerce compatibility info to 6.0
+
+## 1.31.0
+* Bugfix - CO-1853 - fixed default product price based on default customer group (B2B Market)
+* Feature - CO-1848 - do not overwrite is archive property for product attributes
+* Updated build process, fixed deprecated parameters order in Primary Key Mapper
+
+## 1.30.0
+* Bugfix - fixed manufacturer missing translations bug
+* Bugfix - CO-1857 - fixed invalid return type in customer group price (B2B Market)
+* Bugfix - CO-1842 - fixed problem with appending values to custom attributes
+
+## 1.29.0
+* Bugfix - CO-1835 - fixed DHL post number transfer
+* Feature - CO-1808 - added possibility to choose payment types that will be imported only when order is completed (usually manual payment types)
+* Feature - CO-1784 - refactored handling of boolean attribute values
+
+## 1.28.1
+* Hotfix - added 'invoice' and 'cash_on_delivery' to manual payment methods
+
+## 1.28.0
+* Feature - CO-1745 - Added support for Amazon Pay transactions 
+* Feature - CO-1744 - Added support for set product visibility by attribute  
+* Feature - CO-1268 - Added support for 'Extra Product Options (Product Addons) for WooCommerce' plugin  
+* Feature - CO-1223 - Updated translations
+* Bugfix - CO-1575 - Split images in push that are used in more than one element
+* Bugfix - CO-1793 - B2B Market version 1.0.8.0 customer group prices adjustments  
+* Bugfix - Increased minimum decimal precision in vat rate calculation to 2
+* Removed inactive contributors
+
+## 1.27.1
+* Hotfix - Fixed not linked guest sql method
+
+## 1.27.0
+* Feature - CO-1743 - Updated integration with Advanced Shipping Pro plugin
+* Bugfix - CO-1587 -  Fixed order status change for invoice payment method
+* Bugfix - CO-1534 - Fixed DHL Packstation number transfer   
+* Feature - CO-1530 - Added config option to select additional order statuses
+* Feature - CO-1349 - Added support for Custom Product Tabs plugin
+* Bugfix - CO-1318 - Added config option to disable recommended B2B Market settings 
+* Feature - CO-1288 - Added config option to support nextAvailableInflowDate
+
+## 1.26.2
+* Bugfix - CO-1722 - bulk prices import
+
+## 1.26.1
+* Hotfix detailed shipping gross price
+* Updated tested up to versions
+
+## 1.26.0
+* Feature - Controllers refactoring to fix PHP8 compatibility
+
+## 1.25.0
+* Feature - CO-1461 - Added product tax class guessing on product push
+
+## 1.24.1
+* Hotfix taxClassId problem
+
+## 1.24.0
+* Feature - CO-1429 - Get full state name if available on customer order pull
+* Bugfix - CO-1513 - Tax rate calculation improvements 
+
 ## 1.23.2
 * Payment pull hotfix
 

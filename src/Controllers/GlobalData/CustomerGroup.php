@@ -9,7 +9,6 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\CustomerGroupI18n;
 use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\Traits\PullTrait;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -18,8 +17,6 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroup
 {
-    use PullTrait;
-    
     const DEFAULT_GROUP = 'customer';
     
     public function pullData()
@@ -53,23 +50,17 @@ class CustomerGroup
             
             if (count($result) > 0) {
                 foreach ($result as $group) {
-                    $allProductsKey = 'bm_all_products';
-                    /* $allConditionalProductsKey = 'bm_conditional_all_products';*/
-                    
-                    \update_post_meta(
-                        $group['ID'],
-                        $allProductsKey,
-                        'on',
-                        \get_post_meta($group['ID'], $allProductsKey, true)
-                    );
-                    
-                    /*  \update_post_meta(
-                          $group['ID'],
-                          $allConditionalProductsKey,
-                          'on',
-                          \get_post_meta($group['ID'], $allConditionalProductsKey, true)
-                      );*/
-                    
+
+                    if (Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true)) {
+                        $allProductsKey = 'bm_all_products';
+                        \update_post_meta(
+                            $group['ID'],
+                            $allProductsKey,
+                            'on',
+                            \get_post_meta($group['ID'], $allProductsKey, true)
+                        );
+                    }
+
                     $meta = \get_post_meta($group['ID']);
 
                     $isDefaultGroup = $isDefaultGroupSet === false &&
@@ -80,8 +71,6 @@ class CustomerGroup
                             isset($meta['bm_vat_type'])
                             && isset($meta['bm_vat_type'][0])
                             && $meta['bm_vat_type'][0] === 'off'
-                                ? true
-                                : false
                         )
                         ->setId(new Identity($group['ID']))
                         ->setIsDefault($isDefaultGroup);

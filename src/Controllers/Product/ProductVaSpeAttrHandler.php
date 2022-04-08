@@ -15,10 +15,12 @@ use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
+use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product_Attribute;
 
 if (!defined('WC_DELIMITER')) {
     define('WC_DELIMITER', '|');
@@ -34,10 +36,11 @@ class ProductVaSpeAttrHandler extends BaseController
         FACEBOOK_SYNC_STATUS_ATTR = 'wc_fb_sync_status',
         PAYABLE_ATTR = 'wc_payable',
         NOSEARCH_ATTR = 'wc_nosearch',
+        VISIBILITY = 'wc_visibility',
         VIRTUAL_ATTR = 'wc_virtual',
         PURCHASE_NOTE_ATTR = 'wc_purchase_note',
         PURCHASE_ONLY_ONE_ATTR = 'wc_sold_individually',
-        NOTIFY_CUSTOMER_ON_OVERSELLING = 'notify_customer_on_overselling',
+        NOTIFY_CUSTOMER_ON_OVERSELLING = 'wc_notify_customer_on_overselling',
 
         //GERMAN MARKET
         GM_DIGITAL_ATTR = 'wc_gm_digital',
@@ -70,7 +73,7 @@ class ProductVaSpeAttrHandler extends BaseController
         if (!$isProductVariation) {
             /**
              * @var string                $slug
-             * @var \WC_Product_Attribute $attribute
+             * @var WC_Product_Attribute $attribute
              */
             foreach ($globCurrentAttr as $slug => $attribute) {
                 
@@ -145,7 +148,7 @@ class ProductVaSpeAttrHandler extends BaseController
         return $this->productData;
     }
     
-    public function pushDataNew(ProductModel &$product, \WC_Product &$wcProduct)
+    public function pushDataNew(ProductModel $product, \WC_Product $wcProduct)
     {
         if ($wcProduct === false) {
             return;
@@ -161,38 +164,26 @@ class ProductVaSpeAttrHandler extends BaseController
             $wcProductAttributes = $wcProduct->get_attributes();
             
             //Filtered
-            $currentVariationsAndSpecifics = $this->getVariationAndSpecificAttributes(
-                $wcProductAttributes,
-                $product->getVariations()
-            );
-            $currentAttributes = $this->getVariationAttributes(
-                $wcProductAttributes
-            );
+            $currentVariationsAndSpecifics = $this->getVariationAndSpecificAttributes($wcProductAttributes, $product->getVariations());
+
+            $currentAttributes = $this->getVariationAttributes($wcProductAttributes, ...$product->getAttributes());
             
             //GENERATE DATA ARRAYS
             $jtlVariations = $this->generateVariationSpecificData($product->getVariations());
             $jtlSpecifics = $this->generateSpecificData($product->getSpecifics());
             
             //handleAttributes
-            $productAttributes = (new ProductAttr)->pushData(
-                $productId,
-                $product->getAttributes(),
-                $currentVariationsAndSpecifics,
-                $product
-            );
+            $productAttributes = (new ProductAttr)->pushData($productId, $product->getAttributes(), $currentVariationsAndSpecifics, $product);
+
             $this->mergeAttributes($newWcProductAttributes, $productAttributes);
             
             // handleSpecifics
-            $productSpecifics = (new ProductSpecific)->pushData(
-                $productId, $wcProductAttributes, $jtlSpecifics, $product->getSpecifics()
-            );
+              $productSpecifics = (new ProductSpecific)->pushData($productId, $wcProductAttributes, $jtlSpecifics, $product->getSpecifics(), $product->getAttributes());
+
             $this->mergeAttributes($newWcProductAttributes, $productSpecifics);
+
             // handleVarSpecifics
-            $productVariations = (new ProductVariation)->pushMasterData(
-                $productId,
-                $jtlVariations,
-                $currentAttributes
-            );
+            $productVariations = (new ProductVariation)->pushMasterData($productId, $jtlVariations, $currentAttributes);
             
             if (!is_array($productVariations)) {
                 $productVariations = [];
@@ -220,6 +211,10 @@ class ProductVaSpeAttrHandler extends BaseController
                 }
             }
 
+            if (Config::get(Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES])) {
+                $newWcProductAttributes = $this->removeUnknownAttributes($newWcProductAttributes, $product->getAttributes());
+            }
+
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newWcProductAttributes, $old);
             
@@ -231,6 +226,25 @@ class ProductVaSpeAttrHandler extends BaseController
         }
         // remove the transient to renew the cache
         delete_transient('wc_attribute_taxonomies');
+    }
+
+    /**
+     * @param array $newWcProductAttributes
+     * @param array $jtlAttributes
+     * @return array
+     */
+    protected function removeUnknownAttributes(array $newWcProductAttributes, array $jtlAttributes): array
+    {
+        $defaultLanguage = Util::getInstance()->getWooCommerceLanguage();
+        foreach ($newWcProductAttributes as $i => $wcAttribute) {
+            if (!isset($wcAttribute['id']) && $wcAttribute['is_taxonomy'] === '') {
+                $attributeExists = !is_null(Util::findAttributeI18nByName($wcAttribute['name'], $defaultLanguage, ...$jtlAttributes));
+                if ($attributeExists === false) {
+                    unset($newWcProductAttributes[$i]);
+                }
+            }
+        }
+        return $newWcProductAttributes;
     }
     
     // <editor-fold defaultstate="collapsed" desc="Filtered Methods">
@@ -249,7 +263,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
         /**
          * @var string                $slug The attributes unique slug.
-         * @var \WC_Product_Attribute $attribute The attribute.
+         * @var WC_Product_Attribute $attribute The attribute.
          */
         foreach ($attributes as $slug => $attribute) {
             if ($attribute->get_variation()) {
@@ -283,23 +297,23 @@ class ProductVaSpeAttrHandler extends BaseController
         return $filteredAttributes;
     }
     
-    private function getVariationAttributes($curAttributes)
+    private function getVariationAttributes($curAttributes, ProductAttrModel ...$jtlAttributes)
     {
         $filteredAttributes = [];
         
         /**
          * @var string                $slug
-         * @var \WC_Product_Attribute $curAttributes
+         * @var WC_Product_Attribute $curAttributes
          */
-        foreach ($curAttributes as $slug => $product_specific) {
-            if (!$product_specific->get_variation()) {
+        foreach ($curAttributes as $slug => $wcProductAttribute) {
+            if (!$wcProductAttribute->get_variation()) {
                 $filteredAttributes[$slug] = [
-                    'name'         => $product_specific->get_name(),
-                    'value'        => implode(' ' . WC_DELIMITER . ' ', $product_specific->get_options()),
-                    'position'     => $product_specific->get_position(),
-                    'is_visible'   => $product_specific->get_visible(),
-                    'is_variation' => $product_specific->get_variation(),
-                    'is_taxonomy'  => $product_specific->get_taxonomy(),
+                    'name'         => $wcProductAttribute->get_name(),
+                    'value'        => Util::getInstance()->findAttributeValue($wcProductAttribute,  ...$jtlAttributes),
+                    'position'     => $wcProductAttribute->get_position(),
+                    'is_visible'   => $wcProductAttribute->get_visible(),
+                    'is_variation' => $wcProductAttribute->get_variation(),
+                    'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             }
         }
@@ -401,7 +415,9 @@ class ProductVaSpeAttrHandler extends BaseController
                 
                 foreach ($product->get_children() as $childId) {
                     $child = \wc_get_product($childId);
-                    $isPurchasable = $isPurchasable & $child->is_purchasable();
+                    if ($child instanceof \WC_Product) {
+                        $isPurchasable &= $child->is_purchasable();
+                    }
                 }
             }
             
@@ -445,7 +461,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $product,
                 $languageIso
             ),
-            $this->getNoSearchFunctionAttribute(
+            $this->getVisibilityFunctionAttribute(
                 $product,
                 $languageIso
             ),
@@ -680,30 +696,34 @@ class ProductVaSpeAttrHandler extends BaseController
         
         return $attribute;
     }
-    
-    private function getNoSearchFunctionAttribute(\WC_Product $product, $languageIso = '')
+
+    private function getVisibilityFunctionAttribute(\WC_Product $product, $languageIso = '')
     {
-        $visibility = get_post_meta($product->get_id(), '_visibility');
-        
-        if (count($visibility) > 0 && strcmp($visibility[0], 'catalog') === 0) {
-            $value = self::VALUE_TRUE;
-        } else {
-            $value = self::VALUE_FALSE;
+        $terms = get_the_terms($product->get_id(), 'product_visibility');
+        $termNames = is_array($terms) ? wp_list_pluck($terms, 'name') : [];
+        $excludeFromSearch = in_array('exclude-from-search', $termNames, true);
+        $excludeFromCatalog = in_array('exclude-from-catalog', $termNames, true);
+
+        $visibility = 'visible';
+        if ( $excludeFromSearch && $excludeFromCatalog ) {
+            $visibility = 'hidden';
+        } elseif ( $excludeFromSearch ) {
+            $visibility = 'catalog';
+        } elseif ( $excludeFromCatalog ) {
+            $visibility = 'search';
         }
-        
+
         $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::NOSEARCH_ATTR))
-            ->setName(self::NOSEARCH_ATTR)
-            ->setValue((string)$value)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::VISIBILITY))
+            ->setName(self::VISIBILITY)
+            ->setValue($visibility)
             ->setLanguageISO($languageIso);
-        
-        $attribute = (new ProductAttrModel)
+
+        return (new ProductAttrModel)
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-        
-        return $attribute;
     }
     
     private function getVirtualFunctionAttribute(\WC_Product $product, $languageIso = '')

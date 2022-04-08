@@ -1,4 +1,5 @@
 <?php
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -91,7 +92,7 @@ class UtilTest extends TestCase
         $returnOnKeys = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
 
         $getMetaField = function ($id, $metaKey) use ($expectedVatId, $returnOnKeys) {
-            return in_array($metaKey,array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
+            return in_array($metaKey, array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
         };
 
         $enabledPlugins = [
@@ -111,12 +112,13 @@ class UtilTest extends TestCase
 
         $this->assertSame($expectedVatId, $foundVatId);
     }
+
     /**
      *
      */
     public function testFindVatIdNotFound()
     {
-        $getMetaField = function ($id, $metaKey){
+        $getMetaField = function ($id, $metaKey) {
             return false;
         };
 
@@ -166,14 +168,14 @@ class UtilTest extends TestCase
         $getPlugins->enable();
         $this->mockedFunctions[] = $getPlugins;
 
-        $getActiveAndValidPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
-            ->setName('wp_get_active_and_valid_plugins')
-            ->setFunction(function () use ($enabledPlugins) {
-                return array_keys($enabledPlugins);
+        $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
+            ->setName('is_plugin_active')
+            ->setFunction(function () {
+                return true;
             })->build();
 
-        $getActiveAndValidPlugins->enable();
-        $this->mockedFunctions[] = $getActiveAndValidPlugins;
+        $getPlugins->enable();
+        $this->mockedFunctions[] = $getPlugins;
     }
 
     /**
@@ -196,11 +198,39 @@ class UtilTest extends TestCase
         return [
             [1.123, 3],
             [0.1 + 0.2 - 0.3, 17],
-            [1, 0],
+            [1, 2],
             [1.1231, 4],
-            [0, 0],
+            [0, 2],
             [1.00004, 5],
             [-1.00004, 5]
+        ];
+    }
+
+    /**
+     * @dataProvider checkIfTrueDataProvider
+     * @param string $value
+     * @param bool $expectedResult
+     */
+    public function testCheckIfTrue(string $value, bool $expectedResult)
+    {
+        $this->assertSame($expectedResult, Util::isTrue($value));
+    }
+
+    /**
+     * @return array[]
+     */
+    public function checkIfTrueDataProvider(): array
+    {
+        return [
+            ['1', true],
+            ['0', false],
+            ['', false],
+            [' ', false],
+            [' 1', true],
+            ['YeS', true],
+            ['no', false],
+            ['false', false],
+            [' TruE ', true],
         ];
     }
 }

@@ -1,5 +1,6 @@
-plugins/
+plugins/*
 !plugins/.gitkeep
+!plugins/jtl
 composer.lock
 vendor/**
 config/config.json

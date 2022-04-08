@@ -38,10 +38,7 @@ class ProductPrice extends BaseController
         } else {
             $customerGroups = $groupController->pullData();
 
-            $b2bMarketVersion = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
-
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                && version_compare($b2bMarketVersion, '1.0.3', '>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 $prices[] = (new ProductPriceModel())
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
@@ -57,40 +54,25 @@ class ProductPrice extends BaseController
 
                 $items = [];
 
-                if ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
-                    !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                    || ($customerGroup->getId()->getEndpoint() === CustomerGroup::DEFAULT_GROUP &&
-                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                        && version_compare($b2bMarketVersion, '1.0.3', '<='))
-                ) {
-                    $items [] = (new ProductPriceItemModel())
+                $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
+
+                if ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) ||
+                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '<=', '1.0.3'))
+                ){
+                    $items[] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
                 } else {
-                    $groupSlug = $groupController->getSlugById($customerGroup->getId()->getEndpoint());
+                    $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
 
-                    if ($model->getIsMasterProduct() || $product->is_type('simple')) {
-                        $productIdForMeta = $product->get_id();
-                        $priceKeyForMeta = sprintf('bm_%s_price', $groupSlug);
-                        $typeKeyForMeta = sprintf('bm_%s_price_type', $groupSlug);
-                    } else {
-                        $productIdForMeta = $product->get_parent_id();
-                        $priceKeyForMeta = sprintf('bm_%s_%s_price', $groupSlug, $product->get_id());
-                        $typeKeyForMeta = sprintf('bm_%s_%s_price_type', $groupSlug, $product->get_id());
-                    }
+                    $price = $this->getB2BMarketCustomerGroupPrice($model, $product, $groupSlug);
 
-                    $type = \get_post_meta($productIdForMeta, $typeKeyForMeta, true);
-                    $price = false;
-                    if ($type === 'fix') {
-                        $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
-                    }
-
-                    if ($price === "" || $price === false) {
+                    if ($price === null) {
                         $price = $this->netPrice($product);
                     }
 
-                    $items [] = (new ProductPriceItemModel())
+                    $items[] = (new ProductPriceItemModel())
                         ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice((float)$price);
@@ -109,6 +91,52 @@ class ProductPrice extends BaseController
         return $prices;
     }
 
+    /**
+     * @param ProductModel $model
+     * @param \WC_Product $wcProduct
+     * @param string $groupSlug
+     * @return float|null
+     */
+    protected function getB2BMarketCustomerGroupPrice(ProductModel $model, \WC_Product $wcProduct, string $groupSlug): ?float
+    {
+        $price = null;
+
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>=', '1.0.8.0')) {
+
+            $pricesMetaKey = sprintf('bm_%s_group_prices', $groupSlug);
+            $priceGroupMeta = get_post_meta($wcProduct->get_id(), $pricesMetaKey, true);
+
+            if (is_array($priceGroupMeta)) {
+                foreach ($priceGroupMeta as $priceMeta) {
+                    if (isset($priceMeta['group_price'], $priceMeta['group_price_type']) && $priceMeta['group_price_type'] === 'fix') {
+                        $price = $priceMeta['group_price'];
+                        break;
+                    }
+                }
+            }
+
+
+        } else {
+            if ($model->getIsMasterProduct() || $wcProduct->is_type('simple')) {
+                $productIdForMeta = $wcProduct->get_id();
+                $priceKeyForMeta = sprintf('bm_%s_price', $groupSlug);
+                $typeKeyForMeta = sprintf('bm_%s_price_type', $groupSlug);
+            } else {
+                $productIdForMeta = $wcProduct->get_parent_id();
+                $priceKeyForMeta = sprintf('bm_%s_%s_price', $groupSlug, $wcProduct->get_id());
+                $typeKeyForMeta = sprintf('bm_%s_%s_price_type', $groupSlug, $wcProduct->get_id());
+            }
+
+            $type = \get_post_meta($productIdForMeta, $typeKeyForMeta, true);
+            if ($type === 'fix') {
+                $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
+            }
+        }
+
+        return !is_null($price) ? (float)$price : null;
+    }
+
+
     private function getBulkPrices(
         $items,
         CustomerGroupModel $customerGroup,
@@ -116,7 +144,7 @@ class ProductPrice extends BaseController
         \WC_Product $product,
         ProductModel $model
     ) {
-        if ($model->getIsMasterProduct()) {
+        if (in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey = sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
         } else {
@@ -168,11 +196,7 @@ class ProductPrice extends BaseController
         foreach ($jtlProductPrices as $price) {
             $endpoint = $price->getCustomerGroupId()->getEndpoint();
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                && version_compare(
-                    (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                    '1.0.3',
-                    '>')) {
+            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                 if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
                     $groupedProductPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
@@ -184,11 +208,7 @@ class ProductPrice extends BaseController
             if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
                     $endpoint = self::GUEST_CUSTOMER_GROUP;
-                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                        && version_compare(
-                            (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
-                            '1.0.3',
-                            '>')) {
+                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
                         $endpoint = CustomerGroup::DEFAULT_GROUP;
                     }
                 }
@@ -205,7 +225,7 @@ class ProductPrice extends BaseController
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
      */
-    public function pushData(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    public function savePrices(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
     {
         Util::deleteB2Bcache();
 
@@ -216,7 +236,8 @@ class ProductPrice extends BaseController
     }
 
     /**
-     * @param $groupedProductPrices
+     * @param \WC_Product $wcProduct
+     * @param array $groupedProductPrices
      * @param float $vat
      * @param string $productType
      */
@@ -224,9 +245,15 @@ class ProductPrice extends BaseController
     {
         $pd = Util::getPriceDecimals();
 
+        $defaultCustomerGroup = Config::get('jtlconnector_default_customer_group');
+        $autoB2BOptions = false;
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $autoB2BOptions = Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true);
+        }
+
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
-            if (!Util::getInstance()->isValidCustomerGroup((string)$customerGroupId) || (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP) {
+            if ((string)$customerGroupId === self::GUEST_CUSTOMER_GROUP || !Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)) {
                 continue;
             }
 
@@ -237,7 +264,7 @@ class ProductPrice extends BaseController
                 $customerGroupMeta = \get_post_meta($customerGroupId);
             }
 
-            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta)) {
+            if ($customerGroupId === CustomerGroup::DEFAULT_GROUP && is_null($customerGroupMeta) && !$autoB2BOptions) {
                 foreach ($productPrice->getItems() as $item) {
                     $this->updateDefaultProductPrice($item, $productId, $vat);
                 }
@@ -249,63 +276,12 @@ class ProductPrice extends BaseController
 
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
                     if ($item->getQuantity() === 0) {
-                        $metaKeyForCustomerGroupPrice = sprintf(
-                            'bm_%s_price',
-                            $customerGroup->post_name
-                        );
 
-                        if ($productType !== Product::TYPE_PARENT) {
-                            $metaKeyForCustomerGroupRegularPrice = sprintf(
-                                '_jtlwcc_bm_%s_regular_price',
-                                $customerGroup->post_name
-                            );
-
-                            if ($productType === Product::TYPE_CHILD) {
-                                $parentProduct = \wc_get_product($wcProduct->get_parent_id());
-                                if ($parentProduct instanceof \WC_Product) {
-                                    $childParentPrice = sprintf(
-                                        'bm_%s_%s_price',
-                                        $customerGroup->post_name,
-                                        $productId
-                                    );
-                                    \update_post_meta($parentProduct->get_id(),
-                                        $childParentPrice,
-                                        \wc_format_decimal($regularPrice, $pd),
-                                        \get_post_meta($parentProduct->get_id(), $childParentPrice, true));
-
-                                    $childParentKey = sprintf(
-                                        'bm_%s_%s_price_type',
-                                        $customerGroup->post_name,
-                                        $productId
-                                    );
-                                    \update_post_meta($parentProduct->get_id(),
-                                        $childParentKey,
-                                        'fix',
-                                        \get_post_meta($parentProduct->get_id(), $childParentKey, true));
-                                }
-                            }
-                        }
-                        $metaKeyForCustomerGroupPriceType = $metaKeyForCustomerGroupPrice . '_type';
-
-                        \update_post_meta(
-                            $productId,
-                            $metaKeyForCustomerGroupPrice,
-                            \wc_format_decimal($regularPrice, $pd),
-                            \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
-                        );
-
-                        if ($productType !== Product::TYPE_PARENT && isset($metaKeyForCustomerGroupRegularPrice)) {
-                            \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
-                                \wc_format_decimal($regularPrice, $pd),
-                                \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));
+                        if ((string)$customerGroup->ID === $defaultCustomerGroup && $autoB2BOptions) {
+                            $this->updateDefaultProductPrice($item, $productId, $vat);
                         }
 
-                        \update_post_meta(
-                            $productId,
-                            $metaKeyForCustomerGroupPriceType,
-                            'fix',
-                            \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
-                        );
+                        $this->updateB2BMarketCustomerGroupPrice($customerGroup, $productType, $wcProduct, $regularPrice);
                     } else {
                         $bulkPrices[] = [
                             'bulk_price' => (string)$regularPrice,
@@ -359,6 +335,91 @@ class ProductPrice extends BaseController
     }
 
     /**
+     * @param \WP_Post $customerGroup
+     * @param string $productType
+     * @param \WC_Product $wcProduct
+     * @param float $regularPrice
+     */
+    public function updateB2BMarketCustomerGroupPrice(\WP_Post $customerGroup, string $productType, \WC_Product $wcProduct, float $regularPrice): void
+    {
+        $pd = Util::getPriceDecimals();
+        $productId = $wcProduct->get_id();
+
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>=', '1.0.8.0')) {
+
+            $metaKey = sprintf('bm_%s_group_prices', $customerGroup->post_name);
+
+            $price = [
+                'group_price_type' => 'fix',
+                'group_price' => \wc_format_decimal($regularPrice, $pd)
+            ];
+
+            \update_post_meta($productId,
+                $metaKey,
+                [$price],
+                \get_post_meta($wcProduct->get_id(), $metaKey, true));
+
+        } else {
+            $metaKeyForCustomerGroupPrice = sprintf(
+                'bm_%s_price',
+                $customerGroup->post_name);
+
+            if ($productType !== Product::TYPE_PARENT) {
+                $metaKeyForCustomerGroupRegularPrice = sprintf(
+                    '_jtlwcc_bm_%s_regular_price',
+                    $customerGroup->post_name
+                );
+
+                if ($productType === Product::TYPE_CHILD) {
+                    $parentProduct = \wc_get_product($wcProduct->get_parent_id());
+                    if ($parentProduct instanceof \WC_Product) {
+                        $childParentPrice = sprintf(
+                            'bm_%s_%s_price',
+                            $customerGroup->post_name,
+                            $productId
+                        );
+                        \update_post_meta($parentProduct->get_id(),
+                            $childParentPrice,
+                            \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($parentProduct->get_id(), $childParentPrice, true));
+
+                        $childParentKey = sprintf(
+                            'bm_%s_%s_price_type',
+                            $customerGroup->post_name,
+                            $productId
+                        );
+                        \update_post_meta($parentProduct->get_id(),
+                            $childParentKey,
+                            'fix',
+                            \get_post_meta($parentProduct->get_id(), $childParentKey, true));
+                    }
+                }
+            }
+            $metaKeyForCustomerGroupPriceType = $metaKeyForCustomerGroupPrice . '_type';
+
+            \update_post_meta(
+                $productId,
+                $metaKeyForCustomerGroupPrice,
+                \wc_format_decimal($regularPrice, $pd),
+                \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
+            );
+
+            if ($productType !== Product::TYPE_PARENT && isset($metaKeyForCustomerGroupRegularPrice)) {
+                \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
+                    \wc_format_decimal($regularPrice, $pd),
+                    \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));
+            }
+
+            \update_post_meta(
+                $productId,
+                $metaKeyForCustomerGroupPriceType,
+                'fix',
+                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+            );
+        }
+    }
+
+    /**
      * @param ProductPriceItemModel $item
      * @param int $productId
      * @param float $vat
@@ -388,7 +449,7 @@ class ProductPrice extends BaseController
      */
     protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd = null): float
     {
-        if ($this->idWcPricesIncludeTax()) {
+        if ($this->isWcPricesIncludeTax()) {
             $regularPrice = $item->getNetPrice() * (1 + $vat / 100);
         } else {
             $regularPrice = $item->getNetPrice();
@@ -404,7 +465,7 @@ class ProductPrice extends BaseController
     /**
      * @return bool
      */
-    protected function idWcPricesIncludeTax(): bool
+    protected function isWcPricesIncludeTax(): bool
     {
         return \wc_prices_include_tax();
     }

@@ -54,6 +54,16 @@ class ProductDeliveryTime extends BaseController
                 }
             }
 
+            if (Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE, false)) {
+                if ($product->getStockLevel()->getStockLevel() <= 0 && !is_null($product->getNextAvailableInflowDate())) {
+                    $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
+                    $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+                    if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
+                        $time = $product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days;
+                    }
+                }
+            }
+
             if ($offset !== 0) {
                 $min = $time - $offset <= 0 ? 1 : $time - $offset;
                 $max = $time + $offset;
@@ -136,6 +146,11 @@ class ProductDeliveryTime extends BaseController
 
                 if ($germanizedTermId !== false) {
                     wp_set_object_terms($productId, $germanizedTermId, $germanizedDeliveryTimeTaxonomyName, true);
+
+                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                        $oldDeliveryTime = Util::getInstance()->getPostMeta($productId, '_default_delivery_time', true);
+                        Util::getInstance()->updatePostMeta($productId, '_default_delivery_time', $germanizedTerm->slug, $oldDeliveryTime);
+                    }
                 }
             }
 
@@ -159,6 +174,9 @@ class ProductDeliveryTime extends BaseController
                         }
                         wp_remove_object_terms($productId, $term->term_id, $taxonomyName);
                     }
+                }
+                if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                    Util::getInstance()->deletePostMeta($productId, '_default_delivery_time');
                 }
             }
         }

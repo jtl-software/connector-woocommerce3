@@ -6,7 +6,7 @@
         <mkdir dir="./dist/woo-jtl-connector/config"/>
         <mkdir dir="./dist/woo-jtl-connector/db"/>
         <mkdir dir="./dist/woo-jtl-connector/logs"/>
-        <mkdir dir="./dist/woo-jtl-connector/plugins"/>
+        <mkdir dir="./dist/woo-jtl-connector/plugins/jtl/"/>
         <mkdir dir="./dist/woo-jtl-connector/tmp"/>
 
         <copy todir="./dist/woo-jtl-connector/config">
@@ -50,6 +50,7 @@
         <copy todir="./build/">
             <fileset dir="./">
                 <include name="src/"/>
+                <include name="plugins/jtl/"/>
                 <include name="vendor/"/>
             </fileset>
         </copy>
@@ -59,6 +60,7 @@
         <copy todir="./dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="src/"/>
+                <include name="plugins/jtl/"/>
                 <include name="vendor/"/>
             </fileset>
         </copy>

@@ -13,10 +13,11 @@ use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\ManufacturerI18n;
 use jtl\Connector\Model\ProductAttr;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n;
 use jtl\Connector\Payment\PaymentTypes;
-use JtlConnectorAdmin;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrder;
 
 /**
  * Class Util
@@ -39,8 +40,8 @@ final class Util extends WordpressUtils
 
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',
-            'GlobalData'    => 'GlobalData\\',
-            'Product'       => 'Product\\',
+            'GlobalData' => 'GlobalData\\',
+            'Product' => 'Product\\',
         ];
     }
 
@@ -71,9 +72,9 @@ final class Util extends WordpressUtils
      *
      * @return bool
      */
-    public function isWooCommerceLanguage($language)
+    public function isWooCommerceLanguage($language): bool
     {
-        return $language === self::getWooCommerceLanguage();
+        return $language === $this->getWooCommerceLanguage();
     }
 
     /**
@@ -100,7 +101,7 @@ final class Util extends WordpressUtils
 
         $taxRates = \WC_Tax::find_rates([
             'tax_class' => $taxClass,
-            'country'   => $countryIso,
+            'country' => $countryIso,
         ]);
 
         if (!empty($taxRates)) {
@@ -158,11 +159,12 @@ final class Util extends WordpressUtils
      *
      * @return bool|string
      */
-    public static function getNetPriceCutted($price, $pd){
-        $position = strrpos((string)$price,'.');
+    public static function getNetPriceCutted($price, $pd)
+    {
+        $position = strrpos((string)$price, '.');
 
-        if($position > 0){
-            $cut = substr($price,0,$position + 1 + $pd);
+        if ($position > 0) {
+            $cut = substr($price, 0, $position + 1 + $pd);
             $price = $cut;
         }
 
@@ -389,6 +391,8 @@ final class Util extends WordpressUtils
             case 'invoice':
             case 'german_market_purchase_on_account':
                 return PaymentTypes::TYPE_INVOICE;
+            case 'amazon_payments_advanced':
+                return PaymentTypes::TYPE_AMAPAY;
             default:
                 return $order->get_payment_method_title();
         }
@@ -479,8 +483,36 @@ final class Util extends WordpressUtils
      */
     public static function includeCompletedOrders()
     {
-        $includeCompletedOrdersOption = Config::get(Config::OPTIONS_COMPLETED_ORDERS, 'yes');
-        return in_array($includeCompletedOrdersOption, ['yes', '1'], true);
+        return Util::canPullOrderStatus(CustomerOrder::STATUS_COMPLETED);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getOrderStatusesToImport(): array
+    {
+        $defaultStatuses = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
+        return Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getManualPaymentTypes(): array
+    {
+        $defaultManualPayments = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES];
+        return Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+    }
+
+
+    /**
+     * @param string $stateName
+     * @return bool
+     */
+    public static function canPullOrderStatus(string $stateName): bool
+    {
+        $orderImportStates = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT);
+        return is_array($orderImportStates) ? in_array(sprintf('wc-%s',$stateName), $orderImportStates) : false;
     }
 
     /**
@@ -510,7 +542,8 @@ final class Util extends WordpressUtils
     public static function getDecimalPrecision(float $number): int
     {
         $explode = explode('.', (string)$number);
-        return isset($explode[1]) ? strlen($explode[1]) : 0;
+        $precision = isset($explode[1]) ? strlen($explode[1]) : 0;
+        return $precision < 2 ? 2 : $precision;
     }
 
 
@@ -571,5 +604,42 @@ final class Util extends WordpressUtils
                     break;
             }
         }
+    }
+
+    /**
+     * @return array|false
+     */
+    public static function getStates()
+    {
+        return WC()->countries->get_states();
+    }
+
+    /**
+     * @param \WC_Product_Attribute $wcProductAttribute
+     * @param ProductAttrModel ...$jtlAttributes
+     * @return string
+     */
+    public static function findAttributeValue(\WC_Product_Attribute $wcProductAttribute, ProductAttrModel ...$jtlAttributes): string
+    {
+        $value = implode(' ' . WC_DELIMITER . ' ', $wcProductAttribute->get_options());
+        foreach ($jtlAttributes as $productAttr) {
+            foreach ($productAttr->getI18ns() as $productAttrI18n) {
+                if ($productAttrI18n->getName() === $wcProductAttribute->get_name() && Util::getInstance()->isWooCommerceLanguage($productAttrI18n->getLanguageISO())) {
+                    $value = $productAttrI18n->getValue();
+                    break 2;
+                }
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     * @return bool
+     */
+    public static function isTrue(string $value): bool
+    {
+        return !in_array(strtolower(trim($value)), ['no', '0', 'false', ''], true);
     }
 }
