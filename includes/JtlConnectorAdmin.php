@@ -973,7 +973,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Default order statuses to import', JTLWCC_TEXT_DOMAIN),
             'type' => 'jtl_connector_multiselect',
-            'options'=>wc_get_order_statuses(),
+            'options' => wc_get_order_statuses(),
             'id' => Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT,
             'value' => Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, ['wc-pending', 'wc-processing', 'wc-on-hold']),
             'helpBlock' => __('Order statuses that should be imported. Default: pending, processing, on hold, completed', JTLWCC_TEXT_DOMAIN),
@@ -988,7 +988,7 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Import payments with following payment types only when order is completed (usually manual payment types)', JTLWCC_TEXT_DOMAIN),
             'type' => 'jtl_connector_multiselect',
-            'options'=> $paymentGateways,
+            'options' => $paymentGateways,
             'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
             'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
         ];
@@ -1042,7 +1042,7 @@ final class JtlConnectorAdmin
                 'delivery_status' => __('Lieferstatus nutzen', JTLWCC_TEXT_DOMAIN),
                 'deactivated' => __('Deaktiviert', JTLWCC_TEXT_DOMAIN),
             ],
-            'helpBlock' => __   ("Enable if you want to use delivery time calculation. <br>
+            'helpBlock' => __("Enable if you want to use delivery time calculation. <br>
                                   Delivery time calculation: Let JTL Wawi calculate the delivery time. <br>
                                   Delivery status: Use the delivery status as delivery time. <br>
                                   Deactivated: Don't use delivery time. <br>
@@ -1527,8 +1527,11 @@ final class JtlConnectorAdmin
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) { ?>
-                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) { print 'selected="selected"'; } ?>><?php print $ovalue; ?> </option>
-                <?php } } ?>
+                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) {
+                            print 'selected="selected"';
+                        } ?>><?php print $ovalue; ?> </option>
+                    <?php }
+                } ?>
             </select>
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
@@ -1861,12 +1864,33 @@ final class JtlConnectorAdmin
             case '1.33.0':
             case '1.34.0':
             case '1.35.0':
+            case '1.36.0':
+                self::updateDeliveryTimeCalc();
             default:
                 self::activate_linking();
         }
 
         Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
+    }
+
+    protected static function updateDeliveryTimeCalc()
+    {
+        if (is_multisite()) {
+            $sites = get_sites();
+
+            foreach ($sites as $site) {
+                switch_to_blog($site->blog_id);
+                if (in_array(Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC), ["1", "0"], true)) {
+                    update_blog_option($site->blog_id, 'jtlconnector_use_deliverytime_calc', Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) ? 'delivery_time_calc' : 'deactivated');
+                }
+                restore_current_blog();
+            }
+        }
+
+        if (in_array(Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC), ["1", "0"], true)) {
+            update_option('jtlconnector_use_deliverytime_calc', Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) ? 'delivery_time_calc' : 'deactivated');
+        }
     }
 
     protected static function setupDefaultManualPaymentTypes()
@@ -1879,7 +1903,7 @@ final class JtlConnectorAdmin
 
     protected static function setupDefaultOrderStatusesToImport()
     {
-        if(Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT) === null) {
+        if (Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT) === null) {
             $statusList = Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT];
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE)) {
                 $statusList[] = 'wc-payment-accepted';
