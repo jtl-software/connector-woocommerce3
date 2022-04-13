@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.35.1
+* Upated tested up to 5.9 Wordpress version
+
 ## 1.35.0
 * Bugfix - CO-1945 - Fixed duplicated slug for categories
 * Feature - CO-1946 - Added multisite plugin detection 
