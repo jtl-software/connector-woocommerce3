@@ -86,7 +86,11 @@ class ProductDeliveryTime extends BaseController
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
             ) {
-                $deliveryTimeString = $product->getI18ns()[0]->getDeliveryStatus();
+                foreach ($product->getI18ns() as $i18n) {
+                    if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                        $deliveryTimeString = $i18n->getDeliveryStatus();
+                    }
+                }
             }
 
             $term = get_term_by('slug', wc_sanitize_taxonomy_name(
