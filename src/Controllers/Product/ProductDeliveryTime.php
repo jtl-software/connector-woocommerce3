@@ -89,6 +89,7 @@ class ProductDeliveryTime extends BaseController
                 foreach ($product->getI18ns() as $i18n) {
                     if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
                         $deliveryTimeString = $i18n->getDeliveryStatus();
+                        break;
                     }
                 }
             }

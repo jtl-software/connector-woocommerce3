@@ -1865,16 +1865,19 @@ final class JtlConnectorAdmin
             case '1.34.0':
             case '1.35.0':
             case '1.36.0':
-                self::updateDeliveryTimeCalc();
             default:
                 self::activate_linking();
         }
 
         Config::updateDeveloperLoggingSettings((bool)Config::get(Config::OPTIONS_DEVELOPER_LOGGING, false));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
+        self::updateDeliveryTimeCalc();
     }
 
-    protected static function updateDeliveryTimeCalc()
+    /**
+     * @return void
+     */
+    protected static function updateDeliveryTimeCalc(): void
     {
         if (is_multisite()) {
             $sites = get_sites();
