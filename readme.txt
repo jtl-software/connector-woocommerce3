@@ -2,11 +2,11 @@
 Contributors: papryk, ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.8
+Tested up to: 5.9
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 6.3
-Stable tag: 1.35.0
+Stable tag: 1.35.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -152,6 +152,9 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.35.1 =
+* Upated tested up to 5.9 Wordpress version
 
 = 1.35.0 =
 * Bugfix - CO-1945 - Fixed duplicated slug for categories
