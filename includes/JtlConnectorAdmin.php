@@ -1,5 +1,6 @@
 <?php
 
+use jtl\Connector\Application\Application;
 use jtl\Connector\Core\Exception\MissingRequirementException;
 use jtl\Connector\Core\System\Check;
 use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
@@ -49,6 +50,8 @@ final class JtlConnectorAdmin
             Check::run();
             self::activate_linking();
             self::initDefaultConfigValues($buildVersion);
+            Application::getInstance()->createFeaturesFileIfNecessary(sprintf('%s/config/features.json.example', CONNECTOR_DIR));
+            self::loadFeaturesJson();
         } catch (MissingRequirementException $exc) {
             if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();

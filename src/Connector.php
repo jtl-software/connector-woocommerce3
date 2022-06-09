@@ -46,7 +46,7 @@ class Connector extends BaseConnector {
 
 
         $this->getEventDispatcher()->addListener(RpcBeforeEvent::EVENT_NAME, static function (RpcBeforeEvent $event) {
-            if ($event->getController() === 'connector' && $event->getAction() === 'features') {
+            if ($event->getController() === 'connector' && $event->getAction() === 'auth') {
                 \JtlConnectorAdmin::loadFeaturesJson();
             }
         });
