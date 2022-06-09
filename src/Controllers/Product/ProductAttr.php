@@ -587,7 +587,7 @@ class ProductAttr extends BaseController
             'name'             => \wc_clean($i18n->getName()),
             'value'            => $value,
             'isCustomProperty' => $attribute->getIsCustomProperty(),
-            'isVisible'        => $attribute->getIsTranslated() ? 1 : 0,
+            'isVisible'        => $attribute->getIsTranslated() || $attribute->getIsCustomProperty() ? 1 : 0,
         ], $attributes);
     }
     
