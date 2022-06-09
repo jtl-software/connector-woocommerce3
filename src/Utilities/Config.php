@@ -51,7 +51,7 @@ class Config
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => false,
         //PAGE
-        Config::OPTIONS_USE_DELIVERYTIME_CALC => true,
+        Config::OPTIONS_USE_DELIVERYTIME_CALC => 'delivery_time_calc',
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => true,
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'ca. ',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => ' Werktage',
@@ -83,7 +83,7 @@ class Config
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => 'array',
         Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => 'string',
         //PAGE
-        Config::OPTIONS_USE_DELIVERYTIME_CALC => 'bool',
+        Config::OPTIONS_USE_DELIVERYTIME_CALC => 'string',
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'string',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => 'string',
