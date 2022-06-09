@@ -2,6 +2,11 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## 1.36.0
+* Bugfix - CO-2027 - Double Shipping costs if Shipping has multiple Vats
+* Bugfix - CO-1959 - Delivery Time not updated
+* Bugfix - CO-2013 - Custom Fields not transferred
+
 ## 1.35.1
 * Upated tested up to 5.9 Wordpress version
 
