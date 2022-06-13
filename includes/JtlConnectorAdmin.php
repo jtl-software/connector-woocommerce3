@@ -1919,7 +1919,7 @@ final class JtlConnectorAdmin
     {
         $features = Config::get(Config::OPTIONS_FEATURES_JSON);
         $featuresJsonPath = Application()->getFeaturePath();
-        if (!is_null($features)) {
+        if (!empty($features)) {
             $featuresJson = json_decode($features, true);
             if (is_array($featuresJson)) {
                 $saveResult = file_put_contents($featuresJsonPath, json_encode($featuresJson, JSON_PRETTY_PRINT));
