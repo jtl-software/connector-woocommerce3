@@ -2,11 +2,11 @@
 Contributors: papryk, ntbyk
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 6.3
-Stable tag: 1.36.0
+Stable tag: 1.36.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -31,6 +31,7 @@ WooCommerce shops use, too. Further functions can be individually programmed and
 
 [Further information on JTL-Connector, a connector for third party shops](https://www.jtl-software.de/anbindung-shopsysteme)
 
+ATTENTION: PHP 8.1 is NOT Supported
 
 == Why use an ERP system? ==
 
@@ -152,6 +153,15 @@ This section describes how to install the plugin and get it working.
 7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 1.36.1 =
+* Updated tested WP Version to 6.0
+* Updated Connector Core to 3.3.5
+
+= 1.36.0 =
+* Bugfix - CO-2027 - Double Shipping costs if Shipping has multiple Vats
+* Bugfix - CO-1959 - Delivery Time not updated
+* Bugfix - CO-2013 - Custom Fields not transferred
 
 = 1.35.1 =
 * Upated tested up to 5.9 Wordpress version
