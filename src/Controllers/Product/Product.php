@@ -61,7 +61,7 @@ class Product extends BaseController
                 ->setSort($product->get_menu_order())
                 ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp === 'yes')
                 ->setProductTypeId(new Identity($product->get_type()))
-                ->setKeywords(($tags = \wc_get_product_tag_list($product->get_id())) ? strip_tags($tags) : '')
+                ->setKeywords(($tags = \wc_get_product_tag_list($product->get_id(), ' ')) ? strip_tags($tags) : '')
                 ->setCreationDate($postDate)
                 ->setModified($modDate)
                 ->setAvailableFrom($postDate <= $modDate ? null : $postDate)
