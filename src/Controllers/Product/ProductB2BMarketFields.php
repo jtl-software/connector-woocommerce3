@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use jtl\Connector\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductB2BMarketFields extends BaseController
 {
@@ -112,10 +113,15 @@ class ProductB2BMarketFields extends BaseController
     {
         $rrp = $product->getRecommendedRetailPrice();
         $rrp = round($rrp, 4);
-        $oldValue = (float) \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+
+        $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
+        $isNewFormat = (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && version_compare($version, '1.0.4', '>='));
+
+        $oldValue = (float)\get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         if ($rrp !== 0.) {
             if ($rrp !== $oldValue) {
-                if ($product->getMasterProductId()->getHost() !== 0) {
+                if ($product->getMasterProductId()->getHost() !== 0 && !$isNewFormat) {
                     $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
                     \update_post_meta(
                         $wcProduct->get_parent_id(),
@@ -123,7 +129,7 @@ class ProductB2BMarketFields extends BaseController
                         $rrp,
                         \get_post_meta($wcProduct->get_parent_id(), $vKey, true)
                     );
-                }else {
+                } else {
                     \update_post_meta(
                         $wcProduct->get_id(),
                         'bm_rrp',
@@ -133,7 +139,7 @@ class ProductB2BMarketFields extends BaseController
                 }
             }
         } else {
-            if ($product->getMasterProductId()->getHost() !== 0) {
+            if ($product->getMasterProductId()->getHost() !== 0 && !$isNewFormat) {
                 $vKey = sprintf('bm_%s_rrp', $wcProduct->get_id());
                 \delete_post_meta($wcProduct->get_parent_id(), $vKey);
             } else {
