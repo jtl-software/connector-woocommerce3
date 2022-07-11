@@ -1,5 +1,6 @@
 <?php
 
+use jtl\Connector\Application\Application;
 use jtl\Connector\Core\Exception\MissingRequirementException;
 use jtl\Connector\Core\System\Check;
 use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
@@ -49,6 +50,8 @@ final class JtlConnectorAdmin
             Check::run();
             self::activate_linking();
             self::initDefaultConfigValues($buildVersion);
+            Application::getInstance()->createFeaturesFileIfNecessary(sprintf('%s/config/features.json.example', CONNECTOR_DIR));
+            self::loadFeaturesJson();
         } catch (MissingRequirementException $exc) {
             if (is_admin() && (!defined('DOING_AJAX') || !DOING_AJAX)) {
                 jtlwcc_deactivate_plugin();
@@ -1938,6 +1941,28 @@ final class JtlConnectorAdmin
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
 
         $wpdb->query(sprintf($query, $wpdb->prefix, 'jtl_connector_link_tax_class'));
+    }
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public static function loadFeaturesJson(): void
+    {
+        $features = Config::get(Config::OPTIONS_FEATURES_JSON);
+        $featuresJsonPath = Application()->getFeaturePath();
+        if (!empty($features)) {
+            $featuresJson = json_decode($features, true);
+            if (is_array($featuresJson)) {
+                $saveResult = file_put_contents($featuresJsonPath, json_encode($featuresJson, JSON_PRETTY_PRINT));
+                if ($saveResult === false) {
+                    throw new Exception(sprintf("Cannot save features in %s file.", $featuresJsonPath), 100);
+                }
+            }
+        } else {
+            $features = json_decode(file_get_contents($featuresJsonPath), true);
+            Config::set(Config::OPTIONS_FEATURES_JSON, json_encode($features));
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
