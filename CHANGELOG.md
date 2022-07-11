@@ -6,6 +6,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 * Bugfix - CO-2039 - Keywords are pulled with wrong seperator
 * Bugfix - CO-2025 - UVP not saved in Child Products
 * Feature - CO-1499 - Prevent features.json override
+* Add allowed Plugin to composer.json
 
 ## 1.36.0
 * Updated tested WP Version to 6.0
