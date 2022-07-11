@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* Bugfix - CO-2039 - Keywords are pulled with wrong seperator
+
 ## 1.36.0
 * Updated tested WP Version to 6.0
 * Updated Connector Core to 3.3.5
