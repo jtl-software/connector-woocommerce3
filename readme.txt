@@ -156,7 +156,7 @@ This section describes how to install the plugin and get it working.
 
 = Unreleased =
 * Bugfix - CO-2039 - Keywords are pulled with wrong seperator
-
+* Bugfix - CO-2025 - UVP not saved in Child Products
 
 = 1.36.1 =
 * Updated tested WP Version to 6.0
