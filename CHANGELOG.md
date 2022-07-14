@@ -1,6 +1,9 @@
 # Changelog
 
 This is the changelog of our "JTL WooCommerce Connector".
+## Unreleased
+* Bugfix - CO-1803 - shipping amount split fix
+
 ## 1.37.1
 * fix WP Plugin Version
 

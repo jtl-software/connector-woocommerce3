@@ -242,16 +242,23 @@ class CustomerOrderItem extends BaseController
             $costs = (float)$order->get_item_total($shippingItem, false, true);
 
             if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
+
+                $orderTaxRates = [];
+                foreach ($taxes['total'] as $taxRateId => $taxAmount) {
+                    if (!isset(self::$taxRateCache[$taxRateId])) {
+                        $taxRate = (float)$this->database->queryOne(SqlHelper::taxRateById($taxRateId));
+                        self::$taxRateCache[$taxRateId] = $taxRate;
+                    }
+                    $orderTaxRates[] = self::$taxRateCache[$taxRateId];
+                }
+
+                $sameTaxRate = count(array_unique($orderTaxRates)) === 1;
+
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
                     /** @var CustomerOrderItemModel $customerOrderItem */
                     $customerOrderItem = $getItem($shippingItem, $order, $taxRateId);
 
-                    if (isset(self::$taxRateCache[$taxRateId])) {
-                        $taxRate = self::$taxRateCache[$taxRateId];
-                    } else {
-                        $taxRate = (float)$this->database->queryOne(SqlHelper::taxRateById($taxRateId));
-                        self::$taxRateCache[$taxRateId] = $taxRate;
-                    }
+                    $taxRate = self::$taxRateCache[$taxRateId];
 
                     $customerOrderItem->setVat($taxRate);
 
@@ -264,7 +271,7 @@ class CustomerOrderItem extends BaseController
                     } else {
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
-                    $netPrice = ($costs * $factor) / count($taxes['total']);
+                    $netPrice = ($costs * $factor) / ($sameTaxRate ? count($taxes['total']) : 1);
                     $priceGross = $netPrice + $taxAmount;
 
                     $customerOrderItem
