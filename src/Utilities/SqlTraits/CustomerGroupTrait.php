@@ -24,4 +24,16 @@ trait CustomerGroupTrait
             AND p.post_type = 'customer_groups'
         ";
     }
+
+    public static function customerGroupPullRole()
+    {
+        global $wpdb;
+        $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';
+
+        return "
+            SELECT p.ID, p.post_title, p.post_name
+             FROM `{$wpdb->posts}` p
+            AND p.post_type = 'customer_groups'
+        ";
+    }
 }
