@@ -1088,12 +1088,12 @@ final class JtlConnectorAdmin
 
 
             $fields[] = [
-                'title' => __('B2B-Market/WooCommerce Guest Customer Group', JTLWCC_TEXT_DOMAIN),
+                'title' => __('B2B-Market/WooCommerce default customer group', JTLWCC_TEXT_DOMAIN),
                 'type' => 'jtl_connector_select',
                 'id' => Config::OPTIONS_DEFAULT_CUSTOMER_GROUP,
                 'value' => Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP),
                 'options' => $options,
-                'helpBlock' => __('Define which customer group is assigned to Guests.', JTLWCC_TEXT_DOMAIN),
+                'helpBlock' => __('Define which customer group is default.', JTLWCC_TEXT_DOMAIN),
             ];
         }
 
