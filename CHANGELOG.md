@@ -1,6 +1,10 @@
 # Changelog
 
 This is the changelog of our "JTL WooCommerce Connector".
+
+## Unreleased
+* Bugfix - CO-2065 - Fixed disabling stock management for variant parent product
+
 ## 1.37.1
 * fix WP Plugin Version
 
