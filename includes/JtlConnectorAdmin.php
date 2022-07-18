@@ -333,6 +333,7 @@ final class JtlConnectorAdmin
         if (!self::$initiated) {
             self::init_hooks();
             self::checkIfDefaultCustomerGroupIsSet();
+            self::checkIfPullCustomerGroupIsSet();
         }
     }
 
@@ -347,6 +348,13 @@ final class JtlConnectorAdmin
                     array_column($b2bMarketCustomerGroups, 'ID'))) {
                 add_action('admin_notices', [self::class, 'default_customer_group_not_updated']);
             }
+        }
+    }
+
+    public static function checkIfPullCustomerGroupIsSet()
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) && !Config::has(Config::OPTIONS_PULL_CUSTOMER_GROUPS)) {
+            add_action('admin_notices', [self::class, 'pull_customer_group_not_updated']);
         }
     }
 
@@ -568,7 +576,7 @@ final class JtlConnectorAdmin
     public static function jtlconnector_plugin_row_meta($links, $file)
     {
         if (strpos($file, 'woo-jtl-connector.php') !== false) {
-            $url = esc_url('http://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
+            $url = esc_url('https://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
             ];
@@ -1029,8 +1037,8 @@ final class JtlConnectorAdmin
         $fields[] = [
             'title' => __('Limit Customer Pull', JTLWCC_TEXT_DOMAIN),
             'type' => 'jtl_connector_select',
-            'id' => Config::OPTIONS_LIMIT_CUSTOMER_QUERY,
-            'value' => Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY),
+            'id' => Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE,
+            'value' => Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE),
             'options' => [
                 'no_filter' => __('No Limit', JTLWCC_TEXT_DOMAIN),
                 'last_imported_order' => __('Since last pulled Order ID', JTLWCC_TEXT_DOMAIN),
@@ -1068,7 +1076,7 @@ final class JtlConnectorAdmin
                 'type' => 'jtl_connector_multiselect',
                 'options' => $roles,
                 'id' => Config::OPTIONS_PULL_CUSTOMER_GROUPS,
-                'value' => Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, ['customer']),
+                'value' => Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, []),
                 'helpBlock' => __('Pull Customers with this Customer Groups, only respected if no Limit is defined', JTLWCC_TEXT_DOMAIN),
             ];
 
@@ -2360,7 +2368,20 @@ final class JtlConnectorAdmin
     {
         $message = __('The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings',
             JTLWCC_TEXT_DOMAIN);
-        $message .= ': <a href="admin.php?page=woo-jtl-connector-advanced">' . strtolower(__('Advanced Settings',
+        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">' . strtolower(__('Customer Settings',
+                JTLWCC_TEXT_DOMAIN)) . '</a>';
+
+        echo '<div class="notice notice-error">
+				<p class="pt-3 pb-3">
+                    ' . $message . '
+				</p>
+			</div>';
+    }
+    public static function pull_customer_group_not_updated()
+    {
+        $message = __('The pull customer groups are not set. Please update the B2B-Market customer pull groups in the JTL-Connector settings',
+            JTLWCC_TEXT_DOMAIN);
+        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">' . strtolower(__('Customer Settings',
                 JTLWCC_TEXT_DOMAIN)) . '</a>';
 
         echo '<div class="notice notice-error">
