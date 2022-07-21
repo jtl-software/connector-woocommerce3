@@ -1,6 +1,10 @@
 # Changelog
 
 This is the changelog of our "JTL WooCommerce Connector".
+
+## Unreleased
+* Bugfix - CO-2068 - Fixed default country extracting
+
 ## 1.37.1
 * fix WP Plugin Version
 
