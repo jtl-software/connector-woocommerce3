@@ -19,7 +19,7 @@ trait CustomerTrait
 {
     public static function customerNotLinked($limit)
     {
-        if (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE) === 'no_filter') {
+        if (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE]) === 'no_filter' ) {
             return self::customerNotLinkedNoCondition($limit);
         } else {
             return self::customerNotLinkedCondition($limit);
@@ -130,7 +130,7 @@ trait CustomerTrait
 
         switch (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)) {
             case 'last_imported_order':
-                $whereQuery = sprintf('AND p.id > (SELECT max(endpoint_id) from %s)', $jclo);
+                $whereQuery = sprintf('AND p.id > (SELECT IF(max(endpoint_id),max(endpoint_id),0) from %s)', $jclo);
                 break;
             case 'fixed_date':
                 $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);

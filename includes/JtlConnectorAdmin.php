@@ -1038,7 +1038,7 @@ final class JtlConnectorAdmin
             'title' => __('Limit Customer Pull', JTLWCC_TEXT_DOMAIN),
             'type' => 'jtl_connector_select',
             'id' => Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE,
-            'value' => Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE),
+            'value' => Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE]),
             'options' => [
                 'no_filter' => __('No Limit', JTLWCC_TEXT_DOMAIN),
                 'last_imported_order' => __('Since last pulled Order ID', JTLWCC_TEXT_DOMAIN),
@@ -1067,6 +1067,7 @@ final class JtlConnectorAdmin
             $roles = [];
             $sql = SqlHelper::customerGroupPull();
             $result = Db::getInstance()->query($sql);
+            $result = array_diff($result, ['guest']);
             foreach ($result as $role){
                 $roles[$role['post_name']] = translate_user_role($role['post_title']);
             }
@@ -1077,7 +1078,7 @@ final class JtlConnectorAdmin
                 'options' => $roles,
                 'id' => Config::OPTIONS_PULL_CUSTOMER_GROUPS,
                 'value' => Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, []),
-                'helpBlock' => __('Pull Customers with this Customer Groups, only respected if no Limit is defined', JTLWCC_TEXT_DOMAIN),
+                'helpBlock' => __('Pull Customers with this Customer Groups, only respected if no Limit is defined. <br> Guests are always pulled. ', JTLWCC_TEXT_DOMAIN),
             ];
 
 
