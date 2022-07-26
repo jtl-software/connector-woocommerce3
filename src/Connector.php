@@ -11,6 +11,7 @@ use jtl\Connector\Core\Controller\Controller as CoreController;
 use jtl\Connector\Core\Rpc\Method;
 use jtl\Connector\Core\Rpc\RequestPacket;
 use jtl\Connector\Core\Utilities\RpcMethod;
+use jtl\Connector\Event\Rpc\RpcBeforeEvent;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Authentication\TokenLoader;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
@@ -42,7 +43,14 @@ class Connector extends BaseConnector {
 		$this->setPrimaryKeyMapper( new PrimaryKeyMapper() )
 		     ->setTokenLoader( new TokenLoader() )
 		     ->setChecksumLoader( new ChecksumLoader() );
-	}
+
+
+        $this->getEventDispatcher()->addListener(RpcBeforeEvent::EVENT_NAME, static function (RpcBeforeEvent $event) {
+            if ($event->getController() === 'connector' && $event->getAction() === 'auth') {
+                \JtlConnectorAdmin::loadFeaturesJson();
+            }
+        });
+    }
 	
 	public function canHandle() {
 		$controllerName  = RpcMethod::buildController( $this->getMethod()->getController() );

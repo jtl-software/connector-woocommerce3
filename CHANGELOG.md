@@ -1,6 +1,18 @@
 # Changelog
 
 This is the changelog of our "JTL WooCommerce Connector".
+## 1.37.1
+* fix WP Plugin Version
+
+## 1.37.0
+* Bugfix - CO-2039 - Keywords are pulled with wrong seperator
+* Bugfix - CO-2025 - UVP not saved in Child Products
+* Feature - CO-1499 - Prevent features.json override
+* Add allowed Plugin to composer.json
+
+## 1.36.0
+* Updated tested WP Version to 6.0
+* Updated Connector Core to 3.3.5
 
 ## 1.36.0
 * Bugfix - CO-2027 - Double Shipping costs if Shipping has multiple Vats

@@ -82,5 +82,6 @@ jobs:
           cd woo-jtl-connector/trunk
           svn status
           svn add --force *
+          if svn info "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$CONNECTOR_VERSION"; then svn delete --username "$USERNAME" --password "$PASSWORD" --force "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$CONNECTOR_VERSION" -m "Removing old Tag $CONNECTOR_VERSION"; fi
           svn commit --username "$USERNAME" --password "$PASSWORD" -m "Tagging $CONNECTOR_VERSION"
           svn copy --username "$USERNAME" --password "$PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$CONNECTOR_VERSION" -m "Tagging $CONNECTOR_VERSION"

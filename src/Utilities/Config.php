@@ -39,7 +39,8 @@ class Config
         OPTIONS_AUTO_WOOCOMMERCE_OPTIONS = 'jtlconnector_auto_woocommerce',
         OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market',
         OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date',
-        OPTIONS_CUSTOM_CHECKOUT_FIELDS = 'jtlconnector_custom_checkout_fields';
+        OPTIONS_CUSTOM_CHECKOUT_FIELDS = 'jtlconnector_custom_checkout_fields',
+        OPTIONS_FEATURES_JSON = 'jtlconnector_features_json';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -97,6 +98,8 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => 'bool',
+        //Not displayed
+        Config::OPTIONS_FEATURES_JSON => 'string',
     ];
 
     /**
@@ -111,7 +114,7 @@ class Config
         $allowedKeys[Config::OPTIONS_TOKEN] = 'string';
 
         $result = false;
-        if (in_array($name, array_keys($allowedKeys))) {
+        if (array_key_exists($name, $allowedKeys)) {
             $oldValue = self::get($name);
             if (is_null($oldValue)) {
                 $result = add_option($name, $value);
