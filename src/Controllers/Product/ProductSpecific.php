@@ -6,18 +6,17 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use \jtl\Connector\Model\ProductAttr;
-use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use \Jtl\Connector\Core\Model\TranslatableAttribute;
+use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product_Attribute;
 
-class ProductSpecific extends BaseController
+class ProductSpecific extends AbstractBaseController
 {
-    // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(
         ProductModel $model,
         \WC_Product $product,
@@ -38,10 +37,7 @@ class ProductSpecific extends BaseController
         
         return $results;
     }
-    
-    // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc="Push">
+
     /**
      * @param $productId
      * @param $curAttributes
@@ -73,7 +69,7 @@ class ProductSpecific extends BaseController
             if (!preg_match('/^pa_/', $slug)) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
-                    'value'        => Util::getInstance()->findAttributeValue($wcProductAttribute,  ...$pushedJtlAttributes),
+                    'value'        => $this->util->findAttributeValue($wcProductAttribute,  ...$pushedJtlAttributes),
                     'position'     => $wcProductAttribute->get_position(),
                     'is_visible'   => $wcProductAttribute->get_visible(),
                     'is_variation' => $wcProductAttribute->get_variation(),
@@ -131,9 +127,7 @@ class ProductSpecific extends BaseController
         
         return $newSpecifics;
     }
-    // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc="Methods">
+
     /**
      * Returns Id for taxonomy
      *
@@ -150,15 +144,12 @@ class ProductSpecific extends BaseController
     
     private function buildProductSpecific($slug, $value, ProductModel $result)
     {
-        $parent = (new ProductVaSpeAttrHandler);
+        $parent = (new ProductVaSpeAttrHandler($this->database, $this->util));
         $valueId = $parent->getSpecificValueId($slug, $value);
         $specificId = (new Identity)->setEndpoint($this->getSpecificId($slug));
 
         return (new ProductSpecificModel)
             ->setId($specificId)
-            ->setProductId($result->getId())
             ->setSpecificValueId($valueId);
     }
-
-    // </editor-fold>
 }

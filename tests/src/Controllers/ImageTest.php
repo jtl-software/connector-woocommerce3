@@ -1,8 +1,8 @@
 <?php
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
-use jtl\Connector\Model\Image;
-use jtl\Connector\Model\ImageI18n;
+use Jtl\Connector\Core\Model\ImageI18n;
+use Jtl\Connector\Core\Model\ProductImage;
 use phpmock\MockBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -37,14 +37,13 @@ class ImageTest extends TestCase
     /**
      * @dataProvider imageAltTextDataProvider
      *
-     * @param Image $image
+     * @param ProductImage $image
      * @param $expectedAltText
      * @throws \ReflectionException
-     * @throws \phpmock\MockEnabledException
      */
-    public function testGetImageAltText(Image $image, $expectedAltText)
+    public function testGetImageAltText(ProductImage $image, $expectedAltText)
     {
-        $imageController = new \JtlWooCommerceConnector\Controllers\Image();
+        $imageController = new \JtlWooCommerceConnector\Controllers\ImageController();
 
         $controller = new \ReflectionClass($imageController);
         $getImageAlt = $controller->getMethod('getImageAlt');
@@ -61,18 +60,18 @@ class ImageTest extends TestCase
     {
         return [
             [
-                (new Image())->setName('Default name')->setI18ns([
+                (new ProductImage())->setName('Default name')->setI18ns(...[
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger'),
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng'),
                 ]),
                 'Alt text default'
             ],
             [
-                (new Image())->setName("Default name"),
+                (new ProductImage())->setName("Default name"),
                 'Default name'
             ],
             [
-                (new Image())->setName(''),
+                (new ProductImage())->setName(''),
                 ''
             ]
         ];

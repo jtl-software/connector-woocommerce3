@@ -6,23 +6,23 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\TaxRate as TaxRateModel;
-use JtlWooCommerceConnector\Utilities\Db;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\TaxRate as TaxRateModel;
+use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
-class TaxRate
+class TaxRate extends AbstractController
 {
     public function pullData()
     {
         $return = [];
         $uniqueRates = [];
 
-        $result = Db::getInstance()->query(SqlHelper::taxRatePull());
+        $result = $this->database->query(SqlHelper::taxRatePull());
 
         foreach ($result as $row) {
 
-            $taxRate = (float)round($row['tax_rate'], 4);
+            $taxRate = round($row['tax_rate'], 4);
 
             if (in_array($taxRate, $uniqueRates)) {
                 continue;

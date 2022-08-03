@@ -233,4 +233,26 @@ class UtilTest extends TestCase
             [' TruE ', true],
         ];
     }
+
+    /**
+     * @dataProvider mapLanguageIsoDataProvider
+     * @param $locale
+     * @param $expectedResult
+     * @return void
+     * @throws \Exception
+     */
+    public function testMapLanguageIso(string $locale, string $expectedResult)
+    {
+        $iso = Util::mapLanguageIso($locale);
+        $this->assertEquals($expectedResult, $iso);
+    }
+
+    public function mapLanguageIsoDataProvider()
+    {
+        return [
+            ['de_de', 'de'],
+            ['de', 'de'],
+            ['de_ch', 'de']
+        ];
+    }
 }

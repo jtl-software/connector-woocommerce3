@@ -6,13 +6,14 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductStockLevel as StockLevelModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductStockLevel as StockLevelModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductStockLevel extends BaseController
+class ProductStockLevel extends AbstractBaseController
 {
     public function pullData(\WC_Product $product)
     {
@@ -33,9 +34,9 @@ class ProductStockLevel extends BaseController
 
         \update_post_meta($variationId, '_manage_stock', $product->getConsiderStock() ? 'yes' : 'no');
 
-        $stockLevel = $product->getStockLevel()->getStockLevel();
+        $stockLevel = $product->getStockLevel();
 
-        \wc_update_product_stock_status($variationId, Util::getInstance()->getStockStatus(
+        \wc_update_product_stock_status($variationId, $this->util->getStockStatus(
             $stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock()
         ));
 
@@ -59,10 +60,10 @@ class ProductStockLevel extends BaseController
 
         $stockLevel = 0;
         if(!is_null($product->getStockLevel())){
-            $stockLevel = $product->getStockLevel()->getStockLevel();
+            $stockLevel = $product->getStockLevel();
         }
 
-        $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock());
+        $stockStatus = $this->util->getStockStatus($stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock());
 
         if ('yes' == get_option('woocommerce_manage_stock')) {
             \update_post_meta($productId, '_manage_stock', $product->getConsiderStock() && !$product->getIsMasterProduct() ? 'yes' : 'no');
@@ -90,12 +91,13 @@ class ProductStockLevel extends BaseController
     /**
      * @param ProductModel $product
      * @return string
+     * @throws TranslatableAttributeException
      */
     protected function getBackorderValue(ProductModel $product): string
     {
         $value = $product->getPermitNegativeStock() ? 'yes' : 'no';
         if ($value === 'yes') {
-            $attribute = Util::findAttributeI18nByName(ProductVaSpeAttrHandler::NOTIFY_CUSTOMER_ON_OVERSELLING, Util::getInstance()->getWooCommerceLanguage(), ...$product->getAttributes());
+            $attribute = $this->util->findAttributeI18nByName(ProductVaSpeAttrHandler::NOTIFY_CUSTOMER_ON_OVERSELLING, $this->util->getWooCommerceLanguage(), ...$product->getAttributes());
             if (!is_null($attribute) && Util::isTrue($attribute->getValue())) {
                 $value = 'notify';
             }

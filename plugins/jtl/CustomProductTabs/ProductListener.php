@@ -2,8 +2,8 @@
 
 namespace jtl\CustomProductTabs;
 
-use jtl\Connector\Event\Product\ProductAfterPushEvent;
-use jtl\Connector\Model\ProductAttrI18n;
+use Jtl\Connector\Core\Event\ProductEvent;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
@@ -17,9 +17,24 @@ class ProductListener
         PRODUCT_CUSTOM_TABS_META_KEY = 'yikes_woo_products_tabs';
 
     /**
-     * @param ProductAfterPushEvent $event
+     * @var Util 
      */
-    public function onProductAfterPush(ProductAfterPushEvent $event)
+    protected $util;
+
+    /**
+     * @param Util $util
+     */
+    public function __construct(Util $util)
+    {
+        $this->util = $util;
+    }
+
+    /**
+     * @param ProductEvent $event
+     * @return void
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
+     */
+    public function onProductAfterPush(ProductEvent $event)
     {
         $product = $event->getProduct();
         $productAttributes = $product->getAttributes();
@@ -35,19 +50,20 @@ class ProductListener
         }
 
         if (!empty($customProductTabs)) {
-            Util::getInstance()->updatePostMeta($product->getId()->getEndpoint(), self::PRODUCT_CUSTOM_TABS_META_KEY, $customProductTabs);
+            $this->util->updatePostMeta($product->getId()->getEndpoint(), self::PRODUCT_CUSTOM_TABS_META_KEY, $customProductTabs);
         }
     }
 
     /**
-     * @param ProductAttrI18n ...$productAttributeI18ns
+     * @param TranslatableAttributeI18n ...$productAttributeI18ns
      * @return CustomProductTab|null
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
      */
-    protected function findCustomProductTabAttribute(ProductAttrI18n ...$productAttributeI18ns): ?CustomProductTab
+    protected function findCustomProductTabAttribute(TranslatableAttributeI18n ...$productAttributeI18ns): ?CustomProductTab
     {
         $customProductTab = null;
         foreach ($productAttributeI18ns as $productAttributeI18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($productAttributeI18n->getLanguageISO())) {
+            if ($this->util->isWooCommerceLanguage($productAttributeI18n->getLanguageISO())) {
                 if (strpos($productAttributeI18n->getName(), self::PRODUCT_CUSTOM_TABS_ATTRIBUTE_NEEDLE) !== false) {
                     list($needle, $title) = explode(':', $productAttributeI18n->getName());
                     if (!empty($title)) {

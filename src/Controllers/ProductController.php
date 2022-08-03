@@ -4,24 +4,39 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace JtlWooCommerceConnector\Controllers\Product;
+namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductI18n as ProductI18nModel;
-use jtl\Connector\Model\TaxRate;
-use JtlConnectorAdmin;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use Jtl\Connector\Core\Model\QueryFilter;
+use Jtl\Connector\Core\Model\TaxRate;
+use JtlWooCommerceConnector\Controllers\Product\Product2Category;
+use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFields;
+use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTime;
+use JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFields;
+use JtlWooCommerceConnector\Controllers\Product\ProductGermanMarketFields;
+use JtlWooCommerceConnector\Controllers\Product\ProductI18n;
+use JtlWooCommerceConnector\Controllers\Product\ProductManufacturer;
+use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeo;
+use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
+use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPrice;
+use JtlWooCommerceConnector\Controllers\Product\ProductStockLevel;
+use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandler;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class Product extends BaseController
+class ProductController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface, DeleteInterface
 {
     public const
         TYPE_PARENT = 'parent',
@@ -32,11 +47,11 @@ class Product extends BaseController
 
     private static $idCache = [];
 
-    public function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
         $products = [];
 
-        $ids = $this->database->queryList(SqlHelper::productPull($limit));
+        $ids = $this->database->queryList(SqlHelper::productPull($queryFilter->getLimit()));
 
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
@@ -51,13 +66,13 @@ class Product extends BaseController
             $productModel = (new ProductModel())
                 ->setId(new Identity($product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
-                ->setIsActive(in_array($status, [
+                ->setIsActive(!in_array($status, [
                     'private',
                     'draft',
                     'future',
-                ]) ? false : true)
+                ]))
                 ->setSku($product->get_sku())
-                ->setVat(Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class()))
+                ->setVat($this->util->getTaxRateByTaxClass($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
                 ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp === 'yes')
                 ->setProductTypeId(new Identity($product->get_type()))
@@ -106,47 +121,47 @@ class Product extends BaseController
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
             }
 
-            $specialPrices = ProductSpecialPrice::getInstance()->pullData($product, $productModel);
-            $prices = ProductPrice::getInstance()->pullData($product, $productModel);
+            $specialPrices = (new ProductSpecialPrice($this->database, $this->util))->pullData($product, $productModel);
+            $prices = (new ProductPrice($this->database, $this->util))->pullData($product, $productModel);
 
             $productModel
-                ->addI18n(ProductI18n::getInstance()->pullData($product, $productModel))
-                ->setPrices($prices)
-                ->setSpecialPrices($specialPrices)
-                ->setCategories(Product2Category::getInstance()->pullData($product));
+                ->addI18n((new ProductI18n($this->database, $this->util))->pullData($product, $productModel))
+                ->setPrices(...$prices)
+                ->setSpecialPrices(...$specialPrices)
+                ->setCategories(...(new Product2Category($this->database, $this->util))->pullData($product));
 
-            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler)
+            $productVariationSpecificAttribute = (new ProductVaSpeAttrHandler($this->database, $this->util))
                 ->pullData($product, $productModel);
 
             // Var parent or child articles
             if ($product instanceof \WC_Product_Variable
                 || $product instanceof \WC_Product_Variation
             ) {
-                $productModel->setVariations($productVariationSpecificAttribute['productVariation']);
+                $productModel->setVariations(...$productVariationSpecificAttribute['productVariation']);
             }
 
-            $productModel->setAttributes($productVariationSpecificAttribute['productAttributes'])
-                ->setSpecifics($productVariationSpecificAttribute['productSpecifics']);
+            $productModel->setAttributes(...$productVariationSpecificAttribute['productAttributes'])
+                ->setSpecifics(...$productVariationSpecificAttribute['productSpecifics']);
             if ($product->managing_stock()) {
-                $productModel->setStockLevel((new ProductStockLevel)->pullData($product));
+                $productModel->setStockLevel((new ProductStockLevel($this->database, $this->util))->pullData($product)->getStockLevel());
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-                (new ProductGermanizedFields)->pullData($productModel, $product);
+                (new ProductGermanizedFields($this->database, $this->util))->pullData($productModel, $product);
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                (new ProductGermanMarketFields)->pullData($productModel, $product);
+                (new ProductGermanMarketFields($this->database, $this->util))->pullData($productModel, $product);
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-                (new ProductB2BMarketFields)->pullData($productModel, $product);
+                (new ProductB2BMarketFields($this->database, $this->util))->pullData($productModel, $product);
             }
 
             if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-                $tmpManId = ProductManufacturer::getInstance()->pullData($productModel);
+                $tmpManId = (new ProductManufacturer($this->database, $this->util))->pullData($productModel);
                 if (!is_null($tmpManId) && $tmpManId instanceof Identity) {
                     $productModel->setManufacturerId($tmpManId);
                 }
@@ -158,7 +173,7 @@ class Product extends BaseController
         return $products;
     }
 
-    protected function pushData(ProductModel $product)
+    public function push(AbstractModel $model): AbstractModel
     {
         if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
@@ -170,25 +185,25 @@ class Product extends BaseController
         }
 
         $tmpI18n = null;
-        $masterProductId = $product->getMasterProductId()->getEndpoint();
+        $masterProductId = $model->getMasterProductId()->getEndpoint();
 
-        if (empty($masterProductId) && isset(self::$idCache[$product->getMasterProductId()->getHost()])) {
-            $masterProductId = self::$idCache[$product->getMasterProductId()->getHost()];
-            $product->getMasterProductId()->setEndpoint($masterProductId);
+        if (empty($masterProductId) && isset(self::$idCache[$model->getMasterProductId()->getHost()])) {
+            $masterProductId = self::$idCache[$model->getMasterProductId()->getHost()];
+            $model->getMasterProductId()->setEndpoint($masterProductId);
         }
 
-        foreach ($product->getI18ns() as $i18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+        foreach ($model->getI18ns() as $i18n) {
+            if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                 $tmpI18n = $i18n;
                 break;
             }
         }
 
         if (is_null($tmpI18n)) {
-            return $product;
+            return $model;
         }
 
-        $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
+        $creationDate = is_null($model->getAvailableFrom()) ? $model->getCreationDate() : $model->getAvailableFrom();
 
         if (!$creationDate instanceof DateTime) {
             $creationDate = new DateTime();
@@ -198,14 +213,14 @@ class Product extends BaseController
 
         /** @var ProductI18nModel $tmpI18n */
         $endpoint = [
-            'ID' => (int)$product->getId()->getEndpoint(),
+            'ID' => (int)$model->getId()->getEndpoint(),
             'post_type' => $isMasterProduct ? 'product' : 'product_variation',
             'post_title' => $tmpI18n->getName(),
             'post_name' => $tmpI18n->getUrlPath(),
             'post_content' => $tmpI18n->getDescription(),
             'post_excerpt' => $tmpI18n->getShortDescription(),
             'post_date' => $this->getCreationDate($creationDate),
-            'post_status' => is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future',
+            'post_status' => is_null($model->getAvailableFrom()) ? ($model->getIsActive() ? 'publish' : 'draft') : 'future',
         ];
 
         if ($endpoint['ID'] !== 0) {
@@ -213,7 +228,7 @@ class Product extends BaseController
             $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
         } else {
             // Update existing products by SKU
-            $productId = \wc_get_product_id_by_sku($product->getSku());
+            $productId = \wc_get_product_id_by_sku($model->getSku());
 
             if ($productId !== 0) {
                 $endpoint['ID'] = $productId;
@@ -228,34 +243,34 @@ class Product extends BaseController
         add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
         if ($newPostId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($newPostId);
+            $this->logger->error(ErrorFormatter::formatError($newPostId));
 
-            return $product;
+            return $model;
         }
 
-        $product->getId()->setEndpoint($newPostId);
+        $model->getId()->setEndpoint($newPostId);
 
-        $this->onProductInserted($product, $tmpI18n);
+        $this->onProductInserted($model, $tmpI18n);
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-            (new ProductGermanizedFields)->pushData($product);
+            (new ProductGermanizedFields($this->database, $this->util))->pushData($model);
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            (new ProductGermanMarketFields)->pushData($product);
+            (new ProductGermanMarketFields($this->database, $this->util))->pushData($model);
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            (new ProductB2BMarketFields)->pushData($product);
+            (new ProductB2BMarketFields($this->database, $this->util))->pushData($model);
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
         ) {
-            (new ProductMetaSeo)->pushData((int)$newPostId, $tmpI18n);
+            (new ProductMetaSeo($this->database, $this->util))->pushData((int)$newPostId, $tmpI18n);
         }
 
         remove_filter('content_save_pre', 'wp_filter_post_kses');
@@ -270,19 +285,19 @@ class Product extends BaseController
         add_filter('content_save_pre', 'wp_filter_post_kses');
         add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-        return $product;
+        return $model;
     }
 
-    protected function deleteData(ProductModel $product)
+    public function delete(AbstractModel $model): AbstractModel
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$model->getId()->getEndpoint();
 
         \wp_delete_post($productId, true);
         \wc_delete_product_transients($productId);
 
-        unset(self::$idCache[$product->getId()->getHost()]);
+        unset(self::$idCache[$model->getId()->getHost()]);
 
-        return $product;
+        return $model;
     }
 
     protected function getStats()
@@ -290,7 +305,7 @@ class Product extends BaseController
         return count($this->database->queryList(SqlHelper::productPull()));
     }
 
-    protected function onProductInserted(ProductModel &$product, &$meta)
+    protected function onProductInserted(ProductModel $product, &$meta)
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
         $productType = $this->getType($product);
@@ -303,16 +318,16 @@ class Product extends BaseController
 
         $this->updateProductRelations($product, $wcProduct, $productType);
 
-        (new ProductVaSpeAttrHandler)->pushDataNew($product, $wcProduct);
+        (new ProductVaSpeAttrHandler($this->database, $this->util))->pushDataNew($product, $wcProduct);
 
 
-        if ($productType !== Product::TYPE_CHILD) {
+        if ($productType !== ProductController::TYPE_CHILD) {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
         //variations
-        if ($productType === Product::TYPE_CHILD) {
+        if ($productType === ProductController::TYPE_CHILD) {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);
         }
 
@@ -330,7 +345,7 @@ class Product extends BaseController
 
         foreach ($jtlProduct->getAttributes() as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     continue;
                 }
 
@@ -486,19 +501,19 @@ class Product extends BaseController
             );
         }
         //Map to Delivery-time
-        (new ProductDeliveryTime())->pushData($product, $wcProduct);
+        (new ProductDeliveryTime($this->database, $this->util))->pushData($product, $wcProduct);
         //Map to Manufacturer
-        (new ProductManufacturer())->pushData($product);
+        (new ProductManufacturer($this->database, $this->util))->pushData($product);
     }
 
     private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct, string $productType)
     {
-        (new Product2Category)->pushData($product);
+        (new Product2Category($this->database, $this->util))->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
 
-        (new ProductPrice)->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
+        (new ProductPrice($this->database, $this->util))->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
 
-        (new ProductSpecialPrice)->pushData($product, $wcProduct, $productType);
+        (new ProductSpecialPrice($this->database, $this->util))->pushData($product, $wcProduct, $productType);
     }
 
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta)
@@ -514,7 +529,7 @@ class Product extends BaseController
         \update_post_meta($productId, '_variation_description', $meta->getDescription());
         \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
 
-        (new ProductStockLevel)->pushDataChild($product);
+        (new ProductStockLevel($this->database, $this->util))->pushDataChild($product);
     }
 
     private function updateProduct(ProductModel $product)
@@ -523,10 +538,10 @@ class Product extends BaseController
 
         \update_post_meta($productId, '_visibility', 'visible');
 
-        (new ProductStockLevel)->pushDataParent($product);
+        (new ProductStockLevel($this->database, $this->util))->pushDataParent($product);
 
         if ($product->getIsMasterProduct()) {
-            Util::getInstance()->addMasterProductToSync($productId);
+            $this->util->addMasterProductToSync($productId);
         }
 
         self::$idCache[$product->getId()->getHost()] = $productId;

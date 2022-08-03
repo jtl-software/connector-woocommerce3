@@ -7,19 +7,30 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Drawing\ImageRelationType;
-use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Image as ImageModel;
-use jtl\Connector\Model\ImageI18n;
-use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Definition\IdentityType;
+use Jtl\Connector\Core\Exception\DefinitionException;
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\AbstractImage;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CategoryImage;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ImageI18n;
+use Jtl\Connector\Core\Model\ManufacturerImage;
+use Jtl\Connector\Core\Model\ProductImage;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class Image extends BaseController
+class ImageController extends AbstractBaseController implements PullInterface, StatisticInterface, PushInterface, DeleteInterface
 {
     const GALLERY_DIVIDER = ',';
     const PRODUCT_THUMBNAIL = '_thumbnail_id';
@@ -27,57 +38,83 @@ class Image extends BaseController
     const GALLERY_KEY = '_product_image_gallery';
     const MANUFACTURER_KEY = 'pwb_brand_image';
 
+    protected $primaryKeyMapper;
+
     private $alreadyLinked = [];
 
-    // <editor-fold defaultstate="collapsed" desc="Pull">
-    public function pullData($limit)
+    public function __construct(Db $db, Util $util, PrimaryKeyMapperInterface $primaryKeyMapper)
     {
+        parent::__construct($db, $util);
+        $this->primaryKeyMapper = $primaryKeyMapper;
+    }
+
+    public function pull(QueryFilter $queryFilter): array
+    {
+        $limit = $queryFilter->getLimit();
+
         $images = $this->productImagePull($limit);
-        $productImages = $this->addNextImages($images, ImageRelationType::TYPE_PRODUCT, $limit);
+        $productImages = $this->addNextImages($images, IdentityType::PRODUCT_IMAGE, $limit);
 
         $images = $this->categoryImagePull($limit);
-        $categoryImages = $this->addNextImages($images, ImageRelationType::TYPE_CATEGORY, $limit);
+        $categoryImages = $this->addNextImages($images, IdentityType::CATEGORY_IMAGE, $limit);
 
         $combinedArray = array_merge($productImages, $categoryImages);
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $images = $this->manufacturerImagePull($limit);
-            $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
+            $manufacturerImages = $this->addNextImages($images, IdentityType::MANUFACTURER_IMAGE, $limit);
             $combinedArray = array_merge($combinedArray, $manufacturerImages);
         }
 
         return $combinedArray;
     }
 
+    /**
+     * @param $images
+     * @param $type
+     * @param $limit
+     * @return array
+     * @throws DefinitionException
+     */
     private function addNextImages($images, $type, &$limit)
     {
         $return = [];
 
         foreach ($images as $image) {
             $imgSrc = \wp_get_attachment_image_src($image['ID'], 'full');
-            $model = (new ImageModel())
-                ->setId(new Identity($image['id']))
+
+            switch ($type) {
+                case IdentityType::PRODUCT_IMAGE:
+                    $model = new ProductImage();
+                    break;
+                case IdentityType::CATEGORY_IMAGE:
+                    $model = new CategoryImage();
+                    break;
+                case IdentityType::MANUFACTURER_IMAGE:
+                    $model = new ManufacturerImage();
+                    break;
+                default:
+                    throw new \Exception(sprintf("Invalid image type '%s'", $type));
+            }
+
+            $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
                 ->setRemoteUrl((string)isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
                 ->setSort((int)$image['sort'])
                 ->setFilename((string)\wc_get_filename_from_url($image['guid']));
 
-            if ($model instanceof ImageModel) {
-                $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
+            $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
 
-                $model
-                    ->setRelationType($type)
-                    ->addI18n((new ImageI18n())
-                        ->setId(new Identity($image['id']))
-                        ->setImageId(new Identity($image['id']))
-                        ->setAltText((string)substr($altText !== false ? $altText : '', 0, 254))
-                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                    );
+            $model
+                ->addI18n((new ImageI18n())
+                    ->setId(new Identity($image['id']))
+                    ->setAltText((string)substr($altText !== false ? $altText : '', 0, 254))
+                    ->setLanguageISO($this->util->getWooCommerceLanguage())
+                );
 
-                $return[] = $model;
-                $limit--;
-            }
+            $return[] = $model;
+            $limit--;
         }
 
         return $return;
@@ -189,9 +226,7 @@ class Image extends BaseController
     private function addProductImagesForPost($attachmentIds, $postId)
     {
         $attachmentIds = $this->filterAlreadyLinkedProducts($attachmentIds, $postId);
-        $newAttachments = $this->fetchProductAttachments($attachmentIds, $postId);
-
-        return $newAttachments;
+        return $this->fetchProductAttachments($attachmentIds, $postId);
     }
 
     private function fetchProductAttachments($attachmentIds, $productId)
@@ -237,9 +272,9 @@ class Image extends BaseController
         $attachmentIds = $productAttachments;
 
         foreach ($attachmentIds as $attachmentId) {
-            $endpointId = Id::link([$attachmentId, $productId]);
+            $endpointId = Id::linkProductImage($attachmentId, $productId);
 
-            if (!in_array($endpointId, $this->alreadyLinked)) {
+            if (!in_array($endpointId, $this->alreadyLinked, true)) {
                 $filtered[] = $attachmentId;
                 $this->alreadyLinked[] = $endpointId;
             }
@@ -331,33 +366,32 @@ class Image extends BaseController
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Push">
-    protected function pushData(ImageModel $image)
+    public function push(AbstractModel $model): AbstractModel
     {
-        $foreignKey = $image->getForeignKey()->getEndpoint();
+        $foreignKey = $model->getForeignKey()->getEndpoint();
 
         if (!empty($foreignKey)) {
-            $id = null;
             // Delete image with the same id
-            $this->deleteData($image, false);
+            $this->deleteData($model, false);
 
-            if (ImageRelationType::TYPE_PRODUCT === $image->getRelationType()) {
-                $image->getId()->setEndpoint($this->pushProductImage($image));
-            } elseif (ImageRelationType::TYPE_CATEGORY === $image->getRelationType()) {
-                $image->getId()->setEndpoint($this->pushCategoryImage($image));
-            } elseif (ImageRelationType::TYPE_MANUFACTURER === $image->getRelationType()) {
-                $image->getId()->setEndpoint($this->pushManufacturerImage($image));
+            if ($model instanceof ProductImage) {
+                $model->getId()->setEndpoint($this->pushProductImage($model));
+            } elseif ($model instanceof CategoryImage) {
+                $model->getId()->setEndpoint($this->pushCategoryImage($model));
+            } elseif ($model instanceof ManufacturerImage) {
+                $model->getId()->setEndpoint($this->pushManufacturerImage($model));
             }
         }
 
-        return $image;
+        return $model;
     }
 
     /**
-     * @param ImageModel $image
+     * @param AbstractImage $image
      * @return int|null
      * @throws \Exception
      */
-    private function saveImage(ImageModel $image): ?int
+    private function saveImage(AbstractImage $image): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
         $post = null;
@@ -375,7 +409,7 @@ class Image extends BaseController
             $id = Id::unlink($endpointId);
             $attachment = \get_post($id[0], ARRAY_A) ?? [];
 
-            if(!empty($attachment)){
+            if (!empty($attachment)) {
                 if ($this->isAttachmentUsedInOtherPlaces($attachment['ID'])) {
                     $attachment = [];
                     $relinkImage = true;
@@ -400,7 +434,7 @@ class Image extends BaseController
             $post = \wp_insert_attachment($attachment, $destination, $image->getForeignKey()->getEndpoint());
 
             if ($post instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($post);
+                $this->logger->error(ErrorFormatter::formatError($post));
 
                 return null;
             }
@@ -420,37 +454,44 @@ class Image extends BaseController
 
     /**
      * @param int $newEndpointId
-     * @param ImageModel $image
+     * @param AbstractImage $image
+     * @return void
+     * @throws DefinitionException
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
      * @throws \Exception
      */
-    protected function relinkImage(int $newEndpointId, ImageModel $image)
+    protected function relinkImage(int $newEndpointId, AbstractImage $image)
     {
-        $primaryKeyMapper = Application()->getConnector()->getPrimaryKeyMapper();
+        $primaryKeyMapper = $this->primaryKeyMapper;
 
-        switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_PRODUCT:
+        switch (get_class($image)) {
+            case ProductImage::class:
                 $newEndpoint = Id::linkProductImage($newEndpointId, $image->getForeignKey()->getEndpoint());
+                $type = IdentityType::PRODUCT_IMAGE;
                 break;
-            case ImageRelationType::TYPE_MANUFACTURER:
+            case ManufacturerImage::class:
                 $newEndpoint = Id::linkManufacturerImage($newEndpointId);
+                $type = IdentityType::MANUFACTURER_IMAGE;
                 break;
-            case ImageRelationType::TYPE_CATEGORY:
+            case CategoryImage::class:
                 $newEndpoint = Id::linkCategoryImage($newEndpointId);
+                $type = IdentityType::CATEGORY_IMAGE;
                 break;
             default:
                 throw new \Exception(sprintf('Relation type %s is not supported.', $image->getRelationType()));
         }
 
-        $primaryKeyMapper->delete($image->getId()->getEndpoint(), $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
-        $primaryKeyMapper->save($newEndpoint, $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
+        $primaryKeyMapper->delete($image->getId()->getEndpoint(), $image->getId()->getHost(), $image->getRelationType());
+        $primaryKeyMapper->save($type, $newEndpoint, $image->getId()->getHost());
 
         $image->getId()->setEndpoint($newEndpoint);
     }
 
 
     /**
-     * @param $name
-     * @return false|string\
+     * @param string $name
+     * @return string
      */
     private function sanitizeImageName(string $name): string
     {
@@ -484,17 +525,17 @@ class Image extends BaseController
     }
 
     /**
-     * @param ImageModel $image
+     * @param AbstractImage $image
      * @return string
      */
-    protected function getImageAlt(ImageModel $image)
+    protected function getImageAlt(AbstractImage $image)
     {
         $altText = $image->getName();
         $i18ns = $image->getI18ns();
 
         if (count($i18ns) > 0) {
             foreach ($i18ns as $i18n) {
-                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && !empty($i18n->getAltText())
                 ) {
                     $altText = $i18n->getAltText();
@@ -506,7 +547,7 @@ class Image extends BaseController
         return $altText;
     }
 
-    private function pushProductImage(ImageModel $image)
+    private function pushProductImage(ProductImage $image)
     {
         $productId = (int)$image->getForeignKey()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
@@ -520,8 +561,7 @@ class Image extends BaseController
         if ($this->isCoverImage($image)) {
             $result = \set_post_thumbnail($productId, $attachmentId);
             if ($result instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($result);
-
+                $this->logger->error(ErrorFormatter::formatError($result));
                 return null;
             }
         } else {
@@ -541,8 +581,7 @@ class Image extends BaseController
             $galleryImages = implode(self::GALLERY_DIVIDER, array_unique($galleryImages));
             $result = \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);
             if ($result instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($result);
-
+                $this->logger->error(ErrorFormatter::formatError($result));
                 return null;
             }
         }
@@ -550,7 +589,7 @@ class Image extends BaseController
         return Id::linkProductImage($attachmentId, $productId);
     }
 
-    private function pushCategoryImage(ImageModel $image)
+    private function pushCategoryImage(CategoryImage $image)
     {
         $categoryId = (int)$image->getForeignKey()->getEndpoint();
 
@@ -564,7 +603,7 @@ class Image extends BaseController
         return Id::linkCategoryImage($attachmentId);
     }
 
-    private function pushManufacturerImage(ImageModel $image)
+    private function pushManufacturerImage(ManufacturerImage $image)
     {
         $termId = (int)$image->getForeignKey()->getEndpoint();
 
@@ -577,17 +616,16 @@ class Image extends BaseController
 
         return Id::linkManufacturerImage($attachmentId);
     }
-    // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Delete">
-    protected function deleteData(ImageModel $image, $realDelete = true)
+    protected function deleteData(AbstractImage $image, $realDelete = true)
     {
         switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_PRODUCT:
+            case IdentityType::PRODUCT_IMAGE:
                 $this->deleteProductImage($image, $realDelete);
                 break;
-            case ImageRelationType::TYPE_CATEGORY:
-            case ImageRelationType::TYPE_MANUFACTURER:
+            case IdentityType::CATEGORY_IMAGE:
+            case IdentityType::MANUFACTURER_IMAGE:
                 $this->deleteImageTermMeta($image, $realDelete);
                 break;
         }
@@ -596,19 +634,30 @@ class Image extends BaseController
     }
 
     /**
-     * @param ImageModel $image
+     * @param AbstractModel $model
+     * @return AbstractModel
+     */
+    public function delete(AbstractModel $model): AbstractModel
+    {
+        return $this->deleteData($model);
+    }
+
+    /**
+     * @param AbstractImage $image
      * @param $realDelete
+     * @return void
+     * @throws DefinitionException
      * @throws \Exception
      */
-    private function deleteImageTermMeta(ImageModel $image, $realDelete)
+    private function deleteImageTermMeta(AbstractImage $image, $realDelete)
     {
         $endpointId = $image->getId()->getEndpoint();
-        switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_MANUFACTURER:
+        switch (get_class($image)) {
+            case ManufacturerImage::class:
                 $metaKey = self::MANUFACTURER_KEY;
                 $id = Id::unlinkCategoryImage($endpointId);
                 break;
-            case ImageRelationType::TYPE_CATEGORY:
+            case CategoryImage::class:
                 $metaKey = self::CATEGORY_THUMBNAIL;
                 $id = Id::unlinkManufacturerImage($endpointId);
                 break;
@@ -619,11 +668,11 @@ class Image extends BaseController
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
-            $this->deleteIfNotUsedByOthers((int) $id);
+            $this->deleteIfNotUsedByOthers((int)$id);
         }
     }
 
-    private function deleteProductImage(ImageModel $image, $realDelete)
+    private function deleteProductImage(ProductImage $image, $realDelete)
     {
         $imageEndpoint = $image->getId()->getEndpoint();
         $ids = Id::unlink($imageEndpoint);
@@ -703,10 +752,10 @@ class Image extends BaseController
     }
 
     /**
-     * @param ImageModel $image
+     * @param AbstractImage $image
      * @return bool
      */
-    private function isCoverImage(ImageModel $image)
+    private function isCoverImage(AbstractImage $image)
     {
         return $image->getSort() === 1;
     }

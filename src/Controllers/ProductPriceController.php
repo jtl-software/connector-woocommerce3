@@ -6,32 +6,32 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\ProductPrice as JtlProductPrice;
-use JtlWooCommerceConnector\Controllers\Product\Product;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use JtlWooCommerceConnector\Controllers\Product\ProductController;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice
+class ProductPriceController extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice implements PushInterface
 {
     /**
-     * @param JtlProductPrice $productPrice
-     *
-     * @return JtlProductPrice
+     * @param AbstractModel $model
+     * @return AbstractModel
      */
-    public function pushData(JtlProductPrice $productPrice)
+    public function push(AbstractModel $model) : AbstractModel
     {
-        $wcProduct = \wc_get_product($productPrice->getProductId()->getEndpoint());
+        $wcProduct = \wc_get_product($model->getProductId()->getEndpoint());
 
         if ($wcProduct !== false) {
-            $vat = $productPrice->getVat();
+            $vat = $model->getVat();
             if (is_null($vat)) {
-                $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+                $vat = $this->util->getTaxRateByTaxClass($wcProduct->get_tax_class());
             }
 
             $this->savePrices(
                 $wcProduct,
                 $vat,
                 $this->getJtlProductType($wcProduct),
-                ...[$productPrice]
+                ...[$model]
             );
 
             // Update the max and min prices for the parent product
@@ -42,7 +42,7 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
             \wc_delete_product_transients($wcProduct->get_id());
         }
 
-        return $productPrice;
+        return $model;
     }
 
     /**
@@ -53,14 +53,14 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
     {
         switch ($wcProduct->get_type()) {
             case 'variable':
-                $type = Product::TYPE_PARENT;
+                $type = ProductController::TYPE_PARENT;
                 break;
             case 'variation':
-                $type = Product::TYPE_CHILD;
+                $type = ProductController::TYPE_CHILD;
                 break;
             case 'simple':
             default:
-                $type = Product::TYPE_SINGLE;
+                $type = ProductController::TYPE_SINGLE;
                 break;
         }
 

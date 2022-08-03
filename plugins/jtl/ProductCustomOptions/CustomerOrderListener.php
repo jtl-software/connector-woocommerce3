@@ -2,7 +2,7 @@
 
 namespace jtl\ProductCustomOptions;
 
-use jtl\Connector\Event\CustomerOrder\CustomerOrderAfterPullEvent;
+use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
 
 /**
@@ -17,27 +17,27 @@ class CustomerOrderListener
     protected $customFieldNames = [];
 
     /**
-     * @var \wpdb
+     * @var Db
      */
-    protected $wpdb;
+    protected $database;
 
     /**
-     * CustomerOrderListener constructor.
+     * @param Db $database
      */
-    public function __construct()
+    public function __construct(Db $database)
     {
-        global $wpdb;
         $this->customFieldNames = get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
-        $this->wpdb = $wpdb;
+        $this->database = $database;
     }
 
     /**
-     * @param CustomerOrderAfterPullEvent $event
+     * @param CustomerOrderEvent $event
+     * @return void
      */
-    public function onCustomerOrderAfterPull(CustomerOrderAfterPullEvent $event)
+    public function onCustomerOrderAfterPull(CustomerOrderEvent $event)
     {
         if (!empty($this->getCustomFieldNames())) {
-            $customerOrder = $event->getCustomerOrder();
+            $customerOrder = $event->getOrder();
             $customerOrderItems = $customerOrder->getItems();
             foreach ($customerOrderItems as $customerOrderItem) {
                 $orderItemId = $customerOrderItem->getId();
@@ -49,7 +49,7 @@ class CustomerOrderListener
                             $orderItemNotes[] = $customerOrderItem->getNote();
                         }
                         $orderItemNotes[] = sprintf('%s: %s', 'Extra Product Options', $customProductOptionsInfo);
-                        $customerOrderItem->setNote(join(', ', $orderItemNotes));
+                        $customerOrderItem->setNote(implode(', ', $orderItemNotes));
                     }
                 }
             }
@@ -66,10 +66,10 @@ class CustomerOrderListener
 
         $sql = sprintf(
             'SELECT meta_key,meta_value FROM %swoocommerce_order_itemmeta WHERE order_item_id = %s AND meta_key IN (\'%s\')',
-            $this->wpdb->prefix, $wcOrderItemId, join("','", array_keys($this->getCustomFieldNames()))
+            $this->database->getWpDb()->prefix, $wcOrderItemId, join("','", array_keys($this->getCustomFieldNames()))
         );
 
-        $customOptions = Db::getInstance()->query($sql);
+        $customOptions = $this->database->query($sql);
         foreach ($customOptions as $customOption) {
             $label = !empty($this->customFieldNames[$customOption['meta_key']]) ? $this->customFieldNames[$customOption['meta_key']] : $customOption['meta_key'];
             $customProductOptions[] = sprintf('%s = %s', $label, $customOption['meta_value']);

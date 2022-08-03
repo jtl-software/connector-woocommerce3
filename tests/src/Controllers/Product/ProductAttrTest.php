@@ -2,10 +2,10 @@
 
 namespace JtlWooCommerceConnector\Tests\Controllers\Product;
 
-use Jtl\UnitTest\TestCase;
 use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
+use JtlWooCommerceConnector\Tests\AbstractTestCase;
 
-class ProductAttrTest extends TestCase
+class ProductAttrTest extends AbstractTestCase
 {
     /**
      * @dataProvider hasWcAttributePrefixDataProvider
@@ -16,7 +16,7 @@ class ProductAttrTest extends TestCase
      */
     public function testHasWcAttributePrefix(string $attributeName, bool $expectedResult): void
     {
-        $result = $this->invokeMethod(new ProductAttr(), 'hasWcAttributePrefix', $attributeName);
+        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createContainerMock()), 'hasWcAttributePrefix', $attributeName);
         $this->assertEquals($expectedResult, $result);
     }
 
@@ -26,8 +26,7 @@ class ProductAttrTest extends TestCase
             ['foo', false],
             ['wc_foo', true],
             ['wc__foo', true],
-            ['wc-_foo', false],
-            [111, false]
+            ['wc-_foo', false]
         ];
     }
 
@@ -40,7 +39,7 @@ class ProductAttrTest extends TestCase
      */
     public function testConvertLegacyAttributeName(string $attributeName, string $expectedAttributeName): void
     {
-        $result = $this->invokeMethod(new ProductAttr(), 'convertLegacyAttributeName', $attributeName);
+        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createContainerMock()), 'convertLegacyAttributeName', $attributeName);
         $this->assertEquals($expectedAttributeName, $result);
     }
 
@@ -50,8 +49,7 @@ class ProductAttrTest extends TestCase
             ['payable', 'wc_payable'],
             ['nosearch', 'wc_nosearch'],
             ['otherattr', 'otherattr'],
-            ['wc_gm_digital', 'wc_gm_digital'],
-            [100, 100]
+            ['wc_gm_digital', 'wc_gm_digital']
         ];
     }
 

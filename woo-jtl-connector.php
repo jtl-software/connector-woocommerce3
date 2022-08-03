@@ -30,24 +30,10 @@ if (!defined('ABSPATH')) {
 
 require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
-try {
-    if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
-        if (is_writable(sys_get_temp_dir())) {
-            $loader = require('phar://' . JTLWCC_CONNECTOR_DIR . '/connector.phar/vendor/autoload.php');
-            $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
-            if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
-                $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
-            }
-        }
-    } else {
-        $loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
-        $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
-        if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
-            $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
-        }
-    }
-} catch (\Exception $e) {
-
+$loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
+$loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
+if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
+    $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
 }
 
 add_action('init', 'jtlwcc_load_internationalization');

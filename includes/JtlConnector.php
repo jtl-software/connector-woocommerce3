@@ -1,41 +1,32 @@
 <?php
 
+use Jtl\Connector\Core\Application\Application;
+use Jtl\Connector\Core\Config\ConfigSchema;
+use JtlWooCommerceConnector\Connector;
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
  */
 final class JtlConnector
 {
-    protected static $_instance = null;
-
-    public static function instance()
-    {
-        if (is_null(self::$_instance)) {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }
-
     public static function capture_request()
     {
         global $wp;
-        
-        if (!empty($wp->request) && ($wp->request === 'jtlconnector' || $wp->request === 'index.php/jtlconnector')) {
-            $application = null;
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_destroy();
-            }
 
+        if (!empty($wp->request) && ($wp->request === 'jtlconnector' || $wp->request === 'index.php/jtlconnector')) {
             self::unslash_gpc();
 
-            try {
-                require(JTLWCC_CONNECTOR_DIR . '/src/bootstrap.php');
-            } catch (\Exception $e) {
-                if (is_object($application)) {
-                    $handler = $application->getErrorHandler()->getExceptionHandler();
-                    $handler($e);
-                }
+            $connector = new Connector();
+            $application = new Application(CONNECTOR_DIR);
+
+            $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
+            if(!file_exists($features)){
+                copy(sprintf('%s.example', $features), $features);
             }
+
+            $application->run($connector);
+
         }
     }
 

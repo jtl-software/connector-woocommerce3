@@ -6,16 +6,12 @@
 
 namespace JtlWooCommerceConnector\Event;
 
-use jtl\Connector\Result\Action;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleStatsEvent extends Event
 {
     const EVENT_NAME = 'connector.handle.stats';
 
-    /**
-     * @var Action
-     */
     protected $result;
     protected $controller;
 

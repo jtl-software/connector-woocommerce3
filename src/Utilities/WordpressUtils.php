@@ -2,14 +2,22 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Utilities\Singleton;
-
 /**
  * Class WordpressUtils
  * @package JtlWooCommerceConnector\Utilities
  */
-abstract class WordpressUtils extends Singleton
+abstract class WordpressUtils
 {
+    protected $database;
+
+    /**
+     * @param Db $database
+     */
+    public function __construct(Db $database)
+    {
+        $this->database = $database;
+    }
+
     /**
      * @param $postId
      * @param $metaKey

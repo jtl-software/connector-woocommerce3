@@ -4,23 +4,26 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace JtlWooCommerceConnector\Controllers\Order;
+namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
-use jtl\Connector\Model\CustomerOrderAttr;
-use jtl\Connector\Model\CustomerOrderPaymentInfo;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Payment\PaymentTypes;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Controllers\Payment;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Definition\PaymentType;
+use Jtl\Connector\Core\Model\CustomerOrder as CustomerOrderModel;
+use Jtl\Connector\Core\Model\CustomerOrderPaymentInfo;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\KeyValueAttribute;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderBillingAddress;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderItem;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderShippingAddress;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 use TheIconic\NameParser\Parser;
 
-class CustomerOrder extends BaseController
+class CustomerOrderController extends AbstractBaseController implements PullInterface, StatisticInterface
 {
     /** Order received (unpaid) */
     public const
@@ -41,11 +44,11 @@ class CustomerOrder extends BaseController
     const BILLING_ID_PREFIX = 'b_';
     const SHIPPING_ID_PREFIX = 's_';
 
-    public function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
         $orders = [];
 
-        $orderIds = $this->database->queryList(SqlHelper::customerOrderPull($limit));
+        $orderIds = $this->database->queryList(SqlHelper::customerOrderPull($queryFilter->getLimit()));
 
         foreach ($orderIds as $orderId) {
             $order = \wc_get_order($orderId);
@@ -69,25 +72,29 @@ class CustomerOrder extends BaseController
                 )
                 ->setOrderNumber($order->get_order_number())
                 ->setShippingMethodName($order->get_shipping_method())
-                ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
+                ->setPaymentModuleCode($this->util->mapPaymentModuleCode($order))
                 ->setPaymentStatus(CustomerOrderModel::PAYMENT_STATUS_UNPAID)
                 ->setStatus($this->status($order))
                 ->setTotalSum((float)$totalSum);
 
+            $customerOrderItemController = new CustomerOrderItem($this->database, $this->util);
+            $customerOrderBillingAddress = new CustomerOrderBillingAddress($this->database, $this->util);
+            $customerOrderShippingAddress = new CustomerOrderShippingAddress($this->database, $this->util);
+
             $customerOrder
-                ->setItems(CustomerOrderItem::getInstance()->pullData($order))
-                ->setBillingAddress(CustomerOrderBillingAddress::getInstance()->pullData($order))
-                ->setShippingAddress(CustomerOrderShippingAddress::getInstance()->pullData($order));
+                ->setItems(...$customerOrderItemController->pullData($order))
+                ->setBillingAddress($customerOrderBillingAddress->pullData($order))
+                ->setShippingAddress($customerOrderShippingAddress->pullData($order));
 
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
             }
 
-            if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_AMAPAY) {
+            if ($customerOrder->getPaymentModuleCode() === PaymentType::AMAPAY) {
                 $amazonChargePermissionId = $order->get_meta('amazon_charge_permission_id');
                 if (!empty($amazonChargePermissionId)) {
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('AmazonPay-Referenz')
                             ->setValue($amazonChargePermissionId)
                     );
@@ -98,7 +105,7 @@ class CustomerOrder extends BaseController
                 foreach ($order->get_meta_data() as $metaData) {
                     if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))) {
                         $customerOrder->addAttribute(
-                            (new CustomerOrderAttr())
+                            (new KeyValueAttribute())
                                 ->setKey($metaData->get_data()['key'])
                                 ->setValue($metaData->get_data()['value'])
                         );
@@ -106,7 +113,7 @@ class CustomerOrder extends BaseController
                 }
             }
 
-            if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_PAYPAL_PLUS) {
+            if ($customerOrder->getPaymentModuleCode() === PaymentType::PAYPAL_PLUS) {
                 $this->setPayPalPlusPaymentInfo($order, $customerOrder);
             }
 
@@ -139,13 +146,13 @@ class CustomerOrder extends BaseController
     {
         $instructionType = $order->get_meta('instruction_type');
 
-        if ($instructionType === Payment::PAY_UPON_INVOICE) {
+        if ($instructionType === PaymentController::PAY_UPON_INVOICE) {
             $payPalPlusSettings = get_option('woocommerce_paypal_plus_settings', []);
 
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
-                if (!empty($orderMetaData) && $orderMetaData['instruction_type'] === Payment::PAY_UPON_INVOICE) {
+                if (!empty($orderMetaData) && $orderMetaData['instruction_type'] === PaymentController::PAY_UPON_INVOICE) {
                     $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
                     if (!empty($bankData)) {
                         $pui = (sprintf(
@@ -181,11 +188,11 @@ class CustomerOrder extends BaseController
         return CustomerOrderModel::STATUS_NEW;
     }
 
-    protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder)
+    protected function setGermanizedPaymentInfo(CustomerOrderModel $customerOrder)
     {
         $directDebitGateway = new \WC_GZD_Gateway_Direct_Debit();
 
-        if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
+        if ($customerOrder->getPaymentModuleCode() === PaymentType::DIRECT_DEBIT) {
             $orderId = $customerOrder->getId()->getEndpoint();
 
             $bic = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
@@ -198,7 +205,7 @@ class CustomerOrder extends BaseController
 
             $customerOrder->setPaymentInfo($paymentInfo);
 
-        } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
+        } elseif ($customerOrder->getPaymentModuleCode() === PaymentType::INVOICE) {
             $settings = \get_option('woocommerce_invoice_settings');
 
             if (!empty($settings) && isset($settings['instructions'])) {
@@ -207,10 +214,10 @@ class CustomerOrder extends BaseController
         }
     }
 
-    protected function setPreferredDeliveryOptions(CustomerOrderModel &$customerOrder, $dhlPreferredDeliveryOptions = [])
+    protected function setPreferredDeliveryOptions(CustomerOrderModel $customerOrder, $dhlPreferredDeliveryOptions = [])
     {
         $customerOrder->addAttribute(
-            (new CustomerOrderAttr())
+            (new KeyValueAttribute())
                 ->setKey('dhl_wunschpaket_feeder_system')
                 ->setValue('wooc')
         );
@@ -220,21 +227,21 @@ class CustomerOrder extends BaseController
             switch ($optionName) {
                 case 'pr_dhl_preferred_day':
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_day')
                             ->setValue($optionValue)
                     );
                     break;
                 case 'pr_dhl_preferred_location':
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_location')
                             ->setValue($optionValue)
                     );
                     break;
                 case 'pr_dhl_preferred_time':
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_time')
                             ->setValue($optionValue)
                     );
@@ -247,14 +254,14 @@ class CustomerOrder extends BaseController
 
                     if (isset($streetParts['street'])) {
                         $customerOrder->addAttribute(
-                            (new CustomerOrderAttr())
+                            (new KeyValueAttribute())
                                 ->setKey('dhl_wunschpaket_neighbour_street')
                                 ->setValue($streetParts['street'])
                         );
                     }
                     if (isset($streetParts['number'])) {
                         $customerOrder->addAttribute(
-                            (new CustomerOrderAttr())
+                            (new KeyValueAttribute())
                                 ->setKey('dhl_wunschpaket_neighbour_house_number')
                                 ->setValue($streetParts['number'])
                         );
@@ -270,7 +277,7 @@ class CustomerOrder extends BaseController
                     }
 
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_neighbour_address_addition')
                             ->setValue($addressAddition)
                     );
@@ -292,17 +299,17 @@ class CustomerOrder extends BaseController
                     }
 
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_neighbour_salutation')
                             ->setValue($salutation)
                     );
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_neighbour_first_name')
                             ->setValue($firstName)
                     );
                     $customerOrder->addAttribute(
-                        (new CustomerOrderAttr())
+                        (new KeyValueAttribute())
                             ->setKey('dhl_wunschpaket_neighbour_last_name')
                             ->setValue($name->getLastname())
                     );
@@ -313,11 +320,11 @@ class CustomerOrder extends BaseController
 
     }
 
-    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder)
+    protected function setGermanMarketPaymentInfo(CustomerOrderModel $customerOrder)
     {
         $orderId = $customerOrder->getId()->getEndpoint();
 
-        if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
+        if ($customerOrder->getPaymentModuleCode() === PaymentType::DIRECT_DEBIT) {
             $instance = new \WGM_Gateway_Sepa_Direct_Debit();
             $gmSettings = $instance->settings;
             $bic = \get_post_meta($orderId, '_german_market_sepa_bic', true);
@@ -412,7 +419,7 @@ class CustomerOrder extends BaseController
             $customerOrder->setPui($pui);
             $customerOrder->setPaymentInfo($paymentInfo);
 
-        } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
+        } elseif ($customerOrder->getPaymentModuleCode() === PaymentType::INVOICE) {
             $instance = new \WGM_Gateway_Purchase_On_Account();
             $gmSettings = $instance->settings;
 

@@ -6,14 +6,26 @@
 
 namespace JtlWooCommerceConnector;
 
-use jtl\Connector\Base\Connector as BaseConnector;
-use jtl\Connector\Core\Controller\Controller as CoreController;
-use jtl\Connector\Core\Rpc\Method;
-use jtl\Connector\Core\Rpc\RequestPacket;
-use jtl\Connector\Core\Utilities\RpcMethod;
-use jtl\Connector\Event\Rpc\RpcBeforeEvent;
-use jtl\Connector\Result\Action;
-use JtlWooCommerceConnector\Authentication\TokenLoader;
+use DI\Container;
+use Jtl\Connector\Core\Application\Application;
+use Jtl\Connector\Core\Application\Request;
+use Jtl\Connector\Core\Application\Response;
+use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
+use Jtl\Connector\Core\Checksum\ChecksumLoaderInterface;
+use Jtl\Connector\Core\Config\ConfigSchema;
+use Jtl\Connector\Core\Connector\ConnectorInterface;
+use Jtl\Connector\Core\Connector\HandleRequestInterface;
+use Jtl\Connector\Core\Connector\UseChecksumInterface;
+use Jtl\Connector\Core\Definition\Action;
+use Jtl\Connector\Core\Definition\Controller;
+use Jtl\Connector\Core\Definition\Event;
+use Jtl\Connector\Core\Event\BoolEvent;
+use Jtl\Connector\Core\Event\RpcEvent;
+use Jtl\Connector\Core\Exception\ApplicationException;
+use Jtl\Connector\Core\Exception\DefinitionException;
+use Jtl\Connector\Core\Logger\LoggerService;
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
 use JtlWooCommerceConnector\Event\HandleDeleteEvent;
@@ -22,162 +34,196 @@ use JtlWooCommerceConnector\Event\HandlePushEvent;
 use JtlWooCommerceConnector\Event\HandleStatsEvent;
 use JtlWooCommerceConnector\Mapper\PrimaryKeyMapper;
 use JtlWooCommerceConnector\Utilities\B2BMarket;
+use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
+use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use Noodlehaus\ConfigInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class Connector extends BaseConnector {
-	/**
-	 * @var Action
-	 */
-	protected $action;
-	/**
-	 * @var CoreController
-	 */
-	protected $controller;
-	
-	public function __construct() {
-		$this->useSuperGlobals = false;
-	}
-	
-	public function initialize() {
-		$this->setPrimaryKeyMapper( new PrimaryKeyMapper() )
-		     ->setTokenLoader( new TokenLoader() )
-		     ->setChecksumLoader( new ChecksumLoader() );
+class Connector implements ConnectorInterface, UseChecksumInterface, HandleRequestInterface
+{
 
+    /**
+     * @var Db
+     */
+    protected $db;
 
-        $this->getEventDispatcher()->addListener(RpcBeforeEvent::EVENT_NAME, static function (RpcBeforeEvent $event) {
-            if ($event->getController() === 'connector' && $event->getAction() === 'auth') {
-                \JtlConnectorAdmin::loadFeaturesJson();
+    /**
+     * @var LoggerService
+     */
+    protected $loggerService;
+
+    /**
+     * @var SqlHelper
+     */
+    protected $sqlHelper;
+
+    /**
+     * @throws DefinitionException
+     */
+    public function initialize(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
+    {
+        global $wpdb;
+
+        $db = new Db($wpdb);
+        $util = new Util($db);
+
+        $this->db = $db;
+        $this->sqlHelper = new SqlHelper($this->db);
+        $this->loggerService = $container->get(LoggerService::class);
+        $container->set(Db::class, $db);
+        $container->set(Util::class, $util);
+
+        $dispatcher->addListener(Event::createRpcEventName(Event::BEFORE), static function (RpcEvent $event) use($config) {
+            if ($event->getController() === 'Connector' && $event->getAction() === 'auth') {
+                \JtlConnectorAdmin::loadFeaturesJson($config->get(ConfigSchema::FEATURES_PATH));
             }
         });
-    }
-	
-	public function canHandle() {
-		$controllerName  = RpcMethod::buildController( $this->getMethod()->getController() );
-		$controllerClass = Util::getInstance()->getControllerNamespace( $controllerName );
-		
-		if ( class_exists( $controllerClass ) && method_exists( $controllerClass, 'getInstance' ) ) {
-			$this->controller = $controllerClass::getInstance();
-			$this->action     = RpcMethod::buildAction( $this->getMethod()->getAction() );
-			
-			return is_callable( [ $this->controller, $this->action ] );
-		}
-		
-		$event = new CanHandleEvent( $this->getMethod()->getController(), $this->getMethod()->getAction() );
-		$this->eventDispatcher->dispatch( CanHandleEvent::EVENT_NAME, $event );
-		
-		return $event->isCanHandle();
-	}
-	
-	public function handle( RequestPacket $requestPacket ) {
-		$event = new CanHandleEvent( $this->getMethod()->getController(), $this->getMethod()->getAction() );
-		
-		$this->eventDispatcher->dispatch( CanHandleEvent::EVENT_NAME, $event );
-		
-		if ( $event->isCanHandle() ) {
-			return $this->handleCallByPlugin( $requestPacket );
-		}
-		
-		$this->controller->setMethod( $this->getMethod() );
-		
-		if ( $this->action === Method::ACTION_PUSH || $this->action === Method::ACTION_DELETE ) {
-			if ( ! is_array( $requestPacket->getParams() ) ) {
-				throw new \Exception( "Expecting request array, invalid data given" );
-			}
 
-            $this->disableGermanMarketActions();
-
-			$results  = [];
-			$action   = new Action();
-			$entities = $requestPacket->getParams();
-			
-			foreach ( $entities as $entity ) {
-				$result = $this->controller->{$this->action}( $entity );
-				
-				if ( $result instanceof Action && $result->getResult() !== null ) {
-					$results[] = $result->getResult();
-				}
-				
-				$action
-					->setHandled( true )
-					->setResult( $results )
-					->setError( $result->getError() );
-			}
-
-
-            if (in_array($controllerName = $this->getMethod()->getController(), ['product', 'category'])) {
-                (new B2BMarket())->handleCustomerGroupsBlacklists($controllerName, ...$entities);
+        $dispatcher->addListener(Event::createCoreEventName(Controller::CONNECTOR, Action::FINISH, Event::AFTER), static function (BoolEvent $event) use($db, $util) {
+            if (Config::get(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
+                (new CategoryUtil($db))->saveCategoryLevelsAsPreOrder();
+                \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no');
             }
-			
-			return $action;
-		}
-		
-		return $this->controller->{$this->action}( $requestPacket->getParams() );
-	}
+
+            $util->countCategories();
+            $util->countProductTags();
+            $util->syncMasterProducts();
+        });
+    }
+
+    /**
+     * @throws ApplicationException
+     * @throws \Throwable
+     * @throws \DI\NotFoundException
+     * @throws \ReflectionException
+     * @throws \DI\DependencyException
+     */
+    public function handle(Application $application, Request $request): Response
+    {
+        $event = new CanHandleEvent($request->getController(), $request->getAction());
+
+        $application->getEventDispatcher()->dispatch($event, CanHandleEvent::EVENT_NAME);
+
+        if ($event->isCanHandle()) {
+            $result = $this->handleCallByPlugin($application->getEventDispatcher(), $request);
+        } else {
+
+            if ($request->getController() === 'product' && in_array($request->getAction(), [Action::PUSH, Action::DELETE], true)) {
+                $this->disableGermanMarketActions();
+            }
+
+            $result = $application->handleRequest($this, $request);
+
+            if (in_array($controllerName = $request->getController(), ['product', 'category'])) {
+
+                $database = $application->getContainer()->get(Db::class);
+                $util = $application->getContainer()->get(Util::class);
+
+                (new B2BMarket($database, $util))->handleCustomerGroupsBlacklists($controllerName, ...$request->getParams());
+            }
+        }
+
+        return $result;
+    }
 
     protected function disableGermanMarketActions()
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            if ($this->getMethod()->getController() === 'product') {
-                remove_action('save_post', ['WGM_Product', 'save_product_digital_type']);
-            }
+            remove_action('save_post', ['WGM_Product', 'save_product_digital_type']);
         }
     }
-	
-	public function getController() {
-		return $this->controller;
-	}
-	
-	public function setController( CoreController $controller ) {
-		$this->controller = $controller;
-		
-		return $this;
-	}
-	
-	public function getAction() {
-		return $this->action;
-	}
-	
-	public function setAction( $action ) {
-		$this->action = $action;
-		
-		return $this;
-	}
-	
-	/**
-	 * This method allows main entities to be added by plugins.
-	 *
-	 * @param RequestPacket $requestPacket
-	 *
-	 * @return Action
-	 */
-	private function handleCallByPlugin( RequestPacket $requestPacket ) {
-		$action = new Action();
-		$action->setHandled( true );
-		
-		if ( $this->getMethod()->getAction() === 'pull' ) {
-			$event = new HandlePullEvent( $this->getMethod()->getController(), $requestPacket->getParams() );
-			$this->eventDispatcher->dispatch( HandlePullEvent::EVENT_NAME, $event );
-		} elseif ( $this->getMethod()->getAction() === 'statistic' ) {
-			$event = new HandleStatsEvent( $this->getMethod()->getController() );
-			$this->eventDispatcher->dispatch( HandleStatsEvent::EVENT_NAME, $event );
-		} elseif ( $this->getMethod()->getAction() === 'push' ) {
-			$event = new HandlePushEvent( $this->getMethod()->getController(), $requestPacket->getParams() );
-			$this->eventDispatcher->dispatch( HandlePushEvent::EVENT_NAME, $event );
-		} else {
-			$event = new HandleDeleteEvent( $this->getMethod()->getController(), $requestPacket->getParams() );
-			$this->eventDispatcher->dispatch( HandleDeleteEvent::EVENT_NAME, $event );
-		}
-		
-		$action->setResult( $event->getResult() );
-		
-		return $action;
-	}
-	
-	/**
-	 * @return $this
-	 */
-	public static function getInstance() {
-		return parent::getInstance();
-	}
+
+    /**
+     * This method allows main entities to be added by plugins.
+     * @param EventDispatcher $eventDispatcher
+     * @param Request $request
+     * @return Response
+     */
+    protected function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
+    {
+        if ($request->getAction() === 'pull') {
+            $event = new HandlePullEvent($request->getController(), $request->getParams());
+            $eventDispatcher->dispatch($event, HandlePullEvent::EVENT_NAME);
+        } elseif ($request->getAction() === 'statistic') {
+            $event = new HandleStatsEvent($request->getController());
+            $eventDispatcher->dispatch($event, HandleStatsEvent::EVENT_NAME);
+        } elseif ($request->getAction() === 'push') {
+            $event = new HandlePushEvent($request->getController(), $request->getParams());
+            $eventDispatcher->dispatch($event, HandlePushEvent::EVENT_NAME);
+        } else {
+            $event = new HandleDeleteEvent($request->getController(), $request->getParams());
+            $eventDispatcher->dispatch($event, HandleDeleteEvent::EVENT_NAME);
+        }
+
+        return new Response($event->getResult());
+    }
+
+    public function getChecksumLoader(): ChecksumLoaderInterface
+    {
+        $checksumLoader = new ChecksumLoader($this->getDb());
+        $checksumLoader->setLogger($this->getLoggerService()->get(LoggerService::CHANNEL_CHECKSUM));
+
+        return $checksumLoader;
+    }
+
+    public function getPrimaryKeyMapper(): PrimaryKeyMapperInterface
+    {
+        $primaryKeyMapper = new PrimaryKeyMapper($this->getDb(), $this->getSqlHelper());
+        $primaryKeyMapper->setLogger($this->getLoggerService()->get(LoggerService::CHANNEL_LINKER));
+
+        return $primaryKeyMapper;
+    }
+
+    public function getTokenValidator(): TokenValidatorInterface
+    {
+        return new TokenValidator(Config::get(Config::OPTIONS_TOKEN, ''));
+    }
+
+    public function getControllerNamespace(): string
+    {
+        return 'JtlWooCommerceConnector\Controllers';
+    }
+
+    public function getEndpointVersion(): string
+    {
+        return '2.0.0';
+    }
+
+    public function getPlatformVersion(): string
+    {
+        return '';
+    }
+
+    public function getPlatformName(): string
+    {
+        return 'WooCommerce';
+    }
+
+    /**
+     * @return Db
+     */
+    public function getDb(): Db
+    {
+        return $this->db;
+    }
+
+    /**
+     * @return LoggerService
+     */
+    public function getLoggerService(): LoggerService
+    {
+        return $this->loggerService;
+    }
+
+    /**
+     * @return SqlHelper
+     */
+    public function getSqlHelper(): SqlHelper
+    {
+        return $this->sqlHelper;
+    }
 }

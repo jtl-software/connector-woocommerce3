@@ -2,17 +2,25 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Model\DataModel;
+use Jtl\Connector\Core\Model\AbstractModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
 class B2BMarket extends WordpressUtils
 {
+    protected $util;
+
+    public function __construct(Db $database, Util $util)
+    {
+        parent::__construct($database);
+        $this->util = $util;
+    }
+
     /**
      * @param array $customerGroupsIds
      * @param string $metaKey
-     * @param DataModel ...$models
+     * @param AbstractModel ...$models
      */
-    protected function setB2BCustomerGroupBlacklist(array $customerGroupsIds, string $metaKey, DataModel ...$models)
+    protected function setB2BCustomerGroupBlacklist(array $customerGroupsIds, string $metaKey, AbstractModel ...$models)
     {
         $newCustomerGroupBlacklist = [];
         foreach ($models as $model) {
@@ -39,12 +47,12 @@ class B2BMarket extends WordpressUtils
 
     /**
      * @param string $controller
-     * @param DataModel ...$entities
+     * @param AbstractModel ...$entities
      */
-    public function handleCustomerGroupsBlacklists(string $controller, DataModel ...$entities)
+    public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities)
     {
-        $customerGroups = (new CustomerGroup())->pullData();
-        $customerGroupsIds = array_values(array_map(function (\jtl\Connector\Model\CustomerGroup $customerGroup) {
+        $customerGroups = (new CustomerGroup($this->database, $this->util))->pullData();
+        $customerGroupsIds = array_values(array_map(function (CustomerGroup $customerGroup) {
             return $customerGroup->getId()->getEndpoint();
         }, $customerGroups));
 

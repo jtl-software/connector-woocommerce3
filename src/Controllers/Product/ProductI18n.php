@@ -6,21 +6,20 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductI18n as ProductI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductI18n extends BaseController
+class ProductI18n extends AbstractBaseController
 {
     public function pullData(\WC_Product $product, ProductModel $model)
     {
         $i18n = (new ProductI18nModel())
-            ->setProductId($model->getId())
-            ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
+            ->setLanguageISO($this->util->getWooCommerceLanguage())
             ->setName($this->name($product))
             ->setDescription(html_entity_decode($product->get_description()))
             ->setShortDescription(html_entity_decode($product->get_short_description()))
@@ -29,15 +28,15 @@ class ProductI18n extends BaseController
         if ((SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
-            && Germanized::getInstance()->hasUnitProduct($product)) {
-            $i18n->setMeasurementUnitName(Germanized::getInstance()->getUnit($product));
+            && (new Germanized())->hasUnitProduct($product)) {
+            $i18n->setMeasurementUnitName((new Germanized())->getUnit($product));
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
         ) {
-            $tmpMeta = ProductMetaSeo::getInstance()->pullData($product, $model);
+            $tmpMeta = (new ProductMetaSeo($this->database, $this->util))->pullData($product, $model);
             if (is_array($tmpMeta)) {
                 $this->setI18nSeoData($i18n, $tmpMeta);
             }

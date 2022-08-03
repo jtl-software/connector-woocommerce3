@@ -6,8 +6,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
+use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\CustomerOrderController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
@@ -16,7 +17,7 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
     public function pullData(\WC_Order $order)
     {
         $address = (new CustomerOrderShippingAddressModel())
-            ->setId(new Identity(CustomerOrder::SHIPPING_ID_PREFIX . $order->get_id()))
+            ->setId(new Identity(CustomerOrderController::SHIPPING_ID_PREFIX . $order->get_id()))
             ->setFirstName($order->get_shipping_first_name())
             ->setLastName($order->get_shipping_last_name())
             ->setStreet($order->get_shipping_address_1())
@@ -39,7 +40,7 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
-            $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+            $address->setSalutation((new Germanized())->parseIndexToSalutation($index));
 
             $dhlPostNumber = $order->get_meta('_shipping_parcelshop_post_number', true);
             if (empty($dhlPostNumber)) {

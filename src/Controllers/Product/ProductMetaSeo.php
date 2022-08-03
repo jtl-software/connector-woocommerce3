@@ -7,12 +7,12 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductI18n as ProductI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class ProductMetaSeo extends BaseController
+class ProductMetaSeo extends AbstractBaseController
 {
     /**
      * @param $newPostId

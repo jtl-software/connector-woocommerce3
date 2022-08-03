@@ -1,8 +1,8 @@
 <?php
 namespace JtlWooCommerceConnector\Models;
 
-use jtl\Connector\Model\CrossSellingGroupI18n;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
@@ -33,18 +33,18 @@ class CrossSellingGroup
     /**
      * @return array
      */
-    public static function all()
+    public static function all(Util $util)
     {
         $groups = [];
         foreach (self::$groups as $group) {
-            $groups[] = self::createFromArray($group);
+            $groups[] = self::createFromArray($group, $util);
         }
         return $groups;
     }
 
     /**
      * @param $name
-     * @return bool|\jtl\Connector\Model\CrossSellingGroup
+     * @return false|\Jtl\Connector\Core\Model\CrossSellingGroup
      */
     public static function getByWooCommerceName($name)
     {
@@ -61,15 +61,16 @@ class CrossSellingGroup
 
     /**
      * @param array $groupData
-     * @return \jtl\Connector\Model\CrossSellingGroup
+     * @param Util $util
+     * @return \Jtl\Connector\Core\Model\CrossSellingGroup
      */
-    protected static function createFromArray(array $groupData)
+    protected static function createFromArray(array $groupData, Util $util)
     {
-        $crossSellingGroup = new \jtl\Connector\Model\CrossSellingGroup();
+        $crossSellingGroup = new \Jtl\Connector\Core\Model\CrossSellingGroup();
         $crossSellingGroup->setId(new Identity($groupData['endpointId']));
 
         $i18n = new CrossSellingGroupI18n();
-        $i18n->setLanguageISO(Util::getInstance()->getWooCommerceLanguage());
+        $i18n->setLanguageISO($util->getWooCommerceLanguage());
         $i18n->setName($groupData['name']);
 
         $crossSellingGroup->addI18n($i18n);

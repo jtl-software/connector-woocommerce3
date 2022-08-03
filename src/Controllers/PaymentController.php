@@ -6,9 +6,14 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Payment as PaymentModel;
-use jtl\Connector\Payment\PaymentTypes;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Definition\PaymentType;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\QueryFilter;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Payment as PaymentModel;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -16,7 +21,7 @@ use JtlWooCommerceConnector\Utilities\Util;
  * Class Payment
  * @package JtlWooCommerceConnector\Controllers
  */
-class Payment extends BaseController
+class PaymentController extends AbstractBaseController implements PullInterface, StatisticInterface, PushInterface
 {
     /**
      *
@@ -27,13 +32,13 @@ class Payment extends BaseController
      * @param $limit
      * @return array
      */
-    public function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
         $payments = [];
 
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($includeCompletedOrders, $limit));
+        $completedOrders = $this->database->queryList(SqlHelper::paymentCompletedPull($includeCompletedOrders, $queryFilter->getLimit()));
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
@@ -42,7 +47,7 @@ class Payment extends BaseController
                 continue;
             }
 
-            $paymentModuleCode = Util::getInstance()->mapPaymentModuleCode($order);
+            $paymentModuleCode = $this->util->mapPaymentModuleCode($order);
 
             $payments[] = (new PaymentModel())
                 ->setId(new Identity($order->get_id()))
@@ -65,7 +70,7 @@ class Payment extends BaseController
     {
         $transactionId = $order->get_transaction_id();
         switch ($paymentModuleCode) {
-            case PaymentTypes::TYPE_AMAPAY:
+            case PaymentType::AMAPAY:
                 $transactionId = $order->get_meta('amazon_charge_id');
         }
 
@@ -73,23 +78,23 @@ class Payment extends BaseController
     }
 
     /**
-     * @param PaymentModel $data
-     * @return PaymentModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws \WC_Data_Exception
      */
-    public function pushData(PaymentModel $data)
+    public function push(AbstractModel $model) : AbstractModel
     {
-        $order = \wc_get_order((int)$data->getCustomerOrderId()->getEndpoint());
+        $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());
 
         if (!$order instanceof \WC_Order) {
-            return $data;
+            return $model;
         }
 
-        $order->set_transaction_id($data->getTransactionId());
-        $order->set_date_paid($data->getCreationDate());
+        $order->set_transaction_id($model->getTransactionId());
+        $order->set_date_paid($model->getCreationDate());
         $order->save();
 
-        return $data;
+        return $model;
     }
 
     /**

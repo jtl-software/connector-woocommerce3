@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -11,7 +11,7 @@ use JtlWooCommerceConnector\Utilities\Util;
  * Class CustomerOrderAddress
  * @package JtlWooCommerceConnector\Controllers\Order
  */
-class CustomerOrderAddress extends BaseController
+class CustomerOrderAddress extends AbstractBaseController
 {
     /**
      * @param string $countryIso

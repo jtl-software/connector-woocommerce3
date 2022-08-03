@@ -6,8 +6,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ShippingMethod as ShippingMethodModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ShippingMethod as ShippingMethodModel;
 
 class ShippingMethod
 {

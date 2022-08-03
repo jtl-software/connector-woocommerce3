@@ -6,26 +6,32 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Specific as SpecificModel;
-use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
-use jtl\Connector\Model\SpecificValue as SpecificValueModel;
-use jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\QueryFilter;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Specific as SpecificModel;
+use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
+use Jtl\Connector\Core\Model\SpecificValue as SpecificValueModel;
+use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 use WP_Error;
 use WP_Query;
 
-class Specific extends BaseController
+class SpecificController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface, DeleteInterface
 {
     private static $idCache = [];
-    
-    protected function pullData($limit)
+
+    public function pull(QueryFilter $queryFilter): array
     {
         $specifics = [];
         
-        $specificData = $this->database->query(SqlHelper::specificPull($limit));
+        $specificData = $this->database->query(SqlHelper::specificPull($queryFilter->getLimit()));
         
         foreach ($specificData as $specificDataSet) {
             $specific = (new SpecificModel)
@@ -35,8 +41,7 @@ class Specific extends BaseController
             
             $specific->addI18n(
                 (new SpecificI18nModel)
-                    ->setSpecificId($specific->getId())
-                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
+                    ->setLanguageISO($this->util->getWooCommerceLanguage())
                     ->setName($specificDataSet['attribute_label'])
             );
             
@@ -50,12 +55,10 @@ class Specific extends BaseController
             
             foreach ($specificValueData as $specificValueDataSet) {
                 $specificValue = (new SpecificValueModel)
-                    ->setId(new Identity($specificValueDataSet['term_taxonomy_id']))
-                    ->setSpecificId($specific->getId());
+                    ->setId(new Identity($specificValueDataSet['term_taxonomy_id']));
                 
                 $specificValue->addI18n((new SpecificValueI18nModel)
-                    ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                    ->setSpecificValueId($specificValue->getId())
+                    ->setLanguageISO($this->util->getWooCommerceLanguage())
                     ->setValue($specificValueDataSet['name']));
                 
                 $specific->addValue($specificValue);
@@ -66,18 +69,18 @@ class Specific extends BaseController
         
         return $specifics;
     }
-    
-    protected function pushData(SpecificModel $specific)
+
+    public function push(AbstractModel $model) : AbstractModel
     {
         //WooFix
-        $specific->setType('string');
+        $model->setType('string');
         $meta = null;
         $defaultAvailable = false;
         
-        foreach ($specific->getI18ns() as $i18n) {
-            $languageSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
+        foreach ($model->getI18ns() as $i18n) {
+            $languageSet = $this->util->isWooCommerceLanguage($i18n->getLanguageIso());
             
-            if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+            if (strcmp($i18n->getLanguageIso(), 'de') === 0) {
                 $defaultAvailable = true;
             }
             
@@ -89,8 +92,8 @@ class Specific extends BaseController
         
         //Fallback 'ger' if incorrect language code was given
         if ($meta === null && $defaultAvailable) {
-            foreach ($specific->getI18ns() as $i18n) {
-                if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+            foreach ($model->getI18ns() as $i18n) {
+                if (strcmp($i18n->getLanguageIso(), 'de') === 0) {
                     $meta = $i18n;
                 }
             }
@@ -102,7 +105,7 @@ class Specific extends BaseController
             
             //STOP here if already exists
             $exId = Util::getAttributeTaxonomyIdByName($attrName);
-            $endId = (int)$specific->getId()->getEndpoint();
+            $endId = (int)$model->getId()->getEndpoint();
             
             if ($exId !== 0) {
                 if ($exId !== $endId) {
@@ -134,16 +137,13 @@ class Specific extends BaseController
             }
             
             if ($attributeId instanceof WP_Error) {
-                //var_dump($attributeId);
-                //die();
-                //return $termId->get_error_message();
-                WpErrorLogger::getInstance()->logError($attributeId);
+                $this->logger->error(ErrorFormatter::formatError($attributeId));
                 
-                return $specific;
+                return $model;
                 
             }
             
-            $specific->getId()->setEndpoint($attributeId);
+            $model->getId()->setEndpoint($attributeId);
             
             //Get taxonomy
             $taxonomy = $attrName ?
@@ -154,16 +154,15 @@ class Specific extends BaseController
             register_taxonomy($taxonomy, null);
             
             /** @var SpecificValueModel $value */
-            foreach ($specific->getValues() as $key => $value) {
-                $value->getSpecificId()->setEndpoint($attributeId);
+            foreach ($model->getValues() as $key => $value) {
                 $metaValue = null;
                 $defaultValueAvailable = false;
                 
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-                    $languageValueSet = Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO());
+                    $languageValueSet = $this->util->isWooCommerceLanguage($i18n->getLanguageIso());
                     
-                    if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                    if (strcmp($i18n->getLanguageIso(), 'de') === 0) {
                         $defaultValueAvailable = true;
                     }
                     
@@ -176,7 +175,7 @@ class Specific extends BaseController
                 //Fallback 'ger' if incorrect language code was given
                 if ($meta === null && $defaultValueAvailable) {
                     foreach ($value->getI18ns() as $i18n) {
-                        if (strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                        if (strcmp($i18n->getLanguageIso(), 'de') === 0) {
                             $metaValue = $i18n;
                         }
                     }
@@ -219,9 +218,7 @@ class Specific extends BaseController
                     );
                     
                     if ($newTerm instanceof WP_Error) {
-                        //  var_dump($newTerm);
-                        // die();
-                        WpErrorLogger::getInstance()->logError($newTerm);
+                        $this->logger->error(ErrorFormatter::formatError($newTerm));
                         continue;
                     }
                     
@@ -233,9 +230,7 @@ class Specific extends BaseController
                 }
                 
                 if ($termId instanceof WP_Error) {
-                    // var_dump($termId);
-                    // die();
-                    WpErrorLogger::getInstance()->logError($termId);
+                    $this->logger->error(ErrorFormatter::formatError($termId));
                     continue;
                 }
                 
@@ -247,20 +242,20 @@ class Specific extends BaseController
             }
         }
         
-        return $specific;
+        return $model;
     }
-    
-    protected function deleteData(SpecificModel $specific)
+
+    public function delete(AbstractModel $model): AbstractModel
     {
-        $specificId = (int)$specific->getId()->getEndpoint();
+        $specificId = (int)$model->getId()->getEndpoint();
         
         if (!empty($specificId)) {
             
-            unset(self::$idCache[$specific->getId()->getHost()]);
+            unset(self::$idCache[$model->getId()->getHost()]);
             
             $this->database->query(SqlHelper::removeSpecificLinking($specificId));
             $taxonomy = wc_attribute_taxonomy_name_by_id($specificId);
-            /** @var \WC_Product_Attribute $specific */
+            /** @var \WC_Product_Attribute $model */
             //$specific = wc_get_attribute($specificId);
             
             $specificValueData = $this->database->query(
@@ -315,7 +310,7 @@ class Specific extends BaseController
             }
         }
         
-        return $specific;
+        return $model;
     }
     
     protected function getStats()

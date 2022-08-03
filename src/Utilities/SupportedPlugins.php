@@ -130,9 +130,9 @@ final class SupportedPlugins
 
         if ($asString) {
             return implode(', ', $tmp);
-        } else {
-            return $plugins;
         }
+
+        return $plugins;
     }
 
     /**
@@ -158,16 +158,16 @@ final class SupportedPlugins
         if ($asString) {
             if ($all) {
                 return implode(', ', self::INCOMPATIBLE_PLUGINS);
-            } else {
-                return implode(', ', $tmp);
-            }
-        } else {
-            if ($all && $asArray) {
-                return self::INCOMPATIBLE_PLUGINS;
             }
 
-            return $plugins;
+            return implode(', ', $tmp);
         }
+
+        if ($all && $asArray) {
+            return self::INCOMPATIBLE_PLUGINS;
+        }
+
+        return $plugins;
     }
 
     /**

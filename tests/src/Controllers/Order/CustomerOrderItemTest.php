@@ -21,7 +21,7 @@ class CustomerOrderItemTest extends AbstractTestCase
      */
     public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate)
     {
-        $vatRate = $this->invokeMethodFromObject(new CustomerOrderItem(), 'calculateVat', $priceNet, $priceGross);
+        $vatRate = $this->invokeMethodFromObject(new CustomerOrderItem($this->createDbMock(), $this->createContainerMock()), 'calculateVat', $priceNet, $priceGross);
         $this->assertEquals($expectedVatRate, $vatRate);
     }
 

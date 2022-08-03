@@ -6,16 +6,17 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\CustomerGroupI18n;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\CustomerGroupI18n;
+use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class CustomerGroup
+class CustomerGroup extends AbstractController
 {
     const DEFAULT_GROUP = 'customer';
     
@@ -23,7 +24,7 @@ class CustomerGroup
     {
         $customerGroups = [];
         $isDefaultGroupSet = false;
-        $langIso = Util::getInstance()->getWooCommerceLanguage();
+        $langIso = $this->util->getWooCommerceLanguage();
         $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
@@ -35,7 +36,6 @@ class CustomerGroup
                 ->setIsDefault(true);
             
             $defaultI18n = (new CustomerGroupI18n)
-                ->setCustomerGroupId($defaultGroup->getId())
                 ->setName(__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
 
@@ -46,7 +46,7 @@ class CustomerGroup
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $sql = SqlHelper::customerGroupPull();
-            $result = Db::getInstance()->query($sql);
+            $result = $this->database->query($sql);
             
             if (count($result) > 0) {
                 foreach ($result as $group) {
@@ -76,7 +76,6 @@ class CustomerGroup
                         ->setIsDefault($isDefaultGroup);
                     
                     $i18n = (new CustomerGroupI18n)
-                        ->setCustomerGroupId($customerGroup->getId())
                         ->setName($group['post_title'])
                         ->setLanguageISO($langIso);
                     

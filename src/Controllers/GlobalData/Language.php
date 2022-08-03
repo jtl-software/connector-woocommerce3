@@ -6,9 +6,10 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WhiteCube\Lingua\Service;
 
 class Language
 {
@@ -16,21 +17,24 @@ class Language
     {
         $locale = \get_locale();
 
-        return (new \jtl\Connector\Model\Language())
-            ->setId(new Identity(Util::getInstance()->mapLanguageIso($locale)))
+        return (new \Jtl\Connector\Core\Model\Language())
+            ->setId(new Identity(Util::mapLanguageIso($locale)))
             ->setNameGerman($this->nameGerman($locale))
             ->setNameEnglish($this->nameEnglish($locale))
-            ->setLanguageISO(Util::getInstance()->mapLanguageIso($locale))
+            ->setLanguageISO(Util::mapLanguageIso($locale))
             ->setIsDefault(true);
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function nameGerman($locale)
     {
         if (function_exists('locale_get_display_language')) {
             return \locale_get_display_language($locale, 'de');
         }
 
-        $isoCode = strtoupper(LanguageUtil::map($locale));
+        $isoCode = $this->localeToIso($locale);
         $countries = WC()->countries->get_countries();
 
         return isset($countries[$isoCode]) ? $countries[$isoCode] : '';
@@ -42,9 +46,14 @@ class Language
             return \locale_get_display_language($locale, 'en');
         }
 
-        $isoCode = strtoupper(LanguageUtil::map($locale));
+        $isoCode = $this->localeToIso($locale);
         $countries = WC()->countries->get_countries();
 
         return isset($countries[$isoCode]) ? $countries[$isoCode] : '';
+    }
+
+    protected function localeToIso($locale)
+    {
+        return Service::create($locale)->toISO_639_2b();
     }
 }

@@ -6,9 +6,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -17,13 +17,13 @@ use JtlWooCommerceConnector\Utilities\Util;
  *
  * @package JtlWooCommerceConnector\Controllers\Product
  */
-class ProductGermanizedFields extends BaseController
+class ProductGermanizedFields extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
      * @param \WC_Product  $wcProduct
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct)
+    public function pullData(ProductModel $product, \WC_Product $wcProduct)
     {
         $this->setGermanizedAttributes($product, $wcProduct);
     }
@@ -32,10 +32,10 @@ class ProductGermanizedFields extends BaseController
      * @param ProductModel $product
      * @param \WC_Product  $wcProduct
      */
-    private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct)
+    private function setGermanizedAttributes(ProductModel $product, \WC_Product $wcProduct)
     {
         $units = new \WC_GZD_Units();
-        $germanizedUtils = Germanized::getInstance();
+        $germanizedUtils = new Germanized();
         if ($germanizedUtils->hasUnitProduct($wcProduct)) {
             $plugin = \get_plugin_data(WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
             
@@ -77,7 +77,7 @@ class ProductGermanizedFields extends BaseController
     /**
      * @param ProductModel $product
      */
-    private function updateGermanizedAttributes(ProductModel &$product)
+    private function updateGermanizedAttributes(ProductModel $product)
     {
         $id = $product->getId()->getEndpoint();
         $this->updateGermanizedBasePriceAndUnits($product, $id);

@@ -4,30 +4,43 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace JtlWooCommerceConnector\Controllers\GlobalData;
+namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\GlobalData as GlobalDataModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\GlobalData;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\GlobalData\Currency;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\GlobalData\Language;
+use JtlWooCommerceConnector\Controllers\GlobalData\MeasurementUnit;
+use JtlWooCommerceConnector\Controllers\GlobalData\ProductType;
+use JtlWooCommerceConnector\Controllers\GlobalData\ShippingClass;
+use JtlWooCommerceConnector\Controllers\GlobalData\ShippingMethod;
+use JtlWooCommerceConnector\Controllers\GlobalData\TaxRate;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class GlobalData extends BaseController
+class GlobalDataController extends AbstractBaseController implements PullInterface, PushInterface
 {
-    public function pullData()
+    /**
+     * @throws \Exception
+     */
+    public function pull(QueryFilter $queryFilter): array
     {
-        $globalData = (new GlobalDataModel())
+        $globalData = (new GlobalData())
             ->addCurrency((new Currency())->pullData())
             ->addLanguage((new Language())->pullData())
-            ->setProductTypes((new ProductType())->pullData())
-            ->setShippingClasses((new ShippingClass())->pullData())
-            ->setShippingMethods((new ShippingMethod())->pullData())
-            ->setCrossSellingGroups(CrossSellingGroup::all())
-            ->setTaxRates((new TaxRate())->pullData());
+            ->setProductTypes(...(new ProductType())->pullData())
+            ->setShippingClasses(...(new ShippingClass())->pullData())
+            ->setShippingMethods(...(new ShippingMethod())->pullData())
+            ->setCrossSellingGroups(...CrossSellingGroup::all($this->util))
+            ->setTaxRates(...(new TaxRate($this->database, $this->util))->pullData());
 
         $hasDefaultCustomerGroup = false;
-        foreach ((new CustomerGroup)->pullData() as $group) {
-            /** @var $group \jtl\Connector\Model\CustomerGroup */
+        foreach ((new CustomerGroup($this->database, $this->util))->pullData() as $group) {
             if($group->getIsDefault() === true){
                 $hasDefaultCustomerGroup = true;
             }
@@ -57,7 +70,7 @@ class GlobalData extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             )
             && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-            $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanizedData());
+            $globalData->setMeasurementUnits(...(new MeasurementUnit($this->database, $this->util))->pullGermanizedData());
         }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
@@ -100,17 +113,21 @@ class GlobalData extends BaseController
                 update_option('wgm_use_split_tax', 'on', true);
                 update_option('gm_gross_shipping_costs_and_fees', 'off', true);
             }
-            $globalData->setMeasurementUnits((new MeasurementUnit)->pullGermanMarketData());
+            $globalData->setMeasurementUnits(...(new MeasurementUnit($this->database, $this->util))->pullGermanMarketData());
         }
         
         return [$globalData];
     }
-    
-    public function pushData(GlobalDataModel $data)
+
+    /**
+     * @param GlobalData $model
+     * @return AbstractModel
+     */
+    public function push(AbstractModel $model) : AbstractModel
     {
-        (new Currency)->pushData($data->getCurrencies());
-        (new ShippingClass)->pushData($data->getShippingClasses());
+        (new Currency)->pushData($model->getCurrencies());
+        (new ShippingClass)->pushData($model->getShippingClasses());
         
-        return $data;
+        return $model;
     }
 }

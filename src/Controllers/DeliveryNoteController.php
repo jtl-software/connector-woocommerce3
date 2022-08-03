@@ -6,35 +6,37 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 use AST_Pro_Actions;
 
-class DeliveryNote extends BaseController
+class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param \jtl\Connector\Model\DeliveryNote $deliveryNote
-     * @return \jtl\Connector\Model\DeliveryNote
+     * @param \Jtl\Connector\Core\Model\DeliveryNote $model
+     * @return AbstractModel
      */
-    protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote)
+    public function push(AbstractModel $model) : AbstractModel
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE) ||
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
 
-            $orderId = $deliveryNote->getCustomerOrderId()->getEndpoint();
+            $orderId = $model->getCustomerOrderId()->getEndpoint();
 
             $order = \wc_get_order($orderId);
 
             if (!$order instanceof \WC_Order) {
-                return $deliveryNote;
+                return $model;
             }
 
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
-            foreach ($deliveryNote->getTrackingLists() as $trackingList) {
+            foreach ($model->getTrackingLists() as $trackingList) {
 
                 $trackingInfoItem = [];
-                $trackingInfoItem['date_shipped'] = $deliveryNote->getCreationDate()->format("Y-m-d");
+                $trackingInfoItem['date_shipped'] = $model->getCreationDate()->format("Y-m-d");
 
                 $trackingProviders = $shipmentTrackingActions->get_providers();
 
@@ -54,7 +56,7 @@ class DeliveryNote extends BaseController
             }
         }
 
-        return $deliveryNote;
+        return $model;
     }
 
     /**

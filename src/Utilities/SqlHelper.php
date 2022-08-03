@@ -7,7 +7,6 @@
 namespace JtlWooCommerceConnector\Utilities;
 
 use JtlWooCommerceConnector\Utilities\SqlTraits\CategoryTrait;
-use JtlWooCommerceConnector\Utilities\SqlTraits\ChecksumTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CrossSellingTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerGroupTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerOrderTrait;
@@ -24,22 +23,40 @@ use JtlWooCommerceConnector\Utilities\SqlTraits\SpecificTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\TaxesTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\WooCommerceDataTrait;
 
-final class SqlHelper {
-	use CategoryTrait,
-		ChecksumTrait,
-		CrossSellingTrait,
-		CustomerTrait,
+class SqlHelper
+{
+    use CategoryTrait,
+        CrossSellingTrait,
+        CustomerTrait,
         CustomerGroupTrait,
-		CustomerOrderTrait,
+        CustomerOrderTrait,
         GermanMarketTrait,
-		GermanizedDataTrait,
-		GlobalDataTrait,
-		ImageTrait,
+        GermanizedDataTrait,
+        GlobalDataTrait,
+        ImageTrait,
         ManufacturerTrait,
-		PaymentTrait,
-		PrimaryKeyMappingTrait,
-		ProductTrait,
-		SpecificTrait,
-		TaxesTrait,
-		WooCommerceDataTrait;
+        PaymentTrait,
+        PrimaryKeyMappingTrait,
+        ProductTrait,
+        SpecificTrait,
+        TaxesTrait,
+        WooCommerceDataTrait;
+
+    /**
+     * @var Db
+     */
+    protected $db;
+
+    public function __construct(Db $db)
+    {
+        $this->db = $db;
+    }
+
+    /**
+     * @return Db
+     */
+    public function getDb(): Db
+    {
+        return $this->db;
+    }
 }

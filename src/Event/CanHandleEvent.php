@@ -6,7 +6,7 @@
 
 namespace JtlWooCommerceConnector\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class CanHandleEvent extends Event
 {

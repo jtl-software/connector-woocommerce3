@@ -6,28 +6,35 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Category as CategoryModel;
-use jtl\Connector\Model\CategoryI18n as CategoryI18nModel;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class Category extends BaseController
+class CategoryController extends AbstractBaseController implements StatisticInterface, PullInterface, PushInterface, DeleteInterface
 {
     private static $idCache = [];
     
-    protected function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
         $categories = [];
-        
-        CategoryUtil::fillCategoryLevelTable();
-        $categoryData = $this->database->query(SqlHelper::categoryPull($limit));
+
+        $categoryUtil = new CategoryUtil($this->database, $this->util);
+        $categoryUtil->fillCategoryLevelTable();
+
+        $categoryData = $this->database->query(SqlHelper::categoryPull($queryFilter->getLimit()));
         
         foreach ($categoryData as $categoryDataSet) {
-            $category = (new CategoryModel)
+            $category = (new \Jtl\Connector\Core\Model\Category())
                 ->setId(new Identity($categoryDataSet['category_id']))
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
@@ -36,9 +43,8 @@ class Category extends BaseController
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
             
-            $i18n = (new CategoryI18nModel)
-                ->setCategoryId($category->getId())
-                ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
+            $i18n = (new CategoryI18n())
+                ->setLanguageISO($this->util->getWooCommerceLanguage())
                 ->setName(html_entity_decode($categoryDataSet['name']))
                 ->setDescription(html_entity_decode($categoryDataSet['description']))
                 ->setUrlPath($categoryDataSet['slug'])
@@ -61,7 +67,7 @@ class Category extends BaseController
                 $sql = SqlHelper::pullRankMathSeoTermData((int) $categoryDataSet['category_id']);
                 $categorySeoData = $this->database->query($sql);
                 if (is_array($categorySeoData)) {
-                    Util::setI18nRankMathSeo($i18n, $categorySeoData);
+                    $this->util->setI18nRankMathSeo($i18n, $categorySeoData);
                 }
             }
             
@@ -70,33 +76,38 @@ class Category extends BaseController
         
         return $categories;
     }
-    
-    protected function pushData(CategoryModel $category)
+
+    /**
+     * @param \Jtl\Connector\Core\Model\Category $model
+     * @return AbstractModel
+     * @throws \Exception
+     */
+    public function push(AbstractModel $model) : AbstractModel
     {
-        if (!$category->getIsActive()) {
-            return $category;
+        if (!$model->getIsActive()) {
+            return $model;
         }
         
         \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
         
-        $parentCategoryId = $category->getParentCategoryId();
+        $parentCategoryId = $model->getParentCategoryId();
         
         if ($parentCategoryId !== null && isset(self::$idCache[$parentCategoryId->getHost()])) {
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
         
         $meta = null;
-        $categoryId = (int)$category->getId()->getEndpoint();
+        $categoryId = (int)$model->getId()->getEndpoint();
         
-        foreach ($category->getI18ns() as $i18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+        foreach ($model->getI18ns() as $i18n) {
+            if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                 $meta = $i18n;
                 break;
             }
         }
         
         if (is_null($meta)) {
-            return $category;
+            return $model;
         }
         
         $categoryData = [
@@ -133,9 +144,9 @@ class Category extends BaseController
         add_filter('pre_term_description', 'wp_filter_kses');
         
         if ($result instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($result);
+            $this->logger->error(ErrorFormatter::formatError($result));
             
-            return $category;
+            return $model;
         }
     
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -176,20 +187,20 @@ class Category extends BaseController
                 'rank_math_description' => $i18n->getMetaDescription(),
                 'rank_math_focus_keyword' => $i18n->getMetaKeywords()
             ];
-            Util::updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
+            $this->util->updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
         
-        $category->getId()->setEndpoint($result['term_id']);
-        self::$idCache[$category->getId()->getHost()] = $result['term_id'];
+        $model->getId()->setEndpoint($result['term_id']);
+        self::$idCache[$model->getId()->getHost()] = $result['term_id'];
         
-        CategoryUtil::updateCategoryTree($category, empty($categoryId));
+        (new CategoryUtil($this->database, $this->util))->updateCategoryTree($model, empty($categoryId));
         
-        return $category;
+        return $model;
     }
-    
-    protected function deleteData(CategoryModel $specific)
+
+    public function delete(AbstractModel $model): AbstractModel
     {
-        $categoryId = $specific->getId()->getEndpoint();
+        $categoryId = $model->getId()->getEndpoint();
         
         if (!empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
@@ -197,15 +208,15 @@ class Category extends BaseController
             $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
             
             if ($result instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($result);
+                $this->logger->error(ErrorFormatter::formatError($result));
                 
-                return $specific;
+                return $model;
             }
             
-            unset(self::$idCache[$specific->getId()->getHost()]);
+            unset(self::$idCache[$model->getId()->getHost()]);
         }
         
-        return $specific;
+        return $model;
     }
     
     protected function getStats()

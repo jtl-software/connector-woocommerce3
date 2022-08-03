@@ -6,33 +6,30 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
-use jtl\Connector\Model\MeasurementUnitI18n;
-use JtlWooCommerceConnector\Utilities\Db;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\MeasurementUnit as MeasurementUnitModel;
+use Jtl\Connector\Core\Model\MeasurementUnitI18n;
+use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class MeasurementUnit
+class MeasurementUnit extends AbstractController
 {
     public function pullGermanizedData()
     {
         $measurementUnits = [];
         
-        $result = Db::getInstance()->query(SqlHelper::globalDataGermanizedMeasurementUnitPull());
+        $result = $this->database->query(SqlHelper::globalDataGermanizedMeasurementUnitPull());
         
         foreach ((array)$result as $row) {
             $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($row['id']))
-                ->setCode(Germanized::getInstance()->parseUnit($row['code']))
+                ->setCode((new Germanized())->parseUnit($row['code']))
                 ->setDisplayCode($row['code'])
-                ->setI18ns([
-                    (new MeasurementUnitI18n())
-                        ->setMeasurementUnitId(new Identity($row['id']))
-                        ->setName($row['code'])
-                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()),
-                ]);
+                ->setI18ns((new MeasurementUnitI18n())
+                    ->setName($row['code'])
+                    ->setLanguageISO($this->util->getWooCommerceLanguage()));
         }
         
         return $measurementUnits;
@@ -43,7 +40,7 @@ class MeasurementUnit
         $measurementUnits = [];
        
         $sql = SqlHelper::globalDataGMMUPullSpecific();
-        $specific = Db::getInstance()->query($sql);
+        $specific = $this->database->query($sql);
         
         if (count($specific) <= 0) {
             return $measurementUnits;
@@ -51,7 +48,7 @@ class MeasurementUnit
         
         $specific = $specific[0];
         
-        $values = Db::getInstance()->query(SqlHelper::specificValuePull(sprintf(
+        $values = $this->database->query(SqlHelper::specificValuePull(sprintf(
             'pa_%s',
             $specific['attribute_name']
         )));
@@ -65,7 +62,7 @@ class MeasurementUnit
                     (new MeasurementUnitI18n())
                         ->setMeasurementUnitId(new Identity($unit['term_id']))
                         ->setName($unit['description'])
-                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()),
+                        ->setLanguageISO($this->util->getWooCommerceLanguage()),
                 ]);
         }
         

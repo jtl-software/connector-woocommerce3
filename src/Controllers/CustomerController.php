@@ -6,10 +6,15 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Customer as CustomerModel;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Customer as CustomerModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -17,10 +22,12 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class Customer extends BaseController
+class CustomerController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
-    public function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
+        $limit = $queryFilter->getLimit();
+
         $customers = $this->pullCustomers($limit);
         $guests = $this->pullGuests($limit - count($customers));
 
@@ -79,7 +86,7 @@ class Customer extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
-                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
             }
 
             $customer->setVatNumber(Util::getVatIdFromCustomer($customerId));
@@ -90,7 +97,7 @@ class Customer extends BaseController
         return $customers;
     }
 
-    private function pullGuests($limit)
+    protected function pullGuests($limit)
     {
         $customers = [];
 
@@ -129,7 +136,7 @@ class Customer extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
-                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
             }
 
             $customers[] = $customer;
@@ -138,40 +145,40 @@ class Customer extends BaseController
         return $customers;
     }
 
-    public function pushData(CustomerModel $customer)
+    public function push(AbstractModel $model) : AbstractModel
     {
         // Only registered customers data can be updated
-        if (!$customer->getHasCustomerAccount()) {
-            return $customer;
+        if (!$model->getHasCustomerAccount()) {
+            return $model;
         }
 
         try {
-            $wcCustomer = new \WC_Customer((int)$customer->getId()->getEndpoint());
-            $wcCustomer->set_first_name($customer->getFirstName());
-            $wcCustomer->set_billing_first_name($customer->getFirstName());
-            $wcCustomer->set_last_name($customer->getLastName());
-            $wcCustomer->set_billing_last_name($customer->getLastName());
-            $wcCustomer->set_billing_company($customer->getCompany());
-            $wcCustomer->set_billing_address_1($customer->getStreet());
-            $wcCustomer->set_billing_address_2($customer->getExtraAddressLine());
-            $wcCustomer->set_billing_postcode($customer->getZipCode());
-            $wcCustomer->set_billing_city($customer->getCity());
-            $wcCustomer->set_state($customer->getState());
-            $wcCustomer->set_billing_country($customer->getCountryIso());
-            $wcCustomer->set_email($customer->getEMail());
-            $wcCustomer->set_billing_email($customer->getEMail());
-            $wcCustomer->set_billing_phone($customer->getPhone());
+            $wcCustomer = new \WC_Customer((int)$model->getId()->getEndpoint());
+            $wcCustomer->set_first_name($model->getFirstName());
+            $wcCustomer->set_billing_first_name($model->getFirstName());
+            $wcCustomer->set_last_name($model->getLastName());
+            $wcCustomer->set_billing_last_name($model->getLastName());
+            $wcCustomer->set_billing_company($model->getCompany());
+            $wcCustomer->set_billing_address_1($model->getStreet());
+            $wcCustomer->set_billing_address_2($model->getExtraAddressLine());
+            $wcCustomer->set_billing_postcode($model->getZipCode());
+            $wcCustomer->set_billing_city($model->getCity());
+            $wcCustomer->set_state($model->getState());
+            $wcCustomer->set_billing_country($model->getCountryIso());
+            $wcCustomer->set_email($model->getEMail());
+            $wcCustomer->set_billing_email($model->getEMail());
+            $wcCustomer->set_billing_phone($model->getPhone());
             $wcCustomer->save();
 
-            if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
+            if (($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null) {
                 wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
             }
 
         } catch (\Exception $exception) {
-            WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
+            $this->logger->error($exception->getTraceAsString());
         }
 
-        return $customer;
+        return $model;
     }
 
     /**

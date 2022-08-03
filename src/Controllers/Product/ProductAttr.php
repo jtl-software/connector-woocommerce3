@@ -6,16 +6,15 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
-use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductAttr extends BaseController
+class ProductAttr extends AbstractBaseController
 {
     public const
         VISIBILITY_HIDDEN = 'hidden',
@@ -62,7 +61,7 @@ class ProductAttr extends BaseController
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     continue;
                 }
 
@@ -242,7 +241,7 @@ class ProductAttr extends BaseController
             }
 
             foreach ($attribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     continue;
                 }
 
@@ -260,6 +259,7 @@ class ProductAttr extends BaseController
      * @param $slug
      * @param $languageIso
      * @return ProductAttrModel
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
      */
     private function buildAttribute(\WC_Product $product, \WC_Product_Attribute $attribute, $slug, $languageIso)
     {
@@ -270,14 +270,11 @@ class ProductAttr extends BaseController
         $values = explode(WC_DELIMITER, $productAttribute);
 
         $i18n = (new ProductAttrI18nModel)
-            ->setProductAttrId(new Identity($slug))
             ->setName($attribute->get_name())
             ->setValue(implode(', ', $values))
             ->setLanguageISO($languageIso);
 
         return (new ProductAttrModel)
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }

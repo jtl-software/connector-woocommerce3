@@ -6,16 +6,15 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\CustomerOrderItem as CustomerOrderItemModel;
+use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class CustomerOrderItem extends BaseController
+class CustomerOrderItem extends AbstractBaseController
 {
     const PRICE_DECIMALS = 4;
 
@@ -78,7 +77,6 @@ class CustomerOrderItem extends BaseController
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
-                ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(html_entity_decode($item->get_name()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
@@ -177,7 +175,6 @@ class CustomerOrderItem extends BaseController
     {
         return (new CustomerOrderItemModel())
             ->setId(new Identity($shippingItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
-            ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
             ->setName($shippingItem->get_name())
             ->setQuantity(1);
@@ -204,7 +201,6 @@ class CustomerOrderItem extends BaseController
     {
         return (new CustomerOrderItemModel())
             ->setId(new Identity($feeItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
-            ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
             ->setName($feeItem->get_name())
             ->setQuantity(1);
@@ -312,7 +308,7 @@ class CustomerOrderItem extends BaseController
     {
         $orderItemsVatRates = [];
         $highestVatRate = 0;
-        /** @var \jtl\Connector\Model\CustomerOrderItem $orderItem */
+        /** @var \Jtl\Connector\Core\Model\CustomerOrderItem $orderItem */
         foreach ($customerOrderItems as $orderItem) {
             $orderItemsVatRates[] = $orderItem->getVat();
             $highestVatRate = $orderItem->getVat() > $highestVatRate ? $orderItem->getVat() : $highestVatRate;
@@ -341,7 +337,6 @@ class CustomerOrderItem extends BaseController
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
                 ->setId(new Identity($itemId))
-                ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
                 ->setPrice(round(-1 * $total, Util::getPriceDecimals()))

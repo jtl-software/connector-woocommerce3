@@ -2,7 +2,9 @@
 
 namespace JtlWooCommerceConnector\Tests;
 
-use PHPUnit\Framework\TestCase;
+use DI\Container;
+use Jtl\UnitTest\TestCase;
+use JtlWooCommerceConnector\Utilities\Db;
 
 /**
  * Class AbstractTestCase
@@ -37,5 +39,19 @@ abstract class AbstractTestCase extends TestCase
         $reflectionProperty = $reflectionClass->getProperty($propertyName);
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($object, $value);
+    }
+
+    protected function createDbMock(array $onlyMethods = [])
+    {
+        return $this->getMockBuilder(Db::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods($onlyMethods)
+            ->getMock();
+    }
+
+    protected function createContainerMock()
+    {
+        return $this->getMockBuilder(Container::class)
+            ->getMock();
     }
 }

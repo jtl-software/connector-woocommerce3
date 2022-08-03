@@ -6,7 +6,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Linker\IdentityLinker;
+use Jtl\Connector\Core\Definition\IdentityType;
 
 final class Id
 {
@@ -44,7 +44,26 @@ final class Id
         
         return '';
     }
-    
+
+    public static function unlinkImage($endpointId)
+    {
+        list($typePrefix, $parts) = explode(self::SEPARATOR, $endpointId, 2);
+
+        if ($typePrefix === self::CATEGORY_PREFIX) {
+            return [$parts, IdentityType::CATEGORY_IMAGE];
+        }
+
+        if ($typePrefix === self::PRODUCT_PREFIX) {
+            return [$parts, IdentityType::PRODUCT_IMAGE];
+        }
+
+        if ($typePrefix === self::MANUFACTURER_PREFIX) {
+            return [$parts, IdentityType::MANUFACTURER_IMAGE];
+        }
+
+        return null;
+    }
+
     public static function linkCategoryImage($attachmentId)
     {
         return self::link([self::CATEGORY_PREFIX, $attachmentId]);
@@ -72,22 +91,7 @@ final class Id
         
         return '';
     }
-    
-    public static function unlinkImage($endpointId)
-    {
-        list($typePrefix, $parts) = explode(self::SEPARATOR, $endpointId, 2);
-        
-        if ($typePrefix === self::CATEGORY_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_CATEGORY];
-        } elseif ($typePrefix === self::PRODUCT_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_PRODUCT];
-        } elseif ($typePrefix === self::MANUFACTURER_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_MANUFACTURER];
-        }
-        
-        return null;
-    }
-    
+
     public static function unlinkCustomer($endpointId)
     {
         return [$endpointId, (int)(strpos($endpointId, self::SEPARATOR) !== false)];

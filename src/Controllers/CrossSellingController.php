@@ -6,10 +6,15 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\CrossSelling as CrossSellingModel;
-use jtl\Connector\Model\CrossSellingItem;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CrossSelling as CrossSellingModel;
+use Jtl\Connector\Core\Model\CrossSellingItem;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
@@ -17,20 +22,20 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
  * Class CrossSelling
  * @package JtlWooCommerceConnector\Controllers
  */
-class CrossSelling extends BaseController
+class CrossSellingController extends AbstractBaseController implements PullInterface, PushInterface, DeleteInterface, StatisticInterface
 {
     const CROSSSELLING_META_KEY = '_crosssell_ids';
     const UPSELLING_META_KEY = '_upsell_ids';
 
     /**
-     * @param $limit
+     * @param QueryFilter $queryFilter
      * @return array
      */
-    protected function pullData($limit)
+    public function pull(QueryFilter $queryFilter): array
     {
         $crossSelling = [];
 
-        $results = $this->database->query(SqlHelper::crossSellingPull($limit));
+        $results = $this->database->query(SqlHelper::crossSellingPull($queryFilter->getLimit()));
         $formattedResults = $this->formatResults($results);
 
         foreach ($formattedResults as $row) {
@@ -61,7 +66,7 @@ class CrossSelling extends BaseController
                 );
 
             } else {
-                WpErrorLogger::getInstance()->logError(sprintf('CrossSelling values for product id %s are empty', $row['post_id']));
+                $this->logger->error(sprintf('CrossSelling values for product id %s are empty', $row['post_id']));
             }
 
             reset($crossSelling);
@@ -96,21 +101,21 @@ class CrossSelling extends BaseController
     }
 
     /**
-     * @param CrossSellingModel $crossSelling
+     * @param CrossSellingModel $model
      * @return CrossSellingModel
      */
-    protected function pushData(CrossSellingModel $crossSelling)
+    public function push(AbstractModel $model) : AbstractModel
     {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
-            return $crossSelling;
+            return $model;
         }
 
-        $crossSelling->getId()->setEndpoint($crossSelling->getProductId()->getEndpoint());
+        $model->getId()->setEndpoint($model->getProductId()->getEndpoint());
 
-        $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+        $upSellProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
         $this->updateMetaKey(
             $product->get_id(),
@@ -124,23 +129,23 @@ class CrossSelling extends BaseController
             $upSellProducts
         );
 
-        return $crossSelling;
+        return $model;
     }
 
     /**
-     * @param CrossSellingModel $crossSelling
+     * @param CrossSellingModel $model
      * @return CrossSellingModel
      */
-    protected function deleteData(CrossSellingModel $crossSelling)
+    public function delete(AbstractModel $model): AbstractModel
     {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
-            return $crossSelling;
+            return $model;
         }
 
-        $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+        $upSellProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
         $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
         $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
@@ -157,7 +162,7 @@ class CrossSelling extends BaseController
             $upSellIds
         );
 
-        return $crossSelling;
+        return $model;
     }
 
     /**

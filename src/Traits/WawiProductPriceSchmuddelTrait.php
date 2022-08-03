@@ -6,28 +6,27 @@
 
 namespace JtlWooCommerceConnector\Traits;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
+use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Utilities\Util;
 
 trait WawiProductPriceSchmuddelTrait
 {
-    private function fixProductPriceForCustomerGroups(ProductModel &$product, \WC_Product $wcProduct)
+    private function fixProductPriceForCustomerGroups(ProductModel $product, \WC_Product $wcProduct)
     {
         $pd = \wc_get_price_decimals();
         $pushedPrices = $product->getPrices();
         $defaultPrices = null;
         $defaultPriceNet = 0;
         $prices = [];
-        $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+        $vat = $this->util->getTaxRateByTaxClass($wcProduct->get_tax_class());
         
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
                 if (count($product->getPrices()) === 1) {
-                    $customerGroups = (new CustomerGroup)->pullData();
+                    $customerGroups = (new CustomerGroup($this->database, $this->util))->pullData();
     
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $cKey => $customerGroup){
@@ -83,6 +82,6 @@ trait WawiProductPriceSchmuddelTrait
             }
         }
         
-        $product->setPrices($prices);
+        $product->setPrices(...$prices);
     }
 }

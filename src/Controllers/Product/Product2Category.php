@@ -6,14 +6,14 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\Product2Category as Product2CategoryModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
 
-class Product2Category extends BaseController
+class Product2Category extends AbstractBaseController
 {
     public function pullData(\WC_Product $product)
     {
@@ -23,7 +23,7 @@ class Product2Category extends BaseController
             $categories = $product->get_category_ids();
 
             if ($categories instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($categories);
+                $this->logger->error(ErrorFormatter::formatError($categories));
 
                 return [];
             }
@@ -31,7 +31,6 @@ class Product2Category extends BaseController
             foreach ($categories as $category) {
                 $productCategory = (new Product2CategoryModel())
                     ->setId(new Identity(Id::link([$product->get_id(), $category])))
-                    ->setProductId(new Identity($product->get_id()))
                     ->setCategoryId(new Identity($category));
 
                 $productCategories[] = $productCategory;

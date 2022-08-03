@@ -6,25 +6,26 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductStockLevel extends BaseController
+class ProductStockLevelController extends AbstractBaseController implements PushInterface
 {
-    public function pushData(ProductStockLevelModel $productStockLevel)
+    public function push(AbstractModel $model): AbstractModel
     {
-        $productId = $productStockLevel->getProductId()->getEndpoint();
+        $productId = $model->getProductId()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
         if ($wcProduct === false) {
-            return $productStockLevel;
+            return $model;
         }
 
         if ('yes' === \get_option('woocommerce_manage_stock')) {
             \update_post_meta($productId, '_manage_stock', 'yes');
 
-            $stockLevel = $productStockLevel->getStockLevel();
-            $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $wcProduct->backorders_allowed());
+            $stockLevel = $model->getStockLevel();
+            $stockStatus = $this->util->getStockStatus($stockLevel, $wcProduct->backorders_allowed());
 
             // Stock status is always determined by children so sync later.
             if (!$wcProduct->is_type('variable')) {
@@ -40,6 +41,6 @@ class ProductStockLevel extends BaseController
             \wc_delete_product_transients($wcProduct->get_id());
         }
 
-        return $productStockLevel;
+        return $model;
     }
 }

@@ -6,25 +6,26 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
+use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductPrice extends BaseController
+class ProductPrice extends AbstractBaseController
 {
     const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
     public function pullData(\WC_Product $product, ProductModel $model)
     {
         $prices = [];
-        $groupController = new CustomerGroup();
+        $groupController = new CustomerGroup($this->database, $this->util);
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $prices[] = (new ProductPriceModel())
@@ -32,7 +33,6 @@ class ProductPrice extends BaseController
                 ->setProductId(new Identity($product->get_id()))
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->addItem((new ProductPriceItemModel())
-                    ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity(1)
                     ->setNetPrice($this->netPrice($product)));
         } else {
@@ -44,7 +44,6 @@ class ProductPrice extends BaseController
                     ->setProductId(new Identity($product->get_id()))
                     ->setCustomerGroupId(new Identity(""))
                     ->addItem((new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product)));
             }
@@ -60,7 +59,6 @@ class ProductPrice extends BaseController
                    ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '<=', '1.0.3'))
                 ){
                     $items[] = (new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
                 } else {
@@ -73,7 +71,6 @@ class ProductPrice extends BaseController
                     }
 
                     $items[] = (new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice((float)$price);
 
@@ -84,7 +81,7 @@ class ProductPrice extends BaseController
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
                     ->setCustomerGroupId($customerGroup->getId())
-                    ->setItems($items);
+                    ->setItems(...$items);
             }
         }
 
@@ -161,7 +158,6 @@ class ProductPrice extends BaseController
         foreach ($bulkPrices as $bulkPrice) {
             if ($bulkPrice['bulk_price_type'] === 'fix') {
                 $items[] = (new ProductPriceItemModel())
-                    ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity((int)$bulkPrice['bulk_price_from'])
                     ->setNetPrice((float)$bulkPrice['bulk_price']);
             }
@@ -172,7 +168,7 @@ class ProductPrice extends BaseController
 
     protected function netPrice(\WC_Product $product)
     {
-        $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
+        $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
         $pd = Util::getPriceDecimals();
 
         $netPrice = (float)$product->get_regular_price();
@@ -189,7 +185,7 @@ class ProductPrice extends BaseController
      * @param ProductPriceModel ...$jtlProductPrices
      * @return array
      */
-    protected function groupProductPrices(\jtl\Connector\Model\ProductPrice ...$jtlProductPrices): array
+    protected function groupProductPrices(ProductPriceModel ...$jtlProductPrices): array
     {
         $groupedProductPrices = [];
 
@@ -201,11 +197,11 @@ class ProductPrice extends BaseController
                     $groupedProductPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                         ->setProductId($price->getProductId())
-                        ->setItems($price->getItems());
+                        ->setItems(...$price->getItems());
                 }
             }
 
-            if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
+            if ($this->util->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
                     $endpoint = self::GUEST_CUSTOMER_GROUP;
                     if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
@@ -225,7 +221,7 @@ class ProductPrice extends BaseController
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
      */
-    public function savePrices(\WC_Product $wcProduct, float $vat, string $productType, \jtl\Connector\Model\ProductPrice ...$productPrices)
+    public function savePrices(\WC_Product $wcProduct, float $vat, string $productType, ProductPriceModel ...$productPrices)
     {
         Util::deleteB2Bcache();
 
@@ -253,7 +249,7 @@ class ProductPrice extends BaseController
 
         /** @var ProductPriceModel $productPrice */
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
-            if ((string)$customerGroupId === self::GUEST_CUSTOMER_GROUP || !Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)) {
+            if ((string)$customerGroupId === self::GUEST_CUSTOMER_GROUP || !$this->util->isValidCustomerGroup((string)$customerGroupId)) {
                 continue;
             }
 
@@ -364,13 +360,13 @@ class ProductPrice extends BaseController
                 'bm_%s_price',
                 $customerGroup->post_name);
 
-            if ($productType !== Product::TYPE_PARENT) {
+            if ($productType !== ProductController::TYPE_PARENT) {
                 $metaKeyForCustomerGroupRegularPrice = sprintf(
                     '_jtlwcc_bm_%s_regular_price',
                     $customerGroup->post_name
                 );
 
-                if ($productType === Product::TYPE_CHILD) {
+                if ($productType === ProductController::TYPE_CHILD) {
                     $parentProduct = \wc_get_product($wcProduct->get_parent_id());
                     if ($parentProduct instanceof \WC_Product) {
                         $childParentPrice = sprintf(
@@ -404,7 +400,7 @@ class ProductPrice extends BaseController
                 \get_post_meta($productId, $metaKeyForCustomerGroupPrice, true)
             );
 
-            if ($productType !== Product::TYPE_PARENT && isset($metaKeyForCustomerGroupRegularPrice)) {
+            if ($productType !== ProductController::TYPE_PARENT && isset($metaKeyForCustomerGroupRegularPrice)) {
                 \update_post_meta($productId, $metaKeyForCustomerGroupRegularPrice,
                     \wc_format_decimal($regularPrice, $pd),
                     \get_post_meta($productId, $metaKeyForCustomerGroupRegularPrice, true));

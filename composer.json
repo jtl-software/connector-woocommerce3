@@ -18,24 +18,22 @@
     }
   ],
   "config": {
-    "platform": {
-      "php": "7.1.3"
-    },
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
     }
   },
   "require": {
-    "php": ">=7.1.3",
-    "jtl/connector": "^3.2",
+    "php": ">=7.2",
+    "jtl/connector": "^5.1",
     "symfony/yaml": "^3.4",
     "twbs/bootstrap": "^4.3",
     "theiconic/name-parser": "^0.1.1",
     "php-units-of-measure/php-units-of-measure": "^2.1",
-    "nette/utils": "^3.1"
+    "nette/utils": "^3.1",
+    "psr/log": "^1.1"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7.5",
+    "phpunit/phpunit": "^9.5",
     "php-mock/php-mock": "^2.2",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
     "phpcompatibility/phpcompatibility-wp": "*",

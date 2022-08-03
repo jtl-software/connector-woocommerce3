@@ -6,9 +6,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ShippingClass as ShippingClassModel;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ShippingClass as ShippingClassModel;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 
 class ShippingClass
 {
@@ -36,7 +36,7 @@ class ShippingClass
                 $result = \wp_insert_term($shippingClass->getName(), self::TERM_TAXONOMY);
                 
                 if ($result instanceof \WP_Error) {
-                    WpErrorLogger::getInstance()->logError($result);
+                    $this->logger->error(ErrorFormatter::formatError($result));
                     continue;
                 }
                 

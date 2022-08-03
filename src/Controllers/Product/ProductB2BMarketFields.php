@@ -6,18 +6,18 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Product as ProductModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class ProductB2BMarketFields extends BaseController
+class ProductB2BMarketFields extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct)
+    public function pullData(ProductModel $product, \WC_Product $wcProduct)
     {
         $this->setRRPProperty($product, $wcProduct);
     }
@@ -26,7 +26,7 @@ class ProductB2BMarketFields extends BaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      */
-    private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct)
+    private function setRRPProperty(ProductModel $product, \WC_Product $wcProduct)
     {
         $rrp = get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         if ($rrp !== '' && !is_null($rrp) && !empty($rrp)) {
@@ -55,7 +55,7 @@ class ProductB2BMarketFields extends BaseController
      */
     protected function updateMinimumOrderQuantity(ProductModel $product, \WC_Product $wcProduct)
     {
-        $groupController = new CustomerGroup();
+        $groupController = new CustomerGroup($this->database, $this->util);
 
         $updatedEndpoints = [];
 
