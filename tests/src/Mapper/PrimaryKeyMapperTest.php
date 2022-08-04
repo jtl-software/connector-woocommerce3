@@ -74,7 +74,11 @@ class PrimaryKeyMapperTest extends AbstractTestCase
         $db = $this->createDbMock(['query']);
         $db->expects($this->once())->method('query')->willReturn(1);
 
-        $sqlHelper = $this->createSqlHelperMock();
+        $where = "WHERE endpoint_id = 'c_1' AND host_id = 1 AND type = 1";
+        $table = 'jtl_connector_link_category';
+
+        $sqlHelper = $this->createSqlHelperMock(['primaryKeyMappingDelete']);
+        $sqlHelper->expects($this->once())->method('primaryKeyMappingDelete')->with($where,$table);
 
         $primaryKeyMapper = $this->createPrimaryKeyMapperMock([$db, $sqlHelper]);
 
@@ -91,9 +95,10 @@ class PrimaryKeyMapperTest extends AbstractTestCase
             ->getMock();
     }
 
-    protected function createSqlHelperMock()
+    protected function createSqlHelperMock(array $onlyMethods = [])
     {
         return $this->getMockBuilder(SqlHelper::class)
+            ->onlyMethods($onlyMethods)
             ->disableOriginalConstructor()
             ->getMock();
     }

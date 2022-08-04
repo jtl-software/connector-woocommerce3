@@ -8,7 +8,6 @@ namespace JtlWooCommerceConnector\Mapper;
 
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
-use JtlWooCommerceConnector\Logger\PrimaryKeyMappingLogger;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
