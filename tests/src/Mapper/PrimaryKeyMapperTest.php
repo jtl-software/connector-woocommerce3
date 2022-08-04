@@ -37,7 +37,14 @@ class PrimaryKeyMapperTest extends AbstractTestCase
         $this->assertEquals('c_1', $result);
     }
 
-    public function testSave(): void
+    /**
+     * @dataProvider saveDifferentIdentitiesDataProvider
+     * @param int $type
+     * @param string $endpointId
+     * @param int $hostId
+     * @return void
+     */
+    public function testSave(int $type, string $endpointId, int $hostId): void
     {
         $db = $this->createDbMock(['query']);
         $db->expects($this->once())->method('query')->willReturn([1]);
@@ -46,9 +53,20 @@ class PrimaryKeyMapperTest extends AbstractTestCase
 
         $primaryKeyMapper = $this->createPrimaryKeyMapperMock([$db, $sqlHelper]);
 
-        $result = $primaryKeyMapper->save(IdentityType::CATEGORY, 'c_1',1);
+        $result = $primaryKeyMapper->save($type, $endpointId, $hostId);
 
         $this->assertTrue($result);
+    }
+
+    public function saveDifferentIdentitiesDataProvider(): array
+    {
+        return [
+            [IdentityType::PRODUCT_IMAGE, 'p_11_10', 1],
+            [IdentityType::CATEGORY_IMAGE, 'c_11', 1],
+            [IdentityType::CUSTOMER_GROUP, 'customer', 1],
+            [IdentityType::CUSTOMER, '1', 1],
+            [IdentityType::CROSS_SELLING_GROUP, '1', 1],
+        ];
     }
 
     public function testDelete(): void
@@ -60,7 +78,7 @@ class PrimaryKeyMapperTest extends AbstractTestCase
 
         $primaryKeyMapper = $this->createPrimaryKeyMapperMock([$db, $sqlHelper]);
 
-        $result = $primaryKeyMapper->delete(IdentityType::CATEGORY, 'c_1',1);
+        $result = $primaryKeyMapper->delete(IdentityType::CATEGORY, 'c_1', 1);
 
         $this->assertTrue($result);
     }

@@ -8,7 +8,7 @@ namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Definition\IdentityType;
 
-final class Id
+class Id
 {
     const SEPARATOR = '_';
     const PRODUCT_PREFIX = 'p';
@@ -29,20 +29,6 @@ final class Id
     public static function linkProductImage($imageId, $productId)
     {
         return self::link([self::PRODUCT_PREFIX, $imageId, $productId]);
-    }
-    
-    public static function unlinkProductImage($endpoint)
-    {
-        if (strstr($endpoint, self::PRODUCT_PREFIX . self::SEPARATOR)) {
-            $parts = self::unlink($endpoint);
-            if (count($parts) === 3) {
-                return array_splice($parts, 1);
-            }
-            
-            return '';
-        }
-        
-        return '';
     }
 
     public static function unlinkImage($endpointId)

@@ -6,7 +6,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-final class SupportedPlugins
+class SupportedPlugins
 {
     //THEMESPECIALS
 

@@ -634,7 +634,7 @@ class ImageController extends AbstractBaseController implements PullInterface, S
     }
 
     /**
-     * @param AbstractModel $model
+     * @param AbstractImage $model
      * @return AbstractModel
      */
     public function delete(AbstractModel $model): AbstractModel
@@ -655,14 +655,14 @@ class ImageController extends AbstractBaseController implements PullInterface, S
         switch (get_class($image)) {
             case ManufacturerImage::class:
                 $metaKey = self::MANUFACTURER_KEY;
-                $id = Id::unlinkCategoryImage($endpointId);
+                $id = Id::unlinkManufacturerImage($endpointId);
                 break;
             case CategoryImage::class:
                 $metaKey = self::CATEGORY_THUMBNAIL;
-                $id = Id::unlinkManufacturerImage($endpointId);
+                $id = Id::unlinkCategoryImage($endpointId);
                 break;
             default:
-                throw new \Exception(sprintf("Invalid relation %s type for id %s when deleting image.", $image->getRelationType(), $endpointId));
+                throw new \RuntimeException(sprintf("Invalid relation %s type for id %s when deleting image.", $image->getRelationType(), $endpointId));
         }
 
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
