@@ -138,7 +138,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface, LoggerAwareInterfac
 
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
-        $where = '';
+        $where = [];
         $tableName = self::getTableName($type);
 
         if (is_null($tableName)) {
@@ -147,17 +147,21 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface, LoggerAwareInterfac
 
         $this->logger->debug(sprintf('Delete: endpoint (%s), host (%s) and type (%s)', $endpointId, $hostId, $type));
 
-        $endpoint = "'{$endpointId}'";
-
-        if ($endpointId !== null && $hostId !== null) {
-            $where = "WHERE endpoint_id = {$endpoint} AND host_id = {$hostId}";
-        } elseif ($endpointId !== null) {
-            $where = "WHERE endpoint_id = {$endpoint}";
-        } elseif ($hostId !== null) {
-            $where = "WHERE host_id = {$hostId}";
+        if ($endpointId !== "") {
+            $where[] = sprintf("endpoint_id = '%s'", $endpointId);
+        }
+        if ($hostId !== 0) {
+            $where[] = sprintf("host_id = %d", $hostId);
+        }
+        if ($type !== 0) {
+            $where[] = sprintf('type = %d', $type);
         }
 
-        return $this->db->query($this->getSqlHelper()->primaryKeyMappingDelete($where, $tableName), false) !== null;
+        $whereCondition = sprintf('WHERE %s', implode(' AND ', $where));
+
+        $deleteMappingQuery = $this->getSqlHelper()->primaryKeyMappingDelete($whereCondition, $tableName);
+
+        return $this->db->query($deleteMappingQuery) !== null;
     }
 
     public function clear(int $type = null): bool
