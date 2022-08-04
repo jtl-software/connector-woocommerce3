@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+* 
+
 This is the changelog of our "JTL WooCommerce Connector".
 ## 1.37.1
 * fix WP Plugin Version

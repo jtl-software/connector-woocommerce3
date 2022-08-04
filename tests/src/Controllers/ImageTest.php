@@ -1,8 +1,13 @@
 <?php
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
+use JtlWooCommerceConnector\Controllers\ImageController;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -43,7 +48,19 @@ class ImageTest extends TestCase
      */
     public function testGetImageAltText(ProductImage $image, $expectedAltText)
     {
-        $imageController = new \JtlWooCommerceConnector\Controllers\ImageController();
+        $db = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+
+        $return = [false];
+        if (count($image->getI18ns())) {
+            $return = [false, true];
+        }
+
+        $util->expects($this->exactly(count($image->getI18ns())))->method('isWooCommerceLanguage')->willReturnOnConsecutiveCalls(...$return);
+
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $imageController = new ImageController($db, $util, $primaryKeyMapper);
 
         $controller = new \ReflectionClass($imageController);
         $getImageAlt = $controller->getMethod('getImageAlt');

@@ -40,7 +40,7 @@ class PrimaryKeyMapperTest extends AbstractTestCase
     public function testSave(): void
     {
         $db = $this->createDbMock(['query']);
-        $db->expects($this->once())->method('query')->willReturn([]);
+        $db->expects($this->once())->method('query')->willReturn([1]);
 
         $sqlHelper = $this->createSqlHelperMock();
 

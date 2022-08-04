@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Tests;
 use DI\Container;
 use Jtl\UnitTest\TestCase;
 use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class AbstractTestCase
@@ -54,4 +55,13 @@ abstract class AbstractTestCase extends TestCase
         return $this->getMockBuilder(Container::class)
             ->getMock();
     }
+
+    protected function createUtilMock()
+    {
+        return $this->getMockBuilder(Util::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
+
+
 }

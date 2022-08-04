@@ -16,7 +16,7 @@ class ProductAttrTest extends AbstractTestCase
      */
     public function testHasWcAttributePrefix(string $attributeName, bool $expectedResult): void
     {
-        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createContainerMock()), 'hasWcAttributePrefix', $attributeName);
+        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createUtilMock()), 'hasWcAttributePrefix', $attributeName);
         $this->assertEquals($expectedResult, $result);
     }
 
@@ -39,7 +39,7 @@ class ProductAttrTest extends AbstractTestCase
      */
     public function testConvertLegacyAttributeName(string $attributeName, string $expectedAttributeName): void
     {
-        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createContainerMock()), 'convertLegacyAttributeName', $attributeName);
+        $result = $this->invokeMethod(new ProductAttr($this->createDbMock(), $this->createUtilMock()), 'convertLegacyAttributeName', $attributeName);
         $this->assertEquals($expectedAttributeName, $result);
     }
 

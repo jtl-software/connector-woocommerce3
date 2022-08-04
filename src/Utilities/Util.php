@@ -20,7 +20,7 @@ use WhiteCube\Lingua\Service;
  *
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Util extends WordpressUtils
+class Util extends WordpressUtils
 {
     const TO_SYNC = 'jtlconnector_master_products_to_sync';
     const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
@@ -93,7 +93,7 @@ final class Util extends WordpressUtils
     public static function setBulkPricesQuantityTo(array $bulkPrices)
     {
         usort($bulkPrices, function ($a, $b) {
-            return (int)$a['bulk_price_from'] > (int)$b['bulk_price_from'];
+            return (int)$a['bulk_price_from'] > (int)$b['bulk_price_from'] ? 1 : 0;
         });
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
