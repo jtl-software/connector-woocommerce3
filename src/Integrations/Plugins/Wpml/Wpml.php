@@ -186,7 +186,6 @@ class Wpml extends AbstractPlugin
         $plugins = [
             SupportedPlugins::PLUGIN_WPML_MULTILINGUAL_CMS,
             SupportedPlugins::PLUGIN_WPML_STRING_TRANSLATION,
-            SupportedPlugins::PLUGIN_WPML_TRANSLATION_MANAGEMENT,
             SupportedPlugins::PLUGIN_WOOCOMMERCE_MULTILUNGUAL
         ];
 
