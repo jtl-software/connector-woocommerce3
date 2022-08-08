@@ -36,12 +36,13 @@ class WpmlSpecificValue extends AbstractComponent
     /**
      * @param string $taxonomy
      * @param SpecificValue $specificValue
+     * @param int $mainSpecificValueId
      * @throws \Exception
      */
-    public function setTranslations(string $taxonomy, SpecificValue $specificValue)
+    public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId)
     {
         $type = 'tax_' . $taxonomy;
-        $trid = $this->getCurrentPlugin()->getElementTrid((int)$specificValue->getId()->getEndpoint(), $type);
+        $trid = $this->getCurrentPlugin()->getElementTrid($mainSpecificValueId, $type);
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
             $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
@@ -49,24 +50,24 @@ class WpmlSpecificValue extends AbstractComponent
                 continue;
             }
 
-            $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
-            $specificId = null;
+            $specificTranslation = $this->findSpecificValueTranslation($trid, $taxonomy, $languageCode);
             if (isset($specificTranslation['term_taxonomy_id'])) {
                 $specificValue->getId()->setEndpoint($specificTranslation['term_taxonomy_id']);
+            } else {
+                $specificValue->getId()->setEndpoint(0);
             }
 
             $slug = wc_sanitize_taxonomy_name($specificValueI18n->getValue()) . '-' . $languageCode;
 
-            /** @var SpecificValue $specificValue |null */
-            $specificValueSaved = $this->getCurrentPlugin()
+            $specificValueId = $this->getCurrentPlugin()
                 ->getPluginsManager()
                 ->get(WooCommerce::class)
                 ->getComponent(WooCommerceSpecificValue::class)
                 ->save($taxonomy, $specificValue, $specificValueI18n, $slug);
 
-            if (!is_null($specificValueSaved) && !empty($specificValueSaved->getId()->getEndpoint())) {
+            if (!is_null($specificValueId) && $specificValueId !== 0) {
                 $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                    $specificValueSaved->getId()->getEndpoint(),
+                    $specificValueId,
                     $type,
                     $trid,
                     $languageCode
