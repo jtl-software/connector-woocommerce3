@@ -26,6 +26,7 @@ class Config
         OPTIONS_SUFFIX_DELIVERYTIME = 'jtlconnector_suffix_deliverytime',
         OPTIONS_VARIATION_NAME_FORMAT = 'jtlconnector_variation_name_format',
         OPTIONS_DEFAULT_CUSTOMER_GROUP = 'jtlconnector_default_customer_group',
+        OPTIONS_PULL_CUSTOMER_GROUPS = 'jtlconnector_pull_customer_groups',
         OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT = 'jtlconnector_default_order_statuses_to_import',
         OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES = 'jtlconnector_default_manual_payment_types',
         OPTIONS_USE_GTIN_FOR_EAN = 'jtlconnector_use_gtin_for_ean',
@@ -40,6 +41,7 @@ class Config
         OPTIONS_AUTO_GERMAN_MARKET_OPTIONS = 'jtlconnector_auto_german_market',
         OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date',
         OPTIONS_CUSTOM_CHECKOUT_FIELDS = 'jtlconnector_custom_checkout_fields',
+        OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE = 'jtlconnector_limit_customer_query',
         OPTIONS_FEATURES_JSON = 'jtlconnector_features_json';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
@@ -50,6 +52,7 @@ class Config
         Config::OPTIONS_USE_GTIN_FOR_EAN => true,
         Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => false,
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'customer',
+        Config::OPTIONS_PULL_CUSTOMER_GROUPS => [],
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => false,
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => 'delivery_time_calc',
@@ -64,6 +67,7 @@ class Config
         Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => ['wc-pending', 'wc-processing', 'wc-on-hold'],
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
         Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
+        Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE => 'no_filter',
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => false,
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
@@ -80,9 +84,11 @@ class Config
         Config::OPTIONS_USE_GTIN_FOR_EAN => 'bool',
         Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES => 'bool',
         Config::OPTIONS_DEFAULT_CUSTOMER_GROUP => 'string',
+        Config::OPTIONS_PULL_CUSTOMER_GROUPS => 'array',
         Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT => 'array',
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => 'array',
         Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => 'string',
+        Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE => 'string',
         //PAGE
         Config::OPTIONS_USE_DELIVERYTIME_CALC => 'string',
         Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME => 'bool',
