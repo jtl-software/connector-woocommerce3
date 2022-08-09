@@ -1,12 +1,12 @@
 === WooCommerce JTL-Connector ===
-Contributors: papryk, ntbyk
+Contributors: papryk, ntbyk, platzkejtl
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
 Tested up to: 6.0
 Requires PHP: 7.1.3
 WC requires at least: 3.4
 WC tested up to: 6.3
-Stable tag: 1.37.1
+Stable tag: 1.38.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
