@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 * Feature - CO-2060 - Better Customer Pull Performance
+* Bugfix - CO-2065 - Fixed disabling stock management for variant parent product
 
 ## 1.37.1
 * fix WP Plugin Version
