@@ -16,6 +16,10 @@ default:
       - .composer-cache
       - composer.lock
 
+include:
+  - project: 'connector/connector-utils/php-code-quality'
+    file: 'ci.yaml'
+
 stages:
   - cache
   - test
@@ -34,14 +38,7 @@ build_cache:
       - composer.lock
 
 code_quality:
-  stage: test
-  script:
-    - vendor/bin/phpcs --config-set ignore_errors_on_exit 1
-    - vendor/bin/phpcs --config-set ignore_warnings_on_exit 1
-    - vendor/bin/phpcs --basepath=. --extensions=php --standard=PSR1,PSR2 --report=full --report-\\Micheh\\PhpCodeSniffer\\Report\\Gitlab=phpcs-quality-report.json src/
-  artifacts:
-    reports:
-      codequality: phpcs-quality-report.json
+  before_script: []
 
 test:unit:
   parallel:
