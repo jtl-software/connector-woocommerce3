@@ -1,20 +1,37 @@
+variables:
+  FF_USE_FASTZIP: 1
+  COMPOSER_CACHE_DIR: ${CI_PROJECT_DIR}/.composer-cache
+
 default:
   image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:8.0
   tags:
     - docker
-
-before_script:
-  - composer update --optimize-autoloader --no-interaction --no-progress
+  before_script:
+    - composer update --optimize-autoloader --no-interaction --no-progress
+  cache:
+    key: vendor
+    policy: pull
+    paths:
+      - vendor
+      - .composer-cache
 
 stages:
+  - cache
   - test
   - build
+
+build_cache:
+  stage: cache
+  script:
+    - composer update --optimize-autoloader --no-interaction --no-progress
+  cache:
+    policy: pull-push
 
 test:cs:
   before_script: []
   stage: test
   script:
-    - composer exec phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ includes/ > junit.xml
+    - vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ includes/ > junit.xml
   artifacts:
     reports:
       junit: junit.xml
@@ -26,18 +43,14 @@ test:unit:
         VERSION: [ '7.1','7.2','7.3','7.4','8.0' ]
   image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:${VERSION}
   stage: test
-  dependencies:
-    - test:cs
   script:
-    - composer exec phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+    - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
   artifacts:
     reports:
       junit: junit.xml
 
 build:
   stage: build
-  dependencies:
-    - test:unit
   rules:
     - if: $CI_COMMIT_TAG
   script:
