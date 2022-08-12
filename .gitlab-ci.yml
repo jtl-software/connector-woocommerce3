@@ -3,7 +3,7 @@ variables:
   COMPOSER_CACHE_DIR: ${CI_PROJECT_DIR}/.composer-cache
 
 default:
-  image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:8.0
+  image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:7.4
   tags:
     - docker
   before_script:
