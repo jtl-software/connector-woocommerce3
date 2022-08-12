@@ -1,0 +1,48 @@
+default:
+  image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:8.0
+  tags:
+    - docker
+
+before_script:
+  - composer update --optimize-autoloader --no-interaction --no-progress
+
+stages:
+  - test
+  - build
+
+test:cs:
+  before_script: []
+  stage: test
+  script:
+    - composer exec phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ includes/ > junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
+
+test:unit:
+  parallel:
+    matrix:
+      - BASE: 'php'
+        VERSION: [ '7.1','7.2','7.3','7.4','8.0' ]
+  image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:${VERSION}
+  stage: test
+  dependencies:
+    - test:cs
+  script:
+    - composer exec phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
+
+build:
+  stage: build
+  dependencies:
+    - test:unit
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - composer update --no-dev --optimize-autoloader --no-progress
+    - php ./phing.phar release -Dversion=${CI_COMMIT_TAG}
+  artifacts:
+    paths:
+      - woo-jtl-connector-${CI_COMMIT_TAG}.zip
