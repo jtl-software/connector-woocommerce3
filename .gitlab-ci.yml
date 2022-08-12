@@ -20,8 +20,6 @@ stages:
 
 build_cache:
   stage: cache
-  script:
-    - composer update --optimize-autoloader --no-interaction --no-progress
   cache:
     key: vendor
     policy: pull-push
