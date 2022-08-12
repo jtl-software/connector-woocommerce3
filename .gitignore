@@ -16,3 +16,4 @@ logs/
 *.temp
 *.zip
 /junit.xml
+/phpcs-quality-report.json

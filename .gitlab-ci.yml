@@ -12,10 +12,6 @@ default:
 cache:
   key: vendor
   policy: pull
-  paths:
-    - vendor
-    - .composer-cache
-    - composer.lock
 
 stages:
   - cache
@@ -27,12 +23,20 @@ build_cache:
   script:
     - composer update --optimize-autoloader --no-interaction --no-progress
   cache:
+    key: vendor
     policy: pull-push
+    paths:
+      - vendor
+      - .composer-cache
+      - composer.lock
 
-test:cs:
+code_quality:
   stage: test
   script:
+    - phpcs --config-set ignore_errors_on_exit 1
+    - phpcs --config-set ignore_warnings_on_exit 1
     - vendor/bin/phpcs --basepath=. --extensions=php --standard=PSR1,PSR2 --report=full --report-\\Micheh\\PhpCodeSniffer\\Report\\Gitlab=phpcs-quality-report.json src/
+  allow_failure: true
   artifacts:
     reports:
       codequality: phpcs-quality-report.json
