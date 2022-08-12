@@ -8,10 +8,9 @@ default:
     - docker
   before_script:
     - composer update --no-interaction --no-progress
-
-cache:
-  key: vendor
-  policy: pull
+  cache:
+    key: vendor
+    policy: pull
 
 stages:
   - cache
@@ -21,7 +20,7 @@ stages:
 build_cache:
   stage: cache
   script:
-    - echo "cache"
+    - echo
   cache:
     key: vendor
     policy: pull-push
