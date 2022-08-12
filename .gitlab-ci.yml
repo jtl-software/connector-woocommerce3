@@ -11,6 +11,10 @@ default:
   cache:
     key: vendor
     policy: pull
+    paths:
+      - vendor
+      - .composer-cache
+      - composer.lock
 
 stages:
   - cache
