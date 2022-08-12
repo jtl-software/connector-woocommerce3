@@ -32,10 +32,10 @@ build_cache:
 test:cs:
   stage: test
   script:
-    - vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ > junit.xml
+    - vendor/bin/phpcs --basepath=. --extensions=php --standard=PSR1,PSR2 --report=full --report-\\Micheh\\PhpCodeSniffer\\Report\\Gitlab=phpcs-quality-report.json src/
   artifacts:
     reports:
-      junit: junit.xml
+      codequality: phpcs-quality-report.json
 
 test:unit:
   parallel:
