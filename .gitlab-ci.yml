@@ -33,10 +33,9 @@ build_cache:
 code_quality:
   stage: test
   script:
-    - phpcs --config-set ignore_errors_on_exit 1
-    - phpcs --config-set ignore_warnings_on_exit 1
+    - vendor/bin/phpcs --config-set ignore_errors_on_exit 1
+    - vendor/bin/phpcs --config-set ignore_warnings_on_exit 1
     - vendor/bin/phpcs --basepath=. --extensions=php --standard=PSR1,PSR2 --report=full --report-\\Micheh\\PhpCodeSniffer\\Report\\Gitlab=phpcs-quality-report.json src/
-  allow_failure: true
   artifacts:
     reports:
       codequality: phpcs-quality-report.json
