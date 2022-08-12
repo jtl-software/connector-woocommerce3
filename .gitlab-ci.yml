@@ -20,6 +20,8 @@ stages:
 
 build_cache:
   stage: cache
+  script:
+    - echo "cache"
   cache:
     key: vendor
     policy: pull-push
