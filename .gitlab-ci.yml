@@ -7,13 +7,15 @@ default:
   tags:
     - docker
   before_script:
-    - composer update --optimize-autoloader --no-interaction --no-progress
-  cache:
-    key: vendor
-    policy: pull
-    paths:
-      - vendor
-      - .composer-cache
+    - composer update --no-interaction --no-progress
+
+cache:
+  key: vendor
+  policy: pull
+  paths:
+    - vendor
+    - .composer-cache
+    - composer.lock
 
 stages:
   - cache
@@ -28,10 +30,9 @@ build_cache:
     policy: pull-push
 
 test:cs:
-  before_script: []
   stage: test
   script:
-    - vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ includes/ > junit.xml
+    - vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --report=junit src/ > junit.xml
   artifacts:
     reports:
       junit: junit.xml
