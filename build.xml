@@ -67,7 +67,6 @@
     <target name="release" depends="build">
         <delete file="./${zipname}${version}.zip"/>
         <zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
-        <phingcall target="clean"/>
     </target>
 
     <target name="clean">
