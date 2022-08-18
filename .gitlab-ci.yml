@@ -35,7 +35,7 @@ test:unit:
     matrix:
       - BASE: 'php'
         VERSION: [ '7.1','7.2','7.3','7.4' ]
-  image: gitlab.jtl-software.com:4567/tplatzke/docker-lamp/cli:${VERSION}
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:
     - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
@@ -44,6 +44,7 @@ test:unit:
       junit: junit.xml
 
 build:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
   stage: build
   variables:
     VERSION: dev
@@ -64,6 +65,7 @@ build:
       - dist/
 
 build:zip:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
   stage: build
   variables:
     VERSION: dev
