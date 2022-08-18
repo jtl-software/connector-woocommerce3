@@ -10,32 +10,21 @@ default:
     - composer update --no-interaction --no-progress
   cache:
     key: vendor
-    policy: pull
     paths:
       - vendor
       - .composer-cache
       - composer.lock
 
 include:
-  - project: 'connector/connector-utils/php-code-quality'
-    file: 'ci.yaml'
+  - project: 'connector/connector-utils/CI-Templates'
+    file:
+      - 'auto-create-mr/ci.yaml'
+      - 'code-quality/ci.yaml'
 
 stages:
-  - cache
+  - createMR
   - test
   - build
-
-build_cache:
-  stage: cache
-  script:
-    - echo
-  cache:
-    key: vendor
-    policy: pull-push
-    paths:
-      - vendor
-      - .composer-cache
-      - composer.lock
 
 code_quality:
   before_script: []
@@ -55,8 +44,6 @@ test:unit:
 
 build:
   stage: build
-  rules:
-    - if: $CI_COMMIT_TAG
   script:
     - composer update --no-dev --optimize-autoloader --no-progress
     - php ./phing.phar release -Dversion=${CI_COMMIT_TAG}
