@@ -58,6 +58,7 @@ build:
     - composer update --no-dev --optimize-autoloader --no-progress
     - php ./phing.phar release -Dversion=${VERSION}
   artifacts:
+    expose_as: 'build'
     paths:
       - woo-jtl-connector-${VERSION}.zip
     expire_in: 2 days
