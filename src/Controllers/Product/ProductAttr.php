@@ -117,6 +117,16 @@ class ProductAttr extends BaseController
                                 );
                             }
                         }
+
+                        if($i18n->getName() === ProductVaSpeAttrHandler::GZD_MIN_AGE) {
+                            $metaKey = '_min_age';
+
+                            if (!add_post_meta($productId, $metaKey, $i18n->getValue(), true)) {
+                                update_post_meta($productId, $metaKey, $i18n->getValue(),
+                                    \get_post_meta($productId, $metaKey, true)
+                                );
+                            }
+                        }
                     }
                     
                     if (preg_match('/^(wc_gm_v_preselect_)[a-zA-Z0-9-\_]+$/',$attrName)
