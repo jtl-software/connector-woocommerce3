@@ -3,7 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-
+- CO-2091 - use delivery Status
 
 ## 1.38.0 _2022-08-09_
 - Feature - CO-2060 - Better Customer Pull Performance
