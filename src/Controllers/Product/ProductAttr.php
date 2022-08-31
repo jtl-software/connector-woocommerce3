@@ -26,12 +26,11 @@ class ProductAttr extends BaseController
 
     // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData(
-        \WC_Product           $product,
+        \WC_Product $product,
         \WC_Product_Attribute $attribute,
-                              $slug,
-                              $languageIso
-    )
-    {
+        $slug,
+        $languageIso
+    ) {
         return $this->buildAttribute(
             $product,
             $attribute,
@@ -56,8 +55,7 @@ class ProductAttr extends BaseController
         $pushedAttributes,
         $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
-    )
-    {
+    ) {
         //  $parent = (new ProductVariationSpecificAttribute);
         //FUNCTION ATTRIBUTES BY JTL
         $virtual = false;
@@ -164,7 +162,6 @@ class ProductAttr extends BaseController
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-
                         if (strcmp($attrName, ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) === 0) {
                             $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
                             $metaKey = substr($attrName, 5);
@@ -333,10 +330,12 @@ class ProductAttr extends BaseController
 
                     if ($attrName === ProductVaSpeAttrHandler::VISIBILITY) {
                         $value = $i18n->getValue();
-                        wp_remove_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'], 'product_visibility');
+                        wp_remove_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'],
+                            'product_visibility');
                         switch ($value) {
                             case self::VISIBILITY_HIDDEN:
-                                wp_set_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'], 'product_visibility');
+                                wp_set_object_terms($productId, ['exclude-from-catalog', 'exclude-from-search'],
+                                    'product_visibility');
                                 break;
                             case self::VISIBILITY_CATALOG:
                                 wp_set_object_terms($productId, ['exclude-from-search'], 'product_visibility');
@@ -346,7 +345,12 @@ class ProductAttr extends BaseController
                                 break;
                         }
 
-                        if (in_array($value, [self::VISIBILITY_HIDDEN, self::VISIBILITY_CATALOG, self::VISIBILITY_SEARCH, self::VISIBILITY_VISIBLE])) {
+                        if (in_array($value, [
+                            self::VISIBILITY_HIDDEN,
+                            self::VISIBILITY_CATALOG,
+                            self::VISIBILITY_SEARCH,
+                            self::VISIBILITY_VISIBLE
+                        ])) {
                             \update_post_meta(
                                 $productId,
                                 '_visibility',
@@ -564,12 +568,11 @@ class ProductAttr extends BaseController
      * @return ProductAttrModel
      */
     private function buildAttribute(
-        \WC_Product           $product,
+        \WC_Product $product,
         \WC_Product_Attribute $attribute,
-                              $slug,
-                              $languageIso
-    )
-    {
+        $slug,
+        $languageIso
+    ) {
         $productAttribute = $product->get_attribute($attribute->get_name());
         $isTax = $attribute->is_taxonomy();
 
