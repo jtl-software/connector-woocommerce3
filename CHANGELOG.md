@@ -2,6 +2,9 @@
 
 This is the changelog of our "JTL WooCommerce Connector".
 
+## Unreleased
+* CO-2097 - Required age attribute
+
 ## 1.38.0
 * Feature - CO-2060 - Better Customer Pull Performance
 * Bugfix - CO-2065 - Fixed disabling stock management for variant parent product
