@@ -77,9 +77,15 @@ class ProductAttr extends BaseController
                         $fbStatusCode = true;
                     }
 
-                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2) && $i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
-                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
-                        $this->addOrUpdateMetaField($productId, '_service', $value);
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
+                        if($i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
+                            $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $this->addOrUpdateMetaField($productId, '_service', $value);
+                        }
+                        if ($i18n->getName() === ProductVaSpeAttrHandler::GZD_MIN_AGE) {
+                            $this->addOrUpdateMetaField($productId, '_min_age', $i18n->getValue());
+                        }
+
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {

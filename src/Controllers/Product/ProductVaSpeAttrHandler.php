@@ -49,6 +49,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
         //GERMANIZED
         GZD_IS_SERVICE = 'wc_gzd_is_service',
+        GZD_MIN_AGE = 'wc_minimum_age',
 
         //MISC
         JTL_CURRENT_PRODUCT_SPECIFICS = 'jtl_current_specifics',
@@ -495,6 +496,16 @@ class ProductVaSpeAttrHandler extends BaseController
                 );
             }
         }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
+            $gzdProduct = wc_gzd_get_product($product);
+            if ($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_min_age')) {
+                $functionAttributes[] = $this->getMinimumAgeAttribute(
+                    $gzdProduct,
+                    $languageIso
+                );
+            }
+        }
         
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $functionAttributes[] = $this->getDigitalFunctionAttribute(
@@ -807,6 +818,30 @@ class ProductVaSpeAttrHandler extends BaseController
         }
         
         return $result;
+    }
+
+    /**
+     * @param \WC_GZD_Product $product
+     * @param string $languageIso
+     * @return ProductAttrModel
+     */
+    private function getMinimumAgeAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
+    {
+        $value = $product->get_min_age();
+
+        $i18n = (new ProductAttrI18nModel)
+            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GZD_MIN_AGE))
+            ->setName(self::GZD_MIN_AGE)
+            ->setValue($value)
+            ->setLanguageISO($languageIso);
+
+        $attribute = (new ProductAttrModel)
+            ->setId($i18n->getProductAttrId())
+            ->setProductId(new Identity($product->get_id()))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+
+        return $attribute;
     }
     
     //VARIATIONSPECIFIC && SPECIFIC
