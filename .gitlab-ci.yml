@@ -1,0 +1,114 @@
+variables:
+  FF_USE_FASTZIP: 1
+  COMPOSER_CACHE_DIR: ${CI_PROJECT_DIR}/.composer-cache
+
+default:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
+  tags:
+    - docker
+  before_script:
+    - composer update --no-interaction --no-progress
+  cache:
+    key: vendor
+    paths:
+      - vendor
+      - .composer-cache
+      - composer.lock
+
+include:
+  - project: 'connector/connector-utils/CI-Templates'
+    file:
+      - 'auto-create-mr/ci.yaml'
+      - 'code-quality/ci.yaml'
+
+stages:
+  - createMR
+  - test
+  - build
+  - deploy
+
+code_quality:
+  before_script: []
+
+test:unit:
+  parallel:
+    matrix:
+      - BASE: 'php'
+        VERSION: [ '7.1','7.2','7.3','7.4' ]
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
+  stage: test
+  script:
+    - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
+
+build:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  stage: build
+  variables:
+    VERSION: dev
+  dependencies: []
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        VERSION: $CI_COMMIT_TAG
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: on_success
+  script:
+    - composer update --no-dev --optimize-autoloader --no-progress
+    - php ./phing.phar build -Dversion=${VERSION}
+  artifacts:
+    paths:
+      - dist/
+
+build:zip:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  stage: build
+  variables:
+    VERSION: dev
+  dependencies: []
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        VERSION: $CI_COMMIT_TAG
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: on_success
+  script:
+    - composer update --no-dev --optimize-autoloader --no-progress
+    - php ./phing.phar release -Dversion=${VERSION}
+  artifacts:
+    expose_as: 'build'
+    name: 'build'
+    paths:
+      - woo-jtl-connector-${VERSION}.zip
+
+deploy:
+  stage: deploy
+  when: manual
+  before_script: [ ]
+  variables:
+    VERSION: dev
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        VERSION: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+  dependencies:
+    - build
+  script:
+    - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
+    - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
+    - rm -f -R woo-jtl-connector/trunk/*
+    - cp -R dist/woo-jtl-connector/* woo-jtl-connector/trunk/
+    - cd woo-jtl-connector/trunk
+    - svn status
+    - svn add --force *
+    - if svn info "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$VERSION"; then svn delete --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --force "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$VERSION" -m "Removing old Tag $VERSION"; fi
+    - svn commit --username "$SVN_USERNAME" --password "$SVN_PASSWORD" -m "Tagging $VERSION"
+    - svn copy --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$CONNECTOR_VERSION" -m "Tagging $VERSION"

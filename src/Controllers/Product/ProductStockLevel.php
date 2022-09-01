@@ -65,11 +65,11 @@ class ProductStockLevel extends BaseController
         $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $product->getPermitNegativeStock(), $product->getConsiderStock());
 
         if ('yes' == get_option('woocommerce_manage_stock')) {
-            \update_post_meta($productId, '_manage_stock', $product->getConsiderStock() && !$product->getIsMasterProduct() ? 'yes' : 'no');
 
             \update_post_meta($product->getId()->getEndpoint(), '_backorders', $this->getBackorderValue($product));
 
             if ($product->getConsiderStock()) {
+                \update_post_meta($productId, '_manage_stock', 'yes');
                 if (!$wcProduct->is_type('variable')) {
                     \wc_update_product_stock_status($productId, $stockStatus);
                 }

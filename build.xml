@@ -54,9 +54,7 @@
                 <include name="vendor/"/>
             </fileset>
         </copy>
-    </target>
 
-    <target name="release" depends="build">
         <copy todir="./dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="src/"/>
@@ -64,9 +62,11 @@
                 <include name="vendor/"/>
             </fileset>
         </copy>
+    </target>
+
+    <target name="release" depends="build">
         <delete file="./${zipname}${version}.zip"/>
         <zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
-        <phingcall target="clean"/>
     </target>
 
     <target name="clean">
