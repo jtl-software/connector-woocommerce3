@@ -10,6 +10,7 @@ namespace JtlWooCommerceConnector\Controllers;
 use jtl\Connector\Core\Controller\Controller;
 use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use jtl\Connector\Model\Statistic;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Traits\BaseControllerTrait;
@@ -19,7 +20,7 @@ use ReflectionClass;
 abstract class BaseController extends Controller
 {
     use BaseControllerTrait;
-    
+
     /**
      * @var Db
      */
@@ -28,7 +29,7 @@ abstract class BaseController extends Controller
      * @var string
      */
     protected $controllerName;
-    
+
     /**
      * BaseController constructor.
      */
@@ -44,7 +45,7 @@ abstract class BaseController extends Controller
             //
         }
     }
-    
+
     /**
      * Method called on a pull request.
      *
@@ -55,22 +56,22 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'pullData')) {
                 $result = $this->pullData($query->getLimit());
             }
-            
+
             $action->setResult($result);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a push request.
      *
@@ -81,22 +82,22 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'pushData')) {
                 $result = $this->pushData($data);
             }
-            
+
             $action->setResult($result);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a delete request.
      *
@@ -107,20 +108,20 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = null;
-            
+
             if (method_exists($this, 'deleteData')) {
                 $action->setResult($this->deleteData($data));
             }
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Method called on a statistic request.
      *
@@ -131,20 +132,117 @@ abstract class BaseController extends Controller
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $statModel = new Statistic();
-            
+
             if (method_exists($this, 'getStats')) {
                 $statModel->setAvailable((int)$this->getStats());
             }
-            
+
             $statModel->setControllerName(lcfirst($this->controllerName));
             $action->setResult($statModel);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
         }
-        
+
         return $action;
     }
+
+    /**
+     * @param $postId
+     * @param $metaKey
+     * @param $value
+     * @return bool|int|void
+     */
+    protected function updatePostMeta($postId, $metaKey, $value)
+    {
+        return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
+    }
+
+    /**
+     * @param $postId
+     * @param $metaKey
+     * @param $value
+     * @return false|int|void
+     */
+    protected function addPostMeta($postId, $metaKey, $value)
+    {
+        return add_post_meta($postId, $metaKey, $value, true);
+    }
+
+    /**
+     * @param $objectId
+     * @param $terms
+     * @param $taxonomy
+     * @param $append
+     * @return array|bool|int|int[]|string|string[]|void|\WP_Error|null
+     */
+    protected function wpSetObjectTerms($objectId, $terms, $taxonomy, $append = false)
+    {
+        return wp_set_object_terms($objectId, $terms, $taxonomy, $append);
+    }
+
+    /**
+     * @param $objectId
+     * @param $terms
+     * @param $taxonomy
+     * @return bool|int|string|string[]|void|\WP_Error|null
+     */
+    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy)
+    {
+        return wp_remove_object_terms($objectId, $terms, $taxonomy);
+    }
+
+    /**
+     * @param $taxonomyName
+     * @return string|void
+     */
+    protected function wcSanitizeTaxonomyName($taxonomyName)
+    {
+        return \wc_sanitize_taxonomy_name($taxonomyName);
+    }
+
+    /**
+     * @param $field
+     * @param $value
+     * @param $taxonomy
+     * @param $output
+     * @param $filter
+     * @return array|false|void|\WP_Error|\WP_Term|null
+     */
+    protected function getTermBy($field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw')
+    {
+        return get_term_by($field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw');
+    }
+
+    /**
+     * @param $variable
+     * @return array|string|void
+     */
+    protected function wcClean($variable)
+    {
+        return \wc_clean($variable);
+    }
+
+    /**
+     * @param $postId
+     * @param $metaKey
+     * @return bool|void
+     */
+    protected function deletePostMeta($postId, $metaKey)
+    {
+        return \delete_post_meta($postId, $metaKey);
+    }
+
+    /**
+     * @param $postData
+     * @return int|void|\WP_Error
+     */
+    protected function wpUpdatePost($postData)
+    {
+        return \wp_update_post($postData);
+    }
+
+
 }
