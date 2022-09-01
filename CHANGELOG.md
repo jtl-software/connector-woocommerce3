@@ -57,7 +57,6 @@ This is the changelog of our "JTL WooCommerce Connector".
 - Bugfix - CO-1887 - fixed error 'Call to a member function is_purchasable() on bool' in custom property attributes
 - Bugfix - CO-1892 - added missing phone number in order delivery address
 - updated WooCommerce compatibility info to 6.0
->>>>>>> master
 
 ## 1.31.0
 - Bugfix - CO-1853 - fixed default product price based on default customer group (B2B Market)
