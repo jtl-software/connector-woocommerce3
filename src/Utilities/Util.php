@@ -85,7 +85,8 @@ final class Util extends WordpressUtils
      */
     public function getTaxRateByTaxClass($taxClass, \WC_Order $order = null)
     {
-        $countryIso = \get_option('woocommerce_default_country');
+        $countryIso = explode(":", \get_option('woocommerce_default_country'));
+        $countryIso = $countryIso[0];
 
         if (!is_null($order)) {
             $option = \get_option('woocommerce_tax_based_on', 'base');
