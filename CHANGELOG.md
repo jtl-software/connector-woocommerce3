@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2097 - required age attribute
 - CO-2091 - use delivery Status
 
 ## 1.38.0 _2022-08-09_
