@@ -264,7 +264,7 @@ class CustomerOrderItem extends BaseController
                     } else {
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
-                    $netPrice = ($costs * $factor) / count($taxes['total']);
+                    $netPrice = ($costs * $factor);
                     $priceGross = $netPrice + $taxAmount;
 
                     $customerOrderItem

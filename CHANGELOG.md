@@ -6,6 +6,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2097 - required age attribute
 - CO-2091 - use delivery Status
 - CO-2068 - Fixed default country extracting
+- CO-2101 - wrong delivery costs on mixed tax rates
 
 ## 1.38.0 _2022-08-09_
 - Feature - CO-2060 - Better Customer Pull Performance
