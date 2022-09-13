@@ -62,7 +62,7 @@ build:
     - when: on_success
   script:
     - composer update --no-dev --optimize-autoloader --no-progress
-    - php ./phing.phar build -Dversion=${VERSION}
+    - php ./phing.phar build -Dversion=${VERSION} -Dtmpdir=.
   artifacts:
     paths:
       - dist/
