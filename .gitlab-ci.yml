@@ -27,6 +27,8 @@ stages:
   - test
   - build
   - deploy
+  - extract-changelog
+  - update-changelog
 
 code_quality:
   before_script: []
