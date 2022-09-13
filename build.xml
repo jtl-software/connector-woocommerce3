@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JTL-Connector-WooCommerce-Endpoint" default="release">
     <property file="./build-config.yaml"/>
+    <property name="tmpdir" value="/tmp"/>
     <target name="build" depends="clean">
-        <mkdir dir="./dist/woo-jtl-connector/includes/"/>
-        <mkdir dir="./dist/woo-jtl-connector/config"/>
-        <mkdir dir="./dist/woo-jtl-connector/db"/>
-        <mkdir dir="./dist/woo-jtl-connector/logs"/>
-        <mkdir dir="./dist/woo-jtl-connector/plugins/jtl/"/>
-        <mkdir dir="./dist/woo-jtl-connector/tmp"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/includes/"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/config"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/db"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/logs"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/plugins/jtl/"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/tmp"/>
 
-        <copy todir="./dist/woo-jtl-connector/config">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/config">
             <fileset dir="./config">
                 <include name="config.json"/>
                 <include name="features.json.example"/>
@@ -17,18 +18,18 @@
             </fileset>
         </copy>
 
-        <copy todir="./dist/woo-jtl-connector/db">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/db">
             <fileset dir="./db">
                 <include name=".htaccess"/>
             </fileset>
         </copy>
 
-        <copy todir="./dist/woo-jtl-connector/logs">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/logs">
             <fileset dir="./logs">
                 <include name=".htaccess"/>
             </fileset>
         </copy>
-        <copy todir="./dist/woo-jtl-connector/">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="index.php"/>
                 <include name="woo-jtl-connector.php"/>
@@ -39,7 +40,7 @@
                 <include name="build-config.yaml"/>
             </fileset>
         </copy>
-        <copy todir="./dist/woo-jtl-connector/includes">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/includes">
             <fileset dir="./includes">
                 <include name="**.php"/>
                 <include name="css/" />
@@ -47,15 +48,7 @@
             </fileset>
         </copy>
 
-        <copy todir="./build/">
-            <fileset dir="./">
-                <include name="src/"/>
-                <include name="plugins/jtl/"/>
-                <include name="vendor/"/>
-            </fileset>
-        </copy>
-
-        <copy todir="./dist/woo-jtl-connector/">
+        <copy todir="${tmpdir}/dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="src/"/>
                 <include name="plugins/jtl/"/>
@@ -66,11 +59,10 @@
 
     <target name="release" depends="build">
         <delete file="./${zipname}${version}.zip"/>
-        <zip destfile="./${zipname}${version}.zip" basedir="./dist"/>
+        <zip destfile="./${zipname}${version}.zip" basedir="${tmpdir}/dist"/>
     </target>
 
     <target name="clean">
-        <delete dir="./build" quiet="true"/>
-        <delete dir="./dist" quiet="true"/>
+        <delete dir="${tmpdir}/dist" quiet="true"/>
     </target>
 </project>
