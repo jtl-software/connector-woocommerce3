@@ -107,7 +107,7 @@ deploy:
     - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
     - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
     - rm -f -R woo-jtl-connector/trunk/*
-    - cp -R /tmp/dist/woo-jtl-connector/* woo-jtl-connector/trunk/
+    - cp -R dist/woo-jtl-connector/* woo-jtl-connector/trunk/
     - cd woo-jtl-connector/trunk
     - svn status
     - svn add --force *
