@@ -200,6 +200,9 @@ abstract class BaseController extends Controller
      */
     protected function wcSanitizeTaxonomyName($taxonomyName)
     {
+        if ($taxonomyName instanceof DataModel && method_exists($taxonomyName, 'getName')) {
+            $taxonomyName = $taxonomyName->getName();
+        }
         return \wc_sanitize_taxonomy_name($taxonomyName);
     }
 
