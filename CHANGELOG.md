@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.39.1 _2022-09-21_
 - CO-2135 - fix product Attr error
 
 ## 1.39.0 _2022-09-13_
