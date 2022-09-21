@@ -113,7 +113,7 @@ deploy:
     - svn add --force *
     - if svn info "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$VERSION"; then svn delete --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --force "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$VERSION" -m "Removing old Tag $VERSION"; fi
     - svn commit --username "$SVN_USERNAME" --password "$SVN_PASSWORD" -m "Tagging $VERSION"
-    - svn copy --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$CONNECTOR_VERSION" -m "Tagging $VERSION"
+    - svn copy --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk "https://plugins.svn.wordpress.org/woo-jtl-connector/tags/$VERSION" -m "Tagging $VERSION"
 
 
 extractChangelog:
