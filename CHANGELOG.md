@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2135 - fix product Attr error
 
 ## 1.39.0 _2022-09-13_
 - CO-2097 - required age attribute

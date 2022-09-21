@@ -305,7 +305,7 @@ class ProductAttr extends BaseController
 
     private function createOrUpdateExistingAttribute(ProductAttrI18nModel $i18n, array $data, array &$attributes)
     {
-        $slug = $this->wcSanitizeTaxonomyName($i18n);
+        $slug = $this->wcSanitizeTaxonomyName($i18n->getName());
 
         if (isset($attributes[$slug])) {
             $this->updateAttribute($slug, $i18n->getValue(), $attributes);
