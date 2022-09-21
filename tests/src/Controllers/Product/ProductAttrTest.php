@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Tests\Controllers\Product;
 
+use jtl\Connector\Model\ProductAttrI18n;
 use Jtl\UnitTest\TestCase;
 use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
 
@@ -71,9 +72,21 @@ class ProductAttrTest extends TestCase
             ->setMethods(['wpRemoveObjectTerms', 'wpSetObjectTerms', 'updatePostMeta'])
             ->getMock();
 
-        $productAttrController->expects($this->once())->method('wpRemoveObjectTerms')->with($productId, ['exclude-from-catalog', 'exclude-from-search'], 'product_visibility');
-        $productAttrController->expects($this->once())->method('wpSetObjectTerms')->with($productId, $expectedVisibilityArray, 'product_visibility');
-        $productAttrController->expects($this->once())->method('updatePostMeta')->with($productId, '_visibility', $visibilityType);
+        $productAttrController->expects($this->once())->method('wpRemoveObjectTerms')->with(
+            $productId,
+            ['exclude-from-catalog', 'exclude-from-search'],
+            'product_visibility'
+        );
+        $productAttrController->expects($this->once())->method('wpSetObjectTerms')->with(
+            $productId,
+            $expectedVisibilityArray,
+            'product_visibility'
+        );
+        $productAttrController->expects($this->once())->method('updatePostMeta')->with(
+            $productId,
+            '_visibility',
+            $visibilityType
+        );
 
         $this->invokeMethod($productAttrController, 'updateProductVisibility', $visibilityType, $productId);
     }
@@ -85,5 +98,25 @@ class ProductAttrTest extends TestCase
             ['catalog', ['exclude-from-search']],
             ['search', ['exclude-from-catalog']],
         ];
+    }
+
+    /**
+     * @return void
+     * @throws \ReflectionException
+     */
+    public function wcSanitizeTaxonomyName(): void
+    {
+        $attrI18n = new ProductAttrI18n();
+        $attrI18n->setName('foo');
+        $attrI18n->setValue('bar');
+
+        $this->assertEquals(
+            $attrI18n->getName(),
+            $this->invokeMethod(new ProductAttr(), 'wcSanitizeTaxonomyName', $attrI18n->getName())
+        );
+        $this->assertEquals(
+            $attrI18n->getName(),
+            $this->invokeMethod(new ProductAttr(), 'wcSanitizeTaxonomyName', $attrI18n)
+        );
     }
 }
