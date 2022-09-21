@@ -35,7 +35,7 @@ final class SupportedPlugins
     const PLUGIN_WPML_MULTILINGUAL_CMS = 'WPML Multilingual CMS';
     const PLUGIN_WPML_STRING_TRANSLATION = 'WPML String Translation';
     const PLUGIN_WPML_MEDIA = 'WPML Media';
-    const PLUGIN_WOOCOMMERCE_MULTILUNGUAL = 'WooCommerce Multilingual';
+    const PLUGIN_WOOCOMMERCE_MULTILUNGUAL = 'WooCommerce Multilingual & Multicurrency';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE = 'WPC Product Quantity for WooCommerce';
     const PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM = 'WPC Product Quantity for WooCommerce (Premium)';
     const PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE = 'Additional Variation Images Gallery for WooCommerce';
