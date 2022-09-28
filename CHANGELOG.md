@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2141 - fix getFilter Error with Attribute wc_gm_alt_delivery_note
 
 ## 1.39.1 _2022-09-21_
 - CO-2135 - fix product Attr error
