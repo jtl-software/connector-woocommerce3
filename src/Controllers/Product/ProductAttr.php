@@ -106,7 +106,7 @@ class ProductAttr extends BaseController
 
                         if ($attrName === ProductVaSpeAttrHandler::GM_ALT_DELIVERY_NOTE_ATTR) {
                             $value = trim($i18n->getValue());
-                            $this->addOrUpdateMetaField($product, '_alternative_shipping_information', $value);
+                            $this->addOrUpdateMetaField($productId, '_alternative_shipping_information', $value);
                             $altDeliveryNote = true;
                         }
                     }
