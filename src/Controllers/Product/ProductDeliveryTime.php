@@ -167,10 +167,7 @@ class ProductDeliveryTime extends BaseController
                     }
                 }
             }
-
         }
-
-
     }
 
     /**
