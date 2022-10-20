@@ -42,7 +42,8 @@ class Config
         OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE = 'jtlconnector_consider_supplier_inflow_date',
         OPTIONS_CUSTOM_CHECKOUT_FIELDS = 'jtlconnector_custom_checkout_fields',
         OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE = 'jtlconnector_limit_customer_query',
-        OPTIONS_FEATURES_JSON = 'jtlconnector_features_json';
+        OPTIONS_FEATURES_JSON = 'jtlconnector_features_json',
+        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN = 'jtlconnector_ignore_orders_younger_than';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -68,6 +69,7 @@ class Config
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
         Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
         Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE => 'no_filter',
+        Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN => '',
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => false,
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
@@ -99,6 +101,7 @@ class Config
         Config::OPTIONS_COMPLETED_ORDERS => 'bool',
         Config::OPTIONS_PULL_ORDERS_SINCE => 'date',
         Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL => 'bool',
+        Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN => 'int',
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => 'bool',
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
