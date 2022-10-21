@@ -54,13 +54,6 @@ class CustomerOrder extends BaseController
                 continue;
             }
 
-            $importDelayTime = (int)Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN);
-            $secondsSinceOrder = strtotime('now') - strtotime($order->get_date_created());
-
-            if ($secondsSinceOrder < $importDelayTime) {
-                continue;
-            }
-
             $total = $order->get_total();
             $totalTax = $order->get_total_tax();
             $totalSum = $total - $totalTax;

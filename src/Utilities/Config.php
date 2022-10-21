@@ -69,7 +69,7 @@ class Config
         Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES => ['cod', 'german_market_purchase_on_account', 'german_market_sepa_direct_debit', 'cheque', 'bacs', 'cash_on_delivery', 'invoice'],
         Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS => '',
         Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE => 'no_filter',
-        Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN => '',
+        Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN => 0,
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => false,
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
