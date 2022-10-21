@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2163 - fix extra product options plugin support
 
 ## 1.39.2 _2022-09-28_
 - CO-2141 - fix getFilter Error with Attribute wc_gm_alt_delivery_note
