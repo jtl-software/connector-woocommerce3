@@ -216,7 +216,7 @@ abstract class BaseController extends Controller
      */
     protected function getTermBy($field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw')
     {
-        return get_term_by($field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw');
+        return get_term_by($field, $value, $taxonomy, $output = OBJECT, $filter = 'raw');
     }
 
     /**
