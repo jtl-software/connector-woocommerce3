@@ -109,15 +109,15 @@ class ProductAttr extends BaseController
                             $this->addOrUpdateMetaField($productId, '_alternative_shipping_information', $value);
                             $altDeliveryNote = true;
                         }
-                    }
 
-                    if (preg_match('/^(wc_gm_v_preselect_)[a-zA-Z0-9-\_]+$/', $attrName) && $product->getMasterProductId()->getHost() === 0) {
-                        $attrName = substr($attrName, 18);
+                        if (preg_match('/^(wc_gm_v_preselect_)[a-zA-Z0-9-\_]+$/', $attrName) && $product->getMasterProductId()->getHost() === 0) {
+                            $attrName = substr($attrName, 18);
 
-                        $term = $this->getTermBy('slug', $this->wcSanitizeTaxonomyName(substr(trim($i18n->getValue()), 0, 27)), 'pa_' . $attrName);
+                            $term = $this->getTermBy('slug', $this->wcSanitizeTaxonomyName(substr(trim($i18n->getValue()), 0, 27)), 'pa_' . $attrName);
 
-                        if ($term instanceof \WP_Term) {
-                            $variationPreselect[$term->taxonomy] = $term->slug;
+                            if ($term instanceof \WP_Term) {
+                                $variationPreselect[$term->taxonomy] = $term->slug;
+                            }
                         }
                     }
 
