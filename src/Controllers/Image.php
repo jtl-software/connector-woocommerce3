@@ -90,9 +90,9 @@ class Image extends BaseController
      *
      * @return array The image entities.
      */
-    private function productImagePull($limit = null)
+    private function productImagePull($limit = null): array
     {
-        $imageCount = 0;
+        $imageCount  = 0;
         $attachments = [];
 
         $this->alreadyLinked = $this->database->queryList(SqlHelper::linkedProductImages());
@@ -118,29 +118,29 @@ class Image extends BaseController
                             continue;
                         }
 
-                        $attachmentIds = $this->fetchProductAttachmentIds($product);
+                        $attachmentIds  = $this->fetchProductAttachmentIds($product);
                         $newAttachments = $this->addProductImagesForPost($attachmentIds, $postId);
 
                         if (empty($newAttachments)) {
                             continue;
                         }
 
-                        $attachments = array_merge($newAttachments, $attachments);
-                        $imageCount += count($newAttachments);
+                        $attachments = \array_merge($newAttachments, $attachments);
+                        $imageCount  += \count($newAttachments);
 
                         if ($imageCount >= $limit) {
-                            return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+                            return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
                         }
                     }
                 } else {
-                    return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+                    return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
                 }
             }
         } catch (\Exception $ex) {
-            return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+            return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
         }
 
-        return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+        return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
     }
 
     /**
