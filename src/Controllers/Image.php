@@ -106,6 +106,7 @@ class Image extends BaseController
                     'post_type' => ['product', 'product_variation'],
                     'post_status' => ['future', 'draft', 'publish', 'inherit', 'private'],
                     'posts_per_page' => 50,
+                    'orderby' => 'ID',
                     'paged' => $page++,
                 ]);
 
