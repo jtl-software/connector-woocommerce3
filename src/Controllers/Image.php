@@ -13,6 +13,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
+use JtlWooCommerceConnector\Logger\ControllerLogger;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -206,6 +207,9 @@ class Image extends BaseController
 
         foreach ($attachmentIds as $attachmentId) {
             if (!file_exists(\get_attached_file($attachmentId))) {
+                ControllerLogger::getInstance()->writeLog(
+                    \sprintf('Image file does not exist: %s', \get_attached_file($attachmentId))
+                );
                 continue;
             }
 

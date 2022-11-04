@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2188 - add log for missing image
 - CO-2189 - Fix missing products in image pull 
 
 ## 1.39.2 _2022-09-28_
