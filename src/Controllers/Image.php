@@ -206,7 +206,7 @@ class Image extends BaseController
         }
 
         foreach ($attachmentIds as $attachmentId) {
-            if (!file_exists(\get_attached_file($attachmentId))) {
+            if (!\file_exists(\get_attached_file($attachmentId))) {
                 ControllerLogger::getInstance()->writeLog(
                     \sprintf('Image file does not exist: %s', \get_attached_file($attachmentId))
                 );
