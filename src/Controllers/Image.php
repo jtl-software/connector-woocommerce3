@@ -13,6 +13,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Image as ImageModel;
 use jtl\Connector\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
+use JtlWooCommerceConnector\Logger\ControllerLogger;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -90,9 +91,9 @@ class Image extends BaseController
      *
      * @return array The image entities.
      */
-    private function productImagePull($limit = null)
+    private function productImagePull($limit = null): array
     {
-        $imageCount = 0;
+        $imageCount  = 0;
         $attachments = [];
 
         $this->alreadyLinked = $this->database->queryList(SqlHelper::linkedProductImages());
@@ -106,6 +107,7 @@ class Image extends BaseController
                     'post_type' => ['product', 'product_variation'],
                     'post_status' => ['future', 'draft', 'publish', 'inherit', 'private'],
                     'posts_per_page' => 50,
+                    'orderby' => 'ID',
                     'paged' => $page++,
                 ]);
 
@@ -117,29 +119,29 @@ class Image extends BaseController
                             continue;
                         }
 
-                        $attachmentIds = $this->fetchProductAttachmentIds($product);
+                        $attachmentIds  = $this->fetchProductAttachmentIds($product);
                         $newAttachments = $this->addProductImagesForPost($attachmentIds, $postId);
 
                         if (empty($newAttachments)) {
                             continue;
                         }
 
-                        $attachments = array_merge($newAttachments, $attachments);
-                        $imageCount += count($newAttachments);
+                        $attachments = \array_merge($newAttachments, $attachments);
+                        $imageCount  += \count($newAttachments);
 
                         if ($imageCount >= $limit) {
-                            return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+                            return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
                         }
                     }
                 } else {
-                    return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+                    return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
                 }
             }
         } catch (\Exception $ex) {
-            return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+            return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
         }
 
-        return $imageCount <= $limit ? $attachments : array_slice($attachments, 0, $limit);
+        return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
     }
 
     /**
@@ -204,7 +206,10 @@ class Image extends BaseController
         }
 
         foreach ($attachmentIds as $attachmentId) {
-            if (!file_exists(\get_attached_file($attachmentId))) {
+            if (!\file_exists(\get_attached_file($attachmentId))) {
+                ControllerLogger::getInstance()->writeLog(
+                    \sprintf('Image file does not exist: %s', \get_attached_file($attachmentId))
+                );
                 continue;
             }
 
