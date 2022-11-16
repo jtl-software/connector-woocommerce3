@@ -29,7 +29,7 @@ class ProductDeliveryTime extends BaseController
         $this->removeDeliveryTimeTerm($productId);
         $this->removeDeliveryTimeTerm($productId, $germanizedDeliveryTimeTaxonomyName);
 
-        if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME) && Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'deactivated') {
+        if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
             return;
         }
 
@@ -167,7 +167,6 @@ class ProductDeliveryTime extends BaseController
                     }
                 }
             }
-
         }
     }
 

@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2150 - fix option to disable zero delivery time
 
 ## 1.39.3 _2022-11-08_
 - CO-2188 - add log for missing image
