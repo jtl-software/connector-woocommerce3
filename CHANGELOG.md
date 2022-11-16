@@ -4,6 +4,13 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2163 - fix extra product options plugin support
+- CO-2150 - fix option to disable zero delivery time
+- CO-2089 - add delay option for importing orders
+- CO-2136 - remove empty taxonomy string assignment
+
+## 1.39.3 _2022-11-08_
+- CO-2188 - add log for missing image
+- CO-2189 - Fix missing products in image pull 
 
 ## 1.39.2 _2022-09-28_
 - CO-2141 - fix getFilter Error with Attribute wc_gm_alt_delivery_note

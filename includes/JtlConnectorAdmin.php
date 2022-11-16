@@ -427,6 +427,12 @@ final class JtlConnectorAdmin
                 'jtl_text_input',
             ]
         );
+        add_action('woocommerce_admin_field_jtl_number_input',
+            [
+                'JtlConnectorAdmin',
+                'jtl_number_input',
+            ]
+        );
         add_action('woocommerce_admin_field_jtl_checkbox',
             [
                 'JtlConnectorAdmin',
@@ -995,6 +1001,14 @@ final class JtlConnectorAdmin
             'options' => $paymentGateways,
             'id' => Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES,
             'value' => Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES]),
+        ];
+
+        $fields[] = [
+                'title' => __('Delay time in seconds before order import'),
+            'type' => 'jtl_number_input',
+            'value' => Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN),
+            'helpBlock' => __('Define the delay time in seconds before new orders get imported.', JTLWCC_TEXT_DOMAIN),
+            'id' => Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN,
         ];
 
         //Add custom checkout fields input field
@@ -1687,6 +1701,31 @@ final class JtlConnectorAdmin
         <?php
     }
 
+    public static function jtl_number_input(array $field)
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <input
+                    type="number"
+                    class="form-control col-12 ml-3"
+                    id="<?= $field['id'] ?>"
+                    name="<?= $field['id'] ?>"
+                    value="<?= $field['value'] ?>"
+            >
+            <?php
+            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                ?>
+                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $field['helpBlock'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
     public static function jtl_checkbox(array $field)
     {
         ?>
@@ -1972,6 +2011,7 @@ final class JtlConnectorAdmin
             case '1.38.0':
             case '1.39.0':
             case '1.39.1':
+            case '1.39.3':
             default:
                 self::activate_linking();
         }
