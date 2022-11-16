@@ -30,7 +30,9 @@ trait CustomerOrderTrait
         $status = Util::getOrderStatusesToImport();
 
         $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
-        $where = (!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
+        $delay = Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN, 0);
+        $where = ((!empty($since) && strtotime($since) !== false) ? "AND p.post_date > '{$since}' " : '')
+            . "AND p.post_date < DATE_SUB(NOW(), INTERVAL {$delay} SECOND)";
 
         return sprintf("
             SELECT %s FROM %s p
