@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2163 - fix extra product options plugin support
 - CO-2150 - fix option to disable zero delivery time
 - CO-2089 - add delay option for importing orders
 - CO-2136 - remove empty taxonomy string assignment

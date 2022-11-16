@@ -14,14 +14,15 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class Bootstrap implements IPlugin
 {
     public const
-        EXTRA_PRODUCT_OPTIONS = 'Extra Product Options (Product Addons) for WooCommerce';
+        EXTRA_PRODUCT_OPTIONS = 'Extra Product Options (Product Addons) for WooCommerce',
+        EXTRA_PRODUCT_OPTIONS_NEW = 'Extra product options For WooCommerce | Custom Product Addons and Fields';
 
     /**
      * @param EventDispatcher $dispatcher
      */
     public function registerListener(EventDispatcher $dispatcher)
     {
-        if (SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS)) {
+        if (SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS) || SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS_NEW)) {
             $dispatcher->addListener(CustomerOrderAfterPullEvent::EVENT_NAME, [
                 new CustomerOrderListener(),
                 'onCustomerOrderAfterPull'
