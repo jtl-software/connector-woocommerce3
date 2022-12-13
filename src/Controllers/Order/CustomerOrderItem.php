@@ -390,9 +390,9 @@ class CustomerOrderItem extends BaseController
                 $taxRate = (string)$item->getVat();
 
                 if (isset($totalPriceForVats[$taxRate])) {
-                    $totalPriceForVats[$taxRate] += $item->getPrice();
+                    $totalPriceForVats[$taxRate] += $item->getQuantity() * $item->getPrice();
                 } else {
-                    $totalPriceForVats[$taxRate] = $item->getPrice();
+                    $totalPriceForVats[$taxRate] = $item->getQuantity() * $item->getPrice();
                 }
             }
         }
