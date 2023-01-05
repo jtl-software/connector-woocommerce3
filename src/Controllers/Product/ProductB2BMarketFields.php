@@ -47,6 +47,7 @@ class ProductB2BMarketFields extends BaseController
 
         $this->updateRRP($product, $wcProduct);
         $this->updateMinimumOrderQuantity($product, $wcProduct);
+        $this->updateSpecialPrices($product, $wcProduct);
     }
 
     /**
@@ -144,6 +145,38 @@ class ProductB2BMarketFields extends BaseController
                 \delete_post_meta($wcProduct->get_parent_id(), $vKey);
             } else {
                 \delete_post_meta($wcProduct->get_id(), 'bm_rrp');
+            }
+        }
+    }
+
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product $wcProduct
+     * @return void
+     */
+    private function updateSpecialPrices(ProductModel $product, \WC_Product $wcProduct): void
+    {
+        $jtlSpecialPrices = $product->getSpecialPrices();
+
+        foreach ($jtlSpecialPrices as $jtlSpecialPrice) {
+            $items = $jtlSpecialPrice->getItems();
+            foreach ($items as $item) {
+                if (\get_post($item->getCustomerGroupId()->getEndpoint()) !== null) {
+                    $customerGroup = \get_post($item->getCustomerGroupId()->getEndpoint())->post_name;
+                    $key = 'bm_' . $customerGroup . '_group_prices';
+                    $oldGroupPrice = \get_post_meta($wcProduct->get_id(), $key, true);
+                    $oldValue = (float)$oldGroupPrice[0]['group_price'];
+                    if ($oldValue !== $item->getPriceNet()) {
+                        $postMeta = \get_post_meta($wcProduct->get_id(), $key, true);
+                        $postMeta[0]['group_price'] = (string)$item->getPriceNet();
+                        \update_post_meta(
+                            $wcProduct->get_id(),
+                            $key,
+                            $postMeta,
+
+                        );
+                    }
+                }
             }
         }
     }
