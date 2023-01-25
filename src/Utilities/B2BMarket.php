@@ -18,7 +18,7 @@ class B2BMarket extends WordpressUtils
     {
         foreach ($models as $model) {
             $modelId = $model->getId()->getEndpoint();
-            $newCustomerGroupBlacklist = array_map(
+            $newCustomerGroupBlacklist = \array_map(
                 fn(ProductInvisibility $invisibility): string => $invisibility->getCustomerGroupId()->getEndpoint(),
                 $model->getInvisibilities()
             );
