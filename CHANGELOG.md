@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2230 - fix B2B-Market customer group visibility
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support
