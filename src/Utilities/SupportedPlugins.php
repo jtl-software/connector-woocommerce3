@@ -53,7 +53,7 @@ final class SupportedPlugins
     //arrays
     const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
-        self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE
+        self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE,
         self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE,
         self::PLUGIN_B2B_MARKET,
         self::PLUGIN_GERMAN_MARKET,
