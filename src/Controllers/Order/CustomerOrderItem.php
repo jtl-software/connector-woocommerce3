@@ -265,7 +265,7 @@ class CustomerOrderItem extends BaseController
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
                     $netPrice = ($costs * $factor);
-                    $priceGross = $netPrice + $taxAmount;
+                    $priceGross = $netPrice + (float) $taxAmount;
 
                     $customerOrderItem
                         ->setPrice(round($netPrice, Util::getPriceDecimals()))
