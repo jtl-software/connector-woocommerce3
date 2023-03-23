@@ -20,16 +20,15 @@ class StatusChange extends BaseController
         $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
 
         if ($order instanceof \WC_Order) {
-
             if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
-                add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
+                \add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
                     return false;
                 }, 10, 2);
             }
 
             $newStatus = $this->mapStatus($statusChange, $order);
             if ($newStatus !== null) {
-                if($newStatus === 'wc-completed'){
+                if ($newStatus === 'wc-completed') {
                     $this->linkIfPaymentIsNotLinked($statusChange);
                 }
 
@@ -44,11 +43,20 @@ class StatusChange extends BaseController
     protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange)
     {
         global $wpdb;
-        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
-        $endpointId = $statusChange->getCustomerOrderId()->getEndpoint();
-        $paymentLink = $this->database->queryOne(sprintf('SELECT * FROM %s WHERE `endpoint_id` = %s', $jclp, $endpointId));
+        $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
+        $endpointId  = $statusChange->getCustomerOrderId()->getEndpoint();
+        $paymentLink = $this->database->queryOne(\sprintf(
+            'SELECT * FROM %s WHERE `endpoint_id` = %s',
+            $jclp,
+            $endpointId
+        ));
         if (empty($paymentLink)) {
-            $this->database->query(sprintf('INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)', $jclp, $endpointId, 0));
+            $this->database->query(\sprintf(
+                'INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)',
+                $jclp,
+                $endpointId,
+                0
+            ));
         }
     }
 

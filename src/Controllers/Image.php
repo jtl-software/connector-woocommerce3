@@ -749,6 +749,6 @@ class Image extends BaseController
      */
     public static function createFilePath(string $destinationDir, string $fileName): string
     {
-        return sprintf('%s/%s', rtrim($destinationDir, '/'), $fileName);
+        return \sprintf('%s/%s', \rtrim($destinationDir, '/'), $fileName);
     }
 }

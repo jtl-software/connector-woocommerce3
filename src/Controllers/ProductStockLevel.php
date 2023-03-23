@@ -23,7 +23,7 @@ class ProductStockLevel extends BaseController
         if ('yes' === \get_option('woocommerce_manage_stock')) {
             \update_post_meta($productId, '_manage_stock', 'yes');
 
-            $stockLevel = $productStockLevel->getStockLevel();
+            $stockLevel  = $productStockLevel->getStockLevel();
             $stockStatus = Util::getInstance()->getStockStatus($stockLevel, $wcProduct->backorders_allowed());
 
             // Stock status is always determined by children so sync later.

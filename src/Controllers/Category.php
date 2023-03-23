@@ -18,42 +18,57 @@ use JtlWooCommerceConnector\Utilities\Util;
 class Category extends BaseController
 {
     private static $idCache = [];
-    
+
     protected function pullData($limit)
     {
         $categories = [];
-        
+
         CategoryUtil::fillCategoryLevelTable();
         $categoryData = $this->database->query(SqlHelper::categoryPull($limit));
-        
+
         foreach ($categoryData as $categoryDataSet) {
-            $category = (new CategoryModel)
+            $category = (new CategoryModel())
                 ->setId(new Identity($categoryDataSet['category_id']))
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
-            
+
             if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
-            
-            $i18n = (new CategoryI18nModel)
+
+            $i18n = (new CategoryI18nModel())
                 ->setCategoryId($category->getId())
                 ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                ->setName(html_entity_decode($categoryDataSet['name']))
-                ->setDescription(html_entity_decode($categoryDataSet['description']))
+                ->setName(\html_entity_decode($categoryDataSet['name']))
+                ->setDescription(\html_entity_decode($categoryDataSet['description']))
                 ->setUrlPath($categoryDataSet['slug'])
                 ->setTitleTag($categoryDataSet['name']);
-            
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)) {
-                $taxonomySeo = get_option('wpseo_taxonomy_meta');
-                
+
+            if (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
+            ) {
+                $taxonomySeo = \get_option('wpseo_taxonomy_meta');
+
                 if (isset($taxonomySeo['product_cat'])) {
                     foreach ($taxonomySeo['product_cat'] as $catId => $seoData) {
                         if ($catId === (int)$categoryDataSet['category_id']) {
-                            $i18n->setMetaDescription(isset($seoData['wpseo_desc']) ? $seoData['wpseo_desc'] : '')
-                                ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $categoryDataSet['name'])
-                                ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $categoryDataSet['name']);
+                            $i18n
+                                ->setMetaDescription(
+                                    isset($seoData['wpseo_desc'])
+                                        ? $seoData['wpseo_desc']
+                                        : ''
+                                )
+                                ->setMetaKeywords(
+                                    isset($seoData['wpseo_focuskw'])
+                                    ? $seoData['wpseo_focuskw']
+                                    : $categoryDataSet['name']
+                                )
+                                ->setTitleTag(
+                                    isset($seoData['wpseo_title'])
+                                        ? $seoData['wpseo_title']
+                                        : $categoryDataSet['name']
+                                );
                         }
                     }
                 }

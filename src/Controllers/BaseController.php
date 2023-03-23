@@ -38,8 +38,8 @@ abstract class BaseController extends Controller
         parent::__construct();
         $this->database = Db::getInstance();
         try {
-            $reflect = new ReflectionClass($this);
-            $shortName = $reflect->getShortName();
+            $reflect              = new ReflectionClass($this);
+            $shortName            = $reflect->getShortName();
             $this->controllerName = $shortName;
         } catch (\ReflectionException $exception) {
             //
@@ -60,7 +60,7 @@ abstract class BaseController extends Controller
         try {
             $result = null;
 
-            if (method_exists($this, 'pullData')) {
+            if (\method_exists($this, 'pullData')) {
                 $result = $this->pullData($query->getLimit());
             }
 
@@ -86,7 +86,7 @@ abstract class BaseController extends Controller
         try {
             $result = null;
 
-            if (method_exists($this, 'pushData')) {
+            if (\method_exists($this, 'pushData')) {
                 $result = $this->pushData($data);
             }
 
@@ -112,7 +112,7 @@ abstract class BaseController extends Controller
         try {
             $result = null;
 
-            if (method_exists($this, 'deleteData')) {
+            if (\method_exists($this, 'deleteData')) {
                 $action->setResult($this->deleteData($data));
             }
         } catch (\Exception $exc) {
@@ -136,11 +136,11 @@ abstract class BaseController extends Controller
         try {
             $statModel = new Statistic();
 
-            if (method_exists($this, 'getStats')) {
+            if (\method_exists($this, 'getStats')) {
                 $statModel->setAvailable((int)$this->getStats());
             }
 
-            $statModel->setControllerName(lcfirst($this->controllerName));
+            $statModel->setControllerName(\lcfirst($this->controllerName));
             $action->setResult($statModel);
         } catch (\Exception $exc) {
             $this->handleException($exc, $action);
@@ -168,7 +168,7 @@ abstract class BaseController extends Controller
      */
     protected function addPostMeta($postId, $metaKey, $value)
     {
-        return add_post_meta($postId, $metaKey, $value, true);
+        return \add_post_meta($postId, $metaKey, $value, true);
     }
 
     /**
@@ -180,7 +180,7 @@ abstract class BaseController extends Controller
      */
     protected function wpSetObjectTerms($objectId, $terms, $taxonomy, $append = false)
     {
-        return wp_set_object_terms($objectId, $terms, $taxonomy, $append);
+        return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 
     /**
@@ -191,7 +191,7 @@ abstract class BaseController extends Controller
      */
     protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy)
     {
-        return wp_remove_object_terms($objectId, $terms, $taxonomy);
+        return \wp_remove_object_terms($objectId, $terms, $taxonomy);
     }
 
     /**
@@ -200,7 +200,7 @@ abstract class BaseController extends Controller
      */
     protected function wcSanitizeTaxonomyName($taxonomyName)
     {
-        if ($taxonomyName instanceof DataModel && method_exists($taxonomyName, 'getName')) {
+        if ($taxonomyName instanceof DataModel && \method_exists($taxonomyName, 'getName')) {
             $taxonomyName = $taxonomyName->getName();
         }
         return \wc_sanitize_taxonomy_name($taxonomyName);
@@ -214,9 +214,9 @@ abstract class BaseController extends Controller
      * @param $filter
      * @return array|false|void|\WP_Error|\WP_Term|null
      */
-    protected function getTermBy($field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw')
+    protected function getTermBy($field, $value, $taxonomy = '', $output = \OBJECT, $filter = 'raw')
     {
-        return get_term_by($field, $value, $taxonomy, $output = OBJECT, $filter = 'raw');
+        return \get_term_by($field, $value, $taxonomy, $output = \OBJECT, $filter = 'raw');
     }
 
     /**

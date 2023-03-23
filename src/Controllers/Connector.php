@@ -30,9 +30,9 @@ class Connector extends Controller
         $action->setHandled(true);
 
         $returnMegaBytes = function ($value) {
-            $value = trim($value);
-            $res = (int)substr($value,0, -1);
-            $unit = strtolower($value[strlen($value) - 1]);
+            $value = \trim($value);
+            $res   = (int)\substr($value, 0, -1);
+            $unit  = \strtolower($value[\strlen($value) - 1]);
             switch ($unit) {
                 case 'g':
                     $res *= 1024;
@@ -40,17 +40,17 @@ class Connector extends Controller
 
             return (int)$res;
         };
-        
+
         $serverInfo = new ConnectorServerInfo();
-        $serverInfo->setMemoryLimit((int)$returnMegaBytes(ini_get('memory_limit')))
-            ->setExecutionTime((int)ini_get('max_execution_time'))
-            ->setPostMaxSize((int)$returnMegaBytes(ini_get('post_max_size')))
-            ->setUploadMaxFilesize((int)$returnMegaBytes(ini_get('upload_max_filesize')));
+        $serverInfo->setMemoryLimit((int)$returnMegaBytes(\ini_get('memory_limit')))
+            ->setExecutionTime((int)\ini_get('max_execution_time'))
+            ->setPostMaxSize((int)$returnMegaBytes(\ini_get('post_max_size')))
+            ->setUploadMaxFilesize((int)$returnMegaBytes(\ini_get('upload_max_filesize')));
 
         $identification = new ConnectorIdentification();
         $identification->setPlatformName('WooCommerce')
-            ->setEndpointVersion(trim(Yaml::parseFile( JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']))
-            ->setProtocolVersion(Application()->getProtocolVersion())
+            ->setEndpointVersion(\trim(Yaml::parseFile(\JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']))
+            ->setProtocolVersion(\Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 
         $action->setResult($identification);
@@ -111,11 +111,11 @@ class Connector extends Controller
             } else {
                 $className = Util::getInstance()->getControllerNamespace($mainController);
 
-                if (class_exists($className)) {
+                if (\class_exists($className)) {
                     try {
                         $controllerObj = new $className();
 
-                        if (method_exists($controllerObj, 'statistic')) {
+                        if (\method_exists($controllerObj, 'statistic')) {
                             $result = $controllerObj->statistic($queryFilter);
                             if ($result instanceof Action && $result->isHandled() && !$result->isError()) {
                                 $results[] = $result->getResult();

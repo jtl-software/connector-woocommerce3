@@ -18,9 +18,10 @@ class DeliveryNote extends BaseController
      */
     protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote)
     {
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE) ||
-            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
-
+        if (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)
+        ) {
             $orderId = $deliveryNote->getCustomerOrderId()->getEndpoint();
 
             $order = \wc_get_order($orderId);
@@ -32,15 +33,19 @@ class DeliveryNote extends BaseController
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
             foreach ($deliveryNote->getTrackingLists() as $trackingList) {
-
-                $trackingInfoItem = [];
+                $trackingInfoItem                 = [];
                 $trackingInfoItem['date_shipped'] = $deliveryNote->getCreationDate()->format("Y-m-d");
 
                 $trackingProviders = $shipmentTrackingActions->get_providers();
 
-                $shippingProviderName = trim($trackingList->getName());
+                $shippingProviderName = \trim($trackingList->getName());
 
-                $providerSlug = $this->findTrackingProviderSlug($shippingProviderName, is_array($trackingProviders) ? $trackingProviders : []);
+                $providerSlug = $this->findTrackingProviderSlug(
+                    $shippingProviderName,
+                    \is_array($trackingProviders)
+                    ? $trackingProviders
+                    : []
+                );
                 if ($providerSlug !== null) {
                     $trackingInfoItem['tracking_provider'] = $providerSlug;
                 } else {
@@ -80,24 +85,23 @@ class DeliveryNote extends BaseController
      */
     private function findTrackingProviderSlug($shippingMethodName, $trackingProviders)
     {
-        $searchResultSlug = null;
-        $searchResultLength = 0;
+        $searchResultSlug         = null;
+        $searchResultLength       = 0;
         $sameSearchResultQuantity = 0;
 
         foreach ($trackingProviders as $trackingProviderSlug => $trackingProvider) {
-
-            $providerName = $trackingProvider['provider_name'];
-            $providerNameLength = strlen($providerName);
+            $providerName       = $trackingProvider['provider_name'];
+            $providerNameLength = \strlen($providerName);
 
             $shippingMethodNameStartsWithProviderName
-                = substr($shippingMethodName, 0, $providerNameLength) === $providerName;
-            $newResultIsMoreSimilarThanPrevious = $providerNameLength > $searchResultLength;
-            $newResultHasSameLengthAsPrevious = $providerNameLength === $searchResultLength;
+                = \substr($shippingMethodName, 0, $providerNameLength) === $providerName;
+            $newResultIsMoreSimilarThanPrevious       = $providerNameLength > $searchResultLength;
+            $newResultHasSameLengthAsPrevious         = $providerNameLength === $searchResultLength;
 
             if ($shippingMethodNameStartsWithProviderName) {
                 if ($newResultIsMoreSimilarThanPrevious) {
-                    $searchResultSlug = (string)$trackingProviderSlug;
-                    $searchResultLength = $providerNameLength;
+                    $searchResultSlug         = (string)$trackingProviderSlug;
+                    $searchResultLength       = $providerNameLength;
                     $sameSearchResultQuantity = 0;
                 } elseif ($newResultHasSameLengthAsPrevious) {
                     $searchResultSlug = null;
