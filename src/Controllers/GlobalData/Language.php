@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -6,13 +7,19 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
 
 class Language
 {
-    public function pullData()
+    /**
+     * @return \jtl\Connector\Model\Language
+     * @throws \InvalidArgumentException
+     * @throws LanguageException
+     */
+    public function pullData(): \jtl\Connector\Model\Language
     {
         $locale = \get_locale();
 
@@ -24,27 +31,39 @@ class Language
             ->setIsDefault(true);
     }
 
-    protected function nameGerman($locale)
+    /**
+     * @param $locale
+     * @return false|mixed|string
+     * @throws LanguageException
+     * @throws \InvalidArgumentException
+     */
+    protected function nameGerman($locale): mixed
     {
-        if (function_exists('locale_get_display_language')) {
+        if (\function_exists('locale_get_display_language')) {
             return \locale_get_display_language($locale, 'de');
         }
 
-        $isoCode = strtoupper(LanguageUtil::map($locale));
-        $countries = WC()->countries->get_countries();
+        $isoCode   = \strtoupper(LanguageUtil::map($locale));
+        $countries = \WC()->countries->get_countries();
 
-        return isset($countries[$isoCode]) ? $countries[$isoCode] : '';
+        return $countries[$isoCode] ?? '';
     }
 
-    protected function nameEnglish($locale)
+    /**
+     * @param $locale
+     * @return false|mixed|string
+     * @throws LanguageException
+     * @throws \InvalidArgumentException
+     */
+    protected function nameEnglish($locale): mixed
     {
-        if (function_exists('locale_get_display_language')) {
+        if (\function_exists('locale_get_display_language')) {
             return \locale_get_display_language($locale, 'en');
         }
 
-        $isoCode = strtoupper(LanguageUtil::map($locale));
-        $countries = WC()->countries->get_countries();
+        $isoCode   = \strtoupper(LanguageUtil::map($locale));
+        $countries = \WC()->countries->get_countries();
 
-        return isset($countries[$isoCode]) ? $countries[$isoCode] : '';
+        return $countries[$isoCode] ?? '';
     }
 }

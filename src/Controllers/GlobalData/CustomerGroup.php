@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -8,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use jtl\Connector\Model\CustomerGroupI18n;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -17,40 +19,45 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroup
 {
-    const DEFAULT_GROUP = 'customer';
-    
-    public function pullData()
-    {
-        $customerGroups = [];
-        $isDefaultGroupSet = false;
-        $langIso = Util::getInstance()->getWooCommerceLanguage();
-        $version = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
+    public const DEFAULT_GROUP = 'customer';
 
-        if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+    /**
+     * @return array<int, DataModel>
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(): array
+    {
+        $customerGroups    = [];
+        $isDefaultGroupSet = false;
+        $langIso           = Util::getInstance()->getWooCommerceLanguage();
+        $version           = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
+
+        if (
+            !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && version_compare($version, '1.0.3', '<='))) {
+            && \version_compare($version, '1.0.3', '<='))
+        ) {
             //Default
-            $defaultGroup = (new CustomerGroupModel)
+            $defaultGroup = (new CustomerGroupModel())
                 ->setId(new Identity(self::DEFAULT_GROUP))
                 ->setIsDefault(true);
-            
-            $defaultI18n = (new CustomerGroupI18n)
+
+            $defaultI18n = (new CustomerGroupI18n())
                 ->setCustomerGroupId($defaultGroup->getId())
-                ->setName(__('Customer', 'woocommerce'))
+                ->setName(\__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
 
             $isDefaultGroupSet = true;
             $defaultGroup->addI18n($defaultI18n);
             $customerGroups[] = $defaultGroup;
         }
-        
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $sql = SqlHelper::customerGroupPull();
-            $result = Db::getInstance()->query($sql);
-            
-            if (count($result) > 0) {
-                foreach ($result as $group) {
 
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            $sql    = SqlHelper::customerGroupPull();
+            $result = Db::getInstance()->query($sql);
+
+            if (\count($result) > 0) {
+                foreach ($result as $group) {
                     if (Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true)) {
                         $allProductsKey = 'bm_all_products';
                         \update_post_meta(
@@ -66,7 +73,7 @@ class CustomerGroup
                     $isDefaultGroup = $isDefaultGroupSet === false &&
                         (string) $group['ID'] === Config::get('jtlconnector_default_customer_group');
 
-                    $customerGroup = (new CustomerGroupModel)
+                    $customerGroup = (new CustomerGroupModel())
                         ->setApplyNetPrice(
                             isset($meta['bm_vat_type'])
                             && isset($meta['bm_vat_type'][0])
@@ -74,33 +81,33 @@ class CustomerGroup
                         )
                         ->setId(new Identity($group['ID']))
                         ->setIsDefault($isDefaultGroup);
-                    
-                    $i18n = (new CustomerGroupI18n)
+
+                    $i18n = (new CustomerGroupI18n())
                         ->setCustomerGroupId($customerGroup->getId())
                         ->setName($group['post_title'])
                         ->setLanguageISO($langIso);
-                    
+
                     $customerGroup->addI18n($i18n);
                     $customerGroups[] = $customerGroup;
                 }
             }
         }
-        
+
         return $customerGroups;
     }
-    
+
     /**
      * @param $customerId
      *
      * @return bool|string
      */
-    public function getSlugById($customerId)
+    public function getSlugById($customerId): bool|string
     {
         $group = \get_post((int)$customerId);
         if ($group instanceof \WP_Post) {
             return $group->post_name;
         }
-        
+
         return false;
     }
 }
