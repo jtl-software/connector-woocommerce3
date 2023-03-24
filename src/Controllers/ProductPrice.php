@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -23,7 +24,7 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
 
         if ($wcProduct !== false) {
             $vat = $productPrice->getVat();
-            if (is_null($vat)) {
+            if (\is_null($vat)) {
                 $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
             }
 
@@ -66,5 +67,4 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
 
         return $type;
     }
-
 }

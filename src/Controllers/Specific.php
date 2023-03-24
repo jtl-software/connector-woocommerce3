@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2018 JTL-Software GmbH
@@ -139,7 +140,6 @@ class Specific extends BaseController
                 WpErrorLogger::getInstance()->logError($attributeId);
 
                 return $specific;
-
             }
 
             $specific->getId()->setEndpoint($attributeId);

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2018 JTL-Software GmbH
@@ -113,7 +114,6 @@ class Manufacturer extends BaseController
                 if (!$term instanceof \WP_Term) {
                     $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
                 }
-
             } else {
                 \wp_update_term($term->term_id, 'pwb-brand', [
                     'name' => $manufacturer->getName(),

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @author    Daniel Hoffmann <daniel.hoffmann@jtl-software.com>
@@ -246,6 +247,4 @@ abstract class BaseController extends Controller
     {
         return \wp_update_post($postData);
     }
-
-
 }

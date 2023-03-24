@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -170,7 +171,6 @@ class Customer extends BaseController
             if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
                 \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
             }
-
         } catch (\Exception $exception) {
             WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
