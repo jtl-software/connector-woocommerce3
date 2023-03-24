@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -17,18 +18,28 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderItem extends BaseController
 {
-    const PRICE_DECIMALS = 4;
+    public const PRICE_DECIMALS = 4;
 
     /** @var array $taxRateCache Map tax rate id to tax rate */
-    protected static $taxRateCache = [];
+    protected static array $taxRateCache = [];
     /** @var array $taxClassRateCache Map tax class to tax rate */
-    protected static $taxClassRateCache = [];
+    protected static array $taxClassRateCache = [];
 
-    public function pullData(\WC_Order $order)
+    /**
+     * @param \WC_Order $order
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \WC_Data_Exception
+     */
+    public function pullData(\WC_Order $order): array
     {
         $customerOrderItems = [];
 
-        if (Config::get(Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL) === true && count($order->get_items('coupon')) > 0) {
+        if (
+            Config::get(Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL) === true
+            && \count($order->get_items('coupon'))
+            > 0
+        ) {
             $order->recalculate_coupons();
         }
 
@@ -47,8 +58,8 @@ class CustomerOrderItem extends BaseController
     protected function getSingleVatRate(\WC_Order $wcOrder): ?float
     {
         $singleVatRate = null;
-        $taxItems = $wcOrder->get_items('tax');
-        if (is_array($taxItems)) {
+        $taxItems      = $wcOrder->get_items('tax');
+        if (\is_array($taxItems)) {
             $vatRates = [];
             foreach ($taxItems as $taxItem) {
                 $data = $taxItem->get_data();
@@ -56,21 +67,21 @@ class CustomerOrderItem extends BaseController
                     $vatRates[] = (float)$data['rate_percent'];
                 }
             }
-            $uniqueRates = array_unique($vatRates);
-            if (count($uniqueRates) === 1) {
-                $singleVatRate = (float)end($uniqueRates);
+            $uniqueRates = \array_unique($vatRates);
+            if (\count($uniqueRates) === 1) {
+                $singleVatRate = (float)\end($uniqueRates);
             }
         }
         return $singleVatRate;
     }
 
     /**
-     * Add the positions for products. Not that complicated.
-     *
      * @param \WC_Order $order
-     * @param           $customerOrderItems
+     * @param $customerOrderItems
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems)
+    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems): void
     {
         $singleVatRate = $this->getSingleVatRate($order);
 
@@ -79,7 +90,7 @@ class CustomerOrderItem extends BaseController
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
                 ->setCustomerOrderId(new Identity($order->get_id()))
-                ->setName(html_entity_decode($item->get_name()))
+                ->setName(\html_entity_decode($item->get_name()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
 
@@ -92,8 +103,7 @@ class CustomerOrderItem extends BaseController
             }
 
             if ($product instanceof \WC_Product) {
-
-                if (is_string($product->get_sku())) {
+                if (\is_string($product->get_sku())) {
                     $orderItem->setSku($product->get_sku());
                 }
 
@@ -114,30 +124,33 @@ class CustomerOrderItem extends BaseController
                             break;
                     }
 
-                    $orderItem->setName(sprintf($format, $orderItem->getName(),
-                        \wc_get_formatted_variation($product, true)));
+                    $orderItem->setName(\sprintf(
+                        $format,
+                        $orderItem->getName(),
+                        \wc_get_formatted_variation($product, true)
+                    ));
                 }
             }
 
             $taxes = $item->get_taxes();
 
-            $priceNet = (float)$order->get_item_subtotal($item, false, true);
+            $priceNet   = (float)$order->get_item_subtotal($item, false, true);
             $priceGross = (float)$order->get_item_subtotal($item, true, true);
 
             $useWcTaxes = false;
-            if(!empty($taxes) && isset($taxes['subtotal']) && is_array($taxes['subtotal'])){
-                $useWcTaxes = true;
-                $taxesTotal = array_sum($taxes['subtotal']);
+            if (!empty($taxes) && isset($taxes['subtotal']) && \is_array($taxes['subtotal'])) {
+                $useWcTaxes  = true;
+                $taxesTotal  = \array_sum($taxes['subtotal']);
                 $taxesTotal /= $item->get_quantity();
 
-                $priceNet = (float)$order->get_item_subtotal($item, false, false);
+                $priceNet   = (float)$order->get_item_subtotal($item, false, false);
                 $priceGross = (float)($priceNet + $taxesTotal);
             }
 
-            if (!is_null($singleVatRate)) {
+            if (!\is_null($singleVatRate)) {
                 $vat = $singleVatRate;
             } else {
-                $vat = $this->calculateVat($priceNet, $priceGross, wc_get_price_decimals());
+                $vat = $this->calculateVat($priceNet, $priceGross, \wc_get_price_decimals());
             }
 
             if ($useWcTaxes === false) {
@@ -146,14 +159,20 @@ class CustomerOrderItem extends BaseController
 
             $orderItem
                 ->setVat($vat)
-                ->setPrice(round($priceNet, Util::getPriceDecimals()))
-                ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
+                ->setPrice(\round($priceNet, Util::getPriceDecimals()))
+                ->setPriceGross(\round($priceGross, Util::getPriceDecimals()));
 
             $customerOrderItems[] = $orderItem;
         }
     }
 
-    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems)
+    /**
+     * @param \WC_Order $order
+     * @param $customerOrderItems
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems): void
     {
         $this->accurateItemTaxCalculation(
             $order,
@@ -161,49 +180,59 @@ class CustomerOrderItem extends BaseController
             $customerOrderItems,
             function ($shippingItem, $order, $taxRateId) {
                 return $this->getShippingOrderItem($shippingItem, $order, $taxRateId);
-            });
+            }
+        );
     }
 
     /**
-     * Create an order item with the basic non price relevant information.
-     *
      * @param \WC_Order_Item_Shipping $shippingItem
      * @param \WC_Order $order
-     * @param null $taxRateId
-     *
+     * @param $taxRateId
      * @return CustomerOrderItemModel
+     * @throws \InvalidArgumentException
      */
-    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null)
+    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null): CustomerOrderItemModel
     {
         return (new CustomerOrderItemModel())
-            ->setId(new Identity($shippingItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
+            ->setId(new Identity($shippingItem->get_id() . (\is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
             ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
             ->setName($shippingItem->get_name())
             ->setQuantity(1);
     }
 
-    public function pullFreePositions(\WC_Order $order, &$customerOrderItems)
+    /**
+     * @param \WC_Order $order
+     * @param $customerOrderItems
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    public function pullFreePositions(\WC_Order $order, &$customerOrderItems): void
     {
-        $this->accurateItemTaxCalculation($order, 'fee', $customerOrderItems,
+        $this->accurateItemTaxCalculation(
+            $order,
+            'fee',
+            $customerOrderItems,
             function ($shippingItem, $order, $taxRateId) {
                 return $this->getSurchargeOrderItem($shippingItem, $order, $taxRateId);
-            });
+            }
+        );
     }
 
     /**
-     * Create an order item with the basic non price relevant information.
-     *
      * @param \WC_Order_Item_Fee $feeItem
      * @param \WC_Order $order
-     * @param null $taxRateId
-     *
+     * @param $taxRateId
      * @return CustomerOrderItemModel
+     * @throws \InvalidArgumentException
      */
-    private function getSurchargeOrderItem(\WC_Order_Item_Fee $feeItem, \WC_Order $order, $taxRateId = null)
-    {
+    private function getSurchargeOrderItem(
+        \WC_Order_Item_Fee $feeItem,
+        \WC_Order $order,
+        $taxRateId = null
+    ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
-            ->setId(new Identity($feeItem->get_id() . (is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
+            ->setId(new Identity($feeItem->get_id() . (\is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
             ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
             ->setName($feeItem->get_name())
@@ -212,11 +241,13 @@ class CustomerOrderItem extends BaseController
 
     /**
      * @param \WC_Order $order
-     * @param           $type
-     * @param           $customerOrderItems
+     * @param $type
+     * @param $customerOrderItems
      * @param callable $getItem
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem)
+    private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem): void
     {
         $highestVatRateFallback = 0.;
         if ($type === CustomerOrderItemModel::TYPE_SHIPPING) {
@@ -228,20 +259,20 @@ class CustomerOrderItem extends BaseController
         }
         $singleVatRate = $this->getSingleVatRate($order);
 
-        $productTotalByVat = $this->groupProductsByTaxRate($customerOrderItems);
-        $productTotalByVatWithoutZero = array_filter($productTotalByVat, function ($vat) {
+        $productTotalByVat            = $this->groupProductsByTaxRate($customerOrderItems);
+        $productTotalByVatWithoutZero = \array_filter($productTotalByVat, function ($vat) {
             return (float)$vat !== 0;
-        }, ARRAY_FILTER_USE_KEY);
-        $totalProductItemsWithoutZero = array_sum(array_values($productTotalByVatWithoutZero));
+        }, \ARRAY_FILTER_USE_KEY);
+        $totalProductItemsWithoutZero = \array_sum(\array_values($productTotalByVatWithoutZero));
 
         /** @var \WC_Order_Item_Shipping $shippingItem */
         foreach ($order->get_items($type) as $shippingItem) {
-            $taxes = $shippingItem->get_taxes();
-            $total = (float)$shippingItem->get_total();
+            $taxes    = $shippingItem->get_taxes();
+            $total    = (float)$shippingItem->get_total();
             $totalTax = (float)$shippingItem->get_total_tax();
-            $costs = (float)$order->get_item_total($shippingItem, false, true);
+            $costs    = (float)$order->get_item_total($shippingItem, false, true);
 
-            if (isset($taxes['total']) && !empty($taxes['total']) && count($taxes['total']) > 1) {
+            if (isset($taxes['total']) && !empty($taxes['total']) && \count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
                     /** @var CustomerOrderItemModel $customerOrderItem */
                     $customerOrderItem = $getItem($shippingItem, $order, $taxRateId);
@@ -249,7 +280,9 @@ class CustomerOrderItem extends BaseController
                     if (isset(self::$taxRateCache[$taxRateId])) {
                         $taxRate = self::$taxRateCache[$taxRateId];
                     } else {
-                        $taxRate = (float)$this->database->queryOne(SqlHelper::taxRateById($taxRateId));
+                        $taxRate                        = (float)$this->database->queryOne(
+                            SqlHelper::taxRateById($taxRateId)
+                        );
                         self::$taxRateCache[$taxRateId] = $taxRate;
                     }
 
@@ -264,12 +297,12 @@ class CustomerOrderItem extends BaseController
                     } else {
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
-                    $netPrice = ($costs * $factor);
+                    $netPrice   = ($costs * $factor);
                     $priceGross = $netPrice + $taxAmount;
 
                     $customerOrderItem
-                        ->setPrice(round($netPrice, Util::getPriceDecimals()))
-                        ->setPriceGross(round($priceGross, Util::getPriceDecimals()));
+                        ->setPrice(\round($netPrice, Util::getPriceDecimals()))
+                        ->setPriceGross(\round($priceGross, Util::getPriceDecimals()));
 
                     $customerOrderItems[] = $customerOrderItem;
                 }
@@ -278,24 +311,27 @@ class CustomerOrderItem extends BaseController
                 $customerOrderItem = $getItem($shippingItem, $order, null);
 
                 if ($total != 0) {
-
                     $detailedTax = $totalTax;
-                    if (isset($taxes['total']) && is_array($taxes['total'])) {
-                        $detailedTax = array_sum($taxes['total']);
+                    if (isset($taxes['total']) && \is_array($taxes['total'])) {
+                        $detailedTax = \array_sum($taxes['total']);
                     }
 
                     $detailedPriceGross = $total + $detailedTax;
-                    $vat = $this->calculateVat($total, $detailedPriceGross, wc_get_price_decimals());
-                    if (!is_null($singleVatRate)) {
+                    $vat                = $this->calculateVat($total, $detailedPriceGross, \wc_get_price_decimals());
+                    if (!\is_null($singleVatRate)) {
                         $vat = $singleVatRate;
                     }
 
                     $customerOrderItem->setVat($vat)
-                        ->setPrice(round($total, Util::getPriceDecimals()))
-                        ->setPriceGross(round($detailedPriceGross, Util::getPriceDecimals()));
+                        ->setPrice(\round($total, Util::getPriceDecimals()))
+                        ->setPriceGross(\round($detailedPriceGross, Util::getPriceDecimals()));
                 }
 
-                if ($type === CustomerOrderItemModel::TYPE_SHIPPING && $customerOrderItem->getVat() === 0. && $highestVatRateFallback !== 0.) {
+                if (
+                    $type === CustomerOrderItemModel::TYPE_SHIPPING
+                    && $customerOrderItem->getVat() === 0.
+                    && $highestVatRateFallback !== 0.
+                ) {
                     $customerOrderItem->setVat($highestVatRateFallback);
                 }
 
@@ -307,15 +343,17 @@ class CustomerOrderItem extends BaseController
     /**
      * @param \WC_Order $order
      * @param array $customerOrderItems
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    public function pullDiscountOrderItems(\WC_Order $order, array &$customerOrderItems)
+    public function pullDiscountOrderItems(\WC_Order $order, array &$customerOrderItems): void
     {
         $orderItemsVatRates = [];
-        $highestVatRate = 0;
+        $highestVatRate     = 0;
         /** @var \jtl\Connector\Model\CustomerOrderItem $orderItem */
         foreach ($customerOrderItems as $orderItem) {
             $orderItemsVatRates[] = $orderItem->getVat();
-            $highestVatRate = $orderItem->getVat() > $highestVatRate ? $orderItem->getVat() : $highestVatRate;
+            $highestVatRate       = $orderItem->getVat() > $highestVatRate ? $orderItem->getVat() : $highestVatRate;
         }
 
         /**
@@ -323,20 +361,19 @@ class CustomerOrderItem extends BaseController
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
-
             $itemName = $item->get_name();
 
-            $total = (float)$item->get_discount();
+            $total       = (float)$item->get_discount();
             $discountTax = (float)$item->get_discount_tax();
-            $totalGross = $total + $discountTax;
+            $totalGross  = $total + $discountTax;
 
             $pd = Util::getPriceDecimals();
 
-            $vat = $this->calculateVat($total, $totalGross, wc_get_price_decimals());
-            if (!in_array($vat, $orderItemsVatRates)) {
-                $vat = $highestVatRate;
+            $vat = $this->calculateVat($total, $totalGross, \wc_get_price_decimals());
+            if (!\in_array($vat, $orderItemsVatRates)) {
+                $vat   = $highestVatRate;
                 $total = $totalGross * 100 / ($vat + 100);
-                $total = number_format((float)$total, $pd, '.', '');
+                $total = \number_format((float)$total, $pd, '.', '');
             }
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
@@ -344,8 +381,8 @@ class CustomerOrderItem extends BaseController
                 ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
-                ->setPrice(round(-1 * $total, Util::getPriceDecimals()))
-                ->setPriceGross(round(-1 * $totalGross, Util::getPriceDecimals()))
+                ->setPrice(\round(-1 * $total, Util::getPriceDecimals()))
+                ->setPriceGross(\round(-1 * $totalGross, Util::getPriceDecimals()))
                 ->setVat($vat)
                 ->setQuantity(1);
         }
@@ -358,30 +395,34 @@ class CustomerOrderItem extends BaseController
      * @param int $vatRoundPrecision
      * @return float
      */
-    private function calculateVat(float $totalNet, float $totalGross, $wooCommerceRoundPrecision = 2, int $vatRoundPrecision = 2): float
-    {
+    private function calculateVat(
+        float $totalNet,
+        float $totalGross,
+        int $wooCommerceRoundPrecision = 2,
+        int $vatRoundPrecision = 2
+    ): float {
         $totalGrossPrecision = Util::getDecimalPrecision($totalGross);
-        $vat = .0;
+        $vat                 = .0;
         if ($totalNet > 0 && $totalGross > 0 && $totalGross > $totalNet) {
-            $vat = round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100;
+            $vat = \round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100;
         }
 
-        $totalGrossCalculated = round(($totalNet * ($vat / 100 + 1)), $totalGrossPrecision);
+        $totalGrossCalculated = \round(($totalNet * ($vat / 100 + 1)), $totalGrossPrecision);
 
-        $isCalculatedGrossSame = abs($totalGrossCalculated - $totalGross) < 0.00001;
+        $isCalculatedGrossSame = \abs($totalGrossCalculated - $totalGross) < 0.00001;
 
         if ($vatRoundPrecision <= 6 && $vat !== .0 && $isCalculatedGrossSame === false) {
             return $this->calculateVat($totalNet, $totalGross, $totalGrossPrecision, $vatRoundPrecision + 1);
         }
 
-        return round($vat, 2);
+        return \round($vat, 2);
     }
 
     /**
      * @param array $customerOrderItems
      * @return array
      */
-    private function groupProductsByTaxRate(array $customerOrderItems)
+    private function groupProductsByTaxRate(array $customerOrderItems): array
     {
         $totalPriceForVats = [];
 

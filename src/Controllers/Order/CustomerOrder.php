@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -38,10 +39,15 @@ class CustomerOrder extends BaseController
         /** Already paid */
         STATUS_REFUNDED = 'refunded';
 
-    const BILLING_ID_PREFIX = 'b_';
-    const SHIPPING_ID_PREFIX = 's_';
+    public const BILLING_ID_PREFIX  = 'b_';
+    public const SHIPPING_ID_PREFIX = 's_';
 
-    public function pullData($limit)
+    /**
+     * @param $limit
+     * @return array<int|CustomerOrder>
+     * @throws \InvalidArgumentException
+     */
+    public function pullData($limit): array
     {
         $orders = [];
 
@@ -54,7 +60,7 @@ class CustomerOrder extends BaseController
                 continue;
             }
 
-            $total = $order->get_total();
+            $total    = $order->get_total();
             $totalTax = $order->get_total_tax();
             $totalSum = $total - $totalTax;
 
@@ -65,8 +71,7 @@ class CustomerOrder extends BaseController
                 ->setNote($order->get_customer_note())
                 ->setCustomerId($order->get_customer_id() === 0
                     ? new Identity(Id::link([Id::GUEST_PREFIX, $order->get_id()]))
-                    : new Identity($order->get_customer_id())
-                )
+                    : new Identity($order->get_customer_id()))
                 ->setOrderNumber($order->get_order_number())
                 ->setShippingMethodName($order->get_shipping_method())
                 ->setPaymentModuleCode(Util::getInstance()->mapPaymentModuleCode($order))
@@ -96,7 +101,12 @@ class CustomerOrder extends BaseController
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
                 foreach ($order->get_meta_data() as $metaData) {
-                    if (in_array($metaData->get_data()['key'], explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS)))) {
+                    if (
+                        \in_array(
+                            $metaData->get_data()['key'],
+                            \explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS))
+                        )
+                    ) {
                         $customerOrder->addAttribute(
                             (new CustomerOrderAttr())
                                 ->setKey($metaData->get_data()['key'])
@@ -110,9 +120,11 @@ class CustomerOrder extends BaseController
                 $this->setPayPalPlusPaymentInfo($order, $customerOrder);
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            if (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+            ) {
                 $this->setGermanizedPaymentInfo($customerOrder);
             }
 
@@ -121,10 +133,9 @@ class CustomerOrder extends BaseController
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+                $dhlPreferredDeliveryOptions = \get_post_meta($orderId, '_pr_shipment_dhl_label_items', true);
 
-                $dhlPreferredDeliveryOptions = get_post_meta($orderId, '_pr_shipment_dhl_label_items', true);
-
-                if (is_array($dhlPreferredDeliveryOptions)) {
+                if (\is_array($dhlPreferredDeliveryOptions)) {
                     $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
                 }
             }
@@ -135,12 +146,18 @@ class CustomerOrder extends BaseController
         return $orders;
     }
 
-    protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder)
+    /**
+     * @param \WC_Order $order
+     * @param CustomerOrderModel $customerOrder
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
         $instructionType = $order->get_meta('instruction_type');
 
         if ($instructionType === Payment::PAY_UPON_INVOICE) {
-            $payPalPlusSettings = get_option('woocommerce_paypal_plus_settings', []);
+            $payPalPlusSettings = \get_option('woocommerce_paypal_plus_settings', []);
 
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
@@ -148,12 +165,12 @@ class CustomerOrder extends BaseController
                 if (!empty($orderMetaData) && $orderMetaData['instruction_type'] === Payment::PAY_UPON_INVOICE) {
                     $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
                     if (!empty($bankData)) {
-                        $pui = (sprintf(
+                        $pui = (\sprintf(
                             'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
-                            number_format((float)$order->get_total(), 2),
+                            \number_format((float)$order->get_total(), 2),
                             $customerOrder->getCurrencyIso(),
                             $order->get_meta('payment_due_date') ?? '',
-                            sprintf(
+                            \sprintf(
                                 'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
                                 $bankData['account_holder_name'] ?? '',
                                 $bankData['bank_name'] ?? '',
@@ -170,7 +187,11 @@ class CustomerOrder extends BaseController
         }
     }
 
-    protected function status(\WC_Order $order)
+    /**
+     * @param \WC_Order $order
+     * @return string
+     */
+    protected function status(\WC_Order $order): string
     {
         if ($order->has_status(self::STATUS_COMPLETED)) {
             return CustomerOrderModel::STATUS_SHIPPED;
@@ -181,14 +202,21 @@ class CustomerOrder extends BaseController
         return CustomerOrderModel::STATUS_NEW;
     }
 
-    protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder)
+    /**
+     * @param CustomerOrderModel $customerOrder
+     * @return void
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \InvalidArgumentException
+     * @throws \TypeError
+     */
+    protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder): void
     {
         $directDebitGateway = new \WC_GZD_Gateway_Direct_Debit();
 
         if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
             $orderId = $customerOrder->getId()->getEndpoint();
 
-            $bic = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
+            $bic  = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
             $iban = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_iban', true));
 
             $paymentInfo = (new CustomerOrderPaymentInfo())
@@ -197,7 +225,6 @@ class CustomerOrder extends BaseController
                 ->setAccountHolder(\get_post_meta($orderId, '_direct_debit_holder', true));
 
             $customerOrder->setPaymentInfo($paymentInfo);
-
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
             $settings = \get_option('woocommerce_invoice_settings');
 
@@ -207,8 +234,16 @@ class CustomerOrder extends BaseController
         }
     }
 
-    protected function setPreferredDeliveryOptions(CustomerOrderModel &$customerOrder, $dhlPreferredDeliveryOptions = [])
-    {
+    /**
+     * @param CustomerOrderModel $customerOrder
+     * @param array $dhlPreferredDeliveryOptions
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function setPreferredDeliveryOptions(
+        CustomerOrderModel &$customerOrder,
+        array $dhlPreferredDeliveryOptions = []
+    ): void {
         $customerOrder->addAttribute(
             (new CustomerOrderAttr())
                 ->setKey('dhl_wunschpaket_feeder_system')
@@ -240,10 +275,10 @@ class CustomerOrder extends BaseController
                     );
                     break;
                 case 'pr_dhl_preferred_neighbour_address':
-                    $parts = array_map('trim', explode(',', $optionValue, 2));
+                    $parts       = \array_map('trim', \explode(',', $optionValue, 2));
                     $streetParts = [];
-                    $pattern = '/^(?P<street>\d*\D+[^A-Z]) (?P<number>[^a-z]?\D*\d+.*)$/';
-                    preg_match($pattern, $parts[0], $streetParts);
+                    $pattern     = '/^(?P<street>\d*\D+[^A-Z]) (?P<number>[^a-z]?\D*\d+.*)$/';
+                    \preg_match($pattern, $parts[0], $streetParts);
 
                     if (isset($streetParts['street'])) {
                         $customerOrder->addAttribute(
@@ -260,7 +295,8 @@ class CustomerOrder extends BaseController
                         );
                     }
 
-                    $addressAddition = sprintf('%s %s',
+                    $addressAddition = \sprintf(
+                        '%s %s',
                         $customerOrder->getShippingAddress()->getZipCode(),
                         $customerOrder->getShippingAddress()->getCity()
                     );
@@ -280,13 +316,13 @@ class CustomerOrder extends BaseController
                     $name = (new Parser())->parse($optionValue);
 
                     $salutation = $name->getSalutation();
-                    $firstName = $name->getFirstname();
+                    $firstName  = $name->getFirstname();
 
-                    if (preg_match("/(herr|frau)/i", $firstName)) {
-                        $salutation = ucfirst(mb_strtolower($firstName));
-                        $firstName = $name->getMiddlename();
+                    if (\preg_match("/(herr|frau)/i", $firstName)) {
+                        $salutation = \ucfirst(\mb_strtolower($firstName));
+                        $firstName  = $name->getMiddlename();
                     }
-                    $salutation = trim($salutation);
+                    $salutation = \trim($salutation);
                     if (empty($salutation)) {
                         $salutation = 'Herr';
                     }
@@ -309,21 +345,24 @@ class CustomerOrder extends BaseController
                     break;
             }
         }
-
-
     }
 
-    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder)
+    /**
+     * @param CustomerOrderModel $customerOrder
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
     {
         $orderId = $customerOrder->getId()->getEndpoint();
 
         if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT) {
-            $instance = new \WGM_Gateway_Sepa_Direct_Debit();
-            $gmSettings = $instance->settings;
-            $bic = \get_post_meta($orderId, '_german_market_sepa_bic', true);
-            $iban = \get_post_meta($orderId, '_german_market_sepa_iban', true);
+            $instance      = new \WGM_Gateway_Sepa_Direct_Debit();
+            $gmSettings    = $instance->settings;
+            $bic           = \get_post_meta($orderId, '_german_market_sepa_bic', true);
+            $iban          = \get_post_meta($orderId, '_german_market_sepa_iban', true);
             $accountHolder = \get_post_meta($orderId, '_german_market_sepa_holder', true);
-            $settingsKeys = [
+            $settingsKeys  = [
                 '[creditor_information]',
                 '[creditor_identifier]',
                 '[creditor_account_holder]',
@@ -340,27 +379,35 @@ class CustomerOrder extends BaseController
                 '[account_bic]',
                 '[amount]',
             ];
-            $pui = array_key_exists('direct_debit_mandate', $gmSettings) ? $gmSettings['direct_debit_mandate'] : '';
+            $pui           = \array_key_exists('direct_debit_mandate', $gmSettings)
+                ? $gmSettings['direct_debit_mandate']
+                : '';
 
             foreach ($settingsKeys as $key => $formValue) {
                 switch ($formValue) {
                     case '[creditor_information]':
-                        $value = array_key_exists('creditor_information',
-                            $gmSettings) ? $gmSettings['creditor_information'] : '';
+                        $value = \array_key_exists(
+                            'creditor_information',
+                            $gmSettings
+                        ) ? $gmSettings['creditor_information'] : '';
                         break;
                     case '[creditor_identifier]':
-                        $value = array_key_exists('creditor_identifier',
-                            $gmSettings) ? $gmSettings['creditor_identifier'] : '';
+                        $value = \array_key_exists(
+                            'creditor_identifier',
+                            $gmSettings
+                        ) ? $gmSettings['creditor_identifier'] : '';
                         break;
                     case '[creditor_account_holder]':
-                        $value = array_key_exists('creditor_account_holder',
-                            $gmSettings) ? $gmSettings['creditor_account_holder'] : '';
+                        $value = \array_key_exists(
+                            'creditor_account_holder',
+                            $gmSettings
+                        ) ? $gmSettings['creditor_account_holder'] : '';
                         break;
                     case '[creditor_iban]':
-                        $value = array_key_exists('iban', $gmSettings) ? $gmSettings['iban'] : '';
+                        $value = \array_key_exists('iban', $gmSettings) ? $gmSettings['iban'] : '';
                         break;
                     case '[creditor_bic]':
-                        $value = array_key_exists('bic', $gmSettings) ? $gmSettings['bic'] : '';
+                        $value = \array_key_exists('bic', $gmSettings) ? $gmSettings['bic'] : '';
                         break;
                     case '[mandate_id]':
                         $value = \get_post_meta($orderId, '_german_market_sepa_mandate_reference', true);
@@ -397,7 +444,7 @@ class CustomerOrder extends BaseController
                         break;
                 }
 
-                $pui = str_replace(
+                $pui = \str_replace(
                     $formValue,
                     $value,
                     $pui
@@ -411,18 +458,20 @@ class CustomerOrder extends BaseController
 
             $customerOrder->setPui($pui);
             $customerOrder->setPaymentInfo($paymentInfo);
-
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_INVOICE) {
-            $instance = new \WGM_Gateway_Purchase_On_Account();
+            $instance   = new \WGM_Gateway_Purchase_On_Account();
             $gmSettings = $instance->settings;
 
-            if (array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== '') {
+            if (\array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== '') {
                 $customerOrder->setPui($gmSettings['direct_debit_mandate']);
             }
         }
     }
 
-    public function getStats()
+    /**
+     * @return string|null
+     */
+    public function getStats(): ?string
     {
         return $this->database->queryOne(SqlHelper::customerOrderPull(null));
     }

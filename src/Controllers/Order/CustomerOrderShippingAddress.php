@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -13,7 +14,12 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class CustomerOrderShippingAddress extends CustomerOrderAddress
 {
-    public function pullData(\WC_Order $order)
+    /**
+     * @param \WC_Order $order
+     * @return CustomerOrderShippingAddressModel
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(\WC_Order $order): CustomerOrderShippingAddressModel
     {
         $address = (new CustomerOrderShippingAddressModel())
             ->setId(new Identity(CustomerOrder::SHIPPING_ID_PREFIX . $order->get_id()))
@@ -34,7 +40,8 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
 
         $dhlPostNumber = '';
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+        if (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
