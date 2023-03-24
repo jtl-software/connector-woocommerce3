@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -22,29 +23,29 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Image extends BaseController
 {
-    const GALLERY_DIVIDER = ',';
-    const PRODUCT_THUMBNAIL = '_thumbnail_id';
-    const CATEGORY_THUMBNAIL = 'thumbnail_id';
-    const GALLERY_KEY = '_product_image_gallery';
-    const MANUFACTURER_KEY = 'pwb_brand_image';
+    public const GALLERY_DIVIDER    = ',';
+    public const PRODUCT_THUMBNAIL  = '_thumbnail_id';
+    public const CATEGORY_THUMBNAIL = 'thumbnail_id';
+    public const GALLERY_KEY        = '_product_image_gallery';
+    public const MANUFACTURER_KEY   = 'pwb_brand_image';
 
-    private $alreadyLinked = [];
+    private array $alreadyLinked = [];
 
     // <editor-fold defaultstate="collapsed" desc="Pull">
     public function pullData($limit)
     {
-        $images = $this->productImagePull($limit);
+        $images        = $this->productImagePull($limit);
         $productImages = $this->addNextImages($images, ImageRelationType::TYPE_PRODUCT, $limit);
 
-        $images = $this->categoryImagePull($limit);
+        $images         = $this->categoryImagePull($limit);
         $categoryImages = $this->addNextImages($images, ImageRelationType::TYPE_CATEGORY, $limit);
 
-        $combinedArray = array_merge($productImages, $categoryImages);
+        $combinedArray = \array_merge($productImages, $categoryImages);
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $images = $this->manufacturerImagePull($limit);
+            $images             = $this->manufacturerImagePull($limit);
             $manufacturerImages = $this->addNextImages($images, ImageRelationType::TYPE_MANUFACTURER, $limit);
-            $combinedArray = array_merge($combinedArray, $manufacturerImages);
+            $combinedArray      = \array_merge($combinedArray, $manufacturerImages);
         }
 
         return $combinedArray;
@@ -56,7 +57,7 @@ class Image extends BaseController
 
         foreach ($images as $image) {
             $imgSrc = \wp_get_attachment_image_src($image['ID'], 'full');
-            $model = (new ImageModel())
+            $model  = (new ImageModel())
                 ->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
@@ -72,9 +73,8 @@ class Image extends BaseController
                     ->addI18n((new ImageI18n())
                         ->setId(new Identity($image['id']))
                         ->setImageId(new Identity($image['id']))
-                        ->setAltText((string)substr($altText !== false ? $altText : '', 0, 254))
-                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage())
-                    );
+                        ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
+                        ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()));
 
                 $return[] = $model;
                 $limit--;
@@ -127,7 +127,7 @@ class Image extends BaseController
                         }
 
                         $attachments = \array_merge($newAttachments, $attachments);
-                        $imageCount  += \count($newAttachments);
+                        $imageCount += \count($newAttachments);
 
                         if ($imageCount >= $limit) {
                             return $imageCount <= $limit ? $attachments : \array_slice($attachments, 0, $limit);
@@ -165,14 +165,14 @@ class Image extends BaseController
             $imageIds = $product->get_gallery_image_ids();
 
             if (!empty($imageIds)) {
-                $attachmentIds = array_merge($attachmentIds, $imageIds);
+                $attachmentIds = \array_merge($attachmentIds, $imageIds);
             }
         }
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
             if ($product->is_type('variation')) {
-                $images = get_post_meta($product->get_id(), 'woo_variation_gallery_images', true);
+                $images = \get_post_meta($product->get_id(), 'woo_variation_gallery_images', true);
                 if (!empty($images)) {
-                    $attachmentIds = array_merge($attachmentIds, $images);
+                    $attachmentIds = \array_merge($attachmentIds, $images);
                 }
             }
         }
@@ -190,7 +190,7 @@ class Image extends BaseController
      */
     private function addProductImagesForPost($attachmentIds, $postId)
     {
-        $attachmentIds = $this->filterAlreadyLinkedProducts($attachmentIds, $postId);
+        $attachmentIds  = $this->filterAlreadyLinkedProducts($attachmentIds, $postId);
         $newAttachments = $this->fetchProductAttachments($attachmentIds, $postId);
 
         return $newAttachments;
@@ -198,7 +198,7 @@ class Image extends BaseController
 
     private function fetchProductAttachments($attachmentIds, $productId)
     {
-        $sort = 0;
+        $sort        = 0;
         $attachments = [];
 
         if (empty($attachmentIds)) {
@@ -213,13 +213,13 @@ class Image extends BaseController
                 continue;
             }
 
-            $picture = \get_post($attachmentId, ARRAY_A);
+            $picture = \get_post($attachmentId, \ARRAY_A);
 
-            if (!is_array($picture)) {
+            if (!\is_array($picture)) {
                 continue;
             }
 
-            $picture['id'] = Id::linkProductImage($attachmentId, $productId);
+            $picture['id']     = Id::linkProductImage($attachmentId, $productId);
             $picture['parent'] = $productId;
 
             if ($attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
@@ -238,14 +238,14 @@ class Image extends BaseController
 
     private function filterAlreadyLinkedProducts($productAttachments, $productId)
     {
-        $filtered = [];
+        $filtered      = [];
         $attachmentIds = $productAttachments;
 
         foreach ($attachmentIds as $attachmentId) {
             $endpointId = Id::link([$attachmentId, $productId]);
 
-            if (!in_array($endpointId, $this->alreadyLinked)) {
-                $filtered[] = $attachmentId;
+            if (!\in_array($endpointId, $this->alreadyLinked)) {
+                $filtered[]            = $attachmentId;
                 $this->alreadyLinked[] = $endpointId;
             }
         }
@@ -287,12 +287,12 @@ class Image extends BaseController
     // <editor-fold defaultstate="collapsed" desc="Stats">
     protected function getStats()
     {
-        $imageCount = $this->masterProductImageStats();
-        $imageCount += count($this->database->query(SqlHelper::imageVariationCombinationPull()));
-        $imageCount += count($this->database->query(SqlHelper::imageCategoryPull()));
+        $imageCount  = $this->masterProductImageStats();
+        $imageCount += \count($this->database->query(SqlHelper::imageVariationCombinationPull()));
+        $imageCount += \count($this->database->query(SqlHelper::imageCategoryPull()));
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
+            $imageCount += \count($this->database->query(SqlHelper::imageManufacturerPull()));
         }
 
         return $imageCount;
@@ -302,7 +302,7 @@ class Image extends BaseController
     {
         $this->alreadyLinked = $this->database->queryList(SqlHelper::linkedProductImages());
 
-        $count = 0;
+        $count  = 0;
         $images = [];
 
         // Fetch unlinked product cover images
@@ -317,16 +317,16 @@ class Image extends BaseController
         $productImagesMappings = $this->database->query(SqlHelper::imageProductGalleryStats());
 
         foreach ($productImagesMappings as $productImagesMapping) {
-            $productId = (int)$productImagesMapping['ID'];
-            $galleryImageIds = array_map('intval', explode(',', $productImagesMapping['meta_value']));
-            $galleryImageIds = array_filter($galleryImageIds, function ($galleryId) {
+            $productId       = (int)$productImagesMapping['ID'];
+            $galleryImageIds = \array_map('intval', \explode(',', $productImagesMapping['meta_value']));
+            $galleryImageIds = \array_filter($galleryImageIds, function ($galleryId) {
                 return $galleryId !== 0;
             });
             $galleryImageIds = $this->filterAlreadyLinkedProducts($galleryImageIds, $productId);
 
-            $count += count($galleryImageIds);
+            $count += \count($galleryImageIds);
 
-            if (isset($images[$productId]) && in_array($images[$productId], $galleryImageIds)) {
+            if (isset($images[$productId]) && \in_array($images[$productId], $galleryImageIds)) {
                 --$count;
             }
         }
@@ -365,40 +365,40 @@ class Image extends BaseController
     private function saveImage(ImageModel $image): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
-        $post = null;
+        $post       = null;
 
-        $fileInfo = pathinfo($image->getFilename());
-        $name = $this->sanitizeImageName(!empty($image->getName()) ? $image->getName() : $fileInfo['filename']);
+        $fileInfo  = \pathinfo($image->getFilename());
+        $name      = $this->sanitizeImageName(!empty($image->getName()) ? $image->getName() : $fileInfo['filename']);
         $extension = $fileInfo['extension'];
         $uploadDir = \wp_upload_dir();
 
-        $attachment = [];
+        $attachment  = [];
         $relinkImage = false;
 
         $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
         if ($endpointId !== '') {
-            $id = Id::unlink($endpointId);
-            $attachment = \get_post($id[0], ARRAY_A) ?? [];
+            $id         = Id::unlink($endpointId);
+            $attachment = \get_post($id[0], \ARRAY_A) ?? [];
 
-            if(!empty($attachment)){
+            if (!empty($attachment)) {
                 if ($this->isAttachmentUsedInOtherPlaces($attachment['ID'])) {
-                    $attachment = [];
+                    $attachment  = [];
                     $relinkImage = true;
                 } else {
-                    $fileName = basename(get_attached_file($attachment['ID']));
+                    $fileName = \basename(\get_attached_file($attachment['ID']));
                 }
             }
         }
 
         $destination = self::createFilePath($uploadDir['path'], $fileName);
 
-        if (copy($image->getFilename(), $destination)) {
-            $fileType = \wp_check_filetype(basename($destination), null);
+        if (\copy($image->getFilename(), $destination)) {
+            $fileType = \wp_check_filetype(\basename($destination), null);
 
-            $attachment = array_merge($attachment, [
+            $attachment = \array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
-                'post_title' => preg_replace('/\.[^.]+$/', '', $fileName),
+                'post_title' => \preg_replace('/\.[^.]+$/', '', $fileName),
                 'post_status' => 'inherit',
             ]);
 
@@ -410,7 +410,7 @@ class Image extends BaseController
                 return null;
             }
 
-            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(\ABSPATH . 'wp-admin/includes/image.php');
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
@@ -430,7 +430,7 @@ class Image extends BaseController
      */
     protected function relinkImage(int $newEndpointId, ImageModel $image)
     {
-        $primaryKeyMapper = Application()->getConnector()->getPrimaryKeyMapper();
+        $primaryKeyMapper = \Application()->getConnector()->getPrimaryKeyMapper();
 
         switch ($image->getRelationType()) {
             case ImageRelationType::TYPE_PRODUCT:
@@ -443,7 +443,7 @@ class Image extends BaseController
                 $newEndpoint = Id::linkCategoryImage($newEndpointId);
                 break;
             default:
-                throw new \Exception(sprintf('Relation type %s is not supported.', $image->getRelationType()));
+                throw new \Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
         }
 
         $primaryKeyMapper->delete($image->getId()->getEndpoint(), $image->getId()->getHost(), IdentityLinker::TYPE_IMAGE);
@@ -459,12 +459,12 @@ class Image extends BaseController
      */
     private function sanitizeImageName(string $name): string
     {
-        $name = iconv('utf-8', 'ascii//translit', $name);
-        $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
-        $name = preg_replace('#-{2,}#', '-', $name);
-        $name = trim($name, '-');
+        $name = \iconv('utf-8', 'ascii//translit', $name);
+        $name = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = \preg_replace('#-{2,}#', '-', $name);
+        $name = \trim($name, '-');
 
-        return mb_substr($name, 0, 180);
+        return \mb_substr($name, 0, 180);
     }
 
     /**
@@ -475,13 +475,13 @@ class Image extends BaseController
      */
     protected function getNextAvailableImageFilename($name, $extension, $uploadDir)
     {
-        $i = 1;
+        $i            = 1;
         $originalName = $name;
         do {
-            $fileName = sprintf('%s.%s', $name, $extension);
+            $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
-            if ($fileExists = file_exists($fileFullPath)) {
-                $name = sprintf('%s-%s', $originalName, $i++);
+            if ($fileExists = \file_exists($fileFullPath)) {
+                $name = \sprintf('%s-%s', $originalName, $i++);
             }
         } while ($fileExists);
 
@@ -495,11 +495,12 @@ class Image extends BaseController
     protected function getImageAlt(ImageModel $image)
     {
         $altText = $image->getName();
-        $i18ns = $image->getI18ns();
+        $i18ns   = $image->getI18ns();
 
-        if (count($i18ns) > 0) {
+        if (\count($i18ns) > 0) {
             foreach ($i18ns as $i18n) {
-                if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())
+                if (
+                    Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())
                     && !empty($i18n->getAltText())
                 ) {
                     $altText = $i18n->getAltText();
@@ -532,19 +533,19 @@ class Image extends BaseController
         } else {
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                 if ($wcProduct->get_type() === 'variation') {
-                    $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
-                    if (!is_array($oldImages)) {
+                    $oldImages = \get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
+                    if (!\is_array($oldImages)) {
                         $oldImages = [];
                     }
-                    $newImages = array_unique(array_merge([$attachmentId], $oldImages));
-                    update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
+                    $newImages = \array_unique(\array_merge([$attachmentId], $oldImages));
+                    \update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
                 }
             }
 
-            $galleryImages = $this->getGalleryImages($productId);
+            $galleryImages   = $this->getGalleryImages($productId);
             $galleryImages[] = (int)$attachmentId;
-            $galleryImages = implode(self::GALLERY_DIVIDER, array_unique($galleryImages));
-            $result = \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);
+            $galleryImages   = \implode(self::GALLERY_DIVIDER, \array_unique($galleryImages));
+            $result          = \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);
             if ($result instanceof \WP_Error) {
                 WpErrorLogger::getInstance()->logError($result);
 
@@ -611,14 +612,14 @@ class Image extends BaseController
         switch ($image->getRelationType()) {
             case ImageRelationType::TYPE_MANUFACTURER:
                 $metaKey = self::MANUFACTURER_KEY;
-                $id = Id::unlinkCategoryImage($endpointId);
+                $id      = Id::unlinkCategoryImage($endpointId);
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $metaKey = self::CATEGORY_THUMBNAIL;
-                $id = Id::unlinkManufacturerImage($endpointId);
+                $id      = Id::unlinkManufacturerImage($endpointId);
                 break;
             default:
-                throw new \Exception(sprintf("Invalid relation %s type for id %s when deleting image.", $image->getRelationType(), $endpointId));
+                throw new \Exception(\sprintf("Invalid relation %s type for id %s when deleting image.", $image->getRelationType(), $endpointId));
         }
 
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
@@ -631,42 +632,42 @@ class Image extends BaseController
     private function deleteProductImage(ImageModel $image, $realDelete)
     {
         $imageEndpoint = $image->getId()->getEndpoint();
-        $ids = Id::unlink($imageEndpoint);
+        $ids           = Id::unlink($imageEndpoint);
 
-        if (count($ids) !== 2) {
+        if (\count($ids) !== 2) {
             return;
         }
 
         $attachmentId = (int)$ids[0];
-        $productId = (int)$ids[1];
+        $productId    = (int)$ids[1];
 
         $wcProduct = \wc_get_product($productId);
         if (!$wcProduct instanceof \WC_Product) {
             return;
         }
 
-        if ($image->getSort() === 0 && strlen($imageEndpoint) === 0) {
+        if ($image->getSort() === 0 && \strlen($imageEndpoint) === 0) {
             $this->deleteAllProductImages($productId);
             $this->database->query(SqlHelper::imageDeleteLinks($productId));
         } else {
             if ($this->isCoverImage($image)) {
-                delete_post_thumbnail($productId);
+                \delete_post_thumbnail($productId);
             } else {
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE)) {
                     if ($wcProduct->get_type() === 'variation') {
-                        $newImages = $oldImages = get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
+                        $newImages = $oldImages = \get_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', true);
                         if (!empty($oldImages)) {
-                            $keyToRemove = array_search($attachmentId, $oldImages);
+                            $keyToRemove = \array_search($attachmentId, $oldImages);
                             if ($keyToRemove !== false) {
                                 unset($newImages[$keyToRemove]);
-                                update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
+                                \update_post_meta($wcProduct->get_id(), 'woo_variation_gallery_images', $newImages, $oldImages);
                             }
                         }
                     }
                 }
 
                 $galleryImages = $this->getGalleryImages($productId);
-                $galleryImages = implode(self::GALLERY_DIVIDER, array_diff($galleryImages, [$attachmentId]));
+                $galleryImages = \implode(self::GALLERY_DIVIDER, \array_diff($galleryImages, [$attachmentId]));
                 \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);
             }
 
@@ -738,7 +739,7 @@ class Image extends BaseController
             return [];
         }
 
-        return array_map('intval', explode(self::GALLERY_DIVIDER, $galleryImages));
+        return \array_map('intval', \explode(self::GALLERY_DIVIDER, $galleryImages));
     }
     // </editor-fold>
 

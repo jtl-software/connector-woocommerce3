@@ -25,11 +25,11 @@ abstract class BaseController extends Controller
     /**
      * @var Db
      */
-    protected $database;
+    protected Db $database;
     /**
      * @var string
      */
-    protected $controllerName;
+    protected string $controllerName;
 
     /**
      * BaseController constructor.
@@ -53,7 +53,7 @@ abstract class BaseController extends Controller
      * @param QueryFilter $query Filter data like the limit.
      * @return Action The action which is handled by the core.
      */
-    public function pull(QueryFilter $query)
+    public function pull(QueryFilter $query): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -79,7 +79,7 @@ abstract class BaseController extends Controller
      * @param DataModel $data The data of the object which should be saved.
      * @return Action The action which will be handled by the core.
      */
-    public function push(DataModel $data)
+    public function push(DataModel $data): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -105,7 +105,7 @@ abstract class BaseController extends Controller
      * @param DataModel $data The data of the object which should be deleted.
      * @return Action The action which will be handled by the core.
      */
-    public function delete(DataModel $data)
+    public function delete(DataModel $data): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -129,7 +129,7 @@ abstract class BaseController extends Controller
      * @param QueryFilter $query Filter data like the limit.
      * @return Action The action which will be handled by the core.
      */
-    public function statistic(QueryFilter $query)
+    public function statistic(QueryFilter $query): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -154,9 +154,9 @@ abstract class BaseController extends Controller
      * @param $postId
      * @param $metaKey
      * @param $value
-     * @return bool|int|void
+     * @return bool|int
      */
-    protected function updatePostMeta($postId, $metaKey, $value)
+    protected function updatePostMeta($postId, $metaKey, $value): bool|int
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }
@@ -165,9 +165,9 @@ abstract class BaseController extends Controller
      * @param $postId
      * @param $metaKey
      * @param $value
-     * @return false|int|void
+     * @return false|int
      */
-    protected function addPostMeta($postId, $metaKey, $value)
+    protected function addPostMeta($postId, $metaKey, $value): bool|int
     {
         return \add_post_meta($postId, $metaKey, $value, true);
     }
@@ -177,10 +177,14 @@ abstract class BaseController extends Controller
      * @param $terms
      * @param $taxonomy
      * @param $append
-     * @return array|bool|int|int[]|string|string[]|void|\WP_Error|null
+     * @return array|bool|int|int[]|string|string[]|\WP_Error|null
      */
-    protected function wpSetObjectTerms($objectId, $terms, $taxonomy, $append = false)
-    {
+    protected function wpSetObjectTerms(
+        $objectId,
+        $terms,
+        $taxonomy,
+        $append = false
+    ): array|\WP_Error|int|bool|string|null {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 
@@ -188,18 +192,18 @@ abstract class BaseController extends Controller
      * @param $objectId
      * @param $terms
      * @param $taxonomy
-     * @return bool|int|string|string[]|void|\WP_Error|null
+     * @return bool|int|string|string[]|\WP_Error|null
      */
-    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy)
+    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy): array|\WP_Error|bool|int|string|null
     {
         return \wp_remove_object_terms($objectId, $terms, $taxonomy);
     }
 
     /**
      * @param $taxonomyName
-     * @return string|void
+     * @return string
      */
-    protected function wcSanitizeTaxonomyName($taxonomyName)
+    protected function wcSanitizeTaxonomyName($taxonomyName): string
     {
         if ($taxonomyName instanceof DataModel && \method_exists($taxonomyName, 'getName')) {
             $taxonomyName = $taxonomyName->getName();
@@ -210,21 +214,26 @@ abstract class BaseController extends Controller
     /**
      * @param $field
      * @param $value
-     * @param $taxonomy
-     * @param $output
-     * @param $filter
-     * @return array|false|void|\WP_Error|\WP_Term|null
+     * @param string $taxonomy
+     * @param string $output
+     * @param string $filter
+     * @return array|false|\WP_Error|\WP_Term|null
      */
-    protected function getTermBy($field, $value, $taxonomy = '', $output = \OBJECT, $filter = 'raw')
-    {
+    protected function getTermBy(
+        $field,
+        $value,
+        string $taxonomy = '',
+        string $output = \OBJECT,
+        string $filter = 'raw'
+    ): \WP_Term|\WP_Error|bool|array|null {
         return \get_term_by($field, $value, $taxonomy, $output = \OBJECT, $filter = 'raw');
     }
 
     /**
      * @param $variable
-     * @return array|string|void
+     * @return array|string
      */
-    protected function wcClean($variable)
+    protected function wcClean($variable): array|string
     {
         return \wc_clean($variable);
     }
@@ -232,18 +241,19 @@ abstract class BaseController extends Controller
     /**
      * @param $postId
      * @param $metaKey
-     * @return bool|void
+     * @return bool
      */
-    protected function deletePostMeta($postId, $metaKey)
+    protected function deletePostMeta($postId, $metaKey): bool
     {
         return \delete_post_meta($postId, $metaKey);
     }
 
     /**
      * @param $postData
-     * @return int|void|\WP_Error
+     * @return int|\WP_Error
+     * @throws \Exception
      */
-    protected function wpUpdatePost($postData)
+    protected function wpUpdatePost($postData): \WP_Error|int
     {
         return \wp_update_post($postData);
     }

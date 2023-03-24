@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -8,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\CrossSelling as CrossSellingModel;
 use jtl\Connector\Model\CrossSellingItem;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
@@ -19,14 +21,15 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
  */
 class CrossSelling extends BaseController
 {
-    const CROSSSELLING_META_KEY = '_crosssell_ids';
-    const UPSELLING_META_KEY   = '_upsell_ids';
+    public const CROSSSELLING_META_KEY = '_crosssell_ids';
+    public const UPSELLING_META_KEY    = '_upsell_ids';
 
     /**
      * @param $limit
-     * @return array
+     * @return array<mixed|DataModel>
+     * @throws \InvalidArgumentException
      */
-    protected function pullData($limit)
+    protected function pullData($limit): array
     {
         $crossSelling = [];
 
@@ -58,7 +61,6 @@ class CrossSelling extends BaseController
                         ->setCrossSellingGroupId($crossSellingGroup->getId())
                         ->setProductIds($crosssellingProducts)
                 );
-
             } else {
                 WpErrorLogger::getInstance()->logError(
                     \sprintf(
@@ -75,7 +77,7 @@ class CrossSelling extends BaseController
     }
 
     /**
-     * @param array $result
+     * @param array<string|mixed> $result
      * @return array
      */
     protected function formatResults(array $result): array
@@ -103,7 +105,7 @@ class CrossSelling extends BaseController
      * @param CrossSellingModel $crossSelling
      * @return CrossSellingModel
      */
-    protected function pushData(CrossSellingModel $crossSelling)
+    protected function pushData(CrossSellingModel $crossSelling): CrossSellingModel
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
@@ -135,7 +137,7 @@ class CrossSelling extends BaseController
      * @param CrossSellingModel $crossSelling
      * @return CrossSellingModel
      */
-    protected function deleteData(CrossSellingModel $crossSelling)
+    protected function deleteData(CrossSellingModel $crossSelling): CrossSellingModel
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
@@ -170,7 +172,7 @@ class CrossSelling extends BaseController
     /**
      * @return int
      */
-    protected function getStats()
+    protected function getStats(): int
     {
         return (int)$this->database->queryOne(SqlHelper::crossSellingPull());
     }
@@ -195,7 +197,7 @@ class CrossSelling extends BaseController
      * @param $crossSellingGroupEndpointId
      * @return array
      */
-    private function getProductIds(CrossSellingModel $crossSelling, $crossSellingGroupEndpointId)
+    private function getProductIds(CrossSellingModel $crossSelling, $crossSellingGroupEndpointId): array
     {
         $products = [];
 
