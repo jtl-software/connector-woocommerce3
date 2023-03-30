@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2316 - cast string to float for tax calculation
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
