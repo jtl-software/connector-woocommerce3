@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -19,11 +20,13 @@ class ProductDeliveryTime extends BaseController
     /**
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
+     * @return void
+     * @throws \Exception
      */
-    public function pushData(ProductModel $product, \WC_Product $wcProduct)
+    public function pushData(ProductModel $product, \WC_Product $wcProduct): void
     {
-        $productId = $product->getId()->getEndpoint();
-        $time = $product->calculateHandlingTime();
+        $productId                          = $product->getId()->getEndpoint();
+        $time                               = $product->calculateHandlingTime();
         $germanizedDeliveryTimeTaxonomyName = 'product_delivery_time';
 
         $this->removeDeliveryTimeTerm($productId);
@@ -35,7 +38,7 @@ class ProductDeliveryTime extends BaseController
 
         if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
             //FUNCTION ATTRIBUTE BY JTL
-            $offset = 0;
+            $offset           = 0;
             $pushedAttributes = $product->getAttributes();
             foreach ($pushedAttributes as $key => $pushedAttribute) {
                 foreach ($pushedAttribute->getI18ns() as $i18n) {
@@ -43,21 +46,22 @@ class ProductDeliveryTime extends BaseController
                         continue;
                     }
 
-                    if (preg_match('/^(wc_)[a-zA-Z\_]+$/', trim($i18n->getName()))) {
-
-                        if (strcmp(trim($i18n->getName()), 'wc_dt_offset') === 0) {
-                            $offset = (int)trim($i18n->getValue());
+                    if (\preg_match('/^(wc_)[a-zA-Z\_]+$/', \trim($i18n->getName()))) {
+                        if (\strcmp(\trim($i18n->getName()), 'wc_dt_offset') === 0) {
+                            $offset = (int)\trim($i18n->getValue());
                         }
-
                     }
                     unset($pushedAttributes[$key]);
                 }
             }
 
             if (Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE, false)) {
-                if ($product->getStockLevel()->getStockLevel() <= 0 && !is_null($product->getNextAvailableInflowDate())) {
+                if (
+                    $product->getStockLevel()->getStockLevel() <= 0
+                    && !\is_null($product->getNextAvailableInflowDate())
+                ) {
                     $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
-                    $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+                    $today  = new \DateTime((new \DateTime())->format('Y-m-d'));
                     if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
                         $time = $product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days;
                     }
@@ -65,14 +69,14 @@ class ProductDeliveryTime extends BaseController
             }
 
             if ($offset !== 0) {
-                $min = $time - $offset <= 0 ? 1 : $time - $offset;
-                $max = $time + $offset;
-                $time = sprintf('%s-%s', $min, $max);
+                $min  = $time - $offset <= 0 ? 1 : $time - $offset;
+                $max  = $time + $offset;
+                $time = \sprintf('%s-%s', $min, $max);
             }
 
             //Build Term string
-            $deliveryTimeString = trim(
-                sprintf(
+            $deliveryTimeString = \trim(
+                \sprintf(
                     '%s %s %s',
                     Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME),
                     $time,
@@ -94,12 +98,11 @@ class ProductDeliveryTime extends BaseController
                 }
             }
 
-            $term = get_term_by('slug', wc_sanitize_taxonomy_name(
+            $term = \get_term_by('slug', \wc_sanitize_taxonomy_name(
                 Util::removeSpecialchars($deliveryTimeString)
             ), 'product_delivery_times');
 
             if ($term === false) {
-
                 //Add term
                 $newTerm = \wp_insert_term(
                     $deliveryTimeString,
@@ -115,17 +118,17 @@ class ProductDeliveryTime extends BaseController
                 } else {
                     $termId = $newTerm['term_id'];
 
-                    wp_set_object_terms($productId, $termId, 'product_delivery_times', true);
+                    \wp_set_object_terms($productId, $termId, 'product_delivery_times', true);
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                        update_post_meta($productId, '_lieferzeit', $termId);
+                        \update_post_meta($productId, '_lieferzeit', $termId);
                     }
                 }
             } else {
-                wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
+                \wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
 
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                    update_post_meta($productId, '_lieferzeit', $term->term_id);
+                    \update_post_meta($productId, '_lieferzeit', $term->term_id);
                 }
             }
 
@@ -134,7 +137,7 @@ class ProductDeliveryTime extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
-                $germanizedTerm = get_term_by('slug', wc_sanitize_taxonomy_name(
+                $germanizedTerm = \get_term_by('slug', \wc_sanitize_taxonomy_name(
                     Util::removeSpecialchars($deliveryTimeString)
                 ), $germanizedDeliveryTimeTaxonomyName);
 
@@ -151,7 +154,7 @@ class ProductDeliveryTime extends BaseController
                         WpErrorLogger::getInstance()->logError($germanizedTermArray);
                     }
 
-                    if (is_array($germanizedTermArray) && isset($germanizedTermArray['term_id'])) {
+                    if (\is_array($germanizedTermArray) && isset($germanizedTermArray['term_id'])) {
                         $germanizedTermId = $germanizedTermArray['term_id'];
                     }
                 } else {
@@ -159,11 +162,22 @@ class ProductDeliveryTime extends BaseController
                 }
 
                 if ($germanizedTermId !== false) {
-                    wp_set_object_terms($productId, $germanizedTermId, $germanizedDeliveryTimeTaxonomyName, true);
+                    \wp_set_object_terms($productId, $germanizedTermId, $germanizedDeliveryTimeTaxonomyName, true);
 
-                    if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                    if (
+                        SupportedPlugins::comparePluginVersion(
+                            SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                            '>=',
+                            '3.7.0'
+                        )
+                    ) {
                         $oldDeliveryTime = Util::getInstance()->getPostMeta($productId, '_default_delivery_time', true);
-                        Util::getInstance()->updatePostMeta($productId, '_default_delivery_time', $germanizedTerm->slug, $oldDeliveryTime);
+                        Util::getInstance()->updatePostMeta(
+                            $productId,
+                            '_default_delivery_time',
+                            $germanizedTerm->slug,
+                            $oldDeliveryTime
+                        );
                     }
                 }
             }
@@ -173,22 +187,29 @@ class ProductDeliveryTime extends BaseController
     /**
      * @param $productId
      * @param string $taxonomyName
+     * @return void
      */
-    private function removeDeliveryTimeTerm($productId, $taxonomyName = 'product_delivery_times')
+    private function removeDeliveryTimeTerm($productId, string $taxonomyName = 'product_delivery_times'): void
     {
-        $terms = wp_get_object_terms($productId, $taxonomyName);
-        if (is_array($terms) && !$terms instanceof WP_Error) {
-            if (count($terms) > 0) {
+        $terms = \wp_get_object_terms($productId, $taxonomyName);
+        if (\is_array($terms) && !$terms instanceof WP_Error) {
+            if (\count($terms) > 0) {
                 /** @var \WP_Term $term */
                 foreach ($terms as $key => $term) {
                     if ($term instanceof \WP_Term) {
                         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                            delete_post_meta($productId, '_lieferzeit', $term->term_id);
+                            \delete_post_meta($productId, '_lieferzeit', $term->term_id);
                         }
-                        wp_remove_object_terms($productId, $term->term_id, $taxonomyName);
+                        \wp_remove_object_terms($productId, $term->term_id, $taxonomyName);
                     }
                 }
-                if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2, '>=', '3.7.0')) {
+                if (
+                    SupportedPlugins::comparePluginVersion(
+                        SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                        '>=',
+                        '3.7.0'
+                    )
+                ) {
                     Util::getInstance()->deletePostMeta($productId, '_default_delivery_time');
                 }
             }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -20,43 +21,56 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductSpecialPrice extends BaseController
 {
-    public function pullData(\WC_Product $product, ProductModel $model)
+    /**
+     * @param \WC_Product $product
+     * @param ProductModel $model
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(\WC_Product $product, ProductModel $model): array
     {
-        $specialPrices = [];
-        $groupController = (new CustomerGroup);
-        
+        $specialPrices   = [];
+        $groupController = (new CustomerGroup());
+
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $salePrice = $product->get_sale_price();
-            
+
             if (!empty($salePrice)) {
                 $specialPrices[] = (new ProductSpecialPriceModel())
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
                     ->setIsActive($product->is_on_sale())
-                    ->setConsiderDateLimit(!is_null($product->get_date_on_sale_to()))
+                    ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
                     ->addItem((new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                        ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product)
-                        )
-                    );
+                        ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product)));
             }
         } else {
             $customerGroups = $groupController->pullData();
-            
+
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
 
                 $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
 
-                if ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) ||
-                   ($customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP && SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '<=', '1.0.3'))
+                if (
+                    $customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP
+                    && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                    || (
+                        $customerGroupEndpointId === CustomerGroup::DEFAULT_GROUP
+                        && SupportedPlugins::comparePluginVersion(
+                            SupportedPlugins::PLUGIN_B2B_MARKET,
+                            '<=',
+                            '1.0.3'
+                        )
+                    )
                 ) {
                     $salePrice = $product->get_sale_price();
-                    
+
                     if (!empty($salePrice)) {
                         $items [] = (new ProductSpecialPriceItemModel())
                             ->setProductSpecialPriceId(new Identity($product->get_id()))
@@ -64,23 +78,27 @@ class ProductSpecialPrice extends BaseController
                             ->setPriceNet((float)$this->getPriceNet($salePrice, $product));
                     }
                 } else {
-                    $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
+                    $groupSlug           = $groupController->getSlugById($customerGroupEndpointId);
                     $defaultSpecialPrice = false;
-                    $salePrice = $product->get_sale_price();
-                    
+                    $salePrice           = $product->get_sale_price();
+
                     if (!empty($salePrice)) {
                         $defaultSpecialPrice = true;
                     }
-                    
+
                     if ($model->getIsMasterProduct()) {
                         $productIdForMeta = $product->get_id();
-                        $priceKeyForMeta = sprintf('_jtlwcc_bm_%s_sale_price', $groupSlug);
+                        $priceKeyForMeta  = \sprintf('_jtlwcc_bm_%s_sale_price', $groupSlug);
                     } else {
                         $productIdForMeta = $product->get_parent_id();
-                        $priceKeyForMeta = sprintf('_jtlwcc_bm_%s_%s_sale_price', $groupSlug, $product->get_id());
+                        $priceKeyForMeta  = \sprintf(
+                            '_jtlwcc_bm_%s_%s_sale_price',
+                            $groupSlug,
+                            $product->get_id()
+                        );
                     }
                     $specialPrice = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
-                    
+
                     if (!empty($specialPrice)) {
                         $specialPrice = $this->getPriceNet($specialPrice, $product);
                     } elseif (empty($specialPrice) && $defaultSpecialPrice) {
@@ -88,50 +106,68 @@ class ProductSpecialPrice extends BaseController
                     } else {
                         continue;
                     }
-                    
+
                     $items [] = (new ProductSpecialPriceItemModel())
                         ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId($customerGroup->getId())
                         ->setPriceNet((float)$specialPrice);
                 }
-                
+
                 $specialPrices[] = (new ProductSpecialPriceModel())
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
                     ->setIsActive($product->is_on_sale())
-                    ->setConsiderDateLimit(!is_null($product->get_date_on_sale_to()))
+                    ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
                     ->setItems($items);
             }
         }
-        
+
         return $specialPrices;
     }
-    
-    protected function getPriceNet($priceNet, \WC_Product $product)
+
+    /**
+     * @param $priceNet
+     * @param \WC_Product $product
+     * @return float
+     */
+    protected function getPriceNet($priceNet, \WC_Product $product): float
     {
         $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
-        $pd = Util::getPriceDecimals();
+        $pd      = Util::getPriceDecimals();
 
         if (\wc_prices_include_tax() && $taxRate != 0) {
-            $netPrice = round(round(((float)$priceNet) / ($taxRate + 100), $pd) * 100);
+            $netPrice = \round(\round(((float)$priceNet) / ($taxRate + 100), $pd) * 100);
         } else {
-            $netPrice = round((float)$priceNet, $pd);
+            $netPrice = \round((float)$priceNet, $pd);
         }
-        
+
         return $netPrice;
     }
-    
-    public function pushData(ProductModel $product, \WC_Product $wcProduct, string $productType)
+
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product $wcProduct
+     * @param string $productType
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    public function pushData(ProductModel $product, \WC_Product $wcProduct, string $productType): void
     {
         $pd = Util::getPriceDecimals();
 
-        $productId = $product->getId()->getEndpoint();
+        $productId       = $product->getId()->getEndpoint();
         $masterProductId = $product->getMasterProductId();
-        $specialPrices = $product->getSpecialPrices();
-        
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
+        $specialPrices   = $product->getSpecialPrices();
+
+        if (
+            SupportedPlugins::comparePluginVersion(
+                SupportedPlugins::PLUGIN_B2B_MARKET,
+                '>',
+                '1.0.3'
+            )
+        ) {
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -139,16 +175,20 @@ class ProductSpecialPrice extends BaseController
                         $specialPrice->addItem((new ProductSpecialPriceItemModel())
                             ->setProductSpecialPriceId(new Identity('customer'))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                            ->setPriceNet((float)$item->getPriceNet()
-                            )
-                        );
+                            ->setPriceNet((float)$item->getPriceNet()));
                     }
                 }
             }
         }
-        
-        if (count($specialPrices) > 0) {
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
+
+        if (\count($specialPrices) > 0) {
+            if (
+                SupportedPlugins::comparePluginVersion(
+                    SupportedPlugins::PLUGIN_B2B_MARKET,
+                    '>',
+                    '1.0.3'
+                )
+            ) {
                 foreach ($specialPrices as $specialPrice) {
                     foreach ($specialPrice->getItems() as $item) {
                         $endpoint = $item->getCustomerGroupId()->getEndpoint();
@@ -156,9 +196,7 @@ class ProductSpecialPrice extends BaseController
                             $specialPrice->addItem((new ProductSpecialPriceItemModel())
                                 ->setProductSpecialPriceId(new Identity('customer'))
                                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                                ->setPriceNet((float)$item->getPriceNet()
-                                )
-                            );
+                                ->setPriceNet((float)$item->getPriceNet()));
                         }
                     }
                 }
@@ -166,46 +204,64 @@ class ProductSpecialPrice extends BaseController
 
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
-                    $endpoint = $item->getCustomerGroupId()->getEndpoint();
-                    $current_time = time();
-                    
+                    $endpoint     = $item->getCustomerGroupId()->getEndpoint();
+                    $current_time = \time();
+
                     if ($specialPrice->getConsiderDateLimit()) {
-                        $dateTo = is_null($end = $specialPrice->getActiveUntilDate()) ? null : $end->getTimestamp();
-                        $dateFrom = is_null($start = $specialPrice->getActiveFromDate()) ? null : $start->getTimestamp();
+                        $dateTo   = \is_null($end = $specialPrice->getActiveUntilDate()) ? null : $end->getTimestamp();
+                        $dateFrom = \is_null($start = $specialPrice->getActiveFromDate())
+                            ? null
+                            : $start->getTimestamp();
                     } else {
-                        $dateTo = '';
+                        $dateTo   = '';
                         $dateFrom = '';
                     }
-                    
+
                     if (\wc_prices_include_tax()) {
-                        $salePrice = round($item->getPriceNet() * (1 + $product->getVat() / 100), $pd);
+                        $salePrice = \round($item->getPriceNet() * (1 + $product->getVat() / 100), $pd);
                     } else {
-                        $salePrice = round($item->getPriceNet(), $pd);
+                        $salePrice = \round($item->getPriceNet(), $pd);
                     }
-                    
+
                     if (!Util::getInstance()->isValidCustomerGroup((string)$endpoint)) {
                         continue;
                     }
-                    
+
                     if ((CustomerGroup::DEFAULT_GROUP === $endpoint)) {
-                        $salePriceMetaKey = '_sale_price';
-                        $salePriceDatesToKey = '_sale_price_dates_to';
+                        $salePriceMetaKey      = '_sale_price';
+                        $salePriceDatesToKey   = '_sale_price_dates_to';
                         $salePriceDatesFromKey = '_sale_price_dates_from';
-                        $priceMetaKey = '_price';
-                        $regularPriceKey = '_regular_price';
-                        
-                        \update_post_meta($productId, $salePriceMetaKey, \wc_format_decimal($salePrice, $pd),
-                            \get_post_meta($productId, $salePriceMetaKey, true));
-                        
-                        \update_post_meta($productId, $salePriceDatesToKey, $dateTo,
-                            \get_post_meta($productId, $salePriceDatesToKey, true));
-                        
-                        \update_post_meta($productId, $salePriceDatesFromKey, $dateFrom,
-                            \get_post_meta($productId, $salePriceDatesFromKey, true));
-                        
+                        $priceMetaKey          = '_price';
+                        $regularPriceKey       = '_regular_price';
+
+                        \update_post_meta(
+                            $productId,
+                            $salePriceMetaKey,
+                            \wc_format_decimal($salePrice, $pd),
+                            \get_post_meta($productId, $salePriceMetaKey, true)
+                        );
+
+                        \update_post_meta(
+                            $productId,
+                            $salePriceDatesToKey,
+                            $dateTo,
+                            \get_post_meta($productId, $salePriceDatesToKey, true)
+                        );
+
+                        \update_post_meta(
+                            $productId,
+                            $salePriceDatesFromKey,
+                            $dateFrom,
+                            \get_post_meta($productId, $salePriceDatesFromKey, true)
+                        );
+
                         if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom && isset($priceMetaKey)) {
-                            \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($salePrice, $pd),
-                                \get_post_meta($productId, $priceMetaKey, true));
+                            \update_post_meta(
+                                $productId,
+                                $priceMetaKey,
+                                \wc_format_decimal($salePrice, $pd),
+                                \get_post_meta($productId, $priceMetaKey, true)
+                            );
                         } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
                             \update_post_meta(
                                 $productId,
@@ -222,20 +278,18 @@ class ProductSpecialPrice extends BaseController
                                 \get_post_meta($productId, $priceMetaKey, true)
                             );
                         }
-                        
-                    } elseif (is_int((int)$endpoint)) {
+                    } elseif (\is_int((int)$endpoint)) {
                         if ($productType !== Product::TYPE_PARENT) {
-
-                            $customerGroup = get_post($endpoint);
-                            $priceMetaKey = sprintf(
+                            $customerGroup       = \get_post($endpoint);
+                            $priceMetaKey        = \sprintf(
                                 'bm_%s_price',
                                 $customerGroup->post_name
                             );
-                            $regularPriceMetaKey = sprintf(
+                            $regularPriceMetaKey = \sprintf(
                                 '_jtlwcc_bm_%s_regular_price',
                                 $customerGroup->post_name
                             );
-                            
+
                             $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
                             \update_post_meta(
                                 $productId,
@@ -243,46 +297,48 @@ class ProductSpecialPrice extends BaseController
                                 'fix',
                                 \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
                             );
-                            
+
                             if ($productType === Product::TYPE_CHILD) {
-                                $COPpriceMetaKey = sprintf(
+                                $COPpriceMetaKey          = \sprintf(
                                     'bm_%s_%s_price',
                                     $customerGroup->post_name,
                                     $productId
                                 );
-                                $COPpriceTypeMetaKey = sprintf(
+                                $COPpriceTypeMetaKey      = \sprintf(
                                     'bm_%s_%s_price_type',
                                     $customerGroup->post_name,
                                     $productId
                                 );
-                                $COPsalePriceMetaKey = sprintf(
+                                $COPsalePriceMetaKey      = \sprintf(
                                     '_jtlwcc_bm_%s_%s_sale_price',
                                     $customerGroup->post_name,
                                     $productId
                                 );
-                                $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
+                                $COPsalePriceDatesToKey   = \sprintf(
+                                    '_jtlwcc_bm_%s_%s_sale_price_dates_to',
                                     $customerGroup->post_name,
                                     $productId
                                 );
-                                $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
+                                $COPsalePriceDatesFromKey = \sprintf(
+                                    '_jtlwcc_bm_%s_%s_sale_price_dates_from',
                                     $customerGroup->post_name,
                                     $productId
                                 );
                             } else {
-                                $salePriceMetaKey = sprintf(
+                                $salePriceMetaKey      = \sprintf(
                                     '_jtlwcc_bm_%s_sale_price',
                                     $customerGroup->post_name
                                 );
-                                $salePriceDatesToKey = sprintf(
+                                $salePriceDatesToKey   = \sprintf(
                                     '_jtlwcc_bm_%s_sale_price_dates_to',
                                     $customerGroup->post_name
                                 );
-                                $salePriceDatesFromKey = sprintf(
+                                $salePriceDatesFromKey = \sprintf(
                                     '_jtlwcc_bm_%s_sale_price_dates_from',
                                     $customerGroup->post_name
                                 );
                             }
-                            
+
                             if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
                                 \update_post_meta(
                                     $productId,
@@ -290,8 +346,9 @@ class ProductSpecialPrice extends BaseController
                                     \wc_format_decimal($salePrice, $pd),
                                     \get_post_meta($productId, $priceMetaKey, true)
                                 );
-                                
-                                if ($productType === Product::TYPE_CHILD
+
+                                if (
+                                    $productType === Product::TYPE_CHILD
                                     && isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                     && isset($COPsalePriceMetaKey)
@@ -351,8 +408,9 @@ class ProductSpecialPrice extends BaseController
                                     \wc_format_decimal($salePrice, $pd),
                                     \get_post_meta($productId, $priceMetaKey, true)
                                 );
-                                
-                                if ($productType === Product::TYPE_CHILD
+
+                                if (
+                                    $productType === Product::TYPE_CHILD
                                     && isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                     && isset($COPsalePriceMetaKey)
@@ -471,37 +529,42 @@ class ProductSpecialPrice extends BaseController
                 }
             }
         } else {
-            
-            $customerGroups = (new CustomerGroup)->pullData();
-            
-            if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
+            $customerGroups = (new CustomerGroup())->pullData();
+
+            if (
+                SupportedPlugins::comparePluginVersion(
+                    SupportedPlugins::PLUGIN_B2B_MARKET,
+                    '>',
+                    '1.0.3'
+                )
+            ) {
                 foreach ($customerGroups as $customerGroup) {
                     $endpoint = $customerGroup->getId()->getEndpoint();
                     if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                         $customerGroups[] = (new CustomerGroupModel())
                             ->setId(new Identity(CustomerGroup::DEFAULT_GROUP))
-                            ->addI18n((new CustomerGroupI18nModel)
+                            ->addI18n((new CustomerGroupI18nModel())
                                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                                 ->setName('Customer'));
                     }
                 }
             }
-            
+
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $groupKey => $customerGroup) {
                 $customerGroupId = $customerGroup->getId()->getEndpoint();
-                $post = \get_post($customerGroupId);
-                if (!is_null($post) && $post instanceof \WP_Post && is_int((int)$customerGroupId)) {
+                $post            = \get_post($customerGroupId);
+                if (!\is_null($post) && $post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
                     //$post = \get_post($customerGroupId);
-                    $priceMetaKey = sprintf(
+                    $priceMetaKey        = \sprintf(
                         'bm_%s_price',
                         $post->post_name
                     );
-                    $regularPriceMetaKey = sprintf(
+                    $regularPriceMetaKey = \sprintf(
                         '_jtlwcc_bm_%s_regular_price',
                         $post->post_name
                     );
-                    
+
                     $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
                     \update_post_meta(
                         $productId,
@@ -509,81 +572,116 @@ class ProductSpecialPrice extends BaseController
                         'fix',
                         \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
                     );
-                    
+
                     if ($productType === Product::TYPE_CHILD) {
-                        $COPpriceMetaKey = sprintf(
+                        $COPpriceMetaKey          = \sprintf(
                             'bm_%s_%s_price',
                             $post->post_name,
                             $productId
                         );
-                        $COPpriceTypeMetaKey = sprintf(
+                        $COPpriceTypeMetaKey      = \sprintf(
                             'bm_%s_%s_price_type',
                             $post->post_name,
                             $productId
                         );
-                        $COPsalePriceMetaKey = sprintf(
+                        $COPsalePriceMetaKey      = \sprintf(
                             '_jtlwcc_bm_%s_%s_sale_price',
                             $post->post_name,
                             $productId
                         );
-                        $COPsalePriceDatesToKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_to',
+                        $COPsalePriceDatesToKey   = \sprintf(
+                            '_jtlwcc_bm_%s_%s_sale_price_dates_to',
                             $post->post_name,
                             $productId
                         );
-                        $COPsalePriceDatesFromKey = sprintf('_jtlwcc_bm_%s_%s_sale_price_dates_from',
+                        $COPsalePriceDatesFromKey = \sprintf(
+                            '_jtlwcc_bm_%s_%s_sale_price_dates_from',
                             $post->post_name,
                             $productId
                         );
-                        
-                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey, true));
-                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey, true));
-                        \delete_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey, true));
+
+                        \delete_post_meta(
+                            $masterProductId->getEndpoint(),
+                            $COPsalePriceMetaKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey, true)
+                        );
+                        \delete_post_meta(
+                            $masterProductId->getEndpoint(),
+                            $COPsalePriceDatesToKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey, true)
+                        );
+                        \delete_post_meta(
+                            $masterProductId->getEndpoint(),
+                            $COPsalePriceDatesFromKey,
+                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey, true)
+                        );
                     } else {
-                        $salePriceMetaKey = sprintf(
+                        $salePriceMetaKey      = \sprintf(
                             '_jtlwcc_bm_%s_sale_price',
                             $post->post_name
                         );
-                        $salePriceDatesToKey = sprintf(
+                        $salePriceDatesToKey   = \sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_to',
                             $post->post_name
                         );
-                        $salePriceDatesFromKey = sprintf(
+                        $salePriceDatesFromKey = \sprintf(
                             '_jtlwcc_bm_%s_sale_price_dates_from',
                             $post->post_name
                         );
-                        \delete_post_meta($productId, $salePriceMetaKey,
-                            \get_post_meta($productId, $salePriceMetaKey, true));
-                        \delete_post_meta($productId, $salePriceDatesToKey,
-                            \get_post_meta($productId, $salePriceDatesToKey, true));
-                        \delete_post_meta($productId, $salePriceDatesFromKey,
-                            \get_post_meta($productId, $salePriceDatesFromKey, true));
+                        \delete_post_meta(
+                            $productId,
+                            $salePriceMetaKey,
+                            \get_post_meta($productId, $salePriceMetaKey, true)
+                        );
+                        \delete_post_meta(
+                            $productId,
+                            $salePriceDatesToKey,
+                            \get_post_meta($productId, $salePriceDatesToKey, true)
+                        );
+                        \delete_post_meta(
+                            $productId,
+                            $salePriceDatesFromKey,
+                            \get_post_meta($productId, $salePriceDatesFromKey, true)
+                        );
                     }
-                    
+
                     $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
-                    
-                } elseif (is_null($post) && $customerGroupId === CustomerGroup::DEFAULT_GROUP) {
-                    $salePriceMetaKey = '_sale_price';
-                    $salePriceDatesToKey = '_sale_price_dates_to';
+                } elseif (\is_null($post) && $customerGroupId === CustomerGroup::DEFAULT_GROUP) {
+                    $salePriceMetaKey      = '_sale_price';
+                    $salePriceDatesToKey   = '_sale_price_dates_to';
                     $salePriceDatesFromKey = '_sale_price_dates_from';
-                    $priceMetaKey = '_price';
-                    $regularPriceKey = '_regular_price';
-                    $regularPrice = (float)\get_post_meta($productId, $regularPriceKey, true);
-                    
-                    \update_post_meta($productId, $salePriceMetaKey, '',
-                        \get_post_meta($productId, $salePriceMetaKey, true));
-                    \update_post_meta($productId, $salePriceDatesToKey, '',
-                        \get_post_meta($productId, $salePriceDatesToKey, true));
-                    \update_post_meta($productId, $salePriceDatesFromKey, '',
-                        \get_post_meta($productId, $salePriceDatesFromKey, true));
+                    $priceMetaKey          = '_price';
+                    $regularPriceKey       = '_regular_price';
+                    $regularPrice          = (float)\get_post_meta($productId, $regularPriceKey, true);
+
+                    \update_post_meta(
+                        $productId,
+                        $salePriceMetaKey,
+                        '',
+                        \get_post_meta($productId, $salePriceMetaKey, true)
+                    );
+                    \update_post_meta(
+                        $productId,
+                        $salePriceDatesToKey,
+                        '',
+                        \get_post_meta($productId, $salePriceDatesToKey, true)
+                    );
+                    \update_post_meta(
+                        $productId,
+                        $salePriceDatesFromKey,
+                        '',
+                        \get_post_meta($productId, $salePriceDatesFromKey, true)
+                    );
                 } else {
                     continue;
                 }
-                
-                \update_post_meta($productId, $priceMetaKey, \wc_format_decimal($regularPrice, $pd),
-                    \get_post_meta($productId, $priceMetaKey, true));
+
+                \update_post_meta(
+                    $productId,
+                    $priceMetaKey,
+                    \wc_format_decimal($regularPrice, $pd),
+                    \get_post_meta($productId, $priceMetaKey, true)
+                );
 
                 if ($productType === Product::TYPE_CHILD && isset($COPpriceTypeMetaKey) && isset($COPpriceMetaKey)) {
                     \update_post_meta(

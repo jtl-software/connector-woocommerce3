@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -15,7 +16,12 @@ use JtlWooCommerceConnector\Utilities\Id;
 
 class Product2Category extends BaseController
 {
-    public function pullData(\WC_Product $product)
+    /**
+     * @param \WC_Product $product
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(\WC_Product $product): array
     {
         $productCategories = [];
 
@@ -41,14 +47,22 @@ class Product2Category extends BaseController
         return $productCategories;
     }
 
-    public function pushData(ProductModel $product)
+    /**
+     * @param ProductModel $product
+     * @return void
+     */
+    public function pushData(ProductModel $product): void
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
         $wcProduct->set_category_ids($this->getCategoryIds($product->getCategories()));
         $wcProduct->save();
     }
 
-    private function getCategoryIds(array $categories)
+    /**
+     * @param array $categories
+     * @return array
+     */
+    private function getCategoryIds(array $categories): array
     {
         $productCategories = [];
 

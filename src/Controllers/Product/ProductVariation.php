@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -27,9 +28,13 @@ class ProductVariation extends BaseController
      * @param \WC_Product_Attribute $attribute
      * @param string $languageIso
      * @return ProductVariationModel|null
+     * @throws \InvalidArgumentException
      */
-    public function pullDataParent(ProductModel $model, \WC_Product_Attribute $attribute, $languageIso = '')
-    {
+    public function pullDataParent(
+        ProductModel $model,
+        \WC_Product_Attribute $attribute,
+        string $languageIso = ''
+    ): ?ProductVariationModel {
         $id = new Identity(Id::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
 
         $productVariation = (new ProductVariationModel())
@@ -44,7 +49,7 @@ class ProductVariation extends BaseController
         if ($attribute->is_taxonomy()) {
             $terms = $attribute->get_terms();
 
-            if (!is_array($terms)) {
+            if (!\is_array($terms)) {
                 return null;
             }
 
@@ -59,8 +64,7 @@ class ProductVariation extends BaseController
                     ->addI18n((new ProductVariationValueI18nModel())
                         ->setProductVariationValueId($valueId)
                         ->setName($term->name)
-                        ->setLanguageISO($languageIso))
-                );
+                        ->setLanguageISO($languageIso)));
             }
         } else {
             $options = $attribute->get_options();
@@ -75,8 +79,7 @@ class ProductVariation extends BaseController
                     ->addI18n((new ProductVariationValueI18nModel())
                         ->setProductVariationValueId($valueId)
                         ->setName($option)
-                        ->setLanguageISO($languageIso))
-                );
+                        ->setLanguageISO($languageIso)));
             }
         }
 
@@ -86,12 +89,13 @@ class ProductVariation extends BaseController
     /**
      * @param \WC_Product $product
      * @param ProductModel $model
-     * @param string $languageIso
+     * @param $languageIso
      * @return array
+     * @throws \InvalidArgumentException
      */
-    public function pullDataChild(\WC_Product $product, ProductModel $model, $languageIso = '')
+    public function pullDataChild(\WC_Product $product, ProductModel $model, $languageIso = ''): array
     {
-        $parentProduct = \wc_get_product($product->get_parent_id());
+        $parentProduct     = \wc_get_product($product->get_parent_id());
         $productVariations = [];
         /**
          * @var string $slug
@@ -100,11 +104,11 @@ class ProductVariation extends BaseController
         foreach ($parentProduct->get_attributes() as $slug => $attribute) {
             $id = new Identity(Id::link([$parentProduct->get_id(), $attribute->get_id()]));
 
-            $productVariation = (new ProductVariationModel)
+            $productVariation = (new ProductVariationModel())
                 ->setId($id)
                 ->setProductId($model->getId())
                 ->setType(ProductVariationModel::TYPE_SELECT)
-                ->addI18n((new ProductVariationI18nModel)
+                ->addI18n((new ProductVariationI18nModel())
                     ->setProductVariationId($id)
                     ->setName(\wc_attribute_label($attribute->get_name()))
                     ->setLanguageISO($languageIso));
@@ -112,7 +116,7 @@ class ProductVariation extends BaseController
             if ($attribute->is_taxonomy()) {
                 $terms = $attribute->get_terms();
 
-                if (!is_array($terms)) {
+                if (!\is_array($terms)) {
                     continue;
                 }
 
@@ -126,15 +130,14 @@ class ProductVariation extends BaseController
 
                     $valueId = new Identity(Id::link([$id->getEndpoint(), $term->term_id]));
 
-                    $productVariation->addValue((new ProductVariationValueModel)
+                    $productVariation->addValue((new ProductVariationValueModel())
                         ->setId($valueId)
                         ->setProductVariationId($id)
                         ->setSort($sort)
-                        ->addI18n((new ProductVariationValueI18nModel)
+                        ->addI18n((new ProductVariationValueI18nModel())
                             ->setProductVariationValueId($valueId)
                             ->setName($term->name)
-                            ->setLanguageISO($languageIso))
-                    );
+                            ->setLanguageISO($languageIso)));
                 }
             } else {
                 $value = $product->get_attribute($slug);
@@ -146,15 +149,14 @@ class ProductVariation extends BaseController
 
                     $valueId = new Identity(Id::link([$id->getEndpoint(), \sanitize_key($option)]));
 
-                    $productVariation->addValue((new ProductVariationValueModel)
+                    $productVariation->addValue((new ProductVariationValueModel())
                         ->setId($valueId)
                         ->setProductVariationId($id)
                         ->setSort($sort)
-                        ->addI18n((new ProductVariationValueI18nModel)
+                        ->addI18n((new ProductVariationValueI18nModel())
                             ->setProductVariationValueId($valueId)
                             ->setName($option)
-                            ->setLanguageISO($languageIso))
-                    );
+                            ->setLanguageISO($languageIso)));
                 }
             }
 
@@ -167,29 +169,38 @@ class ProductVariation extends BaseController
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Push">
-    public function pushMasterData(string $productId, array $variationSpecificData, array $attributesFilteredVariationSpecifics)
-    {
-        $result = null;
+    /**
+     * @param string $productId
+     * @param array $variationSpecificData
+     * @param array $attributesFilteredVariationSpecifics
+     * @return array|null
+     */
+    public function pushMasterData(
+        string $productId,
+        array $variationSpecificData,
+        array $attributesFilteredVariationSpecifics
+    ): ?array {
+        $result                  = null;
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandler();
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy = $this->createVariantSlug((string)$key);
-            $specificID = $this->database->query(SqlHelper::getSpecificId(substr($taxonomy, 3)));
+            $taxonomy       = $this->createVariantSlug((string)$key);
+            $specificID     = $this->database->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
             $specificExists = isset($specificID[0]['attribute_id']);
-            $options = [];
+            $options        = [];
 
-            if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
+            if (\array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                 $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
             }
 
             if ($specificExists) {
-
                 //Get existing values
-                $pushedValues = explode(' ' . WC_DELIMITER . ' ', $variationSpecific['value']);
+                $pushedValues = \explode(' ' . \WC_DELIMITER . ' ', $variationSpecific['value']);
                 foreach ($pushedValues as $pushedValue) {
-
                     //check if value did not exists
-                    $termId = (int)$productVaSpeAttrHandler->getSpecificValueId($taxonomy, trim($pushedValue))->getEndpoint();
+                    $termId = (int)$productVaSpeAttrHandler
+                        ->getSpecificValueId($taxonomy, \trim($pushedValue))
+                        ->getEndpoint();
 
                     if (!$termId > 0) {
                         $newTerm = \wp_insert_term($pushedValue, $taxonomy);
@@ -202,28 +213,27 @@ class ProductVariation extends BaseController
                         $termId = $newTerm['term_id'];
                     }
 
-                    if (array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
+                    if (\array_key_exists($taxonomy, $attributesFilteredVariationSpecifics)) {
                         $attributesFilteredVariationSpecifics[$taxonomy]['is_variation'] = true;
 
-                        $options = explode(
-                            ' ' . WC_DELIMITER . ' ',
+                        $options = \explode(
+                            ' ' . \WC_DELIMITER . ' ',
                             $attributesFilteredVariationSpecifics[$taxonomy]['value']
                         );
 
-                        if ((!in_array($termId, $options))) {
-                            array_push($options, $termId);
+                        if ((!\in_array($termId, $options))) {
+                            \array_push($options, $termId);
                         }
 
-                        $attributesFilteredVariationSpecifics[$taxonomy]['value'] = implode(
-                            ' ' . WC_DELIMITER . ' ',
+                        $attributesFilteredVariationSpecifics[$taxonomy]['value'] = \implode(
+                            ' ' . \WC_DELIMITER . ' ',
                             $options
                         );
-
                     } else {
-                        array_push($options, $termId);
+                        \array_push($options, $termId);
                         $attributesFilteredVariationSpecifics[$taxonomy] = [
                             'name' => $taxonomy,
-                            'value' => implode(' ' . WC_DELIMITER . ' ', $options),
+                            'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),
                             'position' => $variationSpecific['position'] ?? 0,
                             'is_visible' => Util::showVariationSpecificsOnProductPageEnabled(),
                             'is_variation' => true,
@@ -235,7 +245,7 @@ class ProductVariation extends BaseController
                         $options[$key] = (int)$value;
                     }
 
-                    wp_set_object_terms(
+                    \wp_set_object_terms(
                         $productId,
                         $options,
                         $attributesFilteredVariationSpecifics[$taxonomy]['name'],
@@ -253,12 +263,12 @@ class ProductVariation extends BaseController
                     'has_archives' => false
                 ];
 
-                $options = explode(
-                    ' ' . WC_DELIMITER . ' ',
+                $options = \explode(
+                    ' ' . \WC_DELIMITER . ' ',
                     $variationSpecific['value']
                 );
 
-                $attributeId = wc_create_attribute($endpoint);
+                $attributeId = \wc_create_attribute($endpoint);
 
                 if ($attributeId instanceof WP_Error) {
                     //var_dump($attributeId);
@@ -270,12 +280,12 @@ class ProductVariation extends BaseController
                 }
 
                 //Register taxonomy for current request
-                register_taxonomy($taxonomy, null);
+                \register_taxonomy($taxonomy, null);
 
                 $assignedValueIds = [];
 
                 foreach ($options as $optionKey => $optionValue) {
-                    $slug = wc_sanitize_taxonomy_name($optionValue);
+                    $slug = \wc_sanitize_taxonomy_name($optionValue);
 
                     $endpointValue = [
                         'name' => $optionValue,
@@ -289,7 +299,7 @@ class ProductVariation extends BaseController
                         )
                     );
 
-                    if (count($exValId) >= 1) {
+                    if (\count($exValId) >= 1) {
                         if (isset($exValId[0]['term_id'])) {
                             $exValId = $exValId[0]['term_id'];
                         } else {
@@ -299,7 +309,7 @@ class ProductVariation extends BaseController
                         $exValId = null;
                     }
 
-                    if (is_null($exValId)) {
+                    if (\is_null($exValId)) {
                         $newTerm = \wp_insert_term(
                             $endpointValue['name'],
                             $taxonomy
@@ -327,14 +337,14 @@ class ProductVariation extends BaseController
 
                 $attributesFilteredVariationSpecifics[$taxonomy] = [
                     'name' => $taxonomy,
-                    'value' => implode(' ' . WC_DELIMITER . ' ', $options),
+                    'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),
                     'position' => null,
                     'is_visible' => Util::showVariationSpecificsOnProductPageEnabled(),
                     'is_variation' => true,
                     'is_taxonomy' => $taxonomy,
                 ];
 
-                wp_set_object_terms(
+                \wp_set_object_terms(
                     $productId,
                     $assignedValueIds,
                     $attributesFilteredVariationSpecifics[$taxonomy]['name'],
@@ -347,11 +357,15 @@ class ProductVariation extends BaseController
         return $result;
     }
 
+    /**
+     * @param $productId
+     * @param $pushedVariations
+     * @return array
+     */
     public function pushChildData(
         $productId,
         $pushedVariations
-    )
-    {
+    ): array {
         $updatedAttributeKeys = [];
 
         /** @var ProductVariationModel $variation */
@@ -363,10 +377,10 @@ class ProductVariation extends BaseController
                     }
 
                     foreach ($variationValue->getI18ns() as $i18n) {
-                        $metaKey =
-                            'attribute_pa_' . wc_sanitize_taxonomy_name(
-                                substr(
-                                    trim(
+                        $metaKey                =
+                            'attribute_pa_' . \wc_sanitize_taxonomy_name(
+                                \substr(
+                                    \trim(
                                         $variationI18n->getName()
                                     ),
                                     0,
@@ -375,19 +389,22 @@ class ProductVariation extends BaseController
                             );
                         $updatedAttributeKeys[] = $metaKey;
 
-                        \update_post_meta($productId, $metaKey,
-                            wc_sanitize_taxonomy_name($i18n->getName()));
+                        \update_post_meta(
+                            $productId,
+                            $metaKey,
+                            \wc_sanitize_taxonomy_name($i18n->getName())
+                        );
                     }
                     break;
                 }
             }
         }
 
-        /*	$attributesToDelete = $this->database->queryList( SqlHelper::productVariationObsoletes(
+        /*  $attributesToDelete = $this->database->queryList( SqlHelper::productVariationObsoletes(
             $product->getId()->getEndpoint(),
             $updatedAttributeKeys
         ) );
-        
+
         foreach ( $attributesToDelete as $key ) {
             \delete_post_meta( $product->getId()->getEndpoint(), $key );
         }*/
@@ -403,10 +420,10 @@ class ProductVariation extends BaseController
      */
     public function createVariantSlug(string $slug): string
     {
-        $slug = 'pa_' . wc_sanitize_taxonomy_name(substr(trim($slug), 0, 27));
+        $slug = 'pa_' . \wc_sanitize_taxonomy_name(\substr(\trim($slug), 0, 27));
 
-        if (wc_check_if_attribute_name_is_reserved(substr($slug, 3))) {
-            $slug = substr($slug, 0, 28) . '_1';
+        if (\wc_check_if_attribute_name_is_reserved(\substr($slug, 3))) {
+            $slug = \substr($slug, 0, 28) . '_1';
         }
 
         return $slug;
