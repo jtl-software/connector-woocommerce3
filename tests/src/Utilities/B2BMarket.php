@@ -33,7 +33,7 @@ class B2BMarket extends AbstractTestCase
 
         $b2bMock->expects($this->once())
             ->method('updatePostMeta')
-            ->with('10', 'bm_conditional_products', join(',', ['1']), []);
+            ->with('10', 'bm_conditional_products', \join(',', ['1']), []);
 
         $products = [
             (new Product())->setId(new Identity("1", 1))->setInvisibilities([
@@ -42,7 +42,7 @@ class B2BMarket extends AbstractTestCase
         ];
 
         $reflection = new \ReflectionClass($b2bMock);
-        $method = $reflection->getMethod('setB2BCustomerGroupBlacklist');
+        $method     = $reflection->getMethod('setB2BCustomerGroupBlacklist');
         $method->setAccessible(true);
 
         $method->invoke($b2bMock, ['10', '11'], 'bm_conditional_products', ...$products);

@@ -13,17 +13,17 @@ class CustomProductTab
     /**
      * @var string
      */
-    protected $id = '';
+    protected string $id = '';
 
     /**
      * @var string
      */
-    protected $title = '';
+    protected string $title = '';
 
     /**
      * @var string
      */
-    protected $content = '';
+    protected string $content = '';
 
     /**
      * CustomProductTab constructor.
@@ -32,8 +32,8 @@ class CustomProductTab
      */
     public function __construct(string $title, string $content)
     {
-        $this->id = Strings::webalize($title);
-        $this->title = $title;
+        $this->id      = Strings::webalize($title);
+        $this->title   = $title;
         $this->content = $content;
     }
 

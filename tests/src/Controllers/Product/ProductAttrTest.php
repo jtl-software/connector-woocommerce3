@@ -124,7 +124,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 }
 
 namespace {
-    if (!function_exists('wc_sanitize_taxonomy_name')) {
+    if (!\function_exists('wc_sanitize_taxonomy_name')) {
         function wc_sanitize_taxonomy_name(string $name): string
         {
             return $name;

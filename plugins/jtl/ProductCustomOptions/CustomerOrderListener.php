@@ -14,12 +14,12 @@ class CustomerOrderListener
     /**
      * @var array
      */
-    protected $customFieldNames = [];
+    protected mixed $customFieldNames = [];
 
     /**
      * @var \wpdb
      */
-    protected $wpdb;
+    protected \wpdb $wpdb;
 
     /**
      * CustomerOrderListener constructor.
@@ -27,17 +27,19 @@ class CustomerOrderListener
     public function __construct()
     {
         global $wpdb;
-        $this->customFieldNames = get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
-        $this->wpdb = $wpdb;
+        $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
+        $this->wpdb             = $wpdb;
     }
 
     /**
      * @param CustomerOrderAfterPullEvent $event
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    public function onCustomerOrderAfterPull(CustomerOrderAfterPullEvent $event)
+    public function onCustomerOrderAfterPull(CustomerOrderAfterPullEvent $event): void
     {
         if (!empty($this->getCustomFieldNames())) {
-            $customerOrder = $event->getCustomerOrder();
+            $customerOrder      = $event->getCustomerOrder();
             $customerOrderItems = $customerOrder->getItems();
             foreach ($customerOrderItems as $customerOrderItem) {
                 $orderItemId = $customerOrderItem->getId();
@@ -48,8 +50,12 @@ class CustomerOrderListener
                         if (!empty($customerOrderItem->getNote())) {
                             $orderItemNotes[] = $customerOrderItem->getNote();
                         }
-                        $orderItemNotes[] = sprintf('%s: %s', 'Extra Product Options', $customProductOptionsInfo);
-                        $customerOrderItem->setNote(join(', ', $orderItemNotes));
+                        $orderItemNotes[] = \sprintf(
+                            '%s: %s',
+                            'Extra Product Options',
+                            $customProductOptionsInfo
+                        );
+                        $customerOrderItem->setNote(\join(', ', $orderItemNotes));
                     }
                 }
             }
@@ -64,18 +70,23 @@ class CustomerOrderListener
     {
         $customProductOptions = [];
 
-        $sql = sprintf(
-            'SELECT meta_key,meta_value FROM %swoocommerce_order_itemmeta WHERE order_item_id = %s AND meta_key IN (\'%s\')',
-            $this->wpdb->prefix, $wcOrderItemId, join("','", array_keys($this->getCustomFieldNames()))
+        $sql = \sprintf(
+            'SELECT meta_key,meta_value FROM %swoocommerce_order_itemmeta 
+                           WHERE order_item_id = %s AND meta_key IN (\'%s\')',
+            $this->wpdb->prefix,
+            $wcOrderItemId,
+            \join("','", \array_keys($this->getCustomFieldNames()))
         );
 
         $customOptions = Db::getInstance()->query($sql);
         foreach ($customOptions as $customOption) {
-            $label = !empty($this->customFieldNames[$customOption['meta_key']]) ? $this->customFieldNames[$customOption['meta_key']] : $customOption['meta_key'];
-            $customProductOptions[] = sprintf('%s = %s', $label, $customOption['meta_value']);
+            $label                  = !empty($this->customFieldNames[$customOption['meta_key']])
+                ? $this->customFieldNames[$customOption['meta_key']]
+                : $customOption['meta_key'];
+            $customProductOptions[] = \sprintf('%s = %s', $label, $customOption['meta_value']);
         }
 
-        return join(', ', $customProductOptions);
+        return \join(', ', $customProductOptions);
     }
 
     /**

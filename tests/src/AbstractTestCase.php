@@ -17,9 +17,9 @@ abstract class AbstractTestCase extends TestCase
      * @return mixed
      * @throws \ReflectionException
      */
-    protected function invokeMethodFromObject($object, string $methodName, ...$arguments)
+    protected function invokeMethodFromObject($object, string $methodName, ...$arguments): mixed
     {
-        $reflectionClass = new \ReflectionClass($object);
+        $reflectionClass  = new \ReflectionClass($object);
         $reflectionMethod = $reflectionClass->getMethod($methodName);
         $reflectionMethod->setAccessible(true);
         return $reflectionMethod->invoke($object, ...$arguments);
@@ -33,7 +33,7 @@ abstract class AbstractTestCase extends TestCase
      */
     protected function setPropertyValueFromObject($object, string $propertyName, $value): void
     {
-        $reflectionClass = new \ReflectionClass($object);
+        $reflectionClass    = new \ReflectionClass($object);
         $reflectionProperty = $reflectionClass->getProperty($propertyName);
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($object, $value);

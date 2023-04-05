@@ -89,14 +89,15 @@ class UtilTest extends TestCase
     public function testFindVatId()
     {
         $expectedVatId = 'DE123456789';
-        $returnOnKeys = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
+        $returnOnKeys  = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
 
         $getMetaField = function ($id, $metaKey) use ($expectedVatId, $returnOnKeys) {
-            return in_array($metaKey, array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
+            return \in_array($metaKey, \array_keys($returnOnKeys)) ? $returnOnKeys[$metaKey] : false;
         };
 
         $enabledPlugins = [
-            'woocommerce-germanized-pro/woocommerce-germanized-pro.php' => ['Name' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO],
+            'woocommerce-germanized-pro/woocommerce-germanized-pro.php'
+            => ['Name' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO],
             'b2b-market/b2b-market.php' => ['Name' => SupportedPlugins::PLUGIN_B2B_MARKET],
         ];
         $this->enablePlugins($enabledPlugins);
@@ -123,7 +124,8 @@ class UtilTest extends TestCase
         };
 
         $enabledPlugins = [
-            'woocommerce-germanized-pro/woocommerce-germanized-pro.php' => ['Name' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO],
+            'woocommerce-germanized-pro/woocommerce-germanized-pro.php'
+            => ['Name' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO],
             'b2b-market/b2b-market.php' => ['Name' => SupportedPlugins::PLUGIN_B2B_MARKET],
         ];
         $this->enablePlugins($enabledPlugins);
@@ -141,7 +143,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     *
+     * @return void
      */
     protected function tearDown(): void
     {
@@ -154,11 +156,13 @@ class UtilTest extends TestCase
 
     /**
      * @param $enabledPlugins
+     * @return void
+     * @throws \InvalidArgumentException
      * @throws \phpmock\MockEnabledException
      */
-    protected function enablePlugins($enabledPlugins)
+    protected function enablePlugins($enabledPlugins): void
     {
-        $builder = new MockBuilder();
+        $builder    = new MockBuilder();
         $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_plugins')
             ->setFunction(function () use ($enabledPlugins) {
