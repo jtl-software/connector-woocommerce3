@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -11,12 +12,12 @@ use Symfony\Component\EventDispatcher\Event;
 
 class HandleStatsEvent extends Event
 {
-    const EVENT_NAME = 'connector.handle.stats';
+    public const EVENT_NAME = 'connector.handle.stats';
 
     /**
      * @var Action
      */
-    protected $result;
+    protected Action $result;
     protected $controller;
 
     public function __construct($controller)
@@ -29,12 +30,19 @@ class HandleStatsEvent extends Event
         return $this->controller;
     }
 
-    public function getResult()
+    /**
+     * @return Action
+     */
+    public function getResult(): Action
     {
         return $this->result;
     }
 
-    public function setResult($result)
+    /**
+     * @param $result
+     * @return $this
+     */
+    public function setResult($result): static
     {
         $this->result = $result;
         return $this;

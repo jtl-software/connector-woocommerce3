@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -11,19 +12,19 @@ use Symfony\Component\EventDispatcher\Event;
 
 class HandlePushEvent extends Event
 {
-    const EVENT_NAME = 'connector.handle.push';
+    public const EVENT_NAME = 'connector.handle.push';
 
     /**
      * @var Action
      */
-    protected $result;
+    protected Action $result;
     protected $controller;
     protected $entities;
 
     public function __construct($controller, $entities)
     {
         $this->controller = $controller;
-        $this->entities = $entities;
+        $this->entities   = $entities;
     }
 
     public function getController()
@@ -36,12 +37,19 @@ class HandlePushEvent extends Event
         return $this->entities;
     }
 
-    public function getResult()
+    /**
+     * @return Action
+     */
+    public function getResult(): Action
     {
         return $this->result;
     }
 
-    public function setResult($result)
+    /**
+     * @param $result
+     * @return $this
+     */
+    public function setResult($result): static
     {
         $this->result = $result;
         return $this;
