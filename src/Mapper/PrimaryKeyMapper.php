@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -16,43 +17,63 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
-    public function getHostId($endpointId, $type)
+    /**
+     * @param $endpointId
+     * @param $type
+     * @return int|null
+     */
+    public function getHostId($endpointId, $type): ?int
     {
         $tableName = self::getTableName($type);
-        
-        if (is_null($tableName)) {
+
+        if (\is_null($tableName)) {
             return null;
         }
-        
+
         if ($type === IdentityLinker::TYPE_IMAGE) {
             list($endpointId, $imageType) = Id::unlinkImage($endpointId);
-            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostImage($endpointId, $imageType),
-                false);
+            $hostId                       = Db::getInstance()->queryOne(
+                SqlHelper::primaryKeyMappingHostImage($endpointId, $imageType),
+                false
+            );
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
-            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostCustomer($endpointId, $isGuest),
-                false);
+            $hostId                     = Db::getInstance()->queryOne(
+                SqlHelper::primaryKeyMappingHostCustomer($endpointId, $isGuest),
+                false
+            );
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER_GROUP) {
-            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostString($endpointId, $tableName), false);
-        }else {
-            $hostId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingHostInteger($endpointId, $tableName),
-                false);
+            $hostId = Db::getInstance()->queryOne(
+                SqlHelper::primaryKeyMappingHostString($endpointId, $tableName),
+                false
+            );
+        } else {
+            $hostId = Db::getInstance()->queryOne(
+                SqlHelper::primaryKeyMappingHostInteger($endpointId, $tableName),
+                false
+            );
         }
-        
+
         PrimaryKeyMappingLogger::getInstance()->getHostId($endpointId, $type, $hostId);
-        
+
         return $hostId !== false ? (int)$hostId : null;
     }
-    
-    public function getEndpointId($hostId, $type, $relationType = null)
+
+    /**
+     * @param $hostId
+     * @param $type
+     * @param $relationType
+     * @return string|null
+     */
+    public function getEndpointId($hostId, $type, $relationType = null): ?string
     {
         $clause    = '';
         $tableName = self::getTableName($type);
-        
-        if (is_null($tableName)) {
+
+        if (\is_null($tableName)) {
             return null;
         }
-        
+
         if ($type === IdentityLinker::TYPE_IMAGE) {
             switch ($relationType) {
                 case ImageRelationType::TYPE_PRODUCT:
@@ -65,58 +86,80 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     $relationType = IdentityLinker::TYPE_MANUFACTURER;
                     break;
             }
-            
+
             $clause = "AND type = {$relationType}";
         }
-        
-        $endpointId = Db::getInstance()->queryOne(SqlHelper::primaryKeyMappingEndpoint($hostId, $tableName, $clause),
-            false);
-        
+
+        $endpointId = Db::getInstance()->queryOne(
+            SqlHelper::primaryKeyMappingEndpoint($hostId, $tableName, $clause),
+            false
+        );
+
         PrimaryKeyMappingLogger::getInstance()->getEndpointId($hostId, $type, $endpointId);
-        
+
         return $endpointId;
     }
-    
-    public function save($endpointId, $hostId, $type)
+
+    /**
+     * @param $endpointId
+     * @param $hostId
+     * @param $type
+     * @return bool|null
+     */
+    public function save($endpointId, $hostId, $type): ?bool
     {
         $tableName = self::getTableName($type);
-        
-        if (is_null($tableName)) {
+
+        if (\is_null($tableName)) {
             return null;
         }
-        
+
         PrimaryKeyMappingLogger::getInstance()->save($endpointId, $hostId, $type);
-        
+
         if ($type === IdentityLinker::TYPE_IMAGE) {
             list($endpointId, $imageType) = Id::unlinkImage($endpointId);
-            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType),
-                false);
+            $id                           = Db::getInstance()->query(
+                SqlHelper::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType),
+                false
+            );
         } elseif ($type === IdentityLinker::TYPE_CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
-            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
-                false);
-        } elseif (in_array($type, [IdentityLinker::TYPE_CUSTOMER_GROUP, IdentityLinker::TYPE_TAX_CLASS])) {
-            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveString($endpointId, $hostId, $tableName),
-                false);
+            $id                         = Db::getInstance()->query(
+                SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
+                false
+            );
+        } elseif (\in_array($type, [IdentityLinker::TYPE_CUSTOMER_GROUP, IdentityLinker::TYPE_TAX_CLASS])) {
+            $id = Db::getInstance()->query(
+                SqlHelper::primaryKeyMappingSaveString($endpointId, $hostId, $tableName),
+                false
+            );
         } else {
-            $id = Db::getInstance()->query(SqlHelper::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName),
-                false);
+            $id = Db::getInstance()->query(
+                SqlHelper::primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName),
+                false
+            );
         }
-        
+
         return $id !== false;
     }
-    
-    public function delete($endpointId, $hostId, $type)
+
+    /**
+     * @param $endpointId
+     * @param $hostId
+     * @param $type
+     * @return bool|array|null
+     */
+    public function delete($endpointId, $hostId, $type): bool|array|null
     {
         $where     = '';
         $tableName = self::getTableName($type);
-        
-        if (is_null($tableName)) {
+
+        if (\is_null($tableName)) {
             return null;
         }
-        
+
         PrimaryKeyMappingLogger::getInstance()->delete($endpointId, $hostId, $type);
-        
+
         $endpoint = "'{$endpointId}'";
 
         if ($endpointId !== null && $hostId !== null) {
@@ -126,30 +169,42 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         } elseif ($hostId !== null) {
             $where = "WHERE host_id = {$hostId}";
         }
-        
+
         return Db::getInstance()->query(SqlHelper::primaryKeyMappingDelete($where, $tableName), false);
     }
-    
-    public function clear()
+
+    /**
+     * @return bool
+     * @throws \InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
+     */
+    public function clear(): bool
     {
         PrimaryKeyMappingLogger::getInstance()->writeLog('Clearing linking tables');
-        
+
         foreach (SqlHelper::primaryKeyMappingClear() as $query) {
             Db::getInstance()->query($query);
         }
-        
+
         return true;
     }
-    
-    public function gc()
+
+    /**
+     * @return bool
+     */
+    public function gc(): bool
     {
         return true;
     }
-    
-    public static function getTableName($type)
+
+    /**
+     * @param $type
+     * @return string|null
+     */
+    public static function getTableName($type): ?string
     {
         global $wpdb;
-        
+
         switch ($type) {
             case IdentityLinker::TYPE_CATEGORY:
                 return 'jtl_connector_link_category';
@@ -187,9 +242,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_specific_value';
             case IdentityLinker::TYPE_TAX_CLASS:
                 return 'jtl_connector_link_tax_class';
-
         }
-        
+
         return null;
     }
 }

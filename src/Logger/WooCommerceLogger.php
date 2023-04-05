@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -11,9 +12,19 @@ use jtl\Connector\Core\Utilities\Singleton;
 
 abstract class WooCommerceLogger extends Singleton
 {
-    public function writeLog($message)
+    /**
+     * @param $message
+     * @return bool
+     * @throws \InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
+     */
+    public function writeLog($message): bool
     {
-        return Logger::write(trim(preg_replace('/\s+/', ' ', $message)), $this->getLevel(), $this->getFilename());
+        return Logger::write(
+            \trim(\preg_replace('/\s+/', ' ', $message)),
+            $this->getLevel(),
+            $this->getFilename()
+        );
     }
 
     abstract protected function getLevel();
@@ -21,9 +32,9 @@ abstract class WooCommerceLogger extends Singleton
     abstract protected function getFilename();
 
     /**
-     * @return WooCommerceLogger
+     * @return Singleton
      */
-    public static function getInstance()
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }
