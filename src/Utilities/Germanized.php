@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -17,9 +18,9 @@ final class Germanized extends Singleton
     /**
      * @var array Index used in database mapped to translated salutation.
      */
-    private $salutations;
+    private array $salutations;
 
-    private static $units = [
+    private static array $units = [
         'l'  => 'L',
         'ml' => 'mL',
         'dl' => 'dL',
@@ -29,32 +30,43 @@ final class Germanized extends Singleton
     public function __construct()
     {
         $this->salutations = [
-            1 => __('Mr.', 'woocommerce-germanized'),// m
-            2 => __('Ms.', 'woocommerce-germanized') // f
+            1 => \__('Mr.', 'woocommerce-germanized'),// m
+            2 => \__('Ms.', 'woocommerce-germanized') // f
         ];
     }
 
-    public function isActive()
+    /**
+     * @return bool
+     */
+    public function isActive(): bool
     {
-        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        include_once(\ABSPATH . 'wp-admin/includes/plugin.php');
 
         return \is_plugin_active('woocommerce-germanized/woocommerce-germanized.php');
     }
 
-    public function parseIndexToSalutation($index)
+    /**
+     * @param $index
+     * @return mixed|string
+     */
+    public function parseIndexToSalutation($index): mixed
     {
         return isset($this->salutations[(int)$index]) ? $this->salutations[$index] : '';
     }
 
-    public function parseUnit($code)
+    /**
+     * @param $code
+     * @return mixed|string
+     */
+    public function parseUnit($code): mixed
     {
-        return in_array($code, array_keys(self::$units)) ? self::$units[$code] : $code;
+        return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
     }
 
     /**
-     * @return $this
+     * @return Singleton
      */
-    public static function getInstance()
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }
@@ -65,10 +77,10 @@ final class Germanized extends Singleton
      * @param $wcProduct
      * @return bool
      */
-    public function hasUnitProduct($wcProduct)
+    public function hasUnitProduct($wcProduct): bool
     {
-        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
-            return wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
+        if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
+            return \wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
         }
         return $wcProduct->gzd_product->has_product_units();
     }
@@ -81,8 +93,8 @@ final class Germanized extends Singleton
      */
     public function getUnit($wcProduct)
     {
-        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
-            return wc_gzd_get_gzd_product($wcProduct)->get_unit();
+        if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
+            return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
         }
         return $wcProduct->gzd_product->unit;
     }
@@ -95,8 +107,8 @@ final class Germanized extends Singleton
      */
     public function getUnitProduct($wcProduct)
     {
-        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
-            return wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
+        if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
+            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
         }
         return $wcProduct->gzd_product->unit_product;
     }
@@ -109,8 +121,8 @@ final class Germanized extends Singleton
      */
     public function getUnitBase($wcProduct)
     {
-        if($this->pluginVersionIsGreaterOrEqual('3.0.0')){
-            return wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
+        if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
+            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
         }
         return $wcProduct->gzd_product->unit_base;
     }
@@ -119,17 +131,18 @@ final class Germanized extends Singleton
      * @param $versionToCompare
      * @return bool
      */
-    public function pluginVersionIsGreaterOrEqual($versionToCompare)
+    public function pluginVersionIsGreaterOrEqual($versionToCompare): bool
     {
         $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED);
-        if(is_null($currentVersion)){
-            $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2);
+        if (\is_null($currentVersion)) {
+            $currentVersion = SupportedPlugins::getVersionOf(
+                SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2
+            );
         }
 
-        if(version_compare($currentVersion,$versionToCompare,'>=')){
+        if (\version_compare($currentVersion, $versionToCompare, '>=')) {
             return true;
         }
         return false;
     }
-
 }

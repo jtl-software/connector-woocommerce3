@@ -14,23 +14,23 @@ abstract class WordpressUtils extends Singleton
      * @param $postId
      * @param $metaKey
      * @param $metaValue
-     * @param $prevValue
+     * @param string $prevValue
      * @return bool|int
      */
-    public function updatePostMeta($postId, $metaKey, $metaValue, $prevValue = '')
+    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = ''): bool|int
     {
-        return update_post_meta($postId, $metaKey, $metaValue, $prevValue);
+        return \update_post_meta($postId, $metaKey, $metaValue, $prevValue);
     }
 
     /**
      * @param $postId
-     * @param $metaKey
-     * @param $single
+     * @param string $metaKey
+     * @param bool $single
      * @return mixed
      */
-    public function getPostMeta($postId, $metaKey = '', $single = false)
+    public function getPostMeta($postId, string $metaKey = '', bool $single = false): mixed
     {
-        return get_post_meta($postId, $metaKey, $single);
+        return \get_post_meta($postId, $metaKey, $single);
     }
 
     /**
@@ -39,8 +39,8 @@ abstract class WordpressUtils extends Singleton
      * @param string $metaValue
      * @return bool
      */
-    public function deletePostMeta($postId, $metaKey, $metaValue = '')
+    public function deletePostMeta($postId, $metaKey, string $metaValue = ''): bool
     {
-        return delete_post_meta($postId, $metaKey, $metaValue);
+        return \delete_post_meta($postId, $metaKey, $metaValue);
     }
 }

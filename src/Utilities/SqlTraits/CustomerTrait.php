@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -17,31 +18,45 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 trait CustomerTrait
 {
-    public static function customerNotLinked($limit)
+    /**
+     * @param $limit
+     * @return string
+     */
+    public static function customerNotLinked($limit): string
     {
-        if (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE, Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE]) === 'no_filter' ) {
+        if (
+            Config::get(
+                Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE,
+                Config::JTLWCC_CONFIG_DEFAULTS[Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE]
+            ) === 'no_filter'
+        ) {
             return self::customerNotLinkedNoCondition($limit);
         } else {
             return self::customerNotLinkedCondition($limit);
         }
     }
 
-    private static function customerNotLinkedNoCondition($limit)
+    /**
+     * @param $limit
+     * @return string
+     */
+    private static function customerNotLinkedNoCondition($limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
 
-        if (is_null($limit)) {
-            $select = 'COUNT(DISTINCT(um.user_id))';
+        if (\is_null($limit)) {
+            $select     = 'COUNT(DISTINCT(um.user_id))';
             $limitQuery = '';
         } else {
-            $select = 'DISTINCT(um.user_id)';
+            $select     = 'DISTINCT(um.user_id)';
             $limitQuery = 'LIMIT ' . $limit;
         }
 
         $pullGroups = ['customer'];
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && version_compare(
+        if (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+            && \version_compare(
                 (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET),
                 '1.0.3',
                 '>'
@@ -50,33 +65,38 @@ trait CustomerTrait
             $pullGroups = Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, []);
         }
 
-        return sprintf("
+        return \sprintf("
             SELECT %s
             FROM `%s` um
             LEFT JOIN %s l ON l.endpoint_id = um.user_id AND l.is_guest = 0
             WHERE l.host_id IS NULL
             AND um.meta_key = 'wp_capabilities'
             AND um.meta_value REGEXP '%s'
-            %s", $select, $wpdb->usermeta, $jclc, join("|", $pullGroups), $limitQuery);
+            %s", $select, $wpdb->usermeta, $jclc, \join("|", $pullGroups), $limitQuery);
     }
 
-    private static function customerNotLinkedCondition($limit)
+    /**
+     * @param $limit
+     * @return string
+     */
+    private static function customerNotLinkedCondition($limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
 
         $status = Util::getOrderStatusesToImport();
 
-        if (is_null($limit)) {
-            $select = 'COUNT(DISTINCT(pm.meta_value))';
+        if (\is_null($limit)) {
+            $select     = 'COUNT(DISTINCT(pm.meta_value))';
             $limitQuery = '';
         } else {
-            $select = 'DISTINCT(pm.meta_value)';
+            $select     = 'DISTINCT(pm.meta_value)';
             $limitQuery = 'LIMIT ' . $limit;
         }
 
 
-        return sprintf("
+        return \sprintf(
+            "
             SELECT %s
             FROM `%s` pm
             LEFT JOIN `%s` p ON p.ID = pm.post_id
@@ -86,27 +106,40 @@ trait CustomerTrait
             AND pm.meta_key = '_customer_user'
             AND pm.meta_value != 0 
             %s
-            %s", $select, $wpdb->postmeta, $wpdb->posts, $jclc, join("','", $status), self::getCustomerPullCondition(), $limitQuery);
+            %s",
+            $select,
+            $wpdb->postmeta,
+            $wpdb->posts,
+            $jclc,
+            \join("','", $status),
+            self::getCustomerPullCondition(),
+            $limitQuery
+        );
     }
 
-    public static function guestNotLinked($limit)
+    /**
+     * @param $limit
+     * @return string
+     */
+    public static function guestNotLinked($limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
 
         $guestPrefix = Id::GUEST_PREFIX . Id::SEPARATOR;
 
-        if (is_null($limit)) {
-            $select = 'COUNT(p.ID)';
+        if (\is_null($limit)) {
+            $select     = 'COUNT(p.ID)';
             $limitQuery = '';
         } else {
-            $select = "DISTINCT(CONCAT('{$guestPrefix}', p.ID)) as id";
+            $select     = "DISTINCT(CONCAT('{$guestPrefix}', p.ID)) as id";
             $limitQuery = 'LIMIT ' . $limit;
         }
 
         $status = Util::getOrderStatusesToImport();
 
-        return sprintf("
+        return \sprintf(
+            "
             SELECT %s
             FROM %s p
             LEFT JOIN %s pm
@@ -118,26 +151,42 @@ trait CustomerTrait
             AND pm.meta_key = '_customer_user'
             AND pm.meta_value = 0 
             %s
-            %s", $select, $wpdb->posts, $wpdb->postmeta, $jclc, $guestPrefix, join("','", $status), self::getCustomerPullCondition(), $limitQuery);
+            %s",
+            $select,
+            $wpdb->posts,
+            $wpdb->postmeta,
+            $jclc,
+            $guestPrefix,
+            \join("','", $status),
+            self::getCustomerPullCondition(),
+            $limitQuery
+        );
     }
 
-    private static function getCustomerPullCondition()
+    /**
+     * @return string
+     */
+    private static function getCustomerPullCondition(): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
 
-        DatabaseLogger::getInstance()->writeLog('Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE));
+        DatabaseLogger::getInstance()->writeLog(
+            'Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)
+        );
 
         switch (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)) {
             case 'last_imported_order':
-                $whereQuery = sprintf('AND p.id > (SELECT IF(max(endpoint_id),max(endpoint_id),0) from %s)', $jclo);
+                $whereQuery = \sprintf('AND p.id > (SELECT IF(max(endpoint_id),max(endpoint_id),0) from %s)', $jclo);
                 break;
             case 'fixed_date':
-                $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
-                $whereQuery = (!empty($since) && strtotime($since) !== false) ? sprintf('AND p.post_modified > \'%s\'', $since) : '';
+                $since      = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
+                $whereQuery = (!empty($since) && \strtotime($since) !== false)
+                    ? \sprintf('AND p.post_modified > \'%s\'', $since)
+                    : '';
                 break;
             case 'not_imported':
-                $whereQuery = sprintf('AND p.id NOT IN (SELECT endpoint_id from %s)', $jclo);
+                $whereQuery = \sprintf('AND p.id NOT IN (SELECT endpoint_id from %s)', $jclo);
                 break;
             case 'no_filter':
             default:

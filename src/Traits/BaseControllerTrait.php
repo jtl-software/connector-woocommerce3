@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -20,8 +21,9 @@ trait BaseControllerTrait
      *
      * @param \Exception $exc The caught exception.
      * @param Action $action  The action for which the error has to be set.
+     * @return void
      */
-    protected function handleException($exc, &$action)
+    protected function handleException(\Exception $exc, Action &$action): void
     {
         ControllerLogger::getInstance()->writeLog(ExceptionFormatter::format($exc));
 

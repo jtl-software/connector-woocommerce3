@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -8,12 +9,16 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+trait GlobalDataTrait
+{
+    /**
+     * @return string
+     */
+    public static function taxRatePull(): string
+    {
+        global $wpdb;
 
-trait GlobalDataTrait {
-	public static function taxRatePull() {
-		global $wpdb;
-		
-		return "SELECT tax_rate_id, tax_rate
+        return "SELECT tax_rate_id, tax_rate
 				FROM {$wpdb->prefix}woocommerce_tax_rates";
-	}
+    }
 }
