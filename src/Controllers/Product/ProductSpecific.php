@@ -84,7 +84,7 @@ class ProductSpecific extends BaseController
          * @var WC_Product_Attribute $wcProductAttribute
          */
         foreach ($curAttributes as $slug => $wcProductAttribute) {
-            if (!\preg_match('/^pa_/', $slug)) {
+            if (!\str_starts_with($slug, 'pa_')) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
                     'value'        => Util::getInstance()->findAttributeValue(
@@ -97,7 +97,7 @@ class ProductSpecific extends BaseController
                     'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             } elseif (
-                \preg_match('/^pa_/', $slug)
+                \str_starts_with($slug, 'pa_')
                 && \array_key_exists($wcProductAttribute->get_id(), $specificData)
             ) {
                 $cOldOptions = $wcProductAttribute->get_options();
@@ -136,7 +136,7 @@ class ProductSpecific extends BaseController
             if (isset($specific) && \count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
                     $term = \get_term_by('id', $valId, $slug);
-                    if ($term !== null && $term instanceof \WP_Term) {
+                    if ($term instanceof \WP_Term) {
                         $values[] = $term->slug;
                     }
                 }

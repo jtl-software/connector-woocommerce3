@@ -124,7 +124,7 @@ final class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (in_array($plugin['Name'], self::SUPPORTED_PLUGINS)) {
+            if (\in_array($plugin['Name'], self::SUPPORTED_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }
