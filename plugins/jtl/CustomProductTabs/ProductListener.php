@@ -57,10 +57,7 @@ class ProductListener
         foreach ($productAttributeI18ns as $productAttributeI18n) {
             if (Util::getInstance()->isWooCommerceLanguage($productAttributeI18n->getLanguageISO())) {
                 if (
-                    \strpos(
-                        $productAttributeI18n->getName(),
-                        self::PRODUCT_CUSTOM_TABS_ATTRIBUTE_NEEDLE
-                    ) !== false
+                    \str_contains($productAttributeI18n->getName(), self::PRODUCT_CUSTOM_TABS_ATTRIBUTE_NEEDLE)
                 ) {
                     list($needle, $title) = \explode(':', $productAttributeI18n->getName());
                     if (!empty($title)) {

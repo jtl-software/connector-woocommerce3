@@ -7,6 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
+use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
+use InvalidArgumentException;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Model\CustomerOrderAttr;
 use jtl\Connector\Model\CustomerOrderPaymentInfo;
@@ -45,7 +47,7 @@ class CustomerOrder extends BaseController
     /**
      * @param $limit
      * @return array<int|CustomerOrder>
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pullData($limit): array
     {
@@ -150,7 +152,7 @@ class CustomerOrder extends BaseController
      * @param \WC_Order $order
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
@@ -205,8 +207,8 @@ class CustomerOrder extends BaseController
     /**
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \InvalidArgumentException
+     * @throws EnvironmentIsBrokenException
+     * @throws InvalidArgumentException
      * @throws \TypeError
      */
     protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder): void
@@ -238,7 +240,7 @@ class CustomerOrder extends BaseController
      * @param CustomerOrderModel $customerOrder
      * @param array $dhlPreferredDeliveryOptions
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setPreferredDeliveryOptions(
         CustomerOrderModel &$customerOrder,
@@ -350,7 +352,7 @@ class CustomerOrder extends BaseController
     /**
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
     {

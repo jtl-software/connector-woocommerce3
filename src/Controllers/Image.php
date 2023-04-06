@@ -207,7 +207,7 @@ class Image extends BaseController
      *
      * @return array The filtered image data.
      */
-    private function addProductImagesForPost($attachmentIds, $postId): array
+    private function addProductImagesForPost(array $attachmentIds, int $postId): array
     {
         $attachmentIds = $this->filterAlreadyLinkedProducts($attachmentIds, $postId);
         return $this->fetchProductAttachments($attachmentIds, $postId);
@@ -479,19 +479,15 @@ class Image extends BaseController
     {
         $primaryKeyMapper = \Application()->getConnector()->getPrimaryKeyMapper();
 
-        switch ($image->getRelationType()) {
-            case ImageRelationType::TYPE_PRODUCT:
-                $newEndpoint = Id::linkProductImage($newEndpointId, $image->getForeignKey()->getEndpoint());
-                break;
-            case ImageRelationType::TYPE_MANUFACTURER:
-                $newEndpoint = Id::linkManufacturerImage($newEndpointId);
-                break;
-            case ImageRelationType::TYPE_CATEGORY:
-                $newEndpoint = Id::linkCategoryImage($newEndpointId);
-                break;
-            default:
-                throw new Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
-        }
+        $newEndpoint = match ($image->getRelationType()) {
+            ImageRelationType::TYPE_PRODUCT => Id::linkProductImage(
+                $newEndpointId,
+                $image->getForeignKey()->getEndpoint()
+            ),
+            ImageRelationType::TYPE_MANUFACTURER => Id::linkManufacturerImage($newEndpointId),
+            ImageRelationType::TYPE_CATEGORY => Id::linkCategoryImage($newEndpointId),
+            default => throw new Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType())),
+        };
 
         $primaryKeyMapper->delete(
             $image->getId()->getEndpoint(),
@@ -505,8 +501,8 @@ class Image extends BaseController
 
 
     /**
-     * @param $name
-     * @return false|string\
+     * @param string $name
+     * @return string
      */
     private function sanitizeImageName(string $name): string
     {

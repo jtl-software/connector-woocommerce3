@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Logger;
 
+use InvalidArgumentException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Singleton;
 
@@ -15,7 +16,7 @@ abstract class WooCommerceLogger extends Singleton
     /**
      * @param $message
      * @return bool
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function writeLog($message): bool

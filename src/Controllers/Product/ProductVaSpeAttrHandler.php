@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
@@ -21,6 +22,7 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 use WC_Product_Attribute;
 
 if (!\defined('WC_DELIMITER')) {
@@ -66,12 +68,12 @@ class ProductVaSpeAttrHandler extends BaseController
     private array $values = [];
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
      * @return array[]
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullData(\WC_Product $product, ProductModel $model): array
+    public function pullData(WC_Product $product, ProductModel $model): array
     {
         $globCurrentAttr          = $product->get_attributes();
         $isProductVariation       = $product instanceof \WC_Product_Variation;
@@ -107,9 +109,6 @@ class ProductVaSpeAttrHandler extends BaseController
                             $attribute,
                             $slug
                         );
-                    if (\is_null($tmp)) {
-                        continue;
-                    }
                     foreach ($tmp as $productSpecific) {
                         $this->productData['productSpecifics'][] = $productSpecific;
                     }
@@ -157,11 +156,11 @@ class ProductVaSpeAttrHandler extends BaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \Exception
      */
-    public function pushDataNew(ProductModel $product, \WC_Product $wcProduct): void
+    public function pushDataNew(ProductModel $product, WC_Product $wcProduct): void
     {
         if ($wcProduct === false) {
             return;
@@ -379,10 +378,10 @@ class ProductVaSpeAttrHandler extends BaseController
 
     // <editor-fold defaultstate="collapsed" desc="GenerateData Methods">
     /**
-     * @param $pushedSpecifics
+     * @param array $pushedSpecifics
      * @return array
      */
-    private function generateSpecificData($pushedSpecifics = []): array
+    private function generateSpecificData(array $pushedSpecifics = []): array
     {
         $specificData = [];
         foreach ($pushedSpecifics as $specific) {
@@ -465,12 +464,12 @@ class ProductVaSpeAttrHandler extends BaseController
 
     // <editor-fold defaultstate="collapsed" desc="FuncAttr Methods">
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function handleCustomPropertyAttributes(\WC_Product $product, string $languageIso = ''): void
+    private function handleCustomPropertyAttributes(WC_Product $product, string $languageIso = ''): void
     {
         if (!$product->is_purchasable()) {
             $isPurchasable = false;
@@ -480,7 +479,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
                 foreach ($product->get_children() as $childId) {
                     $child = \wc_get_product($childId);
-                    if ($child instanceof \WC_Product) {
+                    if ($child instanceof WC_Product) {
                         $isPurchasable &= $child->is_purchasable();
                     }
                 }
@@ -502,13 +501,13 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function setProductFunctionAttributes(
-        \WC_Product $product,
+        WC_Product $product,
         string $languageIso = ''
     ): void {
         $functionAttributes = [
@@ -596,17 +595,17 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getDeliveryTimeFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getDeliveryTimeFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $i18n = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::DELIVERY_TIME_ATTR))
             ->setName(self::DELIVERY_TIME_ATTR)
-            ->setValue((string)0)
+            ->setValue("0")
             ->setLanguageISO($languageIso);
 
         $attribute = (new ProductAttrModel())
@@ -619,12 +618,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getDownloadableFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getDownloadableFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $value = $product->is_downloadable() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = (new ProductAttrI18nModel())
@@ -644,7 +643,7 @@ class ProductVaSpeAttrHandler extends BaseController
      * @param \WC_GZD_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getIsServiceFunctionAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -664,12 +663,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getOnlyOneFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getOnlyOneFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $value = $product->is_sold_individually() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = (new ProductAttrI18nModel())
@@ -678,22 +677,20 @@ class ProductVaSpeAttrHandler extends BaseController
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
 
-        $attribute = (new ProductAttrModel())
+        return (new ProductAttrModel())
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-
-        return $attribute;
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getDigitalFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getDigitalFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $digital = \get_post_meta($product->get_id(), '_digital');
 
@@ -709,23 +706,21 @@ class ProductVaSpeAttrHandler extends BaseController
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
 
-        $attribute = (new ProductAttrModel())
+        return (new ProductAttrModel())
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-
-        return $attribute;
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getSuppressShippingNoticeFunctionAttribute(
-        \WC_Product $product,
+        WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
         $value = \get_post_meta($product->get_id(), '_suppress_shipping_notice', true);
@@ -742,23 +737,21 @@ class ProductVaSpeAttrHandler extends BaseController
             ->setValue((string)$value)
             ->setLanguageISO($languageIso);
 
-        $attribute = (new ProductAttrModel())
+        return (new ProductAttrModel())
             ->setId($i18n->getProductAttrId())
             ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
-
-        return $attribute;
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getAltDeliveryNoteFunctionAttribute(
-        \WC_Product $product,
+        WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
         $info = \get_post_meta($product->get_id(), '_alternative_shipping_information', true);
@@ -777,12 +770,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getPurchaseNoteFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getPurchaseNoteFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $info = \get_post_meta($product->get_id(), '_purchase_note', true);
 
@@ -800,14 +793,16 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getPayableFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getPayableFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
-        $value = \strcmp(\get_post_status($product->get_id()), 'private') !== 0 ? self::VALUE_TRUE : self::VALUE_FALSE;
+        $value = \strcmp(\get_post_status($product->get_id()), 'private') !== 0
+            ? self::VALUE_TRUE
+            : self::VALUE_FALSE;
 
         $i18n = (new ProductAttrI18nModel())
             ->setProductAttrId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
@@ -823,12 +818,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getVisibilityFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getVisibilityFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $terms              = \get_the_terms($product->get_id(), 'product_visibility');
         $termNames          = \is_array($terms) ? \wp_list_pluck($terms, 'name') : [];
@@ -858,12 +853,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getVirtualFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getVirtualFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $value = $product->is_virtual() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = (new ProductAttrI18nModel())
@@ -880,12 +875,12 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function getProductTypeFunctionAttribute(\WC_Product $product, string $languageIso = ''): ProductAttrModel
+    private function getProductTypeFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $value = $product->get_type();
 
@@ -903,13 +898,13 @@ class ProductVaSpeAttrHandler extends BaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getFacebookSyncStatusFunctionAttribute(
-        \WC_Product $product,
+        WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
         $value  = self::VALUE_FALSE;
@@ -948,8 +943,6 @@ class ProductVaSpeAttrHandler extends BaseController
         } else {
             $result = isset($val[0]['endpoint_id'])
             && isset($val[0]['host_id'])
-            && !\is_null($val[0]['endpoint_id'])
-            && !\is_null($val[0]['host_id'])
                 ? (new Identity())->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
                 : (new Identity())->setEndpoint($val[0]['term_id']);
         }
@@ -961,7 +954,7 @@ class ProductVaSpeAttrHandler extends BaseController
      * @param \WC_GZD_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getMinimumAgeAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -998,7 +991,7 @@ class ProductVaSpeAttrHandler extends BaseController
         foreach ($attributes as $slug => $attr) {
             if (\array_key_exists($slug, $newProductAttributes)) {
                 if ($attr['name'] === $slug && $attr['name'] === $newProductAttributes[$slug]['name']) {
-                    $isVariation = $attr['is_variation'] || $newProductAttributes[$slug]['is_variation'] ? true : false;
+                    $isVariation = $attr['is_variation'] || $newProductAttributes[$slug]['is_variation'];
                     $attrValues  = \explode(' ' . \WC_DELIMITER . ' ', $attr['value']);
                     $oldValues   = \explode(' ' . \WC_DELIMITER . ' ', $newProductAttributes[$slug]['value']);
 

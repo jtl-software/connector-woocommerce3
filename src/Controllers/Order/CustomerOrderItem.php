@@ -110,19 +110,11 @@ class CustomerOrderItem extends BaseController
                 $orderItem->setProductId(new Identity($product->get_id()));
 
                 if ($product instanceof \WC_Product_Variation) {
-                    switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT)) {
-                        case 'space_parent':
-                        case 'space':
-                            $format = '%s %s';
-                            break;
-                        case 'brackets_parent':
-                        case 'brackets':
-                            $format = '%s (%s)';
-                            break;
-                        default:
-                            $format = '%s';
-                            break;
-                    }
+                    $format = match (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT)) {
+                        'space_parent', 'space' => '%s %s',
+                        'brackets_parent', 'brackets' => '%s (%s)',
+                        default => '%s',
+                    };
 
                     $orderItem->setName(\sprintf(
                         $format,
@@ -279,7 +271,7 @@ class CustomerOrderItem extends BaseController
             $totalTax = (float)$shippingItem->get_total_tax();
             $costs    = (float)$order->get_item_total($shippingItem, false, true);
 
-            if (isset($taxes['total']) && !empty($taxes['total']) && \count($taxes['total']) > 1) {
+            if (!empty($taxes['total']) && \count($taxes['total']) > 1) {
                 foreach ($taxes['total'] as $taxRateId => $taxAmount) {
                     /** @var CustomerOrderItemModel $customerOrderItem */
                     $customerOrderItem = $getItem($shippingItem, $order, $taxRateId);
@@ -357,10 +349,10 @@ class CustomerOrderItem extends BaseController
     {
         $orderItemsVatRates = [];
         $highestVatRate     = 0;
-        /** @var \jtl\Connector\Model\CustomerOrderItem $orderItem */
+        /** @var CustomerOrderItemModel $orderItem */
         foreach ($customerOrderItems as $orderItem) {
             $orderItemsVatRates[] = $orderItem->getVat();
-            $highestVatRate       = $orderItem->getVat() > $highestVatRate ? $orderItem->getVat() : $highestVatRate;
+            $highestVatRate       = max($orderItem->getVat(), $highestVatRate);
         }
 
         /**

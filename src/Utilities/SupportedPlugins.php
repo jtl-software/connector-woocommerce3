@@ -124,7 +124,7 @@ final class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (\array_search($plugin['Name'], self::SUPPORTED_PLUGINS) !== false) {
+            if (in_array($plugin['Name'], self::SUPPORTED_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }
@@ -152,7 +152,7 @@ final class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (\array_search($plugin['Name'], self::INCOMPATIBLE_PLUGINS) !== false) {
+            if (in_array($plugin['Name'], self::INCOMPATIBLE_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }

@@ -86,7 +86,7 @@ class DeliveryNote extends BaseController
      * @param array $trackingProviders
      * @return string|null
      */
-    private function findTrackingProviderSlug($shippingMethodName, $trackingProviders): ?string
+    private function findTrackingProviderSlug(string $shippingMethodName, array $trackingProviders): ?string
     {
         $searchResultSlug         = null;
         $searchResultLength       = 0;

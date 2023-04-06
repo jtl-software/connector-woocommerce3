@@ -151,7 +151,7 @@ class Config
      */
     public static function has(string $name): bool
     {
-        return self::get($name, false) ? true : false;
+        return (bool)self::get($name, false);
     }
 
     /**

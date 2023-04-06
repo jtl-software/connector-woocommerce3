@@ -10,7 +10,6 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -623,7 +622,7 @@ final class JtlConnectorAdmin
         {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
             // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
-            if (!preg_match('/^jtl-connector_page_woo-/', $hook)) {
+            if (!str_starts_with($hook, 'jtl-connector_page_woo-')) {
                 return;
             }
 
@@ -701,7 +700,7 @@ final class JtlConnectorAdmin
 
     public static function jtlconnector_plugin_row_meta($links, $file)//phpcs:ignore
     {
-        if (strpos($file, 'woo-jtl-connector.php') !== false) {
+        if (str_contains($file, 'woo-jtl-connector.php')) {
             $url       = esc_url('https://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
@@ -728,29 +727,18 @@ final class JtlConnectorAdmin
             return;
         }
 
-        switch ($page) {
-            case 'information_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields());
-                break;
-            case 'advanced_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getAdvancedFields());
-                break;
-            case 'delivery_time_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeliveryTimeFields());
-                break;
-            case 'customer_order_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields());
-                break;
-            case 'customers_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomersFields());
-                break;
-            case 'developer_settings_page':
-                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeveloperSettingsFields());
-                break;
-            default:
-                $settings = null;
-                break;
-        }
+        $settings = match ($page) {
+            'information_page' => apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields()),
+            'advanced_page' => apply_filters('woocommerce_settings_jtlconnector', self::getAdvancedFields()),
+            'delivery_time_page' => apply_filters('woocommerce_settings_jtlconnector', self::getDeliveryTimeFields()),
+            'customer_order_page' => apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields()),
+            'customers_page' => apply_filters('woocommerce_settings_jtlconnector', self::getCustomersFields()),
+            'developer_settings_page' => apply_filters(
+                'woocommerce_settings_jtlconnector',
+                self::getDeveloperSettingsFields()
+            ),
+            default => null,
+        };
 
         if (is_null($settings)) {
             return;
@@ -2815,7 +2803,10 @@ final class JtlConnectorAdmin
         ));
     }
 
-    function phar_extension() //phpcs:ignore
+    /**
+     * @return void
+     */
+    function phar_extension(): void //phpcs:ignore
     {
         self::jtlwcc_show_wordpress_error(__('PHP extension "phar" could not be found.', JTLWCC_TEXT_DOMAIN));
     }

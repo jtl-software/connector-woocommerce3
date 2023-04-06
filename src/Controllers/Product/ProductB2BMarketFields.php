@@ -34,7 +34,7 @@ class ProductB2BMarketFields extends BaseController
     private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct): void
     {
         $rrp = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
-        if ($rrp !== '' && !\is_null($rrp) && !empty($rrp)) {
+        if ($rrp !== '' && !empty($rrp)) {
             $product->setRecommendedRetailPrice((float)$rrp);
         }
     }

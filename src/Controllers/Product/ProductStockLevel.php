@@ -7,20 +7,22 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductStockLevel as StockLevelModel;
 use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 class ProductStockLevel extends BaseController
 {
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @return StockLevelModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullData(\WC_Product $product): StockLevelModel
+    public function pullData(WC_Product $product): StockLevelModel
     {
         $stockLevel = $product->get_stock_quantity();
 

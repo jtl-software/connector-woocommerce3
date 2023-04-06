@@ -108,6 +108,7 @@ class Customer extends BaseController
      * @param $limit
      * @return array
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     private function pullGuests($limit): array
     {

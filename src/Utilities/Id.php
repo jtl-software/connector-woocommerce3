@@ -132,6 +132,6 @@ final class Id
      */
     public static function unlinkCustomer($endpointId): array
     {
-        return [$endpointId, (int)(\strpos($endpointId, self::SEPARATOR) !== false)];
+        return [$endpointId, (int)(str_contains($endpointId, self::SEPARATOR))];
     }
 }

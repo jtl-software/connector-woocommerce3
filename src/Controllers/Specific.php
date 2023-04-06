@@ -15,7 +15,9 @@ use jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product_Attribute;
 use WP_Error;
+use WP_Post;
 use WP_Query;
 
 class Specific extends BaseController
@@ -260,10 +262,10 @@ class Specific extends BaseController
 
     /**
      * @param SpecificModel $specific
-     * @return \WC_Product_Attribute|SpecificModel
+     * @return WC_Product_Attribute|SpecificModel
      * @throws \Exception
      */
-    protected function deleteData(SpecificModel $specific): \WC_Product_Attribute|SpecificModel
+    protected function deleteData(SpecificModel $specific): WC_Product_Attribute|SpecificModel
     {
         $specificId = (int)$specific->getId()->getEndpoint();
 
@@ -272,7 +274,7 @@ class Specific extends BaseController
 
             $this->database->query(SqlHelper::removeSpecificLinking($specificId));
             $taxonomy = \wc_attribute_taxonomy_name_by_id($specificId);
-            /** @var \WC_Product_Attribute $specific */
+            /** @var WC_Product_Attribute $specific */
             //$specific = wc_get_attribute($specificId);
 
             $specificValueData = $this->database->query(
@@ -303,12 +305,12 @@ class Specific extends BaseController
 
             $posts = $products->get_posts();
 
-            /** @var \WP_Post $post */
+            /** @var WP_Post $post */
             foreach ($posts as $post) {
                 $wcProduct        = \wc_get_product($post->ID);
                 $productSpecifics = $wcProduct->get_attributes();
 
-                /** @var \WC_Product_Attribute $productSpecific */
+                /** @var WC_Product_Attribute $productSpecific */
                 foreach ($productSpecifics as $productSpecific) {
                     if ($productSpecific->get_variation()) {
                         $isVariation = true;

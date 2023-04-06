@@ -70,9 +70,8 @@ class Payment extends BaseController
     protected function getTransactionId(string $paymentModuleCode, \WC_Order $order): string
     {
         $transactionId = $order->get_transaction_id();
-        switch ($paymentModuleCode) {
-            case PaymentTypes::TYPE_AMAPAY:
-                $transactionId = $order->get_meta('amazon_charge_id');
+        if ($paymentModuleCode == PaymentTypes::TYPE_AMAPAY) {
+            $transactionId = $order->get_meta('amazon_charge_id');
         }
 
         return (string)$transactionId;

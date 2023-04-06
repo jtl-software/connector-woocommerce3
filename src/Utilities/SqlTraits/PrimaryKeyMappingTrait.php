@@ -188,7 +188,7 @@ trait PrimaryKeyMappingTrait
         $arr    = [];
 
         foreach ($tables as $table) {
-            \array_push($arr, \sprintf('DELETE FROM %s', $wpdb->prefix . $table));
+            $arr[] = \sprintf('DELETE FROM %s', $wpdb->prefix . $table);
         }
 
         return $arr;

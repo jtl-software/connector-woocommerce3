@@ -18,7 +18,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Category extends BaseController
 {
-    private static $idCache = [];
+    private static array $idCache = [];
 
     /**
      * @param $limit

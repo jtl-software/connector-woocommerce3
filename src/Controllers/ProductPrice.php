@@ -7,6 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Exception;
+use InvalidArgumentException;
 use jtl\Connector\Model\ProductPrice as JtlProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\Product;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -16,8 +18,8 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
     /**
      * @param JtlProductPrice $productPrice
      * @return JtlProductPrice
-     * @throws \InvalidArgumentException
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function pushData(JtlProductPrice $productPrice): JtlProductPrice
     {
@@ -53,18 +55,11 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
      */
     protected function getJtlProductType(\WC_Product $wcProduct): string
     {
-        switch ($wcProduct->get_type()) {
-            case 'variable':
-                $type = Product::TYPE_PARENT;
-                break;
-            case 'variation':
-                $type = Product::TYPE_CHILD;
-                break;
-            case 'simple':
-            default:
-                $type = Product::TYPE_SINGLE;
-                break;
-        }
+        $type = match ($wcProduct->get_type()) {
+            'variable' => Product::TYPE_PARENT,
+            'variation' => Product::TYPE_CHILD,
+            default => Product::TYPE_SINGLE,
+        };
 
         return $type;
     }

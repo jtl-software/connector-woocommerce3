@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
+use InvalidArgumentException;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Singleton;
@@ -35,7 +36,7 @@ final class Util extends WordpressUtils
     private array $namespaceMapping;
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function __construct()
     {
@@ -147,7 +148,7 @@ final class Util extends WordpressUtils
      *
      * @return string
      */
-    public function getStockStatus($stockLevel, $backorders, $managesStock = false): string
+    public function getStockStatus($stockLevel, $backorders, bool $managesStock = false): string
     {
         $stockStatus = $stockLevel > 0;
 
@@ -385,28 +386,17 @@ final class Util extends WordpressUtils
      */
     public function mapPaymentModuleCode(\WC_Order $order): string
     {
-        switch ($order->get_payment_method()) {
-            case 'paypal_plus':
-                return PaymentTypes::TYPE_PAYPAL_PLUS;
-            case 'express_checkout':
-                return PaymentTypes::TYPE_PAYPAL_EXPRESS;
-            case 'paypal':
-                return PaymentTypes::TYPE_PAYPAL;
-            case 'cod':
-                return PaymentTypes::TYPE_CASH_ON_DELIVERY;
-            case 'bacs':
-                return PaymentTypes::TYPE_BANK_TRANSFER;
-            case 'german_market_sepa_direct_debit':
-            case 'direct-debit':
-                return PaymentTypes::TYPE_DIRECT_DEBIT;
-            case 'invoice':
-            case 'german_market_purchase_on_account':
-                return PaymentTypes::TYPE_INVOICE;
-            case 'amazon_payments_advanced':
-                return PaymentTypes::TYPE_AMAPAY;
-            default:
-                return $order->get_payment_method_title();
-        }
+        return match ($order->get_payment_method()) {
+            'paypal_plus' => PaymentTypes::TYPE_PAYPAL_PLUS,
+            'express_checkout' => PaymentTypes::TYPE_PAYPAL_EXPRESS,
+            'paypal' => PaymentTypes::TYPE_PAYPAL,
+            'cod' => PaymentTypes::TYPE_CASH_ON_DELIVERY,
+            'bacs' => PaymentTypes::TYPE_BANK_TRANSFER,
+            'german_market_sepa_direct_debit', 'direct-debit' => PaymentTypes::TYPE_DIRECT_DEBIT,
+            'invoice', 'german_market_purchase_on_account' => PaymentTypes::TYPE_INVOICE,
+            'amazon_payments_advanced' => PaymentTypes::TYPE_AMAPAY,
+            default => $order->get_payment_method_title(),
+        };
     }
 
     /**
@@ -524,9 +514,7 @@ final class Util extends WordpressUtils
     public static function canPullOrderStatus(string $stateName): bool
     {
         $orderImportStates = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT);
-        return \is_array($orderImportStates)
-            ? \in_array(\sprintf('wc-%s', $stateName), $orderImportStates)
-            : false;
+        return \is_array($orderImportStates) && \in_array(\sprintf('wc-%s', $stateName), $orderImportStates);
     }
 
     /**
@@ -557,7 +545,7 @@ final class Util extends WordpressUtils
     {
         $explode   = \explode('.', (string)$number);
         $precision = isset($explode[1]) ? \strlen($explode[1]) : 0;
-        return $precision < 2 ? 2 : $precision;
+        return max($precision, 2);
     }
 
 
@@ -606,9 +594,9 @@ final class Util extends WordpressUtils
     }
 
     /**
-     * @param CategoryI18n|ManufacturerI18n $i18n
+     * @param DataModel $i18n
      * @param array $rankMathSeoData
-     * @throws \InvalidArgumentException
+     * @return void
      */
     public static function setI18nRankMathSeo(DataModel $i18n, array $rankMathSeoData): void
     {

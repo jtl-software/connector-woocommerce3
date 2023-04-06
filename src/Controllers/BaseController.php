@@ -176,14 +176,14 @@ abstract class BaseController extends Controller
      * @param $objectId
      * @param $terms
      * @param $taxonomy
-     * @param $append
+     * @param bool $append
      * @return array|bool|int|int[]|string|string[]|\WP_Error|null
      */
     protected function wpSetObjectTerms(
         $objectId,
         $terms,
         $taxonomy,
-        $append = false
+        bool $append = false
     ): array|\WP_Error|int|bool|string|null {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }

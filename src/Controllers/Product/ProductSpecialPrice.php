@@ -101,7 +101,7 @@ class ProductSpecialPrice extends BaseController
 
                     if (!empty($specialPrice)) {
                         $specialPrice = $this->getPriceNet($specialPrice, $product);
-                    } elseif (empty($specialPrice) && $defaultSpecialPrice) {
+                    } elseif ($defaultSpecialPrice) {
                         $specialPrice = $this->getPriceNet($salePrice, $product);
                     } else {
                         continue;
@@ -255,7 +255,7 @@ class ProductSpecialPrice extends BaseController
                             \get_post_meta($productId, $salePriceDatesFromKey, true)
                         );
 
-                        if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom && isset($priceMetaKey)) {
+                        if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
                             \update_post_meta(
                                 $productId,
                                 $priceMetaKey,
@@ -554,7 +554,7 @@ class ProductSpecialPrice extends BaseController
             foreach ($customerGroups as $groupKey => $customerGroup) {
                 $customerGroupId = $customerGroup->getId()->getEndpoint();
                 $post            = \get_post($customerGroupId);
-                if (!\is_null($post) && $post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
+                if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
                     //$post = \get_post($customerGroupId);
                     $priceMetaKey        = \sprintf(
                         'bm_%s_price',

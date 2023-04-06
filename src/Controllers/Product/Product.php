@@ -8,6 +8,8 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use DateTime;
+use Exception;
+use InvalidArgumentException;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductI18n as ProductI18nModel;
@@ -21,6 +23,9 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use PhpUnitsOfMeasure\Exception\NonNumericValue;
+use PhpUnitsOfMeasure\Exception\NonStringUnitName;
+use WC_Data_Exception;
 
 class Product extends BaseController
 {
@@ -36,7 +41,7 @@ class Product extends BaseController
     /**
      * @param $limit
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pullData($limit): array
     {
@@ -165,7 +170,7 @@ class Product extends BaseController
 
             if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
                 $tmpManId = ProductManufacturer::getInstance()->pullData($productModel);
-                if (!\is_null($tmpManId) && $tmpManId instanceof Identity) {
+                if ($tmpManId instanceof Identity) {
                     $productModel->setManufacturerId($tmpManId);
                 }
             }
@@ -179,11 +184,11 @@ class Product extends BaseController
     /**
      * @param ProductModel $product
      * @return ProductModel
-     * @throws \InvalidArgumentException
-     * @throws \PhpUnitsOfMeasure\Exception\NonNumericValue
-     * @throws \PhpUnitsOfMeasure\Exception\NonStringUnitName
-     * @throws \WC_Data_Exception
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws NonNumericValue
+     * @throws NonStringUnitName
+     * @throws WC_Data_Exception
+     * @throws Exception
      */
     protected function pushData(ProductModel $product): ProductModel
     {
@@ -335,8 +340,9 @@ class Product extends BaseController
      * @param ProductModel $product
      * @param $meta
      * @return void
-     * @throws \InvalidArgumentException
-     * @throws \WC_Data_Exception
+     * @throws InvalidArgumentException
+     * @throws WC_Data_Exception
+     * @throws Exception
      */
     protected function onProductInserted(ProductModel &$product, &$meta): void
     {
@@ -439,7 +445,7 @@ class Product extends BaseController
                 }
             }
 
-            if (!\is_null($removeTerm) && \is_int($removeTerm)) {
+            if (\is_int($removeTerm)) {
                 \wp_remove_object_terms($wcProduct->get_id(), $removeTerm, 'product_type');
             }
 
@@ -455,8 +461,8 @@ class Product extends BaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      * @return void
-     * @throws \WC_Data_Exception
-     * @throws \Exception
+     * @throws WC_Data_Exception
+     * @throws Exception
      */
     private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct): void
     {
@@ -559,7 +565,7 @@ class Product extends BaseController
      * @param \WC_Product $wcProduct
      * @param string $productType
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct, string $productType): void
     {
@@ -576,7 +582,7 @@ class Product extends BaseController
      * @param \WC_Product $wcProduct
      * @param $meta
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta): void
     {
@@ -597,7 +603,7 @@ class Product extends BaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     private function updateProduct(ProductModel $product): void
     {
@@ -620,20 +626,11 @@ class Product extends BaseController
      */
     protected function getWcProductType(ProductModel $product): string
     {
-        switch ($this->getType($product)) {
-            case self::TYPE_PARENT:
-                $type = 'variable';
-                break;
-            case self::TYPE_CHILD:
-                $type = 'product_variation';
-                break;
-            case self::TYPE_SINGLE:
-            default:
-                $type = 'simple';
-                break;
-        }
-
-        return $type;
+        return match ($this->getType($product)) {
+            self::TYPE_PARENT => 'variable',
+            self::TYPE_CHILD => 'product_variation',
+            default => 'simple',
+        };
     }
 
     /**
@@ -655,7 +652,7 @@ class Product extends BaseController
      * @param DateTime $creationDate
      * @param bool $gmt
      * @return string|null
-     * @throws \Exception
+     * @throws Exception
      */
     private function getCreationDate(DateTime $creationDate, bool $gmt = false): ?string
     {

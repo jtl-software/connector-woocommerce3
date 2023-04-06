@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Mapper;
 
+use InvalidArgumentException;
 use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Linker\IdentityLinker;
 use jtl\Connector\Mapper\IPrimaryKeyMapper;
@@ -175,7 +176,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 
     /**
      * @return bool
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function clear(): bool
@@ -205,45 +206,22 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     {
         global $wpdb;
 
-        switch ($type) {
-            case IdentityLinker::TYPE_CATEGORY:
-                return 'jtl_connector_link_category';
-            case IdentityLinker::TYPE_CROSSSELLING:
-                return 'jtl_connector_link_crossselling';
-            case IdentityLinker::TYPE_CROSSSELLING_GROUP:
-                return 'jtl_connector_link_crossselling_group';
-           /* case IdentityLinker::TYPE_CURRENCY:
-                return 'jtl_connector_link_currency';*/
-            case IdentityLinker::TYPE_CUSTOMER:
-                return 'jtl_connector_link_customer';
-            case IdentityLinker::TYPE_CUSTOMER_GROUP:
-                return 'jtl_connector_link_customer_group';
-            case IdentityLinker::TYPE_IMAGE:
-                return 'jtl_connector_link_image';
-            /*case IdentityLinker::TYPE_LANGUAGE:
-                return 'jtl_connector_link_language';*/
-            case IdentityLinker::TYPE_MANUFACTURER:
-                return 'jtl_connector_link_manufacturer';
-        /*    case IdentityLinker::TYPE_MEASUREMENT_UNIT:
-                return 'jtl_connector_link_measurement_unit';*/
-            case IdentityLinker::TYPE_CUSTOMER_ORDER:
-                return 'jtl_connector_link_order';
-            case IdentityLinker::TYPE_PAYMENT:
-                return 'jtl_connector_link_payment';
-            case IdentityLinker::TYPE_PRODUCT:
-                return 'jtl_connector_link_product';
-            case IdentityLinker::TYPE_SHIPPING_CLASS:
-                return 'jtl_connector_link_shipping_class';
-        /*    case IdentityLinker::TYPE_SHIPPING_METHOD:
-                return 'jtl_connector_link_shipping_method';*/
-            case IdentityLinker::TYPE_SPECIFIC:
-                return 'jtl_connector_link_specific';
-            case IdentityLinker::TYPE_SPECIFIC_VALUE:
-                return 'jtl_connector_link_specific_value';
-            case IdentityLinker::TYPE_TAX_CLASS:
-                return 'jtl_connector_link_tax_class';
-        }
-
-        return null;
+        return match ($type) {
+            IdentityLinker::TYPE_CATEGORY => 'jtl_connector_link_category',
+            IdentityLinker::TYPE_CROSSSELLING => 'jtl_connector_link_crossselling',
+            IdentityLinker::TYPE_CROSSSELLING_GROUP => 'jtl_connector_link_crossselling_group',
+            IdentityLinker::TYPE_CUSTOMER => 'jtl_connector_link_customer',
+            IdentityLinker::TYPE_CUSTOMER_GROUP => 'jtl_connector_link_customer_group',
+            IdentityLinker::TYPE_IMAGE => 'jtl_connector_link_image',
+            IdentityLinker::TYPE_MANUFACTURER => 'jtl_connector_link_manufacturer',
+            IdentityLinker::TYPE_CUSTOMER_ORDER => 'jtl_connector_link_order',
+            IdentityLinker::TYPE_PAYMENT => 'jtl_connector_link_payment',
+            IdentityLinker::TYPE_PRODUCT => 'jtl_connector_link_product',
+            IdentityLinker::TYPE_SHIPPING_CLASS => 'jtl_connector_link_shipping_class',
+            IdentityLinker::TYPE_SPECIFIC => 'jtl_connector_link_specific',
+            IdentityLinker::TYPE_SPECIFIC_VALUE => 'jtl_connector_link_specific_value',
+            IdentityLinker::TYPE_TAX_CLASS => 'jtl_connector_link_tax_class',
+            default => null,
+        };
     }
 }

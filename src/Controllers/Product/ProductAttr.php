@@ -193,7 +193,11 @@ class ProductAttr extends BaseController
                     if (($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR) && Util::isTrue($i18n->getValue())) {
                         $this->updatePostMeta($productId, '_visibility', 'catalog');
 
-                        $this->wpSetObjectTerms($productId, ['exclude-from-search'], 'product_visibility', true);
+                        $this->wpSetObjectTerms(
+                            $productId, ['exclude-from-search'],
+                            'product_visibility',
+
+                        );
                         $nosearch = true;
                     }
 
@@ -246,7 +250,11 @@ class ProductAttr extends BaseController
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO) && !$fbStatusCode) {
-            $this->addOrUpdateMetaField($productId, \substr(ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR, 3), '');
+            $this->addOrUpdateMetaField(
+                $productId,
+                \substr(ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR, 3),
+                ''
+            );
         }
 
         if (!$payable) {

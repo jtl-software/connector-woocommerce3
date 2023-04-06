@@ -75,9 +75,7 @@ class CustomerGroup
 
                     $customerGroup = (new CustomerGroupModel())
                         ->setApplyNetPrice(
-                            isset($meta['bm_vat_type'])
-                            && isset($meta['bm_vat_type'][0])
-                            && $meta['bm_vat_type'][0] === 'off'
+                            isset($meta['bm_vat_type'][0]) && $meta['bm_vat_type'][0] === 'off'
                         )
                         ->setId(new Identity($group['ID']))
                         ->setIsDefault($isDefaultGroup);

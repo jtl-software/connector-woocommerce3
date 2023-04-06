@@ -6,6 +6,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     use Jtl\UnitTest\TestCase;
     use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
     use PHPUnit\Framework\ExpectationFailedException;
+    use PHPUnit\Framework\MockObject\RuntimeException;
 
     class ProductAttrTest extends TestCase
     {
@@ -63,6 +64,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @param array $expectedVisibilityArray
          * @return void
          * @throws \ReflectionException
+         * @throws RuntimeException
          */
         public function testUpdateProductVisibility(string $visibilityType, array $expectedVisibilityArray): void
         {

@@ -18,6 +18,7 @@ use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product_Attribute;
 use WP_Error;
 
 class ProductVariation extends BaseController
@@ -25,14 +26,14 @@ class ProductVariation extends BaseController
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
      * @param ProductModel $model
-     * @param \WC_Product_Attribute $attribute
+     * @param WC_Product_Attribute $attribute
      * @param string $languageIso
      * @return ProductVariationModel|null
      * @throws \InvalidArgumentException
      */
     public function pullDataParent(
         ProductModel $model,
-        \WC_Product_Attribute $attribute,
+        WC_Product_Attribute $attribute,
         string $languageIso = ''
     ): ?ProductVariationModel {
         $id = new Identity(Id::link([$model->getId()->getEndpoint(), $attribute->get_id()]));
@@ -99,7 +100,7 @@ class ProductVariation extends BaseController
         $productVariations = [];
         /**
          * @var string $slug
-         * @var \WC_Product_Attribute $attribute
+         * @var WC_Product_Attribute $attribute
          */
         foreach ($parentProduct->get_attributes() as $slug => $attribute) {
             $id = new Identity(Id::link([$parentProduct->get_id(), $attribute->get_id()]));
@@ -222,7 +223,7 @@ class ProductVariation extends BaseController
                         );
 
                         if ((!\in_array($termId, $options))) {
-                            \array_push($options, $termId);
+                            $options[] = $termId;
                         }
 
                         $attributesFilteredVariationSpecifics[$taxonomy]['value'] = \implode(
@@ -230,7 +231,7 @@ class ProductVariation extends BaseController
                             $options
                         );
                     } else {
-                        \array_push($options, $termId);
+                        $options[] = $termId;
                         $attributesFilteredVariationSpecifics[$taxonomy] = [
                             'name' => $taxonomy,
                             'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),

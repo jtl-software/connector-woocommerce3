@@ -8,6 +8,7 @@ use jtl\Connector\Model\ImageI18n;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
 class ImageTest extends TestCase
 {
@@ -44,7 +45,7 @@ class ImageTest extends TestCase
      *
      * @param Image $image
      * @param $expectedAltText
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @throws MockEnabledException
      */
     public function testGetImageAltText(Image $image, $expectedAltText)

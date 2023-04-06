@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Logger;
 
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Singleton;
+use Monolog\Logger as LoggerAlias;
 use Psr\Log\InvalidArgumentException;
 use WP_Error;
 
@@ -35,7 +36,7 @@ class WpErrorLogger extends WooCommerceLogger
      */
     protected function getLevel(): int
     {
-        return Logger::DEBUG;
+        return LoggerAlias::DEBUG;
     }
 
     /**

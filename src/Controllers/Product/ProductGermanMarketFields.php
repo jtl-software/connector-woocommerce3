@@ -23,6 +23,7 @@ class ProductGermanMarketFields extends BaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      * @return void
+     * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
@@ -33,6 +34,7 @@ class ProductGermanMarketFields extends BaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      * @return void
+     * @throws \InvalidArgumentException
      */
     private function setBasePriceProperties(ProductModel $product, \WC_Product $wcProduct): void
     {
@@ -109,9 +111,9 @@ class ProductGermanMarketFields extends BaseController
             if (\count($meta->get_data()) > 0 && isset($meta->get_data()['key'])) {
                 if ($meta->get_data()['key'] === $metaKeys['unitRegularMultiplikatorKey']) {
                     $value = \get_post_meta($wcProduct->get_id(), $metaKeys['unitRegularMultiplikatorKey'], true);
-                    if (isset($value) && !\is_null($value) && $value !== false) {
+                    if (isset($value) && $value !== false) {
                         $value  = (float)$value;
-                        $result = $value > 0.00 ? true : false;
+                        $result = $value > 0.00;
                     };
                 }
             }

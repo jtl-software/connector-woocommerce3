@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use InvalidArgumentException;
 use jtl\Connector\Core\Controller\Controller;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\ConnectorIdentification;
@@ -19,6 +20,7 @@ use JtlWooCommerceConnector\Traits\BaseControllerTrait;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
+use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 class Connector extends Controller
@@ -27,8 +29,8 @@ class Connector extends Controller
 
     /**
      * @return Action
-     * @throws \InvalidArgumentException
-     * @throws \Symfony\Component\Yaml\Exception\ParseException
+     * @throws InvalidArgumentException
+     * @throws ParseException
      */
     public function identify(): Action
     {
@@ -39,9 +41,8 @@ class Connector extends Controller
             $value = \trim($value);
             $res   = (int)\substr($value, 0, -1);
             $unit  = \strtolower($value[\strlen($value) - 1]);
-            switch ($unit) {
-                case 'g':
-                    $res *= 1024;
+            if ($unit == 'g') {
+                $res *= 1024;
             }
 
             return (int)$res;
