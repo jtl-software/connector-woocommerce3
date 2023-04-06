@@ -15,10 +15,11 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
 {
     /**
      * @param JtlProductPrice $productPrice
-     *
      * @return JtlProductPrice
+     * @throws \InvalidArgumentException
+     * @throws \Exception
      */
-    public function pushData(JtlProductPrice $productPrice)
+    public function pushData(JtlProductPrice $productPrice): JtlProductPrice
     {
         $wcProduct = \wc_get_product($productPrice->getProductId()->getEndpoint());
 

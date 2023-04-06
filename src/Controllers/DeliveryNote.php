@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Exception;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 use AST_Pro_Actions;
@@ -16,8 +17,9 @@ class DeliveryNote extends BaseController
     /**
      * @param \jtl\Connector\Model\DeliveryNote $deliveryNote
      * @return \jtl\Connector\Model\DeliveryNote
+     * @throws Exception
      */
-    protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote)
+    protected function pushData(\jtl\Connector\Model\DeliveryNote $deliveryNote): \jtl\Connector\Model\DeliveryNote
     {
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
@@ -64,7 +66,7 @@ class DeliveryNote extends BaseController
     }
 
     /**
-     * @return AST_Pro_Actions|object|WC_Advanced_Shipment_Tracking_Actions|null
+     * @return object|WC_Advanced_Shipment_Tracking_Actions|null
      */
     protected function getShipmentTrackingActions()
     {
@@ -84,7 +86,7 @@ class DeliveryNote extends BaseController
      * @param array $trackingProviders
      * @return string|null
      */
-    private function findTrackingProviderSlug($shippingMethodName, $trackingProviders)
+    private function findTrackingProviderSlug($shippingMethodName, $trackingProviders): ?string
     {
         $searchResultSlug         = null;
         $searchResultLength       = 0;

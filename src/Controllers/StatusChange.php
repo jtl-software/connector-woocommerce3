@@ -15,8 +15,9 @@ class StatusChange extends BaseController
     /**
      * @param StatusChangeModel $statusChange
      * @return StatusChangeModel
+     * @throws \WC_Data_Exception
      */
-    public function pushData(StatusChangeModel $statusChange)
+    public function pushData(StatusChangeModel $statusChange): StatusChangeModel
     {
         $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
 
@@ -41,7 +42,11 @@ class StatusChange extends BaseController
         return $statusChange;
     }
 
-    protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange)
+    /**
+     * @param StatusChangeModel $statusChange
+     * @return void
+     */
+    protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange): void
     {
         global $wpdb;
         $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
@@ -66,7 +71,7 @@ class StatusChange extends BaseController
      * @param \WC_Order $wcOrder
      * @return string|null
      */
-    private function mapStatus(StatusChangeModel $statusChange, \WC_Order $wcOrder)
+    private function mapStatus(StatusChangeModel $statusChange, \WC_Order $wcOrder): ?string
     {
         if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
             return 'wc-cancelled';

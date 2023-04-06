@@ -8,6 +8,9 @@
 namespace JtlWooCommerceConnector\Logger;
 
 use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Utilities\Singleton;
+use Psr\Log\InvalidArgumentException;
+use WP_Error;
 
 /**
  * Class WpErrorLogger has to be used by checksum reading, writing or deleting methods.
@@ -17,12 +20,12 @@ use jtl\Connector\Core\Logger\Logger;
 class WpErrorLogger extends WooCommerceLogger
 {
     /**
-     * @param \WP_Error $error
+     * @param WP_Error $error
      * @return void
      * @throws \InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function logError(\WP_Error $error): void
+    public function logError(WP_Error $error): void
     {
         $this->writeLog(\sprintf('%s: %s', \get_called_class(), $error->get_error_message()));
     }
@@ -44,9 +47,9 @@ class WpErrorLogger extends WooCommerceLogger
     }
 
     /**
-     * @return \jtl\Connector\Core\Utilities\Singleton
+     * @return Singleton
      */
-    public static function getInstance(): \jtl\Connector\Core\Utilities\Singleton
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }

@@ -229,7 +229,11 @@ class ProductVaSpeAttrHandler extends BaseController
             });
 
             $jtlOldProductSpecifics = \get_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS);
-            \update_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS, $jtlNewProductSpecifics);
+            \update_post_meta(
+                $wcProduct->get_id(),
+                self::JTL_CURRENT_PRODUCT_SPECIFICS,
+                $jtlNewProductSpecifics
+            );
 
             if (!empty($jtlOldProductSpecifics)) {
                 $jtlOldProductSpecifics = $jtlOldProductSpecifics[0];
@@ -957,6 +961,7 @@ class ProductVaSpeAttrHandler extends BaseController
      * @param \WC_GZD_Product $product
      * @param string $languageIso
      * @return ProductAttrModel
+     * @throws \InvalidArgumentException
      */
     private function getMinimumAgeAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
     {

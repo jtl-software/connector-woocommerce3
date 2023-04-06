@@ -12,6 +12,7 @@ use jtl\Connector\Core\Controller\Controller as CoreController;
 use jtl\Connector\Core\Rpc\Method;
 use jtl\Connector\Core\Rpc\RequestPacket;
 use jtl\Connector\Core\Utilities\RpcMethod;
+use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\Event\Rpc\RpcBeforeEvent;
 use jtl\Connector\Result\Action;
 use JtlWooCommerceConnector\Authentication\TokenLoader;
@@ -216,9 +217,9 @@ class Connector extends BaseConnector
     }
 
     /**
-     * @return \jtl\Connector\Core\Utilities\Singleton
+     * @return Singleton
      */
-    public static function getInstance(): \jtl\Connector\Core\Utilities\Singleton
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }

@@ -48,7 +48,10 @@ class CustomerOrderBillingAddress extends CustomerOrderAddress
             $address->setZipCode(\get_option('woocommerce_store_postcode'));
         }
 
-        if (\strcmp($address->getStreet(), '') === 0 && \strcmp($address->getExtraAddressLine(), '') === 0) {
+        if (
+            \strcmp($address->getStreet(), '') === 0
+            && \strcmp($address->getExtraAddressLine(), '') === 0
+        ) {
             $address->setExtraAddressLine(\get_option('woocommerce_store_postcode'));
         }
 

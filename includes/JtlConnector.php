@@ -22,7 +22,7 @@ final class JtlConnector
     /**
      * @return void
      */
-    public static function capture_request(): void
+    public static function capture_request(): void //phpcs:ignore
     {
         global $wp;
 
@@ -48,7 +48,7 @@ final class JtlConnector
     /**
      * @return void
      */
-    private static function unslash_gpc(): void
+    private static function unslash_gpc(): void //phpcs:ignore
     {
         $_GET     = array_map('stripslashes_deep', $_GET);
         $_POST    = array_map('stripslashes_deep', $_POST);

@@ -20,7 +20,12 @@ class Category extends BaseController
 {
     private static $idCache = [];
 
-    protected function pullData($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    protected function pullData($limit): array
     {
         $categories = [];
 
@@ -75,7 +80,12 @@ class Category extends BaseController
         return $categories;
     }
 
-    protected function pushData(CategoryModel $category)
+    /**
+     * @param CategoryModel $category
+     * @return CategoryModel
+     * @throws \Exception
+     */
+    protected function pushData(CategoryModel $category): CategoryModel
     {
         if (!$category->getIsActive()) {
             return $category;
@@ -197,7 +207,11 @@ class Category extends BaseController
         return $category;
     }
 
-    protected function deleteData(CategoryModel $specific)
+    /**
+     * @param CategoryModel $specific
+     * @return CategoryModel
+     */
+    protected function deleteData(CategoryModel $specific): CategoryModel
     {
         $categoryId = $specific->getId()->getEndpoint();
 
@@ -218,7 +232,10 @@ class Category extends BaseController
         return $specific;
     }
 
-    protected function getStats()
+    /**
+     * @return string|null
+     */
+    protected function getStats(): ?string
     {
         return $this->database->queryOne(SqlHelper::categoryStats());
     }

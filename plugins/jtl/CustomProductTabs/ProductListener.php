@@ -5,6 +5,7 @@ namespace jtl\CustomProductTabs;
 use jtl\Connector\Event\Product\ProductAfterPushEvent;
 use jtl\Connector\Model\ProductAttrI18n;
 use JtlWooCommerceConnector\Utilities\Util;
+use Nette\Utils\RegexpException;
 
 /**
  * Class ProductListener
@@ -19,6 +20,7 @@ class ProductListener
     /**
      * @param ProductAfterPushEvent $event
      * @return void
+     * @throws RegexpException
      */
     public function onProductAfterPush(ProductAfterPushEvent $event): void
     {
@@ -47,6 +49,7 @@ class ProductListener
     /**
      * @param ProductAttrI18n ...$productAttributeI18ns
      * @return CustomProductTab|null
+     * @throws RegexpException
      */
     protected function findCustomProductTabAttribute(ProductAttrI18n ...$productAttributeI18ns): ?CustomProductTab
     {

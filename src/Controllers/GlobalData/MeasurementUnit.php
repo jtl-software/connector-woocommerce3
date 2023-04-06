@@ -44,7 +44,11 @@ class MeasurementUnit
         return $measurementUnits;
     }
 
-    public function pullGermanMarketData()
+    /**
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullGermanMarketData(): array
     {
         $measurementUnits = [];
 

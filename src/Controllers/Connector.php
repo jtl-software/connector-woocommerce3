@@ -25,7 +25,12 @@ class Connector extends Controller
 {
     use BaseControllerTrait;
 
-    public function identify()
+    /**
+     * @return Action
+     * @throws \InvalidArgumentException
+     * @throws \Symfony\Component\Yaml\Exception\ParseException
+     */
+    public function identify(): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -59,7 +64,10 @@ class Connector extends Controller
         return $action;
     }
 
-    public function finish()
+    /**
+     * @return Action
+     */
+    public function finish(): Action
     {
         $action = new Action();
         $action->setHandled(true);
@@ -82,7 +90,11 @@ class Connector extends Controller
         return $action;
     }
 
-    public function statistic(QueryFilter $queryFilter)
+    /**
+     * @param QueryFilter $queryFilter
+     * @return Action
+     */
+    public function statistic(QueryFilter $queryFilter): Action
     {
         $action = new Action();
         $action->setHandled(true);

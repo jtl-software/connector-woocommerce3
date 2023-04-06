@@ -22,13 +22,14 @@ class Payment extends BaseController
     /**
      *
      */
-    const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+    public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
      * @param $limit
      * @return array
+     * @throws \InvalidArgumentException
      */
-    public function pullData($limit)
+    public function pullData($limit): array
     {
         $payments = [];
 
@@ -51,7 +52,11 @@ class Payment extends BaseController
                 ->setTotalSum((float)$order->get_total())
                 ->setPaymentModuleCode($paymentModuleCode)
                 ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
-                ->setCreationDate($order->get_date_paid() ? $order->get_date_paid() : $order->get_date_completed());
+                ->setCreationDate(
+                    $order->get_date_paid()
+                        ? $order->get_date_paid()
+                        : $order->get_date_completed()
+                );
         }
 
         return $payments;
@@ -78,7 +83,7 @@ class Payment extends BaseController
      * @return PaymentModel
      * @throws \WC_Data_Exception
      */
-    public function pushData(PaymentModel $data)
+    public function pushData(PaymentModel $data): PaymentModel
     {
         $order = \wc_get_order((int)$data->getCustomerOrderId()->getEndpoint());
 
@@ -96,7 +101,7 @@ class Payment extends BaseController
     /**
      * @return int
      */
-    protected function getStats()
+    protected function getStats(): int
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
 

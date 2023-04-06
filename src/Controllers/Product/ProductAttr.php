@@ -53,7 +53,7 @@ class ProductAttr extends BaseController
         $pushedAttributes,
         $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
-    ) {
+    ): mixed {
         //FUNCTION ATTRIBUTES BY JTL
         $virtual        = false;
         $downloadable   = false;

@@ -125,7 +125,13 @@ class ProductPrice extends BaseController
     ): ?float {
         $price = null;
 
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>=', '1.0.8.0')) {
+        if (
+            SupportedPlugins::comparePluginVersion(
+                SupportedPlugins::PLUGIN_B2B_MARKET,
+                '>=',
+                '1.0.8.0'
+            )
+        ) {
             $pricesMetaKey  = \sprintf('bm_%s_group_prices', $groupSlug);
             $priceGroupMeta = \get_post_meta($wcProduct->get_id(), $pricesMetaKey, true);
 
@@ -161,13 +167,22 @@ class ProductPrice extends BaseController
     }
 
 
+    /**
+     * @param $items
+     * @param CustomerGroupModel $customerGroup
+     * @param $groupSlug
+     * @param \WC_Product $product
+     * @param ProductModel $model
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
     private function getBulkPrices(
         $items,
         CustomerGroupModel $customerGroup,
         $groupSlug,
         \WC_Product $product,
         ProductModel $model
-    ) {
+    ): mixed {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -216,6 +231,7 @@ class ProductPrice extends BaseController
     /**
      * @param ProductPriceModel ...$jtlProductPrices
      * @return array
+     * @throws \InvalidArgumentException
      */
     protected function groupProductPrices(\jtl\Connector\Model\ProductPrice ...$jtlProductPrices): array
     {

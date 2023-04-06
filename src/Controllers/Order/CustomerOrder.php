@@ -462,7 +462,10 @@ class CustomerOrder extends BaseController
             $instance   = new \WGM_Gateway_Purchase_On_Account();
             $gmSettings = $instance->settings;
 
-            if (\array_key_exists('direct_debit_mandate', $gmSettings) && $gmSettings['direct_debit_mandate'] !== '') {
+            if (
+                \array_key_exists('direct_debit_mandate', $gmSettings)
+                && $gmSettings['direct_debit_mandate'] !== ''
+            ) {
                 $customerOrder->setPui($gmSettings['direct_debit_mandate']);
             }
         }

@@ -12,7 +12,7 @@ class UtilTest extends TestCase
     /**
      * @var array
      */
-    protected $mockedFunctions = [];
+    protected array $mockedFunctions = [];
 
     /**
      * @dataProvider bulkPricesProvider
@@ -45,7 +45,7 @@ class UtilTest extends TestCase
     /**
      * @return array
      */
-    public function bulkPricesProvider()
+    public function bulkPricesProvider(): array
     {
         return [
             [

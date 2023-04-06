@@ -12,7 +12,12 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class ProductStockLevel extends BaseController
 {
-    public function pushData(ProductStockLevelModel $productStockLevel)
+    /**
+     * @param ProductStockLevelModel $productStockLevel
+     * @return ProductStockLevelModel
+     * @throws \Exception
+     */
+    public function pushData(ProductStockLevelModel $productStockLevel): ProductStockLevelModel
     {
         $productId = $productStockLevel->getProductId()->getEndpoint();
         $wcProduct = \wc_get_product($productId);

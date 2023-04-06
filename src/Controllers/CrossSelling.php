@@ -181,8 +181,9 @@ class CrossSelling extends BaseController
      * @param $productId
      * @param $key
      * @param $value
+     * @return void
      */
-    protected function updateMetaKey($productId, $key, $value)
+    protected function updateMetaKey($productId, $key, $value): void
     {
         \update_post_meta(
             $productId,

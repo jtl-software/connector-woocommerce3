@@ -8,6 +8,7 @@
 namespace JtlWooCommerceConnector\Logger;
 
 use jtl\Connector\Core\Logger\Logger;
+use Monolog\Logger as LoggerAlias;
 
 /**
  * Class PrimaryKeyMappingLogger has to be used by the primary key mapper.
@@ -69,7 +70,7 @@ class PrimaryKeyMappingLogger extends WooCommerceLogger
      */
     protected function getLevel(): int
     {
-        return Logger::DEBUG;
+        return LoggerAlias::DEBUG;
     }
 
     /**

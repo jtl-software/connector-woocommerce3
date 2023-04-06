@@ -22,7 +22,12 @@ class Specific extends BaseController
 {
     private static $idCache = [];
 
-    protected function pullData($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    protected function pullData($limit): array
     {
         $specifics = [];
 
@@ -68,7 +73,12 @@ class Specific extends BaseController
         return $specifics;
     }
 
-    protected function pushData(SpecificModel $specific)
+    /**
+     * @param SpecificModel $specific
+     * @return SpecificModel
+     * @throws \InvalidArgumentException
+     */
+    protected function pushData(SpecificModel $specific): SpecificModel
     {
         //WooFix
         $specific->setType('string');
@@ -152,7 +162,6 @@ class Specific extends BaseController
             //Register taxonomy for current request
             \register_taxonomy($taxonomy, null);
 
-            /** @var SpecificValueModel $value */
             foreach ($specific->getValues() as $key => $value) {
                 $value->getSpecificId()->setEndpoint($attributeId);
                 $metaValue             = null;
@@ -249,7 +258,12 @@ class Specific extends BaseController
         return $specific;
     }
 
-    protected function deleteData(SpecificModel $specific)
+    /**
+     * @param SpecificModel $specific
+     * @return \WC_Product_Attribute|SpecificModel
+     * @throws \Exception
+     */
+    protected function deleteData(SpecificModel $specific): \WC_Product_Attribute|SpecificModel
     {
         $specificId = (int)$specific->getId()->getEndpoint();
 
@@ -314,7 +328,10 @@ class Specific extends BaseController
         return $specific;
     }
 
-    protected function getStats()
+    /**
+     * @return string|null
+     */
+    protected function getStats(): ?string
     {
         return $this->database->queryOne(SqlHelper::specificStats());
     }

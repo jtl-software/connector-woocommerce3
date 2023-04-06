@@ -2,9 +2,11 @@
 
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
+use InvalidArgumentException;
 use jtl\Connector\Model\Image;
 use jtl\Connector\Model\ImageI18n;
 use phpmock\MockBuilder;
+use phpmock\MockEnabledException;
 use PHPUnit\Framework\TestCase;
 
 class ImageTest extends TestCase
@@ -13,8 +15,8 @@ class ImageTest extends TestCase
 
     /**
      * @return void
-     * @throws \InvalidArgumentException
-     * @throws \phpmock\MockEnabledException
+     * @throws InvalidArgumentException
+     * @throws MockEnabledException
      */
     protected function setUp(): void
     {
@@ -43,7 +45,7 @@ class ImageTest extends TestCase
      * @param Image $image
      * @param $expectedAltText
      * @throws \ReflectionException
-     * @throws \phpmock\MockEnabledException
+     * @throws MockEnabledException
      */
     public function testGetImageAltText(Image $image, $expectedAltText)
     {
@@ -59,7 +61,7 @@ class ImageTest extends TestCase
 
     /**
      * @return array[]
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function imageAltTextDataProvider(): array
     {

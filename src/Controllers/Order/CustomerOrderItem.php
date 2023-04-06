@@ -191,8 +191,11 @@ class CustomerOrderItem extends BaseController
      * @return CustomerOrderItemModel
      * @throws \InvalidArgumentException
      */
-    private function getShippingOrderItem(\WC_Order_Item_Shipping $shippingItem, \WC_Order $order, $taxRateId = null): CustomerOrderItemModel
-    {
+    private function getShippingOrderItem(
+        \WC_Order_Item_Shipping $shippingItem,
+        \WC_Order $order,
+        $taxRateId = null
+    ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
             ->setId(new Identity($shippingItem->get_id() . (\is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
             ->setCustomerOrderId(new Identity($order->get_id()))
@@ -232,7 +235,11 @@ class CustomerOrderItem extends BaseController
         $taxRateId = null
     ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
-            ->setId(new Identity($feeItem->get_id() . (\is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
+            ->setId(
+                new Identity($feeItem->get_id() . (\is_null($taxRateId)
+                        ? ''
+                        : Id::SEPARATOR . $taxRateId))
+            )
             ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
             ->setName($feeItem->get_name())
@@ -412,7 +419,12 @@ class CustomerOrderItem extends BaseController
         $isCalculatedGrossSame = \abs($totalGrossCalculated - $totalGross) < 0.00001;
 
         if ($vatRoundPrecision <= 6 && $vat !== .0 && $isCalculatedGrossSame === false) {
-            return $this->calculateVat($totalNet, $totalGross, $totalGrossPrecision, $vatRoundPrecision + 1);
+            return $this->calculateVat(
+                $totalNet,
+                $totalGross,
+                $totalGrossPrecision,
+                $vatRoundPrecision + 1
+            );
         }
 
         return \round($vat, 2);

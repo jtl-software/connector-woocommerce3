@@ -56,11 +56,8 @@ trait WawiProductPriceSchmuddelTrait
                         }
                     }
                 }
-
-                $prices[] = $pValue;
-            } else {
-                $prices[] = $pValue;
             }
+            $prices[] = $pValue;
         }
 
         if ($defaultPrices === null) {

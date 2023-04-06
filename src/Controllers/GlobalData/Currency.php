@@ -52,7 +52,11 @@ class Currency
             \update_option(self::ISO, $currency->getIso(), 'yes');
             \update_option(self::CENT_DELIMITER, $currency->getDelimiterCent(), 'yes');
             \update_option(self::THOUSAND_DELIMITER, $currency->getDelimiterThousand(), 'yes');
-            \update_option(self::SIGN_POSITION, $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right', 'yes');
+            \update_option(
+                self::SIGN_POSITION,
+                $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right',
+                'yes'
+            );
 
             break;
         }

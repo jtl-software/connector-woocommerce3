@@ -34,6 +34,9 @@ final class Util extends WordpressUtils
     private mixed $locale;
     private array $namespaceMapping;
 
+    /**
+     * @throws \InvalidArgumentException
+     */
     public function __construct()
     {
         parent::__construct();

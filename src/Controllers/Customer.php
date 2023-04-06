@@ -20,7 +20,12 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Customer extends BaseController
 {
-    public function pullData($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData($limit): array
     {
         $customers = $this->pullCustomers($limit);
         $guests    = $this->pullGuests($limit - \count($customers));
@@ -28,7 +33,13 @@ class Customer extends BaseController
         return \array_merge($customers, $guests);
     }
 
-    protected function pullCustomers($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \Exception
+     */
+    protected function pullCustomers($limit): array
     {
         $customers = [];
 
@@ -93,7 +104,12 @@ class Customer extends BaseController
         return $customers;
     }
 
-    private function pullGuests($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    private function pullGuests($limit): array
     {
         $customers = [];
 
@@ -143,7 +159,11 @@ class Customer extends BaseController
         return $customers;
     }
 
-    public function pushData(CustomerModel $customer)
+    /**
+     * @param CustomerModel $customer
+     * @return CustomerModel
+     */
+    public function pushData(CustomerModel $customer): CustomerModel
     {
         // Only registered customers data can be updated
         if (!$customer->getHasCustomerAccount()) {
@@ -197,7 +217,10 @@ class Customer extends BaseController
         return null;
     }
 
-    public function getStats()
+    /**
+     * @return int
+     */
+    public function getStats(): int
     {
         $customers  = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
         $customers += (int)$this->database->queryOne(SqlHelper::guestNotLinked(null));

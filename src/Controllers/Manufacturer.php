@@ -20,7 +20,12 @@ class Manufacturer extends BaseController
 {
     private static $idCache = [];
 
-    protected function pullData($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    protected function pullData($limit): array
     {
         $manufacturers = [];
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
@@ -46,7 +51,10 @@ class Manufacturer extends BaseController
                         foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
                             if ($brandKey === (int)$manufacturerDataSet['term_id']) {
                                 $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
-                                    ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $manufacturerDataSet['name'])
+                                    ->setMetaKeywords(
+                                        $seoData['wpseo_focuskw']
+                                            ?? $manufacturerDataSet['name']
+                                    )
                                     ->setTitleTag($seoData['wpseo_title'] ?? '');
                             }
                         }
@@ -72,7 +80,12 @@ class Manufacturer extends BaseController
         return $manufacturers;
     }
 
-    protected function pushData(ManufacturerModel $manufacturer)
+    /**
+     * @param ManufacturerModel $manufacturer
+     * @return ManufacturerModel
+     * @throws \InvalidArgumentException
+     */
+    protected function pushData(ManufacturerModel $manufacturer): ManufacturerModel
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $meta = (new ManufacturerI18nModel())
@@ -126,7 +139,6 @@ class Manufacturer extends BaseController
             if ($term instanceof \WP_Term) {
                 $manufacturer->getId()->setEndpoint($term->term_id);
                 foreach ($manufacturer->getI18ns() as $i18n) {
-                    /** @var ManufacturerI18nModel $i18n */
                     $i18n->getManufacturerId()->setEndpoint($term->term_id);
                     if (
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -184,7 +196,11 @@ class Manufacturer extends BaseController
         return $manufacturer;
     }
 
-    protected function deleteData(ManufacturerModel $manufacturer)
+    /**
+     * @param ManufacturerModel $manufacturer
+     * @return ManufacturerModel
+     */
+    protected function deleteData(ManufacturerModel $manufacturer): ManufacturerModel
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $manufacturerId = (int)$manufacturer->getId()->getEndpoint();
@@ -199,7 +215,10 @@ class Manufacturer extends BaseController
         return $manufacturer;
     }
 
-    protected function getStats()
+    /**
+     * @return int|string|null
+     */
+    protected function getStats(): int|string|null
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             return $this->database->queryOne(SqlHelper::manufacturerStats());

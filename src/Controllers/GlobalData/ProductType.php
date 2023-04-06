@@ -12,7 +12,11 @@ use jtl\Connector\Model\ProductType as ProductTypeModel;
 
 class ProductType
 {
-    public function pullData()
+    /**
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(): array
     {
         $productTypes = [];
 

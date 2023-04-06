@@ -2,6 +2,7 @@
 
 namespace jtl\CustomProductTabs;
 
+use Nette\Utils\RegexpException;
 use Nette\Utils\Strings;
 
 /**
@@ -29,6 +30,7 @@ class CustomProductTab
      * CustomProductTab constructor.
      * @param string $title
      * @param string $content
+     * @throws RegexpException
      */
     public function __construct(string $title, string $content)
     {

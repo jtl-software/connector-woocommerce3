@@ -6,6 +6,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductInvisibility;
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
+use PHPUnit\Framework\MockObject\RuntimeException;
 
 /**
  * Class B2BMarket
@@ -15,6 +16,7 @@ class B2BMarket extends AbstractTestCase
 {
     /**
      * @throws \ReflectionException
+     * @throws RuntimeException
      */
     public function testSetB2BCustomerGroupBlacklist()
     {

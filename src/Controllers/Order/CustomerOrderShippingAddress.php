@@ -34,7 +34,13 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setCompany($order->get_shipping_company())
             ->setCustomerId($this->createCustomerId($order));
 
-        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE, '>=', '5.6.0')) {
+        if (
+            SupportedPlugins::comparePluginVersion(
+                SupportedPlugins::PLUGIN_WOOCOMMERCE,
+                '>=',
+                '5.6.0'
+            )
+        ) {
             $address->setPhone($order->get_shipping_phone());
         }
 

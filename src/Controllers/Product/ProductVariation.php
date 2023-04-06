@@ -89,11 +89,11 @@ class ProductVariation extends BaseController
     /**
      * @param \WC_Product $product
      * @param ProductModel $model
-     * @param $languageIso
+     * @param string $languageIso
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullDataChild(\WC_Product $product, ProductModel $model, $languageIso = ''): array
+    public function pullDataChild(\WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
         $parentProduct     = \wc_get_product($product->get_parent_id());
         $productVariations = [];

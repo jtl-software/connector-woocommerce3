@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     use jtl\Connector\Model\ProductAttrI18n;
     use Jtl\UnitTest\TestCase;
     use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
+    use PHPUnit\Framework\ExpectationFailedException;
 
     class ProductAttrTest extends TestCase
     {
@@ -103,6 +104,8 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         /**
          * @return void
          * @throws \ReflectionException
+         * @throws \InvalidArgumentException
+         * @throws ExpectationFailedException
          */
         public function testWcSanitizeTaxonomyName(): void
         {

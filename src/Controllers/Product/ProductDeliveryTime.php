@@ -149,7 +149,10 @@ class ProductDeliveryTime extends BaseController
                     );
 
                     if ($germanizedTermArray instanceof WP_Error) {
-                        $error = new WP_Error('invalid_taxonomy', 'Could not create delivery time for germanized.');
+                        $error = new WP_Error(
+                            'invalid_taxonomy',
+                            'Could not create delivery time for germanized.'
+                        );
                         WpErrorLogger::getInstance()->logError($error);
                         WpErrorLogger::getInstance()->logError($germanizedTermArray);
                     }
@@ -162,7 +165,12 @@ class ProductDeliveryTime extends BaseController
                 }
 
                 if ($germanizedTermId !== false) {
-                    \wp_set_object_terms($productId, $germanizedTermId, $germanizedDeliveryTimeTaxonomyName, true);
+                    \wp_set_object_terms(
+                        $productId,
+                        $germanizedTermId,
+                        $germanizedDeliveryTimeTaxonomyName,
+                        true
+                    );
 
                     if (
                         SupportedPlugins::comparePluginVersion(
@@ -171,7 +179,11 @@ class ProductDeliveryTime extends BaseController
                             '3.7.0'
                         )
                     ) {
-                        $oldDeliveryTime = Util::getInstance()->getPostMeta($productId, '_default_delivery_time', true);
+                        $oldDeliveryTime = Util::getInstance()->getPostMeta(
+                            $productId,
+                            '_default_delivery_time',
+                            true
+                        );
                         Util::getInstance()->updatePostMeta(
                             $productId,
                             '_default_delivery_time',

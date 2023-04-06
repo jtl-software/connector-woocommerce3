@@ -31,7 +31,7 @@ class Product extends BaseController
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
 
-    private static $idCache = [];
+    private static array $idCache = [];
 
     /**
      * @param $limit
@@ -67,7 +67,7 @@ class Product extends BaseController
                 ->setSku($product->get_sku())
                 ->setVat(Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class()))
                 ->setSort($product->get_menu_order())
-                ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp === 'yes')
+                ->setIsTopProduct(($itp = $product->is_featured()) ? $itp : $itp == 'yes')
                 ->setProductTypeId(new Identity($product->get_type()))
                 ->setKeywords(
                     ($tags = \wc_get_product_tag_list($product->get_id(), ' '))
@@ -80,9 +80,9 @@ class Product extends BaseController
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock(\is_bool($ms = $product->managing_stock()) ? $ms : $ms === 'yes')
+                ->setConsiderStock(\is_bool($ms = $product->managing_stock()) ? $ms : $ms == 'yes')
                 ->setPermitNegativeStock(
-                    \is_bool($pns = $product->backorders_allowed()) ? $pns : $pns === 'yes'
+                    \is_bool($pns = $product->backorders_allowed()) ? $pns : $pns == 'yes'
                 )
                 ->setShippingClassId(new Identity($product->get_shipping_class_id()));
 
@@ -406,7 +406,11 @@ class Product extends BaseController
                                         'product_type'
                                     );
                                     if ($removeObjTermsResult === true) {
-                                        $result = \wp_add_object_terms($productId, [$term->term_id], 'product_type');
+                                        $result = \wp_add_object_terms(
+                                            $productId,
+                                            [$term->term_id],
+                                            'product_type'
+                                        );
                                         if (($result instanceof \WP_Error === false) && \is_array($result)) {
                                             $customProductTypeSet = true;
                                         }
