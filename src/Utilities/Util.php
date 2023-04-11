@@ -64,10 +64,7 @@ final class Util extends WordpressUtils
         return Constants::CONTROLLER_NAMESPACE . $controller;
     }
 
-    /**
-     * @return false|int|mixed|string|null
-     */
-    public function getWooCommerceLanguage(): mixed
+    public function getWooCommerceLanguage()
     {
         return $this->locale;
     }
