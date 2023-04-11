@@ -352,7 +352,7 @@ class CustomerOrderItem extends BaseController
         /** @var CustomerOrderItemModel $orderItem */
         foreach ($customerOrderItems as $orderItem) {
             $orderItemsVatRates[] = $orderItem->getVat();
-            $highestVatRate       = max($orderItem->getVat(), $highestVatRate);
+            $highestVatRate       = \max($orderItem->getVat(), $highestVatRate);
         }
 
         /**

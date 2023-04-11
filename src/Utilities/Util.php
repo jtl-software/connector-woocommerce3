@@ -545,7 +545,7 @@ final class Util extends WordpressUtils
     {
         $explode   = \explode('.', (string)$number);
         $precision = isset($explode[1]) ? \strlen($explode[1]) : 0;
-        return max($precision, 2);
+        return \max($precision, 2);
     }
 
 

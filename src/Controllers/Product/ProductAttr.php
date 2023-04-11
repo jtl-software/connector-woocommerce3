@@ -194,9 +194,9 @@ class ProductAttr extends BaseController
                         $this->updatePostMeta($productId, '_visibility', 'catalog');
 
                         $this->wpSetObjectTerms(
-                            $productId, ['exclude-from-search'],
+                            $productId,
+                            ['exclude-from-search'],
                             'product_visibility',
-
                         );
                         $nosearch = true;
                     }

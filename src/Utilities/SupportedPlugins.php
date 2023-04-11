@@ -11,7 +11,7 @@ final class SupportedPlugins
 {
     //THEMESPECIALS
 
-    const
+    public const
         //Compatible
         PLUGIN_B2B_MARKET                                          = 'B2B Market',
         PLUGIN_GERMAN_MARKET                                       = 'German Market',
@@ -152,7 +152,7 @@ final class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (in_array($plugin['Name'], self::INCOMPATIBLE_PLUGINS)) {
+            if (\in_array($plugin['Name'], self::INCOMPATIBLE_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }
