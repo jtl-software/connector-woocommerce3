@@ -61,10 +61,9 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @return array[]
-     * @throws InvalidArgumentException
+     *
      */
-    public function imageAltTextDataProvider(): array
+    public function imageAltTextDataProvider()
     {
         return [
             [
