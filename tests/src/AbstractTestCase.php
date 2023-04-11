@@ -17,7 +17,7 @@ abstract class AbstractTestCase extends TestCase
      * @return mixed
      * @throws \ReflectionException
      */
-    protected function invokeMethodFromObject(object $object, string $methodName, ...$arguments): mixed
+    protected function invokeMethodFromObject(object $object, string $methodName, ...$arguments)
     {
         $reflectionClass  = new \ReflectionClass($object);
         $reflectionMethod = $reflectionClass->getMethod($methodName);

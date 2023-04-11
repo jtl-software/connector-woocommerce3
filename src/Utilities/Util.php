@@ -352,10 +352,9 @@ final class Util extends WordpressUtils
 
     /**
      * @param $locale
-     *
-     * @return false|int|mixed|string|null
+     * @throws InvalidArgumentException
      */
-    public function mapLanguageIso($locale): mixed
+    public function mapLanguageIso($locale)
     {
         $result = null;
         try {
