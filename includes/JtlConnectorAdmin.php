@@ -727,18 +727,29 @@ final class JtlConnectorAdmin
             return;
         }
 
-        $settings = match ($page) {
-            'information_page' => apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields()),
-            'advanced_page' => apply_filters('woocommerce_settings_jtlconnector', self::getAdvancedFields()),
-            'delivery_time_page' => apply_filters('woocommerce_settings_jtlconnector', self::getDeliveryTimeFields()),
-            'customer_order_page' => apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields()),
-            'customers_page' => apply_filters('woocommerce_settings_jtlconnector', self::getCustomersFields()),
-            'developer_settings_page' => apply_filters(
-                'woocommerce_settings_jtlconnector',
-                self::getDeveloperSettingsFields()
-            ),
-            default => null,
-        };
+        switch ($page) {
+            case 'information_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getInformationFields());
+                break;
+            case 'advanced_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getAdvancedFields());
+                break;
+            case 'delivery_time_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeliveryTimeFields());
+                break;
+            case 'customer_order_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomerOrderFields());
+                break;
+            case 'customers_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getCustomersFields());
+                break;
+            case 'developer_settings_page':
+                $settings = apply_filters('woocommerce_settings_jtlconnector', self::getDeveloperSettingsFields());
+                break;
+            default:
+                $settings = null;
+                break;
+        }
 
         if (is_null($settings)) {
             return;

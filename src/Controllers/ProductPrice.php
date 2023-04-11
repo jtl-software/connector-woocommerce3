@@ -55,11 +55,18 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
      */
     protected function getJtlProductType(\WC_Product $wcProduct): string
     {
-        $type = match ($wcProduct->get_type()) {
-            'variable' => Product::TYPE_PARENT,
-            'variation' => Product::TYPE_CHILD,
-            default => Product::TYPE_SINGLE,
-        };
+        switch ($wcProduct->get_type()) {
+            case 'variable':
+                $type = Product::TYPE_PARENT;
+                break;
+            case 'variation':
+                $type = Product::TYPE_CHILD;
+                break;
+            case 'simple':
+            default:
+                $type = Product::TYPE_SINGLE;
+                break;
+        }
 
         return $type;
     }

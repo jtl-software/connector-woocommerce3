@@ -626,11 +626,20 @@ class Product extends BaseController
      */
     protected function getWcProductType(ProductModel $product): string
     {
-        return match ($this->getType($product)) {
-            self::TYPE_PARENT => 'variable',
-            self::TYPE_CHILD => 'product_variation',
-            default => 'simple',
-        };
+        switch ($this->getType($product)) {
+            case self::TYPE_PARENT:
+                $type = 'variable';
+                break;
+            case self::TYPE_CHILD:
+                $type = 'product_variation';
+                break;
+            case self::TYPE_SINGLE:
+            default:
+                $type = 'simple';
+                break;
+        }
+
+        return $type;
     }
 
     /**

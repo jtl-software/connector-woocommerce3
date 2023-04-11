@@ -479,15 +479,19 @@ class Image extends BaseController
     {
         $primaryKeyMapper = \Application()->getConnector()->getPrimaryKeyMapper();
 
-        $newEndpoint = match ($image->getRelationType()) {
-            ImageRelationType::TYPE_PRODUCT => Id::linkProductImage(
-                $newEndpointId,
-                $image->getForeignKey()->getEndpoint()
-            ),
-            ImageRelationType::TYPE_MANUFACTURER => Id::linkManufacturerImage($newEndpointId),
-            ImageRelationType::TYPE_CATEGORY => Id::linkCategoryImage($newEndpointId),
-            default => throw new Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType())),
-        };
+        switch ($image->getRelationType()) {
+            case ImageRelationType::TYPE_PRODUCT:
+                $newEndpoint = Id::linkProductImage($newEndpointId, $image->getForeignKey()->getEndpoint());
+                break;
+            case ImageRelationType::TYPE_MANUFACTURER:
+                $newEndpoint = Id::linkManufacturerImage($newEndpointId);
+                break;
+            case ImageRelationType::TYPE_CATEGORY:
+                $newEndpoint = Id::linkCategoryImage($newEndpointId);
+                break;
+            default:
+                throw new \Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
+        }
 
         $primaryKeyMapper->delete(
             $image->getId()->getEndpoint(),

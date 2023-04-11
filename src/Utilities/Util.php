@@ -163,9 +163,9 @@ final class Util extends WordpressUtils
      * @param $price
      * @param $pd
      *
-     * @return bool|string
+     * @return mixed
      */
-    public static function getNetPriceCutted($price, $pd): bool|string
+    public static function getNetPriceCutted($price, $pd): mixed
     {
         $position = \strrpos((string)$price, '.');
 
@@ -386,17 +386,28 @@ final class Util extends WordpressUtils
      */
     public function mapPaymentModuleCode(\WC_Order $order): string
     {
-        return match ($order->get_payment_method()) {
-            'paypal_plus' => PaymentTypes::TYPE_PAYPAL_PLUS,
-            'express_checkout' => PaymentTypes::TYPE_PAYPAL_EXPRESS,
-            'paypal' => PaymentTypes::TYPE_PAYPAL,
-            'cod' => PaymentTypes::TYPE_CASH_ON_DELIVERY,
-            'bacs' => PaymentTypes::TYPE_BANK_TRANSFER,
-            'german_market_sepa_direct_debit', 'direct-debit' => PaymentTypes::TYPE_DIRECT_DEBIT,
-            'invoice', 'german_market_purchase_on_account' => PaymentTypes::TYPE_INVOICE,
-            'amazon_payments_advanced' => PaymentTypes::TYPE_AMAPAY,
-            default => $order->get_payment_method_title(),
-        };
+        switch ($order->get_payment_method()) {
+            case 'paypal_plus':
+                return PaymentTypes::TYPE_PAYPAL_PLUS;
+            case 'express_checkout':
+                return PaymentTypes::TYPE_PAYPAL_EXPRESS;
+            case 'paypal':
+                return PaymentTypes::TYPE_PAYPAL;
+            case 'cod':
+                return PaymentTypes::TYPE_CASH_ON_DELIVERY;
+            case 'bacs':
+                return PaymentTypes::TYPE_BANK_TRANSFER;
+            case 'german_market_sepa_direct_debit':
+            case 'direct-debit':
+                return PaymentTypes::TYPE_DIRECT_DEBIT;
+            case 'invoice':
+            case 'german_market_purchase_on_account':
+                return PaymentTypes::TYPE_INVOICE;
+            case 'amazon_payments_advanced':
+                return PaymentTypes::TYPE_AMAPAY;
+            default:
+                return $order->get_payment_method_title();
+        }
     }
 
     /**

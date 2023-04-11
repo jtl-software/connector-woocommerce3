@@ -154,9 +154,9 @@ abstract class BaseController extends Controller
      * @param $postId
      * @param $metaKey
      * @param $value
-     * @return bool|int
+     * @return mixed
      */
-    protected function updatePostMeta($postId, $metaKey, $value): bool|int
+    protected function updatePostMeta($postId, $metaKey, $value): mixed
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }

@@ -116,9 +116,9 @@ final class SupportedPlugins
      *
      * @param bool $asString
      *
-     * @return array|string
+     * @return mixed
      */
-    public static function getSupported(bool $asString = false): array|string
+    public static function getSupported(bool $asString = false): mixed
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];

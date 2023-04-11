@@ -110,11 +110,19 @@ class CustomerOrderItem extends BaseController
                 $orderItem->setProductId(new Identity($product->get_id()));
 
                 if ($product instanceof \WC_Product_Variation) {
-                    $format = match (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT)) {
-                        'space_parent', 'space' => '%s %s',
-                        'brackets_parent', 'brackets' => '%s (%s)',
-                        default => '%s',
-                    };
+                    switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT)) {
+                        case 'space_parent':
+                        case 'space':
+                            $format = '%s %s';
+                            break;
+                        case 'brackets_parent':
+                        case 'brackets':
+                            $format = '%s (%s)';
+                            break;
+                        default:
+                            $format = '%s';
+                            break;
+                    }
 
                     $orderItem->setName(\sprintf(
                         $format,
