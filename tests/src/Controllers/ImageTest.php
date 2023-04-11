@@ -12,7 +12,7 @@ use ReflectionException;
 
 class ImageTest extends TestCase
 {
-    protected \phpmock\Mock $getLocale;
+    protected $getLocale;
 
     /**
      * @return void
