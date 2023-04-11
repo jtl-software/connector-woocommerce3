@@ -103,7 +103,7 @@ final class SupportedPlugins
         $activePlugins = [];
 
         foreach ($plugins as $key => $plugin) {
-            if (\is_plugin_active($key)) {
+            if (is_plugin_active($key)) {
                 $activePlugins[] = $plugins[$key];
             }
         }

@@ -32,7 +32,7 @@ final class Util extends WordpressUtils
     public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
     public const TO_SYNC_MOD   = 100;
 
-    private mixed $locale;
+    private $locale;
     private array $namespaceMapping;
 
     /**
