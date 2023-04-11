@@ -46,14 +46,13 @@ class ProductAttr extends BaseController
      * @param $pushedAttributes
      * @param $attributesFilteredVariationsAndSpecifics
      * @param ProductModel $product
-     * @return mixed
      */
     public function pushData(
         $productId,
         $pushedAttributes,
         $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
-    ): mixed {
+    ) {
         //FUNCTION ATTRIBUTES BY JTL
         $virtual        = false;
         $downloadable   = false;

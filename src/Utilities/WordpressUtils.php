@@ -15,9 +15,8 @@ abstract class WordpressUtils extends Singleton
      * @param $metaKey
      * @param $metaValue
      * @param string $prevValue
-     * @return bool|int
      */
-    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = ''): bool|int
+    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = '')
     {
         return \update_post_meta($postId, $metaKey, $metaValue, $prevValue);
     }
@@ -26,9 +25,8 @@ abstract class WordpressUtils extends Singleton
      * @param $postId
      * @param string $metaKey
      * @param bool $single
-     * @return mixed
      */
-    public function getPostMeta($postId, string $metaKey = '', bool $single = false): mixed
+    public function getPostMeta($postId, string $metaKey = '', bool $single = false)
     {
         return \get_post_meta($postId, $metaKey, $single);
     }

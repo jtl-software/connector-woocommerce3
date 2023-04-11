@@ -231,7 +231,7 @@ class ProductVariation extends BaseController
                             $options
                         );
                     } else {
-                        $options[] = $termId;
+                        $options[]                                       = $termId;
                         $attributesFilteredVariationSpecifics[$taxonomy] = [
                             'name' => $taxonomy,
                             'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),

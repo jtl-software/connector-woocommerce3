@@ -47,9 +47,8 @@ final class Id
 
     /**
      * @param $endpoint
-     * @return array|string
      */
-    public static function unlinkProductImage($endpoint): array|string
+    public static function unlinkProductImage($endpoint)
     {
         if (\strstr($endpoint, self::PRODUCT_PREFIX . self::SEPARATOR)) {
             $parts = self::unlink($endpoint);
@@ -74,9 +73,8 @@ final class Id
 
     /**
      * @param $endpoint
-     * @return mixed|string
      */
-    public static function unlinkCategoryImage($endpoint): mixed
+    public static function unlinkCategoryImage($endpoint)
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -96,9 +94,8 @@ final class Id
 
     /**
      * @param $endpoint
-     * @return mixed|string
      */
-    public static function unlinkManufacturerImage($endpoint): mixed
+    public static function unlinkManufacturerImage($endpoint)
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];

@@ -40,9 +40,8 @@ class HandleStatsEvent extends Event
 
     /**
      * @param $result
-     * @return $this
      */
-    public function setResult($result): static
+    public function setResult($result)
     {
         $this->result = $result;
         return $this;

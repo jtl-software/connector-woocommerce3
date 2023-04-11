@@ -33,11 +33,10 @@ class Language
 
     /**
      * @param $locale
-     * @return false|mixed|string
      * @throws LanguageException
      * @throws \InvalidArgumentException
      */
-    protected function nameGerman($locale): mixed
+    protected function nameGerman($locale)
     {
         if (\function_exists('locale_get_display_language')) {
             return \locale_get_display_language($locale, 'de');
@@ -51,11 +50,10 @@ class Language
 
     /**
      * @param $locale
-     * @return false|mixed|string
      * @throws LanguageException
      * @throws \InvalidArgumentException
      */
-    protected function nameEnglish($locale): mixed
+    protected function nameEnglish($locale)
     {
         if (\function_exists('locale_get_display_language')) {
             return \locale_get_display_language($locale, 'en');

@@ -215,10 +215,7 @@ class Manufacturer extends BaseController
         return $manufacturer;
     }
 
-    /**
-     * @return int|string|null
-     */
-    protected function getStats(): int|string|null
+    protected function getStats()
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             return $this->database->queryOne(SqlHelper::manufacturerStats());

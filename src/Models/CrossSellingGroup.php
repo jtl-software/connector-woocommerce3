@@ -46,10 +46,9 @@ class CrossSellingGroup
 
     /**
      * @param $name
-     * @return bool|\jtl\Connector\Model\CrossSellingGroup
      * @throws \InvalidArgumentException
      */
-    public static function getByWooCommerceName($name): \jtl\Connector\Model\CrossSellingGroup|bool
+    public static function getByWooCommerceName($name)
     {
         $key = self::findKeyByColumn('woo_commerce_name', $name);
 
@@ -84,9 +83,8 @@ class CrossSellingGroup
     /**
      * @param $columnName
      * @param $value
-     * @return false|int|string
      */
-    protected static function findKeyByColumn($columnName, $value): bool|int|string
+    protected static function findKeyByColumn($columnName, $value)
     {
         return \array_search($value, \array_column(self::$groups, $columnName));
     }

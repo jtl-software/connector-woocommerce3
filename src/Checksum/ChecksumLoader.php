@@ -37,9 +37,8 @@ class ChecksumLoader implements IChecksumLoader
      * @param $endpointId
      * @param $type
      * @param $checksum
-     * @return bool|array|null
      */
-    public function write($endpointId, $type, $checksum): bool|array|null
+    public function write($endpointId, $type, $checksum)
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
             return false;
@@ -55,9 +54,8 @@ class ChecksumLoader implements IChecksumLoader
     /**
      * @param $endpointId
      * @param $type
-     * @return bool|array|null
      */
-    public function delete($endpointId, $type): bool|array|null
+    public function delete($endpointId, $type)
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
             return false;

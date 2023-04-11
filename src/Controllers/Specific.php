@@ -262,10 +262,9 @@ class Specific extends BaseController
 
     /**
      * @param SpecificModel $specific
-     * @return WC_Product_Attribute|SpecificModel
      * @throws \Exception
      */
-    protected function deleteData(SpecificModel $specific): WC_Product_Attribute|SpecificModel
+    protected function deleteData(SpecificModel $specific)
     {
         $specificId = (int)$specific->getId()->getEndpoint();
 

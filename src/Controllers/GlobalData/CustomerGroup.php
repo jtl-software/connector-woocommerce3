@@ -96,10 +96,8 @@ class CustomerGroup
 
     /**
      * @param $customerId
-     *
-     * @return bool|string
      */
-    public function getSlugById($customerId): bool|string
+    public function getSlugById($customerId)
     {
         $group = \get_post((int)$customerId);
         if ($group instanceof \WP_Post) {
