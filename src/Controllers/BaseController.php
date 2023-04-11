@@ -154,9 +154,8 @@ abstract class BaseController extends Controller
      * @param $postId
      * @param $metaKey
      * @param $value
-     * @return mixed
      */
-    protected function updatePostMeta($postId, $metaKey, $value): mixed
+    protected function updatePostMeta($postId, $metaKey, $value)
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }
@@ -165,9 +164,8 @@ abstract class BaseController extends Controller
      * @param $postId
      * @param $metaKey
      * @param $value
-     * @return mixed
      */
-    protected function addPostMeta($postId, $metaKey, $value): mixed
+    protected function addPostMeta($postId, $metaKey, $value)
     {
         return \add_post_meta($postId, $metaKey, $value, true);
     }
@@ -177,14 +175,14 @@ abstract class BaseController extends Controller
      * @param $terms
      * @param $taxonomy
      * @param bool $append
-     * @return array|bool|int|int[]|string|string[]|\WP_Error|null
+
      */
     protected function wpSetObjectTerms(
         $objectId,
         $terms,
         $taxonomy,
         bool $append = false
-    ): array|\WP_Error|int|bool|string|null {
+    ): mixed {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 
@@ -192,9 +190,8 @@ abstract class BaseController extends Controller
      * @param $objectId
      * @param $terms
      * @param $taxonomy
-     * @return bool|int|string|string[]|\WP_Error|null
      */
-    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy): array|\WP_Error|bool|int|string|null
+    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy)
     {
         return \wp_remove_object_terms($objectId, $terms, $taxonomy);
     }
@@ -217,7 +214,6 @@ abstract class BaseController extends Controller
      * @param string $taxonomy
      * @param string $output
      * @param string $filter
-     * @return array|false|\WP_Error|\WP_Term|null
      */
     protected function getTermBy(
         $field,
@@ -225,15 +221,14 @@ abstract class BaseController extends Controller
         string $taxonomy = '',
         string $output = \OBJECT,
         string $filter = 'raw'
-    ): \WP_Term|\WP_Error|bool|array|null {
+    ) {
         return \get_term_by($field, $value, $taxonomy, $output = \OBJECT, $filter = 'raw');
     }
 
     /**
      * @param $variable
-     * @return array|string
      */
-    protected function wcClean($variable): array|string
+    protected function wcClean($variable)
     {
         return \wc_clean($variable);
     }
@@ -250,10 +245,9 @@ abstract class BaseController extends Controller
 
     /**
      * @param $postData
-     * @return int|\WP_Error
      * @throws \Exception
      */
-    protected function wpUpdatePost($postData): \WP_Error|int
+    protected function wpUpdatePost($postData)
     {
         return \wp_update_post($postData);
     }

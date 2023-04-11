@@ -148,9 +148,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
      * @param $endpointId
      * @param $hostId
      * @param $type
-     * @return bool|array|null
      */
-    public function delete($endpointId, $hostId, $type): bool|array|null
+    public function delete($endpointId, $hostId, $type)
     {
         $where     = '';
         $tableName = self::getTableName($type);
