@@ -529,9 +529,9 @@ final class Util extends WordpressUtils
     }
 
     /**
-     * @return Singleton|$this
+     * @return Singleton
      */
-    public static function getInstance(): Singleton|static
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }

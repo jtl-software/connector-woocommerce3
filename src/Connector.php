@@ -157,9 +157,9 @@ class Connector extends BaseConnector
 
     /**
      * @param CoreController $controller
-     * @return $this
+     * @return Connector
      */
-    public function setController(CoreController $controller): static
+    public function setController(CoreController $controller): Connector
     {
         $this->controller = $controller;
 
@@ -176,9 +176,9 @@ class Connector extends BaseConnector
 
     /**
      * @param $action
-     * @return $this
+     * @return Connector
      */
-    public function setAction($action): static
+    public function setAction($action): Connector
     {
         $this->action = $action;
 

@@ -243,7 +243,6 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return 'jtl_connector_link_specific_value';
             case IdentityLinker::TYPE_TAX_CLASS:
                 return 'jtl_connector_link_tax_class';
-
         }
 
         return null;
