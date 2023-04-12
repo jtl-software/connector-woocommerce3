@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -18,15 +19,16 @@ trait CrossSellingTrait
      * @param null $limit
      * @return string
      */
-    public static function crossSellingPull($limit = null)
+    public static function crossSellingPull($limit = null): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_crossselling';
-        $limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
+        $jclc       = $wpdb->prefix . 'jtl_connector_link_crossselling';
+        $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
 
-        $select = 'SELECT pm.post_id, GROUP_CONCAT(pm.meta_value SEPARATOR "||") AS meta_value, GROUP_CONCAT(pm.meta_key SEPARATOR "||") AS meta_key';
+        $select = 'SELECT pm.post_id, GROUP_CONCAT(pm.meta_value SEPARATOR "||") 
+        AS meta_value, GROUP_CONCAT(pm.meta_key SEPARATOR "||") AS meta_key';
         if ($limit === null) {
-            $select = 'SELECT COUNT(DISTINCT pm.post_id) as total';
+            $select     = 'SELECT COUNT(DISTINCT pm.post_id) as total';
             $limitQuery = 'LIMIT 1';
         }
 

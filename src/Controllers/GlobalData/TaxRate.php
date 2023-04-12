@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -13,23 +14,26 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 class TaxRate
 {
-    public function pullData()
+    /**
+     * @return array<TaxRateModel>
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(): array
     {
-        $return = [];
+        $return      = [];
         $uniqueRates = [];
 
         $result = Db::getInstance()->query(SqlHelper::taxRatePull());
 
         foreach ($result as $row) {
+            $taxRate = (float)\round($row['tax_rate'], 4);
 
-            $taxRate = (float)round($row['tax_rate'], 4);
-
-            if (in_array($taxRate, $uniqueRates)) {
+            if (\in_array($taxRate, $uniqueRates)) {
                 continue;
             }
             $uniqueRates[] = $taxRate;
 
-            $return[] = (new TaxRateModel)
+            $return[] = (new TaxRateModel())
                 ->setId(new Identity($row['tax_rate_id']))
                 ->setRate($taxRate);
         }

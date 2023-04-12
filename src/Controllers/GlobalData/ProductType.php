@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -11,7 +12,11 @@ use jtl\Connector\Model\ProductType as ProductTypeModel;
 
 class ProductType
 {
-    public function pullData()
+    /**
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(): array
     {
         $productTypes = [];
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -14,7 +15,12 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 class ChecksumLoader implements IChecksumLoader
 {
-    public function read($endpointId, $type)
+    /**
+     * @param $endpointId
+     * @param $type
+     * @return string
+     */
+    public function read($endpointId, $type): string
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
             return '';
@@ -24,9 +30,14 @@ class ChecksumLoader implements IChecksumLoader
 
         ChecksumLogger::getInstance()->readAction($endpointId, $type, $checksum);
 
-        return is_null($checksum) ? '' : $checksum;
+        return \is_null($checksum) ? '' : $checksum;
     }
 
+    /**
+     * @param $endpointId
+     * @param $type
+     * @param $checksum
+     */
     public function write($endpointId, $type, $checksum)
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
@@ -40,6 +51,10 @@ class ChecksumLoader implements IChecksumLoader
         return $statement;
     }
 
+    /**
+     * @param $endpointId
+     * @param $type
+     */
     public function delete($endpointId, $type)
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {

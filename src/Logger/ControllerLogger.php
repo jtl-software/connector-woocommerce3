@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -7,6 +8,7 @@
 namespace JtlWooCommerceConnector\Logger;
 
 use jtl\Connector\Core\Logger\Logger;
+use Monolog\Logger as LoggerAlias;
 
 /**
  * Class ControllerLogger has to be used by controllers.
@@ -15,12 +17,18 @@ use jtl\Connector\Core\Logger\Logger;
  */
 class ControllerLogger extends WooCommerceLogger
 {
-    protected function getLevel()
+    /**
+     * @return int
+     */
+    protected function getLevel(): int
     {
-        return Logger::WARNING;
+        return LoggerAlias::WARNING;
     }
 
-    protected function getFilename()
+    /**
+     * @return string
+     */
+    protected function getFilename(): string
     {
         return 'controller';
     }

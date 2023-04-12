@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -6,6 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Exception;
+use InvalidArgumentException;
 use jtl\Connector\Model\ProductPrice as JtlProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\Product;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -14,16 +17,17 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
 {
     /**
      * @param JtlProductPrice $productPrice
-     *
      * @return JtlProductPrice
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
-    public function pushData(JtlProductPrice $productPrice)
+    public function pushData(JtlProductPrice $productPrice): JtlProductPrice
     {
         $wcProduct = \wc_get_product($productPrice->getProductId()->getEndpoint());
 
         if ($wcProduct !== false) {
             $vat = $productPrice->getVat();
-            if (is_null($vat)) {
+            if (\is_null($vat)) {
                 $vat = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
             }
 
@@ -66,5 +70,4 @@ class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductP
 
         return $type;
     }
-
 }
