@@ -31,7 +31,7 @@ class Image extends BaseController
     public const GALLERY_KEY        = '_product_image_gallery';
     public const MANUFACTURER_KEY   = 'pwb_brand_image';
 
-    private array $alreadyLinked = [];
+    private $alreadyLinked = [];
 
     // <editor-fold defaultstate="collapsed" desc="Pull">
 

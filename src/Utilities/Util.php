@@ -33,7 +33,7 @@ final class Util extends WordpressUtils
     public const TO_SYNC_MOD   = 100;
 
     private $locale;
-    private array $namespaceMapping;
+    private $namespaceMapping;
 
     /**
      * @throws InvalidArgumentException

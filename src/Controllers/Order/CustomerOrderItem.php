@@ -21,7 +21,7 @@ class CustomerOrderItem extends BaseController
     public const PRICE_DECIMALS = 4;
 
     /** @var array $taxRateCache Map tax rate id to tax rate */
-    protected static array $taxRateCache = [];
+    protected static $taxRateCache = [];
     /** @var array $taxClassRateCache Map tax class to tax rate */
     protected static array $taxClassRateCache = [];
 
