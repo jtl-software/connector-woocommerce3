@@ -29,7 +29,7 @@ abstract class BaseController extends Controller
     /**
      * @var string
      */
-    protected string $controllerName;
+    protected $controllerName;
 
     /**
      * BaseController constructor.
