@@ -192,11 +192,7 @@ class ProductAttr extends BaseController
                     if (($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR) && Util::isTrue($i18n->getValue())) {
                         $this->updatePostMeta($productId, '_visibility', 'catalog');
 
-                        $this->wpSetObjectTerms(
-                            $productId,
-                            ['exclude-from-search'],
-                            'product_visibility',
-                        );
+                        $this->wpSetObjectTerms($productId, ['exclude-from-search'], 'product_visibility', true);
                         $nosearch = true;
                     }
 

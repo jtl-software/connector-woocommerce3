@@ -25,7 +25,7 @@ abstract class BaseController extends Controller
     /**
      * @var Db
      */
-    protected Db $database;
+    protected $database;
     /**
      * @var string
      */

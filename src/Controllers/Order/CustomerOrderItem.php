@@ -23,7 +23,7 @@ class CustomerOrderItem extends BaseController
     /** @var array $taxRateCache Map tax rate id to tax rate */
     protected static $taxRateCache = [];
     /** @var array $taxClassRateCache Map tax class to tax rate */
-    protected static array $taxClassRateCache = [];
+    protected static $taxClassRateCache = [];
 
     /**
      * @param \WC_Order $order
