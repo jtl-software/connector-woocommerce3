@@ -12,7 +12,7 @@ class UtilTest extends TestCase
     /**
      * @var array
      */
-    protected array $mockedFunctions = [];
+    protected $mockedFunctions = [];
 
     /**
      * @dataProvider bulkPricesProvider
@@ -45,7 +45,7 @@ class UtilTest extends TestCase
     /**
      * @return array
      */
-    public function bulkPricesProvider(): array
+    public function bulkPricesProvider()
     {
         return [
             [
@@ -143,7 +143,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @return void
+     *
      */
     protected function tearDown(): void
     {
@@ -156,11 +156,9 @@ class UtilTest extends TestCase
 
     /**
      * @param $enabledPlugins
-     * @return void
-     * @throws \InvalidArgumentException
      * @throws \phpmock\MockEnabledException
      */
-    protected function enablePlugins($enabledPlugins): void
+    protected function enablePlugins($enabledPlugins)
     {
         $builder    = new MockBuilder();
         $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
