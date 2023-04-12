@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -76,6 +75,8 @@ class CustomerOrderItem extends BaseController
     }
 
     /**
+     * Add the positions for products. Not that complicated.
+     *
      * @param \WC_Order $order
      * @param $customerOrderItems
      * @return void
@@ -185,6 +186,8 @@ class CustomerOrderItem extends BaseController
     }
 
     /**
+     * Create an order item with the basic non price relevant information.
+     *
      * @param \WC_Order_Item_Shipping $shippingItem
      * @param \WC_Order $order
      * @param $taxRateId
@@ -223,6 +226,8 @@ class CustomerOrderItem extends BaseController
     }
 
     /**
+     * Create an order item with the basic non price relevant information.
+     *
      * @param \WC_Order_Item_Fee $feeItem
      * @param \WC_Order $order
      * @param $taxRateId
@@ -305,7 +310,7 @@ class CustomerOrderItem extends BaseController
                         $factor = $productTotalByVatWithoutZero[$taxRate] / $totalProductItemsWithoutZero;
                     }
                     $netPrice   = ($costs * $factor);
-                    $priceGross = $netPrice + $taxAmount;
+                    $priceGross = $netPrice + (float) $taxAmount;
 
                     $customerOrderItem
                         ->setPrice(\round($netPrice, Util::getPriceDecimals()))
