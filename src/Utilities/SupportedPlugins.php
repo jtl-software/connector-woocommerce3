@@ -99,11 +99,11 @@ final class SupportedPlugins
      */
     public static function getInstalledAndActivated(): array
     {
-        $plugins       = \get_plugins();
+        $plugins       = get_plugins(); //phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions
         $activePlugins = [];
 
         foreach ($plugins as $key => $plugin) {
-            if (\is_plugin_active($key)) {
+            if (is_plugin_active($key)) { //phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions
                 $activePlugins[] = $plugins[$key];
             }
         }
