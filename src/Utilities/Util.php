@@ -41,7 +41,7 @@ final class Util extends WordpressUtils
     public function __construct()
     {
         parent::__construct();
-        $this->locale = $this->mapLanguageIso(get_locale());
+        $this->locale = $this->mapLanguageIso(\get_locale());
 
         $this->namespaceMapping = [
             'CustomerOrder' => 'Order\\',

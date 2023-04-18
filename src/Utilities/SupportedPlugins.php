@@ -99,11 +99,11 @@ final class SupportedPlugins
      */
     public static function getInstalledAndActivated(): array
     {
-        $plugins       = get_plugins();
+        $plugins       = \get_plugins();
         $activePlugins = [];
 
         foreach ($plugins as $key => $plugin) {
-            if (is_plugin_active($key)) {
+            if (\is_plugin_active($key)) {
                 $activePlugins[] = $plugins[$key];
             }
         }

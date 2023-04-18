@@ -1,4 +1,4 @@
-<?php
+<?php //phpcs:ignore PSR1.Files.SideEffects.FoundWithSymbols
 
 /**
  * Plugin Name: WooCommerce JTL-Connector
@@ -13,7 +13,7 @@
  * Requires at least WooCommerce: 3.4.7
  * Text Domain: woo-jtl-connector
  *
- * @author Jan Weskamp <jan.weskamp@jtl-software.com>
+ * @author JTL-Software-GmbH <info@jtl-software.com>
  */
 
 define('JTLWCC_TEXT_DOMAIN', 'woo-jtl-connector');
@@ -342,7 +342,11 @@ function jtlwcc_rewriting_not_activated()
 
 function jtlwcc_show_wordpress_error($message, $show_install_link = false)
 {
-    $link = $show_install_link ? '<a class="" href="' . admin_url("plugin-install.php?tab=search&s=" . urlencode("WooCommerce")) . '">WooCommerce</a>' : '';
+    $link = $show_install_link
+        ? '<a class="" href="' .
+          admin_url("plugin-install.php?tab=search&s=" .
+                    urlencode("WooCommerce")) . '">WooCommerce</a>'
+        : '';
 
     echo "<div class='error'><h3>JTL-Connector</h3><p>$message</p><p>$link</p></div>";
 }
