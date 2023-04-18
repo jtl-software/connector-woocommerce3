@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-final class JtlConnector
+final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
-    protected static $_instance = null;
+    protected static $_instance = null; //phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
 
     /**
      * @return JtlConnector|null
@@ -22,7 +18,7 @@ final class JtlConnector
     /**
      * @return void
      */
-    public static function capture_request(): void //phpcs:ignore
+    public static function capture_request(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $wp;
 
@@ -48,7 +44,7 @@ final class JtlConnector
     /**
      * @return void
      */
-    private static function unslash_gpc(): void //phpcs:ignore
+    private static function unslash_gpc(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $_GET     = array_map('stripslashes_deep', $_GET);
         $_POST    = array_map('stripslashes_deep', $_POST);
