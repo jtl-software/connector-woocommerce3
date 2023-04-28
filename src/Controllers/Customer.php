@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -19,15 +20,26 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class Customer extends BaseController
 {
-    public function pullData($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullData($limit): array
     {
         $customers = $this->pullCustomers($limit);
-        $guests = $this->pullGuests($limit - count($customers));
+        $guests    = $this->pullGuests($limit - \count($customers));
 
-        return array_merge($customers, $guests);
+        return \array_merge($customers, $guests);
     }
 
-    protected function pullCustomers($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \Exception
+     */
+    protected function pullCustomers($limit): array
     {
         $customers = [];
 
@@ -36,7 +48,7 @@ class Customer extends BaseController
         foreach ($customerIds as $customerId) {
             $wcCustomer = new \WC_Customer($customerId);
 
-            $customer = (new CustomerModel)
+            $customer = (new CustomerModel())
                 ->setId(new Identity($customerId))
                 ->setCustomerNumber($customerId)
                 ->setCompany($wcCustomer->get_billing_company())
@@ -75,9 +87,11 @@ class Customer extends BaseController
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            if (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+            ) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
@@ -90,7 +104,13 @@ class Customer extends BaseController
         return $customers;
     }
 
-    private function pullGuests($limit)
+    /**
+     * @param $limit
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \Exception
+     */
+    private function pullGuests($limit): array
     {
         $customers = [];
 
@@ -99,7 +119,7 @@ class Customer extends BaseController
         foreach ($guests as $guest) {
             $order = new \WC_Order((Id::unlink($guest)[1]));
 
-            $customer = (new CustomerModel)
+            $customer = (new CustomerModel())
                 ->setId(new Identity(Id::link([
                     Id::GUEST_PREFIX,
                     $order->get_id(),
@@ -125,9 +145,11 @@ class Customer extends BaseController
                 ->setHasCustomerAccount(false)
                 ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            if (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+            ) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
                 $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
             }
@@ -138,7 +160,11 @@ class Customer extends BaseController
         return $customers;
     }
 
-    public function pushData(CustomerModel $customer)
+    /**
+     * @param CustomerModel $customer
+     * @return CustomerModel
+     */
+    public function pushData(CustomerModel $customer): CustomerModel
     {
         // Only registered customers data can be updated
         if (!$customer->getHasCustomerAccount()) {
@@ -164,9 +190,8 @@ class Customer extends BaseController
             $wcCustomer->save();
 
             if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
-                wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
+                \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
             }
-
         } catch (\Exception $exception) {
             WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
         }
@@ -181,9 +206,9 @@ class Customer extends BaseController
     protected function getWpCustomerRole($customerGroupId): ?\WP_Role
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $customerGroups = get_posts(['post_type' => 'customer_groups', 'numberposts' => -1]);
+            $customerGroups = \get_posts(['post_type' => 'customer_groups', 'numberposts' => -1]);
             foreach ($customerGroups as $customerGroup) {
-                $role = get_role($customerGroup->post_name);
+                $role = \get_role($customerGroup->post_name);
                 if ($role instanceof \WP_Role && (int)$customerGroupId === $customerGroup->ID) {
                     return $role;
                 }
@@ -193,9 +218,12 @@ class Customer extends BaseController
         return null;
     }
 
-    public function getStats()
+    /**
+     * @return int
+     */
+    public function getStats(): int
     {
-        $customers = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
+        $customers  = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
         $customers += (int)$this->database->queryOne(SqlHelper::guestNotLinked(null));
 
         return $customers;
@@ -212,7 +240,7 @@ class Customer extends BaseController
             $customerGroupIdentity = new Identity();
 
             $customerGroupName = $wcCustomer->get_role();
-            if (!empty($customerGroupName) && is_string($customerGroupName)) {
+            if (!empty($customerGroupName) && \is_string($customerGroupName)) {
                 $groups = $this->getB2BMarketCustomerGroups();
                 foreach ($groups as $id => $groupName) {
                     if ($customerGroupName === $groupName) {
@@ -236,7 +264,7 @@ class Customer extends BaseController
             $customerGroupIdentity = new Identity();
 
             $defaultCustomerGroupId = (int)Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
-            $groups = $this->getB2BMarketCustomerGroups();
+            $groups                 = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
                 if ($defaultCustomerGroupId === $id) {
                     $customerGroupIdentity->setEndpoint($id);
@@ -258,8 +286,8 @@ class Customer extends BaseController
             $bmUser = new \BM_User();
             $groups = $bmUser->get_all_customer_groups();
             foreach ($groups as $group) {
-                $id = end($group);
-                $name = key($group);
+                $id   = \end($group);
+                $name = \key($group);
 
                 $customerGroups[$id] = $name;
             }

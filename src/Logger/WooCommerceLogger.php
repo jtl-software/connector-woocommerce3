@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -13,7 +14,11 @@ abstract class WooCommerceLogger extends Singleton
 {
     public function writeLog($message)
     {
-        return Logger::write(trim(preg_replace('/\s+/', ' ', $message)), $this->getLevel(), $this->getFilename());
+        return Logger::write(
+            \trim(\preg_replace('/\s+/', ' ', $message)),
+            $this->getLevel(),
+            $this->getFilename()
+        );
     }
 
     abstract protected function getLevel();

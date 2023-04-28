@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -6,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Model\MeasurementUnitI18n;
@@ -16,12 +18,16 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class MeasurementUnit
 {
-    public function pullGermanizedData()
+    /**
+     * @return array<int|DataModel>
+     * @throws \InvalidArgumentException
+     */
+    public function pullGermanizedData(): array
     {
         $measurementUnits = [];
-        
+
         $result = Db::getInstance()->query(SqlHelper::globalDataGermanizedMeasurementUnitPull());
-        
+
         foreach ((array)$result as $row) {
             $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($row['id']))
@@ -34,28 +40,32 @@ class MeasurementUnit
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()),
                 ]);
         }
-        
+
         return $measurementUnits;
     }
-    
-    public function pullGermanMarketData()
+
+    /**
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function pullGermanMarketData(): array
     {
         $measurementUnits = [];
-       
-        $sql = SqlHelper::globalDataGMMUPullSpecific();
+
+        $sql      = SqlHelper::globalDataGMMUPullSpecific();
         $specific = Db::getInstance()->query($sql);
-        
-        if (count($specific) <= 0) {
+
+        if (\count($specific) <= 0) {
             return $measurementUnits;
         }
-        
+
         $specific = $specific[0];
-        
-        $values = Db::getInstance()->query(SqlHelper::specificValuePull(sprintf(
+
+        $values = Db::getInstance()->query(SqlHelper::specificValuePull(\sprintf(
             'pa_%s',
             $specific['attribute_name']
         )));
-        
+
         foreach ($values as $unit) {
             $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($unit['term_id']))
@@ -68,8 +78,7 @@ class MeasurementUnit
                         ->setLanguageISO(Util::getInstance()->getWooCommerceLanguage()),
                 ]);
         }
-        
+
         return $measurementUnits;
     }
-    
 }

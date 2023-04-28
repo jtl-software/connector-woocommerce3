@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -8,16 +9,20 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+trait ProductTrait
+{
+    /**
+     * @param $limit
+     * @return string
+     */
+    public static function productPull($limit = null): string
+    {
+        global $wpdb;
+        $jclp = $wpdb->prefix . 'jtl_connector_link_product';
 
-trait ProductTrait {
-	public static function productPull($limit = null)
-	{
-		global $wpdb;
-		$jclp = $wpdb->prefix . 'jtl_connector_link_product';
-		
-		$limitQuery = is_null($limit) ? '' : 'LIMIT ' . $limit;
-		
-		return "
+        $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
+
+        return "
             SELECT p.ID
             FROM {$wpdb->posts} p
             LEFT JOIN {$jclp} l ON p.ID = l.endpoint_id
@@ -41,17 +46,23 @@ trait ProductTrait {
             GROUP BY p.ID
             ORDER BY p.post_type
             {$limitQuery}";
-	}
-	
-	public static function productVariationObsoletes($id, $updatedAttributeKeys)
-	{
-		global $wpdb;
-		
-		return sprintf("
+    }
+
+    /**
+     * @param $id
+     * @param $updatedAttributeKeys
+     * @return string
+     */
+    public static function productVariationObsoletes($id, $updatedAttributeKeys): string
+    {
+        global $wpdb;
+
+        return \sprintf(
+            "
             SELECT meta_key
             FROM {$wpdb->postmeta}
             WHERE meta_key LIKE 'attribute_%%' AND meta_key NOT IN ('%s') AND post_id = {$id}",
-			implode("','", $updatedAttributeKeys)
-		);
-	}
+            \implode("','", $updatedAttributeKeys)
+        );
+    }
 }

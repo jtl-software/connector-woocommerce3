@@ -29,6 +29,10 @@ class CustomerOrderAddress extends BaseController
      */
     public function createCustomerId(\WC_Order $order): Identity
     {
-        return new Identity($order->get_customer_id() !== 0 ? $order->get_customer_id() : Id::link([Id::GUEST_PREFIX, $order->get_id()]));
+        return new Identity(
+            $order->get_customer_id() !== 0
+                ? $order->get_customer_id()
+                : Id::link([Id::GUEST_PREFIX, $order->get_id()])
+        );
     }
 }
