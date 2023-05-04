@@ -47,18 +47,16 @@ final class Germanized extends Singleton
 
     /**
      * @param $index
-     * @return mixed|string
      */
-    public function parseIndexToSalutation($index): mixed
+    public function parseIndexToSalutation($index)
     {
         return isset($this->salutations[(int)$index]) ? $this->salutations[$index] : '';
     }
 
     /**
      * @param $code
-     * @return mixed|string
      */
-    public function parseUnit($code): mixed
+    public function parseUnit($code)
     {
         return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
     }
@@ -89,7 +87,6 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
-     * @return bool|mixed|void
      */
     public function getUnit($wcProduct)
     {
@@ -103,7 +100,6 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
-     * @return bool|mixed|void
      */
     public function getUnitProduct($wcProduct)
     {
@@ -117,7 +113,6 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
-     * @return bool|mixed|void
      */
     public function getUnitBase($wcProduct)
     {

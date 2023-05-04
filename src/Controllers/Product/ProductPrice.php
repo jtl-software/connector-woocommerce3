@@ -173,7 +173,6 @@ class ProductPrice extends BaseController
      * @param $groupSlug
      * @param \WC_Product $product
      * @param ProductModel $model
-     * @return mixed
      * @throws \InvalidArgumentException
      */
     private function getBulkPrices(
@@ -182,7 +181,7 @@ class ProductPrice extends BaseController
         $groupSlug,
         \WC_Product $product,
         ProductModel $model
-    ): mixed {
+    ) {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();

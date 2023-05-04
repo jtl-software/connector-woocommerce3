@@ -160,9 +160,8 @@ final class Util extends WordpressUtils
      * @param $price
      * @param $pd
      *
-     * @return mixed
      */
-    public static function getNetPriceCutted($price, $pd): mixed
+    public static function getNetPriceCutted($price, $pd)
     {
         $position = \strrpos((string) $price, '.');
 

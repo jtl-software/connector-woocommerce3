@@ -26,7 +26,7 @@ class CrossSelling extends BaseController
 
     /**
      * @param $limit
-     * @return array<mixed|DataModel>
+     * @return array
      * @throws \InvalidArgumentException
      */
     protected function pullData($limit): array
@@ -77,7 +77,7 @@ class CrossSelling extends BaseController
     }
 
     /**
-     * @param array<string|mixed> $result
+     * @param array $result
      * @return array
      */
     protected function formatResults(array $result): array

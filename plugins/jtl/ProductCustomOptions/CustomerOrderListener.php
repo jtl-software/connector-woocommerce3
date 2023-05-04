@@ -14,7 +14,7 @@ class CustomerOrderListener
     /**
      * @var array
      */
-    protected mixed $customFieldNames = [];
+    protected $customFieldNames = [];
 
     /**
      * @var \wpdb

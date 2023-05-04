@@ -115,10 +115,8 @@ final class SupportedPlugins
      * Returns all supported active and validated plugins
      *
      * @param bool $asString
-     *
-     * @return mixed
      */
-    public static function getSupported(bool $asString = false): mixed
+    public static function getSupported(bool $asString = false)
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
@@ -141,13 +139,13 @@ final class SupportedPlugins
      * @param bool $asString
      * @param bool $all
      * @param bool $asArray
-     * @return mixed
+     * @return array
      */
     public static function getNotSupportedButActive(
         bool $asString = false,
         bool $all = false,
         bool $asArray = false
-    ): mixed {
+    ) {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
         $tmp     = [];
