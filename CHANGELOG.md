@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2268 - fixed manufacturer rank math meta fields
+- CO-2348 - fix cost splitting for shipping
 
 ## 1.39.6 _2023-04-11_
 - CO-2316 - cast string to float for tax calculation
