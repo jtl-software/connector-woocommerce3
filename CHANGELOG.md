@@ -3,10 +3,14 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- CO-2268 - fixed manufacturer rank math meta fields
-- CO-2346 - fixed next available inflow date
+
+## 1.39.7 _2023-05-09_
+- CO-2210 - fix customer import if db prefix is not wp_
 - CO-2228 - fix wrong price calculation
 - CO-2230 - fix B2B-Market customer group visibility
+- CO-2268 - fixed manufacturer rank math meta fields
+- CO-2297 - fix perfect brands plugin name
+- CO-2346 - fixed next available inflow date
 
 ## 1.39.6 _2023-04-11_
 - CO-2316 - cast string to float for tax calculation
