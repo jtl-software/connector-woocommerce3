@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -24,22 +25,23 @@ use JtlWooCommerceConnector\Utilities\SqlTraits\SpecificTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\TaxesTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\WooCommerceDataTrait;
 
-final class SqlHelper {
-	use CategoryTrait,
-		ChecksumTrait,
-		CrossSellingTrait,
-		CustomerTrait,
-        CustomerGroupTrait,
-		CustomerOrderTrait,
-        GermanMarketTrait,
-		GermanizedDataTrait,
-		GlobalDataTrait,
-		ImageTrait,
-        ManufacturerTrait,
-		PaymentTrait,
-		PrimaryKeyMappingTrait,
-		ProductTrait,
-		SpecificTrait,
-		TaxesTrait,
-		WooCommerceDataTrait;
+final class SqlHelper
+{
+    use CategoryTrait;
+    use ChecksumTrait;
+    use CrossSellingTrait;
+    use CustomerTrait;
+    use CustomerGroupTrait;
+    use CustomerOrderTrait;
+    use GermanMarketTrait;
+    use GermanizedDataTrait;
+    use GlobalDataTrait;
+    use ImageTrait;
+    use ManufacturerTrait;
+    use PaymentTrait;
+    use PrimaryKeyMappingTrait;
+    use ProductTrait;
+    use SpecificTrait;
+    use TaxesTrait;
+    use WooCommerceDataTrait;
 }

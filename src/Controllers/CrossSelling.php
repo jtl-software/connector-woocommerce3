@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -8,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use jtl\Connector\Model\CrossSelling as CrossSellingModel;
 use jtl\Connector\Model\CrossSellingItem;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
@@ -19,28 +21,28 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
  */
 class CrossSelling extends BaseController
 {
-    const CROSSSELLING_META_KEY = '_crosssell_ids';
-    const UPSELLING_META_KEY = '_upsell_ids';
+    public const CROSSSELLING_META_KEY = '_crosssell_ids';
+    public const UPSELLING_META_KEY    = '_upsell_ids';
 
     /**
      * @param $limit
-     * @return array
+     * @return array<mixed|DataModel>
+     * @throws \InvalidArgumentException
      */
-    protected function pullData($limit)
+    protected function pullData($limit): array
     {
         $crossSelling = [];
 
-        $results = $this->database->query(SqlHelper::crossSellingPull($limit));
+        $results          = $this->database->query(SqlHelper::crossSellingPull($limit));
         $formattedResults = $this->formatResults($results);
 
         foreach ($formattedResults as $row) {
-            $type = $row['meta_key'];
-            $relatedProducts = unserialize($row['meta_value']);
+            $type            = $row['meta_key'];
+            $relatedProducts = \unserialize($row['meta_value']);
 
             $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type);
 
             if (!empty($relatedProducts)) {
-
                 if (!isset($crossSelling[$row['post_id']])) {
                     $crossSelling[$row['post_id']] = (new CrossSellingModel());
                 }
@@ -59,27 +61,31 @@ class CrossSelling extends BaseController
                         ->setCrossSellingGroupId($crossSellingGroup->getId())
                         ->setProductIds($crosssellingProducts)
                 );
-
             } else {
-                WpErrorLogger::getInstance()->logError(sprintf('CrossSelling values for product id %s are empty', $row['post_id']));
+                WpErrorLogger::getInstance()->logError(
+                    \sprintf(
+                        'CrossSelling values for product id %s are empty',
+                        $row['post_id']
+                    )
+                );
             }
 
-            reset($crossSelling);
+            \reset($crossSelling);
         }
 
         return $crossSelling;
     }
 
     /**
-     * @param array $result
+     * @param array<string|mixed> $result
      * @return array
      */
     protected function formatResults(array $result): array
     {
         $formattedResults = [];
         foreach ($result as $row) {
-            $types = explode('||', $row['meta_key']);
-            $values = explode('||', $row['meta_value']);
+            $types  = \explode('||', $row['meta_key']);
+            $values = \explode('||', $row['meta_value']);
 
             foreach ($types as $i => $type) {
                 if (empty($type) || !isset($values[$i])) {
@@ -99,7 +105,7 @@ class CrossSelling extends BaseController
      * @param CrossSellingModel $crossSelling
      * @return CrossSellingModel
      */
-    protected function pushData(CrossSellingModel $crossSelling)
+    protected function pushData(CrossSellingModel $crossSelling): CrossSellingModel
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
@@ -110,7 +116,7 @@ class CrossSelling extends BaseController
         $crossSelling->getId()->setEndpoint($crossSelling->getProductId()->getEndpoint());
 
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $upSellProducts       = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
         $this->updateMetaKey(
             $product->get_id(),
@@ -131,7 +137,7 @@ class CrossSelling extends BaseController
      * @param CrossSellingModel $crossSelling
      * @return CrossSellingModel
      */
-    protected function deleteData(CrossSellingModel $crossSelling)
+    protected function deleteData(CrossSellingModel $crossSelling): CrossSellingModel
     {
         $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
 
@@ -140,10 +146,13 @@ class CrossSelling extends BaseController
         }
 
         $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $upSellProducts       = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
 
-        $crossSellIds = !empty($crossSellingProducts) ? array_diff($product->get_cross_sell_ids(), $crossSellingProducts) : [];
-        $upSellIds = !empty($upSellProducts) ? array_diff($product->get_upsell_ids(), $upSellProducts) : [];
+        $crossSellIds =
+            !empty($crossSellingProducts)
+            ? \array_diff($product->get_cross_sell_ids(), $crossSellingProducts)
+            : [];
+        $upSellIds    = !empty($upSellProducts) ? \array_diff($product->get_upsell_ids(), $upSellProducts) : [];
 
         $this->updateMetaKey(
             $product->get_id(),
@@ -163,7 +172,7 @@ class CrossSelling extends BaseController
     /**
      * @return int
      */
-    protected function getStats()
+    protected function getStats(): int
     {
         return (int)$this->database->queryOne(SqlHelper::crossSellingPull());
     }
@@ -172,8 +181,9 @@ class CrossSelling extends BaseController
      * @param $productId
      * @param $key
      * @param $value
+     * @return void
      */
-    protected function updateMetaKey($productId, $key, $value)
+    protected function updateMetaKey($productId, $key, $value): void
     {
         \update_post_meta(
             $productId,
@@ -188,7 +198,7 @@ class CrossSelling extends BaseController
      * @param $crossSellingGroupEndpointId
      * @return array
      */
-    private function getProductIds(CrossSellingModel $crossSelling, $crossSellingGroupEndpointId)
+    private function getProductIds(CrossSellingModel $crossSelling, $crossSellingGroupEndpointId): array
     {
         $products = [];
 
@@ -200,6 +210,6 @@ class CrossSelling extends BaseController
             }
         }
 
-        return array_unique($products);
+        return \array_unique($products);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -11,19 +12,19 @@ use Symfony\Component\EventDispatcher\Event;
 
 class HandleDeleteEvent extends Event
 {
-    const EVENT_NAME = 'connector.handle.delete';
+    public const EVENT_NAME = 'connector.handle.delete';
 
     /**
      * @var Action
      */
-    protected $result;
+    protected Action $result;
     protected $controller;
     protected $entities;
 
     public function __construct($controller, $entities)
     {
         $this->controller = $controller;
-        $this->entities = $entities;
+        $this->entities   = $entities;
     }
 
     public function getController()
@@ -36,11 +37,17 @@ class HandleDeleteEvent extends Event
         return $this->entities;
     }
 
-    public function getResult()
+    /**
+     * @return Action
+     */
+    public function getResult(): Action
     {
         return $this->result;
     }
 
+    /**
+     * @param $result
+     */
     public function setResult($result)
     {
         $this->result = $result;

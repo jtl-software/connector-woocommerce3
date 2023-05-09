@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -19,7 +20,7 @@ class Db extends Singleton
      *
      * @return array|null Database query results
      */
-    public function query($query, $shouldLog = true)
+    public function query(string $query, bool $shouldLog = true): ?array
     {
         global $wpdb;
 
@@ -27,9 +28,7 @@ class Db extends Singleton
             DatabaseLogger::getInstance()->writeLog($query);
         }
 
-        $result = $wpdb->get_results($query, ARRAY_A);
-
-        return $result;
+        return $wpdb->get_results($query, \ARRAY_A);
     }
 
     /**
@@ -40,7 +39,7 @@ class Db extends Singleton
      *
      * @return null|string Found value or null.
      */
-    public function queryOne($query, $shouldLog = true)
+    public function queryOne(string $query, bool $shouldLog = true): ?string
     {
         global $wpdb;
 
@@ -59,7 +58,7 @@ class Db extends Singleton
      *
      * @return array The array of values
      */
-    public function queryList($query, $shouldLog = true)
+    public function queryList(string $query, bool $shouldLog = true): array
     {
         global $wpdb;
 
@@ -69,7 +68,7 @@ class Db extends Singleton
             DatabaseLogger::getInstance()->writeLog($query);
         }
 
-        $result = $wpdb->get_results($query, ARRAY_N);
+        $result = $wpdb->get_results($query, \ARRAY_N);
 
         if (!empty($result)) {
             foreach ($result as $row) {
@@ -81,23 +80,29 @@ class Db extends Singleton
 
         return $return;
     }
-    
-    public static function checkIfFKExists($table, $constraint){
-        $sql = "
+
+    /**
+     * @param $table
+     * @param $constraint
+     * @return bool
+     */
+    public static function checkIfFKExists($table, $constraint): bool
+    {
+        $sql  = "
                SELECT COUNT(*)
                   FROM information_schema.TABLE_CONSTRAINTS
                   WHERE TABLE_SCHEMA = DATABASE()
                     AND TABLE_NAME = '{$table}'
                     AND CONSTRAINT_NAME = '{$constraint}';";
         $test = Db::getInstance()->queryOne($sql);
-        
+
         return (bool)$test;
     }
 
     /**
-     * @return Db
+     * @return Singleton
      */
-    public static function getInstance()
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }

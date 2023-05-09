@@ -45,11 +45,13 @@ class B2BMarket extends WordpressUtils
     /**
      * @param string $controller
      * @param DataModel ...$entities
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    public function handleCustomerGroupsBlacklists(string $controller, DataModel ...$entities)
+    public function handleCustomerGroupsBlacklists(string $controller, DataModel ...$entities): void
     {
-        $customerGroups = (new CustomerGroup())->pullData();
-        $customerGroupsIds = array_values(array_map(function (\jtl\Connector\Model\CustomerGroup $customerGroup) {
+        $customerGroups    = (new CustomerGroup())->pullData();
+        $customerGroupsIds = \array_values(\array_map(function (\jtl\Connector\Model\CustomerGroup $customerGroup) {
             return $customerGroup->getId()->getEndpoint();
         }, $customerGroups));
 
