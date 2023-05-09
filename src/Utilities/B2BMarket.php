@@ -14,29 +14,35 @@ class B2BMarket extends WordpressUtils
      * @param DataModel ...$models
      * @return void
      */
-    protected function setB2BCustomerGroupBlacklist(array $customerGroupIds, string $metaKey, DataModel ...$models): void
-    {
+    protected function setB2BCustomerGroupBlacklist(
+        array $customerGroupIds,
+        string $metaKey,
+        DataModel ...$models
+    ): void {
         foreach ($models as $model) {
             $modelId = $model->getId()->getEndpoint();
+            if (\method_exists($model, 'getInvisibilities') === false) {
+                continue;
+            }
             $newCustomerGroupBlacklist = \array_map(
                 fn(ProductInvisibility $invisibility): string => $invisibility->getCustomerGroupId()->getEndpoint(),
                 $model->getInvisibilities()
             );
 
             foreach ($customerGroupIds as $customerGroupId) {
-                $postMeta = get_post_meta($customerGroupId, $metaKey)[0];
+                $postMeta     = \get_post_meta($customerGroupId, $metaKey)[0];
                 $currentItems = !empty($postMeta) ? \explode(',', $postMeta) : [];
 
                 if (\in_array($customerGroupId, $newCustomerGroupBlacklist)) {
                     $currentItems[] = $modelId;
-                    update_post_meta($customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
+                    \update_post_meta($customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
                 } elseif (($key = \array_search($modelId, $currentItems)) !== false) {
                     unset($currentItems[$key]);
-                    update_post_meta($customerGroupId, $metaKey, \implode(',', $currentItems));
+                    \update_post_meta($customerGroupId, $metaKey, \implode(',', $currentItems));
                 }
 
-                if (empty(get_post_meta($customerGroupId, $metaKey)[0])) {
-                    delete_post_meta($customerGroupId, $metaKey);
+                if (empty(\get_post_meta($customerGroupId, $metaKey)[0])) {
+                    \delete_post_meta($customerGroupId, $metaKey);
                 }
             }
         }
