@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2268 - fixed manufacturer rank math meta fields
+- CO-2346 - fixed next available inflow date
 - CO-2228 - fix wrong price calculation
 
 ## 1.39.6 _2023-04-11_
