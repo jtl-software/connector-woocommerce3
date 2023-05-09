@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -10,16 +11,16 @@ use Symfony\Component\EventDispatcher\Event;
 
 class CanHandleEvent extends Event
 {
-    const EVENT_NAME = 'connector.can_handle';
+    public const EVENT_NAME = 'connector.can_handle';
 
     protected $controller;
     protected $action;
-    protected $canHandle = false;
+    protected bool $canHandle = false;
 
     public function __construct($controller, $action)
     {
         $this->controller = $controller;
-        $this->action = $action;
+        $this->action     = $action;
     }
 
     public function getController()
@@ -32,12 +33,19 @@ class CanHandleEvent extends Event
         return $this->action;
     }
 
-    public function isCanHandle()
+    /**
+     * @return bool
+     */
+    public function isCanHandle(): bool
     {
         return $this->canHandle;
     }
 
-    public function setCanHandle($canHandle)
+    /**
+     * @param $canHandle
+     * @return void
+     */
+    public function setCanHandle($canHandle): void
     {
         $this->canHandle = $this->canHandle || $canHandle;
     }

@@ -1,17 +1,23 @@
 <?php
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
+use InvalidArgumentException;
 use jtl\Connector\Model\Image;
 use jtl\Connector\Model\ImageI18n;
 use phpmock\MockBuilder;
+use phpmock\MockEnabledException;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
 class ImageTest extends TestCase
 {
     protected $getLocale;
 
     /**
-     * @throws \phpmock\MockEnabledException
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws MockEnabledException
      */
     protected function setUp(): void
     {
@@ -26,7 +32,7 @@ class ImageTest extends TestCase
     }
 
     /**
-     *
+     * @return void
      */
     protected function tearDown(): void
     {
@@ -39,14 +45,14 @@ class ImageTest extends TestCase
      *
      * @param Image $image
      * @param $expectedAltText
-     * @throws \ReflectionException
-     * @throws \phpmock\MockEnabledException
+     * @throws ReflectionException
+     * @throws MockEnabledException
      */
     public function testGetImageAltText(Image $image, $expectedAltText)
     {
         $imageController = new \JtlWooCommerceConnector\Controllers\Image();
 
-        $controller = new \ReflectionClass($imageController);
+        $controller  = new \ReflectionClass($imageController);
         $getImageAlt = $controller->getMethod('getImageAlt');
         $getImageAlt->setAccessible(true);
 
@@ -55,7 +61,7 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @return array
+     *
      */
     public function imageAltTextDataProvider()
     {
