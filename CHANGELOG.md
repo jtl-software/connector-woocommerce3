@@ -3,7 +3,15 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2268 - fixed manufacturer rank math meta fields
+- CO-2346 - fixed next available inflow date
+
+## 1.39.6 _2023-04-11_
+- CO-2316 - cast string to float for tax calculation
+
+## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
+- CO-1803 - delivery cost calc fixed
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support

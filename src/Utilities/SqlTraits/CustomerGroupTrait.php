@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -10,11 +11,14 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait CustomerGroupTrait
 {
-    public static function customerGroupPull()
+    /**
+     * @return string
+     */
+    public static function customerGroupPull(): string
     {
         global $wpdb;
         $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';
-        
+
         return "
             SELECT p.ID, p.post_title, p.post_name
              FROM `{$wpdb->posts}` p
@@ -25,7 +29,10 @@ trait CustomerGroupTrait
         ";
     }
 
-    public static function customerGroupPullRole()
+    /**
+     * @return string
+     */
+    public static function customerGroupPullRole(): string
     {
         global $wpdb;
         $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';

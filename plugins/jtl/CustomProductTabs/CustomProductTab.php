@@ -2,6 +2,7 @@
 
 namespace jtl\CustomProductTabs;
 
+use Nette\Utils\RegexpException;
 use Nette\Utils\Strings;
 
 /**
@@ -13,27 +14,28 @@ class CustomProductTab
     /**
      * @var string
      */
-    protected $id = '';
+    protected string $id = '';
 
     /**
      * @var string
      */
-    protected $title = '';
+    protected string $title = '';
 
     /**
      * @var string
      */
-    protected $content = '';
+    protected string $content = '';
 
     /**
      * CustomProductTab constructor.
      * @param string $title
      * @param string $content
+     * @throws RegexpException
      */
     public function __construct(string $title, string $content)
     {
-        $this->id = Strings::webalize($title);
-        $this->title = $title;
+        $this->id      = Strings::webalize($title);
+        $this->title   = $title;
         $this->content = $content;
     }
 

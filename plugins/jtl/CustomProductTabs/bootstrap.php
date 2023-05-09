@@ -18,8 +18,9 @@ class Bootstrap implements IPlugin
 
     /**
      * @param EventDispatcher $dispatcher
+     * @return void
      */
-    public function registerListener(EventDispatcher $dispatcher)
+    public function registerListener(EventDispatcher $dispatcher): void
     {
         if (SupportedPlugins::isActive(self::CUSTOM_PRODUCT_TABS_FOR_WOO_COMMERCE_PLUGIN)) {
             $dispatcher->addListener(ProductAfterPushEvent::EVENT_NAME, [

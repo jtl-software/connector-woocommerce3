@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -7,6 +8,10 @@
 namespace JtlWooCommerceConnector\Logger;
 
 use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Utilities\Singleton;
+use Monolog\Logger as LoggerAlias;
+use Psr\Log\InvalidArgumentException;
+use WP_Error;
 
 /**
  * Class WpErrorLogger has to be used by checksum reading, writing or deleting methods.
@@ -15,25 +20,37 @@ use jtl\Connector\Core\Logger\Logger;
  */
 class WpErrorLogger extends WooCommerceLogger
 {
-    public function logError(\WP_Error $error)
+    /**
+     * @param WP_Error $error
+     * @return void
+     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
+     */
+    public function logError(WP_Error $error): void
     {
-        $this->writeLog(sprintf('%s: %s', get_called_class(), $error->get_error_message()));
+        $this->writeLog(\sprintf('%s: %s', \get_called_class(), $error->get_error_message()));
     }
 
-    protected function getLevel()
+    /**
+     * @return int
+     */
+    protected function getLevel(): int
     {
-        return Logger::DEBUG;
+        return LoggerAlias::DEBUG;
     }
 
-    protected function getFilename()
+    /**
+     * @return string
+     */
+    protected function getFilename(): string
     {
         return 'wp_error';
     }
 
     /**
-     * @return WpErrorLogger
+     * @return Singleton
      */
-    public static function getInstance()
+    public static function getInstance(): Singleton
     {
         return parent::getInstance();
     }
