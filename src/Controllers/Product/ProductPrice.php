@@ -519,12 +519,13 @@ class ProductPrice extends BaseController
 
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
+            $decimalCount = \strlen(explode('.', $regularPrice)[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(
                     $productId,
                     '_price',
-                    \wc_format_decimal($regularPrice),
+                    \wc_format_decimal($regularPrice, $decimalCount),
                     \get_post_meta($productId, '_price', true)
                 );
             }
@@ -532,7 +533,7 @@ class ProductPrice extends BaseController
             \update_post_meta(
                 $productId,
                 '_regular_price',
-                \wc_format_decimal($regularPrice),
+                \wc_format_decimal($regularPrice, $decimalCount),
                 \get_post_meta($productId, '_regular_price', true)
             );
         }
