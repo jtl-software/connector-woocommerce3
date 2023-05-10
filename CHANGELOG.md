@@ -4,6 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 1.39.8 _2023-05-10_
+- Hotfix - return type
+
 ## 1.39.7 _2023-05-09_
 - CO-2210 - fix customer import if db prefix is not wp_
 - CO-2228 - fix wrong price calculation
