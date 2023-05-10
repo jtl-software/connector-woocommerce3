@@ -157,7 +157,6 @@ class Config
     /**
      * @param string $name
      * @param null $defaultValue
-     * @return bool|mixed|void
      */
     public static function get(string $name, $defaultValue = null)
     {

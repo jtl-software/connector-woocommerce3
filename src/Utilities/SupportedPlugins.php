@@ -120,7 +120,7 @@ final class SupportedPlugins
      *
      * @return array|string
      */
-    public static function getSupported($asString = false)
+    public static function getSupported(bool $asString = false)
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
