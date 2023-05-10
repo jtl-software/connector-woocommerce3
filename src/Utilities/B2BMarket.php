@@ -3,48 +3,47 @@
 namespace JtlWooCommerceConnector\Utilities;
 
 use jtl\Connector\Model\DataModel;
+use jtl\Connector\Model\ProductInvisibility;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
 class B2BMarket extends WordpressUtils
 {
     /**
-     * @param array $customerGroupsIds
+     * @param array $customerGroupIds
      * @param string $metaKey
      * @param DataModel ...$models
      * @return void
      */
     protected function setB2BCustomerGroupBlacklist(
-        array $customerGroupsIds,
+        array $customerGroupIds,
         string $metaKey,
         DataModel ...$models
     ): void {
-        $newCustomerGroupBlacklist = [];
         foreach ($models as $model) {
-            if (
-                \method_exists($model, 'getInvisibilities')
-                && \in_array($metaKey, ['bm_conditional_products', 'bm_conditional_categories'])
-            ) {
-                foreach ($model->getInvisibilities() as $modelInvisibility) {
-                    $customerGroupId = $modelInvisibility->getCustomerGroupId()->getEndpoint();
-                    if (!empty($customerGroupId) && \in_array($customerGroupId, $customerGroupsIds, true)) {
-                        $newCustomerGroupBlacklist[$customerGroupId][] = $model->getId()->getEndpoint();
-                    }
-                }
+            $modelId = $model->getId()->getEndpoint();
+            if (\method_exists($model, 'getInvisibilities') === false) {
+                continue;
             }
-        }
+            $newCustomerGroupBlacklist = \array_map(
+                fn(ProductInvisibility $invisibility): string => $invisibility->getCustomerGroupId()->getEndpoint(),
+                $model->getInvisibilities()
+            );
 
-        foreach ($customerGroupsIds as $customerGroupId) {
-            $customerGroupId               = (int)$customerGroupId;
-            $currentCustomerGroupBlackList = $this->getPostMeta($customerGroupId, $metaKey, true);
-            if (isset($newCustomerGroupBlacklist[$customerGroupId])) {
-                $this->updatePostMeta(
-                    $customerGroupId,
-                    $metaKey,
-                    \join(',', $newCustomerGroupBlacklist[$customerGroupId]),
-                    $currentCustomerGroupBlackList
-                );
-            } else {
-                $this->deletePostMeta($customerGroupId, $metaKey, $currentCustomerGroupBlackList);
+            foreach ($customerGroupIds as $customerGroupId) {
+                $postMeta     = \get_post_meta($customerGroupId, $metaKey)[0];
+                $currentItems = !empty($postMeta) ? \explode(',', $postMeta) : [];
+
+                if (\in_array($customerGroupId, $newCustomerGroupBlacklist)) {
+                    $currentItems[] = $modelId;
+                    \update_post_meta($customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
+                } elseif (($key = \array_search($modelId, $currentItems)) !== false) {
+                    unset($currentItems[$key]);
+                    \update_post_meta($customerGroupId, $metaKey, \implode(',', $currentItems));
+                }
+
+                if (empty(\get_post_meta($customerGroupId, $metaKey)[0])) {
+                    \delete_post_meta($customerGroupId, $metaKey);
+                }
             }
         }
     }

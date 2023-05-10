@@ -32,10 +32,6 @@ class ProductDeliveryTime extends BaseController
         $this->removeDeliveryTimeTerm($productId);
         $this->removeDeliveryTimeTerm($productId, $germanizedDeliveryTimeTaxonomyName);
 
-        if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
-            return;
-        }
-
         if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
             //FUNCTION ATTRIBUTE BY JTL
             $offset           = 0;
@@ -72,6 +68,10 @@ class ProductDeliveryTime extends BaseController
                 $min  = $time - $offset <= 0 ? 1 : $time - $offset;
                 $max  = $time + $offset;
                 $time = \sprintf('%s-%s', $min, $max);
+            }
+
+            if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
+                return;
             }
 
             //Build Term string

@@ -70,7 +70,7 @@ trait CustomerTrait
             FROM `%s` um
             LEFT JOIN %s l ON l.endpoint_id = um.user_id AND l.is_guest = 0
             WHERE l.host_id IS NULL
-            AND um.meta_key = 'wp_capabilities'
+            AND um.meta_key = '{$wpdb->prefix}capabilities'
             AND um.meta_value REGEXP '%s'
             %s", $select, $wpdb->usermeta, $jclc, \join("|", $pullGroups), $limitQuery);
     }
