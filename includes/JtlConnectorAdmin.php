@@ -1,10 +1,10 @@
 <?php
 
-use jtl\Connector\Application\Application;
+use jtl\Connector\Core\Application\Application;
 use jtl\Connector\Core\Exception\MissingRequirementException;
 use jtl\Connector\Core\System\Check;
-use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use jtl\Connector\Core\Linker\IdentityLinker;
+use jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGroupModel;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -55,10 +55,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             Check::run();
             self::activate_linking();
             self::initDefaultConfigValues($buildVersion);
-            Application::getInstance()->createFeaturesFileIfNecessary(
-                sprintf('%s/config/features.json.example', CONNECTOR_DIR)
-            );
-            self::loadFeaturesJson();
         } catch (MissingRequirementException $exc) {
             if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX )) {
                 jtlwcc_deactivate_plugin();
