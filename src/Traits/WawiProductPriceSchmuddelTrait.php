@@ -7,10 +7,10 @@
 
 namespace JtlWooCommerceConnector\Traits;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
+use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
+use jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -22,19 +22,20 @@ trait WawiProductPriceSchmuddelTrait
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function fixProductPriceForCustomerGroups(ProductModel &$product, \WC_Product $wcProduct): void
+    private function fixProductPriceForCustomerGroups(ProductModel $product, \WC_Product $wcProduct): void
     {
         $pd              = \wc_get_price_decimals();
         $pushedPrices    = $product->getPrices();
         $defaultPrices   = null;
         $defaultPriceNet = 0;
         $prices          = [];
-        $vat             = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+        $util            = new Util(); //Todo: CHeck mal hier
+        $vat             = $util->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
                 if (\count($product->getPrices()) === 1) {
-                    $customerGroups = (new CustomerGroup())->pullData();
+                    $customerGroups = (new CustomerGroup($this->database, $this->util))->pullData(); //TODO: Check mal hier
 
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $cKey => $customerGroup) {
@@ -85,6 +86,6 @@ trait WawiProductPriceSchmuddelTrait
             }
         }
 
-        $product->setPrices($prices);
+        $product->setPrices(...$prices);
     }
 }
