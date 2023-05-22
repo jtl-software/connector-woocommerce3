@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2230 - fix Invisibility Type
 
 ## 1.39.8 _2023-05-10_
 - Hotfix - return type
