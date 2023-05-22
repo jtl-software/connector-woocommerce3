@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\ProductInvisibility;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
 class B2BMarket extends WordpressUtils
 {
     /**
-     * @param array $customerGroupIds
-     * @param string $metaKey
+     * @param array     $customerGroupIds
+     * @param string    $metaKey
      * @param DataModel ...$models
      *
      * @return void
-     * @noinspection PhpPossiblePolymorphicInvocationInspection*/
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
+     */
     protected function setB2BCustomerGroupBlacklist(
         array $customerGroupIds,
         string $metaKey,
@@ -32,13 +34,13 @@ class B2BMarket extends WordpressUtils
 
             foreach ($customerGroupIds as $customerGroupId) {
                 $postMeta     = \get_post_meta($customerGroupId, $metaKey)[0];
-                $currentItems = !empty($postMeta) ? \explode(',', $postMeta) : [];
+                $currentItems = ! empty($postMeta) ? \explode(',', $postMeta) : [];
 
-                if ( \in_array( $customerGroupId, $newCustomerGroupBlacklist, true ) ) {
+                if (\in_array($customerGroupId, $newCustomerGroupBlacklist, true)) {
                     $currentItems[] = $modelId;
                     \update_post_meta($customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
-                } elseif ( ($key = \array_search( $modelId, $currentItems, true ) ) !== false) {
-                    unset($currentItems[$key]);
+                } elseif (( $key = \array_search($modelId, $currentItems, true) ) !== false) {
+                    unset($currentItems[ $key ]);
                     \update_post_meta($customerGroupId, $metaKey, \implode(',', $currentItems));
                 }
 
@@ -56,15 +58,17 @@ class B2BMarket extends WordpressUtils
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function handleCustomerGroupsBlacklists( string $controller, DataModel ...$entities ): void {
+    public function handleCustomerGroupsBlacklists(string $controller, DataModel ...$entities): void
+    {
         $customerGroups    = ( new CustomerGroup() )->pullData();
         $customerGroupsIds = \array_values(
-            \array_map( static function ( \jtl\Connector\Model\CustomerGroup $customerGroup ) {
+            \array_map(static function (\jtl\Connector\Model\CustomerGroup $customerGroup) {
                 if ($customerGroup->getId() === null) {
                     return '';
                 }
+
                 return $customerGroup->getId()->getEndpoint();
-            }, $customerGroups )
+            }, $customerGroups)
         );
 
         $metaKey = '';
@@ -77,7 +81,7 @@ class B2BMarket extends WordpressUtils
                 break;
         }
 
-        if (!empty($metaKey)) {
+        if (! empty($metaKey)) {
             $this->setB2BCustomerGroupBlacklist($customerGroupsIds, $metaKey, ...$entities);
         }
     }
