@@ -7,13 +7,11 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Utilities\Singleton;
-
 /**
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Germanized extends Singleton
+final class Germanized
 {
     /**
      * @var array Index used in database mapped to translated salutation.
@@ -59,14 +57,6 @@ final class Germanized extends Singleton
     public function parseUnit($code)
     {
         return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
-    }
-
-    /**
-     * @return Singleton
-     */
-    public static function getInstance(): Singleton
-    {
-        return parent::getInstance();
     }
 
     /**
