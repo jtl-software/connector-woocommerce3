@@ -50,7 +50,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
             return '';
         }
 
-        $checksum = $this->db->queryOne(SqlHelper::checksumRead($endpointId, $type));
+        $checksum = $this->db->queryOne($this->getChecksumRead($endpointId, $type));
 
         $this->logger->debug(
             \sprintf('Read: endpointId (%s), type (%s) - checksum (%s)', $endpointId, $type, $checksum)
@@ -72,7 +72,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
             return false;
         }
 
-        $statement = $this->db->query(SqlHelper::checksumWrite($endpointId, $type, $checksum));
+        $statement = $this->db->query($this->getChecksumWrite($endpointId, $type, $checksum));
 
         $this->logger->debug(
             \sprintf('Write: endpointId (%s), type (%s) - checksum (%s)', $endpointId, $type, $checksum)
@@ -93,12 +93,57 @@ class ChecksumLoader implements ChecksumLoaderInterface
             return false;
         }
 
-        $rows = $this->db->query(SqlHelper::checksumDelete($endpointId, $type));
+        $rows = $this->db->query($this->getChecksumDelete($endpointId, $type));
 
         $this->logger->debug(
             \sprintf('Delete with endpointId (%s), type (%s)', $endpointId, $type)
         );
 
         return $rows;
+    }
+
+    public function getChecksumRead($endpointId, $type)
+    {
+        global $wpdb;
+
+        return \sprintf(
+            'SELECT checksum
+                FROM %s%s
+                WHERE product_id = %s
+                AND type = %s;',
+            $wpdb->prefix,
+            'jtl_connector_product_checksum',
+            $endpointId,
+            $type
+        );
+    }
+
+    public function getChecksumWrite($endpointId, $type, $checksum)
+    {
+        global $wpdb;
+
+        return \sprintf(
+            "INSERT IGNORE INTO %s%s VALUES(%s,%s,'%s')",
+            $wpdb->prefix,
+            'jtl_connector_product_checksum',
+            $endpointId,
+            $type,
+            $checksum
+        );
+    }
+
+    public function getChecksumDelete($endpointId, $type)
+    {
+        global $wpdb;
+        $jcpc = $wpdb->prefix . 'jtl_connector_product_checksum';
+
+        return \sprintf(
+            "DELETE FROM %s
+                WHERE `product_id` = %s
+                AND `type` = %s",
+            $jcpc,
+            $endpointId,
+            $type
+        );
     }
 }

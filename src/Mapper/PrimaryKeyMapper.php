@@ -80,18 +80,18 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
                 false
             );
         } elseif ($type === IdentityType::CUSTOMER_GROUP) {
-            $hostId = Db::getInstance()->queryOne(
+            $hostId = $this->db->queryOne(
                 SqlHelper::primaryKeyMappingHostString($endpointId, $tableName),
                 false
             );
         } else {
-            $hostId = Db::getInstance()->queryOne(
+            $hostId = $this->db->queryOne(
                 SqlHelper::primaryKeyMappingHostInteger($endpointId, $tableName),
                 false
             );
         }
 
-        $this->logger->debug(sprintf('Read: endpoint (%s), type (%s) - host (%s)', $endpointId, $type, $hostId));
+        $this->logger->debug(\sprintf('Read: endpoint (%s), type (%s) - host (%s)', $endpointId, $type, $hostId));
 
         return $hostId !== false ? (int)$hostId : null;
     }
@@ -163,7 +163,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             );
         } elseif ($type === IdentityType::CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
-            $id                         = Db::getInstance()->query(
+            $id                         = $this->db->query(
                 SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
                 false
             );
