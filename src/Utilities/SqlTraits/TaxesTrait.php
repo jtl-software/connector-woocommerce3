@@ -9,7 +9,7 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use jtl\Connector\Model\TaxRate;
+use jtl\Connector\Core\Model\TaxRate;
 
 trait TaxesTrait
 {

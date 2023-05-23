@@ -9,7 +9,6 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use JtlWooCommerceConnector\Controllers\Connector;
 use JtlWooCommerceConnector\Logger\DatabaseLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -170,7 +169,7 @@ trait CustomerTrait
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
-
+//TODO: hier müssen noch die Logger geändert werden, nachdem die Controller durch sind
         DatabaseLogger::getInstance()->writeLog(
             'Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)
         );
