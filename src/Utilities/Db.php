@@ -52,7 +52,7 @@ class Db implements LoggerAwareInterface
      */
     public function query(string $query, bool $shouldLog = true): ?array
     {
-        $wpdb = $this->wpDb;
+        $wpdb = $this->getWpDb();
 
         if ($shouldLog) {
             $this->logger->debug($query);
@@ -71,7 +71,7 @@ class Db implements LoggerAwareInterface
      */
     public function queryOne(string $query, bool $shouldLog = true): ?string
     {
-        $wpdb = $this->wpDb;
+        $wpdb = $this->getWpDb();
 
         if ($shouldLog) {
             $this->logger->debug($query);
@@ -90,7 +90,7 @@ class Db implements LoggerAwareInterface
      */
     public function queryList(string $query, bool $shouldLog = true): array
     {
-        $wpdb = $this->wpDb;
+        $wpdb = $this->getWpDb();
 
         $return = [];
 
@@ -110,6 +110,15 @@ class Db implements LoggerAwareInterface
 
         return $return;
     }
+
+    /**
+     * @return \wpdb
+     */
+    public function getWpDb(): \wpdb
+    {
+        return $this->wpDb;
+    }
+
 
     /**
      * @param $table

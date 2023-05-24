@@ -331,7 +331,7 @@ class Util extends WordpressUtils
      *
      * @throws InvalidArgumentException
      */
-    public function mapLanguageIso($locale)
+    public static function mapLanguageIso($locale)
     {
         $language = Service::create($locale);
         return $language->toISO_639_1();
@@ -586,7 +586,7 @@ class Util extends WordpressUtils
         }
     }
 
-    public static function getStates()
+    public function getStates()
     {
         return \WC()->countries->get_states();
     }
