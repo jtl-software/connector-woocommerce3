@@ -2,16 +2,22 @@
 
 namespace jtl\ProductCustomOptions;
 
-use jtl\Connector\Event\CustomerOrder\CustomerOrderAfterPullEvent;
-use jtl\Connector\Plugin\IPlugin;
+use DI\Container;
+use Jtl\Connector\Core\Definition\Action;
+use Jtl\Connector\Core\Definition\Controller;
+use Jtl\Connector\Core\Definition\Event;
+use jtl\Connector\Core\Event\CustomerOrderEvent;
+use Jtl\Connector\Core\Plugin\PluginInterface;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use Noodlehaus\ConfigInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Class Bootstrap
  * @package jtl\ProductCustomOptions
  */
-class Bootstrap implements IPlugin
+class Bootstrap implements PluginInterface
 {
     public const
         EXTRA_PRODUCT_OPTIONS     = 'Extra Product Options (Product Addons) for WooCommerce',
@@ -21,14 +27,13 @@ class Bootstrap implements IPlugin
      * @param EventDispatcher $dispatcher
      * @return void
      */
-    public function registerListener(EventDispatcher $dispatcher): void
+    public function registerListener(ConfigInterface $config, Container $container, EventDispatcher $dispatcher)
     {
         if (
             SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS)
-            || SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS_NEW)
         ) {
-            $dispatcher->addListener(CustomerOrderAfterPullEvent::EVENT_NAME, [
-                new CustomerOrderListener(),
+            $dispatcher->addListener(Event::createEventName(Controller::CUSTOMER_ORDER, Action::PUSH, Event::AFTER), [
+                new CustomerOrderListener($container->get(Db::class)),
                 'onCustomerOrderAfterPull'
             ]);
         }
