@@ -7,40 +7,49 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\CrossSelling as CrossSellingModel;
-use jtl\Connector\Model\CrossSellingItem;
-use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use jtl\Connector\Core\Model\CrossSelling as CrossSellingModel;
+use jtl\Connector\Core\Model\CrossSellingItem;
+use jtl\Connector\Core\Model\AbstractModel;
+use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
  * @package JtlWooCommerceConnector\Controllers
  */
-class CrossSelling extends BaseController
+class CrossSelling extends AbstractBaseController implements
+    PullInterface,
+    PushInterface,
+    DeleteInterface,
+    StatisticInterface
 {
     public const CROSSSELLING_META_KEY = '_crosssell_ids';
     public const UPSELLING_META_KEY    = '_upsell_ids';
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    protected function pullData($limit): array
+    public function pull(QueryFilter $query): array
     {
         $crossSelling = [];
 
-        $results          = $this->database->query(SqlHelper::crossSellingPull($limit));
+        $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit()));
         $formattedResults = $this->formatResults($results);
 
         foreach ($formattedResults as $row) {
             $type            = $row['meta_key'];
             $relatedProducts = \unserialize($row['meta_value']);
 
-            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type);
+            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type, $this->util);
 
             if (!empty($relatedProducts)) {
                 if (!isset($crossSelling[$row['post_id']])) {
@@ -59,15 +68,13 @@ class CrossSelling extends BaseController
                 $crossSelling[$row['post_id']]->addItem(
                     (new CrossSellingItem())
                         ->setCrossSellingGroupId($crossSellingGroup->getId())
-                        ->setProductIds($crosssellingProducts)
+                        ->setProductIds(...$crosssellingProducts)
                 );
             } else {
-                WpErrorLogger::getInstance()->logError(
-                    \sprintf(
-                        'CrossSelling values for product id %s are empty',
-                        $row['post_id']
-                    )
-                );
+                $this->logger->error(\sprintf(
+                    'CrossSelling values for product id %s are empty',
+                    $row['post_id']
+                ));
             }
 
             \reset($crossSelling);
@@ -102,21 +109,21 @@ class CrossSelling extends BaseController
     }
 
     /**
-     * @param CrossSellingModel $crossSelling
+     * @param CrossSellingModel $model
      * @return CrossSellingModel
      */
-    protected function pushData(CrossSellingModel $crossSelling): CrossSellingModel
+    public function push(AbstractModel $model): AbstractModel
     {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
-            return $crossSelling;
+            return $model;
         }
 
-        $crossSelling->getId()->setEndpoint($crossSelling->getProductId()->getEndpoint());
+        $model->getId()->setEndpoint($model->getProductId()->getEndpoint());
 
-        $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts       = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+        $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
         $this->updateMetaKey(
             $product->get_id(),
@@ -130,23 +137,23 @@ class CrossSelling extends BaseController
             $upSellProducts
         );
 
-        return $crossSelling;
+        return $model;
     }
 
     /**
-     * @param CrossSellingModel $crossSelling
-     * @return CrossSellingModel
+     * @param CrossSellingModel $model
+     * @return AbstractModel
      */
-    protected function deleteData(CrossSellingModel $crossSelling): CrossSellingModel
+    public function delete(AbstractModel $model): AbstractModel
     {
-        $product = \wc_get_product((int)$crossSelling->getProductId()->getEndpoint());
+        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
-            return $crossSelling;
+            return $model;
         }
 
-        $crossSellingProducts = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts       = $this->getProductIds($crossSelling, CrossSellingGroup::TYPE_UP_SELL);
+        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+        $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
         $crossSellIds =
             !empty($crossSellingProducts)
@@ -166,15 +173,16 @@ class CrossSelling extends BaseController
             $upSellIds
         );
 
-        return $crossSelling;
+        return $model;
     }
 
     /**
      * @return int
+     * @throws InvalidArgumentException
      */
-    protected function getStats(): int
+    public function statistic(QueryFilter $query): int
     {
-        return (int)$this->database->queryOne(SqlHelper::crossSellingPull());
+        return (int)$this->db->queryOne(SqlHelper::crossSellingPull());
     }
 
     /**

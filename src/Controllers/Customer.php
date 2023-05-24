@@ -7,28 +7,33 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\Customer as CustomerModel;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Model\Customer as CustomerModel;
+use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\InvalidArgumentException;
 
-class Customer extends BaseController
+class Customer extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
     /**
-     * @param $limit
-     * @return array
+     * @param QueryFilter $query
+     * @return array|AbstractModel[]
      * @throws \InvalidArgumentException
      */
-    public function pullData($limit): array
+    public function pull(QueryFilter $query): array
     {
-        $customers = $this->pullCustomers($limit);
-        $guests    = $this->pullGuests($limit - \count($customers));
+        $customers = $this->pullCustomers($query->getLimit());
+        $guests    = $this->pullGuests($query->getLimit() - \count($customers));
 
         return \array_merge($customers, $guests);
     }
@@ -39,11 +44,11 @@ class Customer extends BaseController
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    protected function pullCustomers($limit): array
+    public function pullCustomers($limit): array
     {
         $customers = [];
 
-        $customerIds = $this->database->queryList(SqlHelper::customerNotLinked($limit));
+        $customerIds = $this->db->queryList(SqlHelper::customerNotLinked($limit));
 
         foreach ($customerIds as $customerId) {
             $wcCustomer = new \WC_Customer($customerId);
@@ -93,7 +98,7 @@ class Customer extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
                 $index = \get_user_meta($customerId, 'billing_title', true);
-                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
             }
 
             $customer->setVatNumber(Util::getVatIdFromCustomer($customerId));
@@ -114,7 +119,7 @@ class Customer extends BaseController
     {
         $customers = [];
 
-        $guests = $this->database->queryList(SqlHelper::guestNotLinked($limit));
+        $guests = $this->db->queryList(SqlHelper::guestNotLinked($limit));
 
         foreach ($guests as $guest) {
             $order = new \WC_Order((Id::unlink($guest)[1]));
@@ -151,7 +156,7 @@ class Customer extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
-                $customer->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
             }
 
             $customers[] = $customer;
@@ -161,42 +166,42 @@ class Customer extends BaseController
     }
 
     /**
-     * @param CustomerModel $customer
-     * @return CustomerModel
+     * @param \Jtl\Connector\Core\Model\Customer $model
+     * @return AbstractModel
      */
-    public function pushData(CustomerModel $customer): CustomerModel
+    public function push(AbstractModel $model): AbstractModel
     {
         // Only registered customers data can be updated
-        if (!$customer->getHasCustomerAccount()) {
-            return $customer;
+        if (!$model->getHasCustomerAccount()) {
+            return $model;
         }
 
         try {
-            $wcCustomer = new \WC_Customer((int)$customer->getId()->getEndpoint());
-            $wcCustomer->set_first_name($customer->getFirstName());
-            $wcCustomer->set_billing_first_name($customer->getFirstName());
-            $wcCustomer->set_last_name($customer->getLastName());
-            $wcCustomer->set_billing_last_name($customer->getLastName());
-            $wcCustomer->set_billing_company($customer->getCompany());
-            $wcCustomer->set_billing_address_1($customer->getStreet());
-            $wcCustomer->set_billing_address_2($customer->getExtraAddressLine());
-            $wcCustomer->set_billing_postcode($customer->getZipCode());
-            $wcCustomer->set_billing_city($customer->getCity());
-            $wcCustomer->set_state($customer->getState());
-            $wcCustomer->set_billing_country($customer->getCountryIso());
-            $wcCustomer->set_email($customer->getEMail());
-            $wcCustomer->set_billing_email($customer->getEMail());
-            $wcCustomer->set_billing_phone($customer->getPhone());
+            $wcCustomer = new \WC_Customer((int)$model->getId()->getEndpoint());
+            $wcCustomer->set_first_name($model->getFirstName());
+            $wcCustomer->set_billing_first_name($model->getFirstName());
+            $wcCustomer->set_last_name($model->getLastName());
+            $wcCustomer->set_billing_last_name($model->getLastName());
+            $wcCustomer->set_billing_company($model->getCompany());
+            $wcCustomer->set_billing_address_1($model->getStreet());
+            $wcCustomer->set_billing_address_2($model->getExtraAddressLine());
+            $wcCustomer->set_billing_postcode($model->getZipCode());
+            $wcCustomer->set_billing_city($model->getCity());
+            $wcCustomer->set_state($model->getState());
+            $wcCustomer->set_billing_country($model->getCountryIso());
+            $wcCustomer->set_email($model->getEMail());
+            $wcCustomer->set_billing_email($model->getEMail());
+            $wcCustomer->set_billing_phone($model->getPhone());
             $wcCustomer->save();
 
-            if (($wpCustomerRole = $this->getWpCustomerRole($customer->getCustomerGroupId()->getEndpoint())) !== null) {
+            if (($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null) {
                 \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
             }
         } catch (\Exception $exception) {
-            WpErrorLogger::getInstance()->writeLog($exception->getTraceAsString());
+            $this->logger->error($exception->getTraceAsString());
         }
 
-        return $customer;
+        return $model;
     }
 
     /**
@@ -219,12 +224,14 @@ class Customer extends BaseController
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
+     * @throws InvalidArgumentException
      */
-    public function getStats(): int
+    public function statistic(QueryFilter $query): int
     {
-        $customers  = (int)$this->database->queryOne(SqlHelper::customerNotLinked(null));
-        $customers += (int)$this->database->queryOne(SqlHelper::guestNotLinked(null));
+        $customers  = (int)$this->db->queryOne(SqlHelper::customerNotLinked(null));
+        $customers += (int)$this->db->queryOne(SqlHelper::guestNotLinked(null));
 
         return $customers;
     }

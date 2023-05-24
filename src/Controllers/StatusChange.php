@@ -7,31 +7,33 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use jtl\Connector\Model\CustomerOrder;
-use jtl\Connector\Model\StatusChange as StatusChangeModel;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use jtl\Connector\Core\Model\CustomerOrder;
+use jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
 
-class StatusChange extends BaseController
+class StatusChange extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param StatusChangeModel $statusChange
+     * @param StatusChangeModel $model
      * @return StatusChangeModel
      * @throws \WC_Data_Exception
      */
-    public function pushData(StatusChangeModel $statusChange): StatusChangeModel
+    public function push(AbstractModel $model): AbstractModel
     {
-        $order = \wc_get_order($statusChange->getCustomerOrderId()->getEndpoint());
+        $order = \wc_get_order($model->getCustomerOrderId()->getEndpoint());
 
         if ($order instanceof \WC_Order) {
-            if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
+            if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
                 \add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
                     return false;
                 }, 10, 2);
             }
 
-            $newStatus = $this->mapStatus($statusChange, $order);
+            $newStatus = $this->mapStatus($model, $order);
             if ($newStatus !== null) {
                 if ($newStatus === 'wc-completed') {
-                    $this->linkIfPaymentIsNotLinked($statusChange);
+                    $this->linkIfPaymentIsNotLinked($model);
                 }
 
                 $order->set_status($newStatus);
@@ -39,7 +41,7 @@ class StatusChange extends BaseController
             }
         }
 
-        return $statusChange;
+        return $model;
     }
 
     /**
@@ -51,13 +53,13 @@ class StatusChange extends BaseController
         global $wpdb;
         $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
         $endpointId  = $statusChange->getCustomerOrderId()->getEndpoint();
-        $paymentLink = $this->database->queryOne(\sprintf(
+        $paymentLink = $this->db->queryOne(\sprintf(
             'SELECT * FROM %s WHERE `endpoint_id` = %s',
             $jclp,
             $endpointId
         ));
         if (empty($paymentLink)) {
-            $this->database->query(\sprintf(
+            $this->db->query(\sprintf(
                 'INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)',
                 $jclp,
                 $endpointId,
