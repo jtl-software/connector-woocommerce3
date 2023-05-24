@@ -2,16 +2,15 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Id;
-use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CustomerOrderAddress
  * @package JtlWooCommerceConnector\Controllers\Order
  */
-class CustomerOrderAddress extends BaseController
+class CustomerOrderAddress extends AbstractBaseController
 {
     /**
      * @param string $countryIso
@@ -20,7 +19,7 @@ class CustomerOrderAddress extends BaseController
      */
     public function getState(string $countryIso, string $state): string
     {
-        return Util::getStates()[$countryIso][$state] ?? $state;
+        return $this->util->getStates()[$countryIso][$state] ?? $state;
     }
 
     /**

@@ -7,11 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
+use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Germanized;
-use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -22,7 +20,7 @@ class CustomerOrderBillingAddress extends CustomerOrderAddress
      * @return CustomerOrderBillingAddressModel
      * @throws \InvalidArgumentException
      */
-    public function pullData(\WC_Order $order): CustomerOrderBillingAddressModel
+    public function pull(\WC_Order $order): CustomerOrderBillingAddressModel
     {
         $address = (new CustomerOrderBillingAddressModel())
             ->setId(new Identity(CustomerOrder::BILLING_ID_PREFIX . $order->get_id()))
@@ -69,7 +67,7 @@ class CustomerOrderBillingAddress extends CustomerOrderAddress
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
-            $address->setSalutation(Germanized::getInstance()->parseIndexToSalutation($index));
+            $address->setSalutation((new Germanized())->parseIndexToSalutation($index));
         }
 
         return $address;

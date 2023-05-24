@@ -7,16 +7,15 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
-use jtl\Connector\Model\Identity;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\CustomerOrderItem as CustomerOrderItemModel;
+use jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class CustomerOrderItem extends BaseController
+class CustomerOrderItem extends AbstractBaseController
 {
     public const PRICE_DECIMALS = 4;
 
@@ -31,7 +30,7 @@ class CustomerOrderItem extends BaseController
      * @throws \InvalidArgumentException
      * @throws \WC_Data_Exception
      */
-    public function pullData(\WC_Order $order): array
+    public function pull(\WC_Order $order): array
     {
         $customerOrderItems = [];
 
@@ -91,7 +90,6 @@ class CustomerOrderItem extends BaseController
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
-                ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(\html_entity_decode($item->get_name()))
                 ->setQuantity($item->get_quantity())
                 ->setType(CustomerOrderItemModel::TYPE_PRODUCT);
@@ -202,7 +200,6 @@ class CustomerOrderItem extends BaseController
     ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
             ->setId(new Identity($shippingItem->get_id() . (\is_null($taxRateId) ? '' : Id::SEPARATOR . $taxRateId)))
-            ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SHIPPING)
             ->setName($shippingItem->get_name())
             ->setQuantity(1);
@@ -246,7 +243,6 @@ class CustomerOrderItem extends BaseController
                         ? ''
                         : Id::SEPARATOR . $taxRateId))
             )
-            ->setCustomerOrderId(new Identity($order->get_id()))
             ->setType(CustomerOrderItemModel::TYPE_SURCHARGE)
             ->setName($feeItem->get_name())
             ->setQuantity(1);
@@ -293,7 +289,7 @@ class CustomerOrderItem extends BaseController
                     if (isset(self::$taxRateCache[$taxRateId])) {
                         $taxRate = self::$taxRateCache[$taxRateId];
                     } else {
-                        $taxRate                        = (float)$this->database->queryOne(
+                        $taxRate                        = (float)$this->db->queryOne(
                             SqlHelper::taxRateById($taxRateId)
                         );
                         self::$taxRateCache[$taxRateId] = $taxRate;
@@ -391,7 +387,6 @@ class CustomerOrderItem extends BaseController
 
             $customerOrderItems[] = (new CustomerOrderItemModel())
                 ->setId(new Identity($itemId))
-                ->setCustomerOrderId(new Identity($order->get_id()))
                 ->setName(empty($itemName) ? $item->get_code() : $itemName)
                 ->setType(CustomerOrderItemModel::TYPE_COUPON)
                 ->setPrice(\round(-1 * $total, Util::getPriceDecimals()))
