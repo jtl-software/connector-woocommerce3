@@ -7,9 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -18,7 +18,7 @@ use JtlWooCommerceConnector\Utilities\Util;
  *
  * @package JtlWooCommerceConnector\Controllers\Product
  */
-class ProductGermanizedFields extends BaseController
+class ProductGermanizedFields extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
@@ -40,12 +40,12 @@ class ProductGermanizedFields extends BaseController
     private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct): void
     {
         $units           = new \WC_GZD_Units();
-        $germanizedUtils = Germanized::getInstance();
+        $germanizedUtils = (new Germanized());
         if ($germanizedUtils->hasUnitProduct($wcProduct)) {
             $plugin = \get_plugin_data(\WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
 
             if (isset($plugin['Version']) && \version_compare($plugin['Version'], '1.6.0') < 0) {
-                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
+                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit); //TODO: was geht hier?
             } else {
                 $unit       = $germanizedUtils->getUnit($wcProduct);
                 $unitObject = \get_term_by('slug', $unit, 'product_unit');

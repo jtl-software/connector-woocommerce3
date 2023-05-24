@@ -3,16 +3,17 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
-use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
-use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
-use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
-use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
-use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
+use jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
+use jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
+use jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
+use jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
@@ -20,7 +21,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
 use WC_Product_Attribute;
 
-class ProductVaSpeAttrHandler extends BaseController
+class ProductVaSpeAttrHandler extends AbstractBaseController
 {
     public const
         PRODUCT_TYPE_ATTR              = 'wc_product_type',
@@ -58,13 +59,13 @@ class ProductVaSpeAttrHandler extends BaseController
 
     private array $values = [];
 
-    public function __construct()
+    public function __construct(Db $db, Util $util)
     {
         if (! \defined('WC_DELIMITER')) {
             \define('WC_DELIMITER', '|');
         }
 
-        parent::__construct();
+        parent::__construct($db, $util);
     }
 
     /**
@@ -79,7 +80,7 @@ class ProductVaSpeAttrHandler extends BaseController
         $globCurrentAttr          = $product->get_attributes();
         $isProductVariation       = $product instanceof \WC_Product_Variation;
         $isProductVariationParent = $product instanceof \WC_Product_Variable;
-        $languageIso              = Util::getInstance()->getWooCommerceLanguage();
+        $languageIso              = $this->util->getWooCommerceLanguage();
 
         if (! $isProductVariation) {
             /**
@@ -92,7 +93,7 @@ class ProductVaSpeAttrHandler extends BaseController
 
                 // <editor-fold defaultstate="collapsed" desc="Handling ATTR Pull">
                 if (! $isVariation && ! $taxonomyExistsCurrentAttr) {
-                    $this->productData['productAttributes'][] = ( new ProductAttr() )
+                    $this->productData['productAttributes'][] = ( new ProductAttr($this->db, $this->util) )
                         ->pullData(
                             $product,
                             $attribute,
@@ -103,7 +104,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="Handling Specific Pull">
                 if (! $isVariation && $taxonomyExistsCurrentAttr) {
-                    $tmp = ( new ProductSpecific() )
+                    $tmp = ( new ProductSpecific($this->db, $this->util) )
                         ->pullData(
                             $model,
                             $product,
@@ -118,7 +119,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 // <editor-fold defaultstate="collapsed" desc="Handling Variation Parent Pull">
 
                 if ($isVariation && $isProductVariationParent) {
-                    $tmp = ( new ProductVariation() )
+                    $tmp = ( new ProductVariation($this->db, $this->util) )
                         ->pullDataParent(
                             $model,
                             $attribute,
@@ -134,7 +135,7 @@ class ProductVaSpeAttrHandler extends BaseController
             }
         } else {
             // <editor-fold defaultstate="collapsed" desc="Handling Variation Child Pull">
-            $tmp = ( new ProductVariation() )
+            $tmp = ( new ProductVariation($this->db, $this->util) )
                 ->pullDataChild(
                     $product,
                     $model,
@@ -180,7 +181,6 @@ class ProductVaSpeAttrHandler extends BaseController
 
             if (! $isPurchasable) {
                 $attrI18n = ( new ProductAttrI18nModel() )
-                    ->setProductAttrId(new Identity(self::PAYABLE_ATTR))
                     ->setLanguageISO($languageIso)
                     ->setName(self::PAYABLE_ATTR)
                     ->setValue(self::VALUE_FALSE);
@@ -300,14 +300,11 @@ class ProductVaSpeAttrHandler extends BaseController
     private function getDeliveryTimeFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::DELIVERY_TIME_ATTR))
             ->setName(self::DELIVERY_TIME_ATTR)
             ->setValue("0")
             ->setLanguageISO($languageIso);
 
         $attribute = ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
 
@@ -325,14 +322,11 @@ class ProductVaSpeAttrHandler extends BaseController
     {
         $value = $product->is_downloadable() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::DOWNLOADABLE_ATTR))
             ->setName(self::DOWNLOADABLE_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -351,14 +345,11 @@ class ProductVaSpeAttrHandler extends BaseController
     {
         $value = $product->is_sold_individually() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_ONLY_ONE_ATTR))
             ->setName(self::PURCHASE_ONLY_ONE_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -377,14 +368,11 @@ class ProductVaSpeAttrHandler extends BaseController
             : self::VALUE_FALSE;
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
             ->setName(self::PAYABLE_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -416,14 +404,11 @@ class ProductVaSpeAttrHandler extends BaseController
         }
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::VISIBILITY))
             ->setName(self::VISIBILITY)
             ->setValue($visibility)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -439,14 +424,11 @@ class ProductVaSpeAttrHandler extends BaseController
     {
         $value = $product->is_virtual() ? self::VALUE_TRUE : self::VALUE_FALSE;
         $i18n  = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::VIRTUAL_ATTR))
             ->setName(self::VIRTUAL_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -463,14 +445,11 @@ class ProductVaSpeAttrHandler extends BaseController
         $value = $product->get_type();
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PRODUCT_TYPE_ATTR))
             ->setName(self::PRODUCT_TYPE_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -487,14 +466,11 @@ class ProductVaSpeAttrHandler extends BaseController
         $info = \get_post_meta($product->get_id(), '_purchase_note', true);
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::PURCHASE_NOTE_ATTR))
             ->setName(self::PURCHASE_NOTE_ATTR)
             ->setValue((string) $info)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -518,14 +494,11 @@ class ProductVaSpeAttrHandler extends BaseController
         }
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::FACEBOOK_SYNC_STATUS_ATTR))
             ->setName(self::FACEBOOK_SYNC_STATUS_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -542,14 +515,11 @@ class ProductVaSpeAttrHandler extends BaseController
         $value = $product->get_service() === true ? self::VALUE_TRUE : self::VALUE_FALSE;
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GZD_IS_SERVICE))
             ->setName(self::GZD_IS_SERVICE)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -566,14 +536,11 @@ class ProductVaSpeAttrHandler extends BaseController
         $value = $product->get_min_age();
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GZD_MIN_AGE))
             ->setName(self::GZD_MIN_AGE)
             ->setValue($value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -596,14 +563,11 @@ class ProductVaSpeAttrHandler extends BaseController
         }
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_DIGITAL_ATTR))
             ->setName(self::GM_DIGITAL_ATTR)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -628,14 +592,11 @@ class ProductVaSpeAttrHandler extends BaseController
         }
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_SUPPRESS_SHIPPPING_NOTICE))
             ->setName(self::GM_SUPPRESS_SHIPPPING_NOTICE)
             ->setValue((string) $value)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -654,14 +615,11 @@ class ProductVaSpeAttrHandler extends BaseController
         $info = \get_post_meta($product->get_id(), '_alternative_shipping_information', true);
 
         $i18n = ( new ProductAttrI18nModel() )
-            ->setProductAttrId(new Identity($product->get_id() . '_' . self::GM_ALT_DELIVERY_NOTE_ATTR))
             ->setName(self::GM_ALT_DELIVERY_NOTE_ATTR)
             ->setValue((string) $info)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -701,7 +659,7 @@ class ProductVaSpeAttrHandler extends BaseController
             $jtlSpecifics  = $this->generateSpecificData($product->getSpecifics());
 
             //handleAttributes
-            $productAttributes = ( new ProductAttr() )->pushData(
+            $productAttributes = ( new ProductAttr($this->db, $this->util) )->pushData(
                 $productId,
                 $product->getAttributes(),
                 $currentVariationsAndSpecifics,
@@ -711,7 +669,7 @@ class ProductVaSpeAttrHandler extends BaseController
             $this->mergeAttributes($newWcProductAttributes, $productAttributes);
 
             // handleSpecifics
-            $productSpecifics = ( new ProductSpecific() )->pushData(
+            $productSpecifics = ( new ProductSpecific($this->db, $this->util) )->pushData(
                 $productId,
                 $wcProductAttributes,
                 $jtlSpecifics,
@@ -722,7 +680,7 @@ class ProductVaSpeAttrHandler extends BaseController
             $this->mergeAttributes($newWcProductAttributes, $productSpecifics);
 
             // handleVarSpecifics
-            $productVariations = ( new ProductVariation() )->pushMasterData(
+            $productVariations = ( new ProductVariation($this->db, $this->util) )->pushMasterData(
                 $productId,
                 $jtlVariations,
                 $currentAttributes
@@ -773,7 +731,7 @@ class ProductVaSpeAttrHandler extends BaseController
             $old = \get_post_meta($productId, '_product_attributes', true);
             \update_post_meta($productId, '_product_attributes', $newWcProductAttributes, $old);
         } else {
-            ( new ProductVariation() )->pushChildData(
+            ( new ProductVariation($this->db, $this->util) )->pushChildData(
                 $productId,
                 $product->getVariations()
             );
@@ -791,11 +749,11 @@ class ProductVaSpeAttrHandler extends BaseController
     private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = []): array
     {
         $filteredAttributes = [];
-        /** @var \jtl\Connector\Model\ProductVariation $variation */
+        /** @var \jtl\Connector\Core\Model\ProductVariation $variation */
         $jtlVariations = [];
         foreach ($variations as $variation) {
             foreach ($variation->getI18ns() as $productVariationI18n) {
-                if (Util::getInstance()->isWooCommerceLanguage($productVariationI18n->getLanguageISO())) {
+                if ($this->util->isWooCommerceLanguage($productVariationI18n->getLanguageISO())) {
                     $jtlVariations[] = $productVariationI18n->getName();
                 }
             }
@@ -855,7 +813,7 @@ class ProductVaSpeAttrHandler extends BaseController
             if (! $wcProductAttribute->get_variation()) {
                 $filteredAttributes[ $slug ] = [
                     'name'         => $wcProductAttribute->get_name(),
-                    'value'        => Util::getInstance()->findAttributeValue($wcProductAttribute, ...$jtlAttributes),
+                    'value'        => $this->util->findAttributeValue($wcProductAttribute, ...$jtlAttributes),
                     'position'     => $wcProductAttribute->get_position(),
                     'is_visible'   => $wcProductAttribute->get_visible(),
                     'is_variation' => $wcProductAttribute->get_variation(),
@@ -881,7 +839,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
                 $customSort   = false;
 
-                if (! Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                if (! $this->util->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                     continue;
                 }
 
@@ -905,7 +863,7 @@ class ProductVaSpeAttrHandler extends BaseController
                 foreach ($this->values as $vv) {
                     /** @var ProductVariationValueI18nModel $valueI18n */
                     foreach ($vv->getI18ns() as $valueI18n) {
-                        if (! Util::getInstance()->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
+                        if (! $this->util->isWooCommerceLanguage($valueI18n->getLanguageISO())) {
                             continue;
                         }
 
@@ -959,10 +917,10 @@ class ProductVaSpeAttrHandler extends BaseController
 
     public function getSpecificValueId(string $slug, string $value)
     {
-        $val = $this->database->query(SqlHelper::getSpecificValueId($slug, $value));
+        $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value));
 
         if (\count($val) === 0) {
-            $val = $this->database->query(SqlHelper::getSpecificValueIdBySlug($slug, $value));
+            $val = $this->db->query(SqlHelper::getSpecificValueIdBySlug($slug, $value));
         }
 
         if (\count($val) === 0) {
@@ -1021,11 +979,11 @@ class ProductVaSpeAttrHandler extends BaseController
      */
     protected function removeUnknownAttributes(array $newWcProductAttributes, array $jtlAttributes): array
     {
-        $defaultLanguage = Util::getInstance()->getWooCommerceLanguage();
+        $defaultLanguage = $this->util->getWooCommerceLanguage();
         foreach ($newWcProductAttributes as $i => $wcAttribute) {
             if (! isset($wcAttribute['id']) && $wcAttribute['is_taxonomy'] === '') {
                 $attributeExists = ! \is_null(
-                    Util::findAttributeI18nByName($wcAttribute['name'], $defaultLanguage, ...$jtlAttributes)
+                    $this->util->findAttributeI18nByName($wcAttribute['name'], $defaultLanguage, ...$jtlAttributes)
                 );
                 if ($attributeExists === false) {
                     unset($newWcProductAttributes[ $i ]);

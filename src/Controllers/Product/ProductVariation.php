@@ -7,21 +7,21 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductVariation as ProductVariationModel;
-use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
-use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
-use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductVariation as ProductVariationModel;
+use jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
+use jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
+use jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
-use JtlWooCommerceConnector\Utilities\Util;
+use MailPoet\API\JSON\Error;
 use WC_Product_Attribute;
 use WP_Error;
 
-class ProductVariation extends BaseController
+class ProductVariation extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
@@ -40,10 +40,8 @@ class ProductVariation extends BaseController
 
         $productVariation = (new ProductVariationModel())
             ->setId($id)
-            ->setProductId($model->getId())
             ->setType(ProductVariationModel::TYPE_SELECT)
             ->addI18n((new ProductVariationI18nModel())
-                ->setProductVariationId($id)
                 ->setName(\wc_attribute_label($attribute->get_name()))
                 ->setLanguageISO($languageIso));
 
@@ -60,10 +58,8 @@ class ProductVariation extends BaseController
 
                 $productVariation->addValue((new ProductVariationValueModel())
                     ->setId($valueId)
-                    ->setProductVariationId($id)
                     ->setSort($sort)
                     ->addI18n((new ProductVariationValueI18nModel())
-                        ->setProductVariationValueId($valueId)
                         ->setName($term->name)
                         ->setLanguageISO($languageIso)));
             }
@@ -75,10 +71,8 @@ class ProductVariation extends BaseController
 
                 $productVariation->addValue((new ProductVariationValueModel())
                     ->setId($valueId)
-                    ->setProductVariationId($id)
                     ->setSort($sort)
                     ->addI18n((new ProductVariationValueI18nModel())
-                        ->setProductVariationValueId($valueId)
                         ->setName($option)
                         ->setLanguageISO($languageIso)));
             }
@@ -107,10 +101,8 @@ class ProductVariation extends BaseController
 
             $productVariation = (new ProductVariationModel())
                 ->setId($id)
-                ->setProductId($model->getId())
                 ->setType(ProductVariationModel::TYPE_SELECT)
                 ->addI18n((new ProductVariationI18nModel())
-                    ->setProductVariationId($id)
                     ->setName(\wc_attribute_label($attribute->get_name()))
                     ->setLanguageISO($languageIso));
 
@@ -133,10 +125,8 @@ class ProductVariation extends BaseController
 
                     $productVariation->addValue((new ProductVariationValueModel())
                         ->setId($valueId)
-                        ->setProductVariationId($id)
                         ->setSort($sort)
                         ->addI18n((new ProductVariationValueI18nModel())
-                            ->setProductVariationValueId($valueId)
                             ->setName($term->name)
                             ->setLanguageISO($languageIso)));
                 }
@@ -152,10 +142,8 @@ class ProductVariation extends BaseController
 
                     $productVariation->addValue((new ProductVariationValueModel())
                         ->setId($valueId)
-                        ->setProductVariationId($id)
                         ->setSort($sort)
                         ->addI18n((new ProductVariationValueI18nModel())
-                            ->setProductVariationValueId($valueId)
                             ->setName($option)
                             ->setLanguageISO($languageIso)));
                 }
@@ -186,7 +174,7 @@ class ProductVariation extends BaseController
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
             $taxonomy       = $this->createVariantSlug((string)$key);
-            $specificID     = $this->database->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
+            $specificID     = $this->db->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
             $specificExists = isset($specificID[0]['attribute_id']);
             $options        = [];
 
@@ -207,7 +195,7 @@ class ProductVariation extends BaseController
                         $newTerm = \wp_insert_term($pushedValue, $taxonomy);
 
                         if ($newTerm instanceof WP_Error) {
-                            WpErrorLogger::getInstance()->logError($newTerm);
+                            $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;
                         }
 
@@ -236,7 +224,7 @@ class ProductVariation extends BaseController
                             'name' => $taxonomy,
                             'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),
                             'position' => $variationSpecific['position'] ?? 0,
-                            'is_visible' => Util::showVariationSpecificsOnProductPageEnabled(),
+                            'is_visible' => $this->util->showVariationSpecificsOnProductPageEnabled(),
                             'is_variation' => true,
                             'is_taxonomy' => $taxonomy,
                         ];
@@ -275,7 +263,7 @@ class ProductVariation extends BaseController
                     //var_dump($attributeId);
                     //die();
                     //return $termId->get_error_message();
-                    WpErrorLogger::getInstance()->logError($attributeId);
+                    $this->logger->error(ErrorFormatter::formatError($attributeId));
 
                     return null;
                 }
@@ -293,7 +281,7 @@ class ProductVariation extends BaseController
                         'slug' => $slug,
                     ];
 
-                    $exValId = $this->database->query(
+                    $exValId = $this->db->query(
                         SqlHelper::getSpecificValueId(
                             $taxonomy,
                             $endpointValue['name']
@@ -319,7 +307,7 @@ class ProductVariation extends BaseController
                         if ($newTerm instanceof WP_Error) {
                             //  var_dump($newTerm);
                             // die();
-                            WpErrorLogger::getInstance()->logError($newTerm);
+                            $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;
                         }
 
@@ -328,7 +316,7 @@ class ProductVariation extends BaseController
                         if ($termId instanceof WP_Error) {
                             // var_dump($termId);
                             // die();
-                            WpErrorLogger::getInstance()->logError($termId);
+                            $this->logger->error(ErrorFormatter::formatError($termId));
                             continue;
                         }
 
@@ -340,7 +328,7 @@ class ProductVariation extends BaseController
                     'name' => $taxonomy,
                     'value' => \implode(' ' . \WC_DELIMITER . ' ', $options),
                     'position' => null,
-                    'is_visible' => Util::showVariationSpecificsOnProductPageEnabled(),
+                    'is_visible' => $this->util->showVariationSpecificsOnProductPageEnabled(),
                     'is_variation' => true,
                     'is_taxonomy' => $taxonomy,
                 ];
@@ -373,7 +361,7 @@ class ProductVariation extends BaseController
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if (!Util::getInstance()->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                    if (!$this->util->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
                         continue;
                     }
 

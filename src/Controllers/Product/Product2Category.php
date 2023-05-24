@@ -7,14 +7,15 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\Product2Category as Product2CategoryModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use Jtl\Connector\Core\Model\AbstractModel;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
 
-class Product2Category extends BaseController
+class Product2Category extends AbstractBaseController
 {
     /**
      * @param \WC_Product $product
@@ -29,7 +30,7 @@ class Product2Category extends BaseController
             $categories = $product->get_category_ids();
 
             if ($categories instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($categories);
+                $this->logger->error(ErrorFormatter::formatError($categories));
 
                 return [];
             }
@@ -37,7 +38,6 @@ class Product2Category extends BaseController
             foreach ($categories as $category) {
                 $productCategory = (new Product2CategoryModel())
                     ->setId(new Identity(Id::link([$product->get_id(), $category])))
-                    ->setProductId(new Identity($product->get_id()))
                     ->setCategoryId(new Identity($category));
 
                 $productCategories[] = $productCategory;
@@ -48,13 +48,13 @@ class Product2Category extends BaseController
     }
 
     /**
-     * @param ProductModel $product
+     * @param ProductModel $model
      * @return void
      */
-    public function pushData(ProductModel $product): void
+    public function pushData(AbstractModel $model): AbstractModel
     {
-        $wcProduct = \wc_get_product($product->getId()->getEndpoint());
-        $wcProduct->set_category_ids($this->getCategoryIds($product->getCategories()));
+        $wcProduct = \wc_get_product($model->getId()->getEndpoint());
+        $wcProduct->set_category_ids($this->getCategoryIds($model->getCategories()));
         $wcProduct->save();
     }
 

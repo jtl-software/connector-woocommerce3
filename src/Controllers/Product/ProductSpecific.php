@@ -7,16 +7,14 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr;
-use jtl\Connector\Model\ProductSpecific as ProductSpecificModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
-use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product_Attribute;
 
-class ProductSpecific extends BaseController
+class ProductSpecific extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
@@ -87,7 +85,7 @@ class ProductSpecific extends BaseController
             if (!\str_starts_with($slug, 'pa_')) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
-                    'value'        => Util::getInstance()->findAttributeValue(
+                    'value'        => $this->util->findAttributeValue(
                         $wcProductAttribute,
                         ...$pushedJtlAttributes
                     ),
@@ -157,7 +155,7 @@ class ProductSpecific extends BaseController
     public function getSpecificId($slug): string
     {
         $name = \substr($slug, 3);
-        $val  = $this->database->query(SqlHelper::getSpecificId($name));
+        $val  = $this->db->query(SqlHelper::getSpecificId($name));
 
         return $val[0]['attribute_id'] ?? '';
     }
@@ -171,13 +169,12 @@ class ProductSpecific extends BaseController
      */
     private function buildProductSpecific($slug, $value, ProductModel $result): ProductSpecificModel
     {
-        $parent     = (new ProductVaSpeAttrHandler());
+        $parent     = (new ProductVaSpeAttrHandler($this->db, $this->util));
         $valueId    = $parent->getSpecificValueId($slug, $value);
         $specificId = (new Identity())->setEndpoint($this->getSpecificId($slug));
 
         return (new ProductSpecificModel())
             ->setId($specificId)
-            ->setProductId($result->getId())
             ->setSpecificValueId($valueId);
     }
 

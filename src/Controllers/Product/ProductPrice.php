@@ -7,18 +7,18 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
+use jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductPrice extends BaseController
+class ProductPrice extends AbstractBaseController
 {
     public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
@@ -31,7 +31,7 @@ class ProductPrice extends BaseController
     public function pullData(\WC_Product $product, ProductModel $model): array
     {
         $prices          = [];
-        $groupController = new CustomerGroup();
+        $groupController = new CustomerGroup($this->db, $this->util);
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $prices[] = (new ProductPriceModel())
@@ -39,11 +39,10 @@ class ProductPrice extends BaseController
                 ->setProductId(new Identity($product->get_id()))
                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                 ->addItem((new ProductPriceItemModel())
-                    ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity(1)
                     ->setNetPrice($this->netPrice($product)));
         } else {
-            $customerGroups = $groupController->pullData();
+            $customerGroups = $groupController->pull();
 
             if (
                 SupportedPlugins::comparePluginVersion(
@@ -57,7 +56,6 @@ class ProductPrice extends BaseController
                     ->setProductId(new Identity($product->get_id()))
                     ->setCustomerGroupId(new Identity(""))
                     ->addItem((new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product)));
             }
@@ -81,7 +79,6 @@ class ProductPrice extends BaseController
                     )
                 ) {
                     $items[] = (new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
                 } else {
@@ -94,7 +91,6 @@ class ProductPrice extends BaseController
                     }
 
                     $items[] = (new ProductPriceItemModel())
-                        ->setProductPriceId(new Identity($product->get_id()))
                         ->setQuantity(1)
                         ->setNetPrice((float)$price);
 
@@ -199,7 +195,6 @@ class ProductPrice extends BaseController
         foreach ($bulkPrices as $bulkPrice) {
             if ($bulkPrice['bulk_price_type'] === 'fix') {
                 $items[] = (new ProductPriceItemModel())
-                    ->setProductPriceId(new Identity($product->get_id()))
                     ->setQuantity((int)$bulkPrice['bulk_price_from'])
                     ->setNetPrice((float)$bulkPrice['bulk_price']);
             }
@@ -214,7 +209,7 @@ class ProductPrice extends BaseController
      */
     protected function netPrice(\WC_Product $product): float
     {
-        $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
+        $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
         $pd      = Util::getPriceDecimals();
 
         $netPrice = (float)$product->get_regular_price();
@@ -232,7 +227,7 @@ class ProductPrice extends BaseController
      * @return array
      * @throws \InvalidArgumentException
      */
-    protected function groupProductPrices(\jtl\Connector\Model\ProductPrice ...$jtlProductPrices): array
+    protected function groupProductPrices(\jtl\Connector\Core\Model\ProductPrice ...$jtlProductPrices): array
     {
         $groupedProductPrices = [];
 
@@ -250,11 +245,11 @@ class ProductPrice extends BaseController
                     $groupedProductPrices[CustomerGroup::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                         ->setProductId($price->getProductId())
-                        ->setItems($price->getItems());
+                        ->setItems(...$price->getItems());
                 }
             }
 
-            if (Util::getInstance()->isValidCustomerGroup($endpoint)) {
+            if ($this->util->isValidCustomerGroup($endpoint)) {
                 if ($endpoint === '') {
                     $endpoint = self::GUEST_CUSTOMER_GROUP;
                     if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_B2B_MARKET, '>', '1.0.3')) {
@@ -280,7 +275,7 @@ class ProductPrice extends BaseController
         \WC_Product $wcProduct,
         float $vat,
         string $productType,
-        \jtl\Connector\Model\ProductPrice ...$productPrices
+        \jtl\Connector\Core\Model\ProductPrice ...$productPrices
     ): void {
         Util::deleteB2Bcache();
 
@@ -315,7 +310,7 @@ class ProductPrice extends BaseController
         foreach ($groupedProductPrices as $customerGroupId => $productPrice) {
             if (
                 (string)$customerGroupId === self::GUEST_CUSTOMER_GROUP
-                || !Util::getInstance()->isValidCustomerGroup((string)$customerGroupId)
+                || !$this->util->isValidCustomerGroup((string)$customerGroupId)
             ) {
                 continue;
             }
@@ -517,8 +512,8 @@ class ProductPrice extends BaseController
         $regularPrice = $this->getRegularPrice($item, $vat);
 
         if ($item->getQuantity() === 0) {
-            $salePrice = \get_post_meta($productId, '_sale_price', true);
-            $decimalCount = \strlen(explode('.', $regularPrice)[1]);
+            $salePrice    = \get_post_meta($productId, '_sale_price', true);
+            $decimalCount = \strlen(\explode('.', $regularPrice)[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(

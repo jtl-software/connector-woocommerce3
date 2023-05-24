@@ -7,12 +7,12 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Product as ProductModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class ProductB2BMarketFields extends BaseController
+class ProductB2BMarketFields extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
@@ -65,7 +65,7 @@ class ProductB2BMarketFields extends BaseController
      */
     protected function updateMinimumOrderQuantity(ProductModel $product, \WC_Product $wcProduct): void
     {
-        $groupController = new CustomerGroup();
+        $groupController = new CustomerGroup($this->db, $this->util);
 
         $updatedEndpoints = [];
 
@@ -77,7 +77,7 @@ class ProductB2BMarketFields extends BaseController
             }
         }
 
-        $customerGroups = $groupController->pullData();
+        $customerGroups = $groupController->pull();
         foreach ($customerGroups as $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
 

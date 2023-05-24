@@ -7,16 +7,14 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
-use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
+use jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductAttr extends BaseController
+class ProductAttr extends AbstractBaseController
 {
     public const
         VISIBILITY_HIDDEN  = 'hidden',
@@ -71,7 +69,7 @@ class ProductAttr extends BaseController
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
                     continue;
                 }
 
@@ -84,14 +82,14 @@ class ProductAttr extends BaseController
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)
                         && $attrName === ProductVaSpeAttrHandler::FACEBOOK_SYNC_STATUS_ATTR
                     ) {
-                        $value = Util::isTrue($i18n->getValue()) ? '1' : '';
+                        $value = $this->util->isTrue($i18n->getValue()) ? '1' : '';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 3), $value);
                         $fbStatusCode = true;
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
                         if ($i18n->getName() === ProductVaSpeAttrHandler::GZD_IS_SERVICE) {
-                            $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
                             $this->addOrUpdateMetaField($productId, '_service', $value);
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandler::GZD_MIN_AGE) {
@@ -101,13 +99,13 @@ class ProductAttr extends BaseController
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                         if ($attrName === ProductVaSpeAttrHandler::GM_DIGITAL_ATTR) {
-                            $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
                             $this->addOrUpdateMetaField($productId, \substr($attrName, 5), $value);
                             $digital = true;
                         }
 
                         if ($attrName === ProductVaSpeAttrHandler::GM_SUPPRESS_SHIPPPING_NOTICE) {
-                            $value = Util::isTrue($i18n->getValue()) ? 'on' : '';
+                            $value = $this->util->isTrue($i18n->getValue()) ? 'on' : '';
                             if ($value) {
                                 $this->addOrUpdateMetaField($productId, \substr($attrName, 5), $value);
                             }
@@ -164,32 +162,35 @@ class ProductAttr extends BaseController
                     }
 
                     if ($attrName === ProductVaSpeAttrHandler::DOWNLOADABLE_ATTR) {
-                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $downloadable = true;
                     }
 
                     if ($attrName === ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR) {
-                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $soldIndividual = true;
                     }
 
                     if ($attrName === ProductVaSpeAttrHandler::VIRTUAL_ATTR) {
-                        $value = Util::isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $virtual = true;
                     }
 
                     if (
                         ($attrName === ProductVaSpeAttrHandler::PAYABLE_ATTR)
-                        && Util::isTrue($i18n->getValue()) === false
+                        && $this->util->isTrue($i18n->getValue()) === false
                     ) {
                         $this->wpUpdatePost(['ID' => $productId, 'post_status' => 'private']);
                         $payable = true;
                     }
 
-                    if (($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR) && Util::isTrue($i18n->getValue())) {
+                    if (
+                        ($attrName === ProductVaSpeAttrHandler::NOSEARCH_ATTR)
+                        && $this->util->isTrue($i18n->getValue())
+                    ) {
                         $this->updatePostMeta($productId, '_visibility', 'catalog');
 
                         $this->wpSetObjectTerms($productId, ['exclude-from-search'], 'product_visibility', true);
@@ -218,7 +219,11 @@ class ProductAttr extends BaseController
         }
 
         if (!$soldIndividual) {
-            $this->addOrUpdateMetaField($productId, \substr(ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR, 2), 'no');
+            $this->addOrUpdateMetaField(
+                $productId,
+                \substr(ProductVaSpeAttrHandler::PURCHASE_ONLY_ONE_ATTR, 2),
+                'no'
+            );
         }
 
         if (!$nosearch) {
@@ -284,7 +289,7 @@ class ProductAttr extends BaseController
             }
 
             foreach ($attribute->getI18ns() as $i18n) {
-                if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
                     continue;
                 }
 
@@ -317,14 +322,11 @@ class ProductAttr extends BaseController
         $values = \explode(\WC_DELIMITER, $productAttribute);
 
         $i18n = (new ProductAttrI18nModel())
-            ->setProductAttrId(new Identity($slug))
             ->setName($attribute->get_name())
             ->setValue(\implode(', ', $values))
             ->setLanguageISO($languageIso);
 
         return (new ProductAttrModel())
-            ->setId($i18n->getProductAttrId())
-            ->setProductId(new Identity($product->get_id()))
             ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }

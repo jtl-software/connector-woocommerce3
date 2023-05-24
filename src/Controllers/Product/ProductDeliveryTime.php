@@ -7,15 +7,14 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\Product as ProductModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 use WP_Error;
 
-class ProductDeliveryTime extends BaseController
+class ProductDeliveryTime extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
@@ -38,7 +37,7 @@ class ProductDeliveryTime extends BaseController
             $pushedAttributes = $product->getAttributes();
             foreach ($pushedAttributes as $key => $pushedAttribute) {
                 foreach ($pushedAttribute->getI18ns() as $i18n) {
-                    if (!Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
                         continue;
                     }
 
@@ -53,7 +52,7 @@ class ProductDeliveryTime extends BaseController
 
             if (Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE, false)) {
                 if (
-                    $product->getStockLevel()->getStockLevel() <= 0
+                    $product->getStockLevel() <= 0
                     && !\is_null($product->getNextAvailableInflowDate())
                 ) {
                     $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
@@ -91,7 +90,7 @@ class ProductDeliveryTime extends BaseController
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
             ) {
                 foreach ($product->getI18ns() as $i18n) {
-                    if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
                         $deliveryTimeString = $i18n->getDeliveryStatus();
                         break;
                     }
@@ -99,7 +98,7 @@ class ProductDeliveryTime extends BaseController
             }
 
             $term = \get_term_by('slug', \wc_sanitize_taxonomy_name(
-                Util::removeSpecialchars($deliveryTimeString)
+                $this->util->removeSpecialchars($deliveryTimeString)
             ), 'product_delivery_times');
 
             if ($term === false) {
@@ -113,8 +112,8 @@ class ProductDeliveryTime extends BaseController
                     //  var_dump($newTerm);
                     // die();
                     $error = new WP_Error('invalid_taxonomy', 'Could not create delivery time.');
-                    WpErrorLogger::getInstance()->logError($error);
-                    WpErrorLogger::getInstance()->logError($newTerm);
+                    $this->logger->error(ErrorFormatter::formatError($error));
+                    $this->logger->error(ErrorFormatter::formatError($newTerm));
                 } else {
                     $termId = $newTerm['term_id'];
 
@@ -138,7 +137,7 @@ class ProductDeliveryTime extends BaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
                 $germanizedTerm = \get_term_by('slug', \wc_sanitize_taxonomy_name(
-                    Util::removeSpecialchars($deliveryTimeString)
+                    $this->util->removeSpecialchars($deliveryTimeString)
                 ), $germanizedDeliveryTimeTaxonomyName);
 
                 $germanizedTermId = false;
@@ -153,8 +152,8 @@ class ProductDeliveryTime extends BaseController
                             'invalid_taxonomy',
                             'Could not create delivery time for germanized.'
                         );
-                        WpErrorLogger::getInstance()->logError($error);
-                        WpErrorLogger::getInstance()->logError($germanizedTermArray);
+                        $this->logger->error(ErrorFormatter::formatError($error));
+                        $this->logger->error(ErrorFormatter::formatError($germanizedTermArray));
                     }
 
                     if (\is_array($germanizedTermArray) && isset($germanizedTermArray['term_id'])) {
@@ -179,12 +178,12 @@ class ProductDeliveryTime extends BaseController
                             '3.7.0'
                         )
                     ) {
-                        $oldDeliveryTime = Util::getInstance()->getPostMeta(
+                        $oldDeliveryTime = $this->util->getPostMeta(
                             $productId,
                             '_default_delivery_time',
                             true
                         );
-                        Util::getInstance()->updatePostMeta(
+                        $this->util->updatePostMeta(
                             $productId,
                             '_default_delivery_time',
                             $germanizedTerm->slug,
@@ -222,7 +221,7 @@ class ProductDeliveryTime extends BaseController
                         '3.7.0'
                     )
                 ) {
-                    Util::getInstance()->deletePostMeta($productId, '_default_delivery_time');
+                    $this->util->deletePostMeta($productId, '_default_delivery_time');
                 }
             }
         }

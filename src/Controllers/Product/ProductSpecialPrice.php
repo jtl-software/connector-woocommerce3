@@ -7,19 +7,19 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductSpecialPrice as ProductSpecialPriceModel;
-use jtl\Connector\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductSpecialPrice as ProductSpecialPriceModel;
+use jtl\Connector\Core\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductSpecialPrice extends BaseController
+class ProductSpecialPrice extends AbstractBaseController
 {
     /**
      * @param \WC_Product $product
@@ -30,7 +30,7 @@ class ProductSpecialPrice extends BaseController
     public function pullData(\WC_Product $product, ProductModel $model): array
     {
         $specialPrices   = [];
-        $groupController = (new CustomerGroup());
+        $groupController = (new CustomerGroup($this->db, $this->util));
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $salePrice = $product->get_sale_price();
@@ -38,18 +38,16 @@ class ProductSpecialPrice extends BaseController
             if (!empty($salePrice)) {
                 $specialPrices[] = (new ProductSpecialPriceModel())
                     ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
                     ->setIsActive($product->is_on_sale())
                     ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
                     ->addItem((new ProductSpecialPriceItemModel())
-                        ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                         ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product)));
             }
         } else {
-            $customerGroups = $groupController->pullData();
+            $customerGroups = $groupController->pull();
 
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
@@ -73,7 +71,6 @@ class ProductSpecialPrice extends BaseController
 
                     if (!empty($salePrice)) {
                         $items [] = (new ProductSpecialPriceItemModel())
-                            ->setProductSpecialPriceId(new Identity($product->get_id()))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                             ->setPriceNet((float)$this->getPriceNet($salePrice, $product));
                     }
@@ -108,19 +105,17 @@ class ProductSpecialPrice extends BaseController
                     }
 
                     $items [] = (new ProductSpecialPriceItemModel())
-                        ->setProductSpecialPriceId(new Identity($product->get_id()))
                         ->setCustomerGroupId($customerGroup->getId())
                         ->setPriceNet((float)$specialPrice);
                 }
 
                 $specialPrices[] = (new ProductSpecialPriceModel())
                     ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
                     ->setIsActive($product->is_on_sale())
                     ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
-                    ->setItems($items);
+                    ->setItems(...$items);
             }
         }
 
@@ -134,8 +129,8 @@ class ProductSpecialPrice extends BaseController
      */
     protected function getPriceNet($priceNet, \WC_Product $product): float
     {
-        $taxRate = Util::getInstance()->getTaxRateByTaxClass($product->get_tax_class());
-        $pd      = Util::getPriceDecimals();
+        $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
+        $pd      = $this->util->getPriceDecimals();
 
         if (\wc_prices_include_tax() && $taxRate != 0) {
             $netPrice = \round(\round(((float)$priceNet) / ($taxRate + 100), $pd) * 100);
@@ -173,7 +168,6 @@ class ProductSpecialPrice extends BaseController
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
                     if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                         $specialPrice->addItem((new ProductSpecialPriceItemModel())
-                            ->setProductSpecialPriceId(new Identity('customer'))
                             ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                             ->setPriceNet((float)$item->getPriceNet()));
                     }
@@ -194,7 +188,6 @@ class ProductSpecialPrice extends BaseController
                         $endpoint = $item->getCustomerGroupId()->getEndpoint();
                         if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                             $specialPrice->addItem((new ProductSpecialPriceItemModel())
-                                ->setProductSpecialPriceId(new Identity('customer'))
                                 ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                                 ->setPriceNet((float)$item->getPriceNet()));
                         }
@@ -223,7 +216,7 @@ class ProductSpecialPrice extends BaseController
                         $salePrice = \round($item->getPriceNet(), $pd);
                     }
 
-                    if (!Util::getInstance()->isValidCustomerGroup((string)$endpoint)) {
+                    if (!$this->util->isValidCustomerGroup((string)$endpoint)) {
                         continue;
                     }
 
@@ -529,7 +522,7 @@ class ProductSpecialPrice extends BaseController
                 }
             }
         } else {
-            $customerGroups = (new CustomerGroup())->pullData();
+            $customerGroups = (new CustomerGroup($this->db, $this->util))->pull();
 
             if (
                 SupportedPlugins::comparePluginVersion(
@@ -544,7 +537,6 @@ class ProductSpecialPrice extends BaseController
                         $customerGroups[] = (new CustomerGroupModel())
                             ->setId(new Identity(CustomerGroup::DEFAULT_GROUP))
                             ->addI18n((new CustomerGroupI18nModel())
-                                ->setCustomerGroupId(new Identity(CustomerGroup::DEFAULT_GROUP))
                                 ->setName('Customer'));
                     }
                 }
