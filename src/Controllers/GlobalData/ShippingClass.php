@@ -7,20 +7,20 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ShippingClass as ShippingClassModel;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\ShippingClass as ShippingClassModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 
-class ShippingClass
+class ShippingClass extends AbstractBaseController
 {
     public const TERM_TAXONOMY = 'product_shipping_class';
 
     /**
-     * @return array<int|DataModel>
+     * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullData(): array
+    public function pull(): array
     {
         $shippingClasses = [];
 
@@ -37,7 +37,7 @@ class ShippingClass
      * @param array $shippingClasses
      * @return array
      */
-    public function pushData(array $shippingClasses): array
+    public function push(array $shippingClasses): array
     {
         foreach ($shippingClasses as $shippingClass) {
             $term = \get_term_by('name', $shippingClass->getName(), self::TERM_TAXONOMY, \OBJECT);
@@ -46,7 +46,7 @@ class ShippingClass
                 $result = \wp_insert_term($shippingClass->getName(), self::TERM_TAXONOMY);
 
                 if ($result instanceof \WP_Error) {
-                    WpErrorLogger::getInstance()->logError($result);
+                    $this->logger->error(ErrorFormatter::formatError($result));
                     continue;
                 }
 

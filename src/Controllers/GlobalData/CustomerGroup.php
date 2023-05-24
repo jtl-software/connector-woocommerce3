@@ -7,29 +7,32 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\CustomerGroupI18n;
-use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Controller\PullInterface;
+use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Core\Model\CustomerGroupI18n;
+use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 
-class CustomerGroup
+class CustomerGroup extends AbstractBaseController
 {
     public const DEFAULT_GROUP = 'customer';
 
+    protected $db;
+    protected $util;
+
     /**
-     * @return array<int, DataModel>
+     * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullData(): array
+    public function pull(): array
     {
         $customerGroups    = [];
         $isDefaultGroupSet = false;
-        $langIso           = Util::getInstance()->getWooCommerceLanguage();
+        $langIso           = $this->util->getWooCommerceLanguage();
         $version           = (string)SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_B2B_MARKET);
 
         if (
@@ -43,7 +46,6 @@ class CustomerGroup
                 ->setIsDefault(true);
 
             $defaultI18n = (new CustomerGroupI18n())
-                ->setCustomerGroupId($defaultGroup->getId())
                 ->setName(\__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
 
@@ -54,7 +56,7 @@ class CustomerGroup
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $sql    = SqlHelper::customerGroupPull();
-            $result = Db::getInstance()->query($sql);
+            $result = $this->db->query($sql);
 
             if (\count($result) > 0) {
                 foreach ($result as $group) {
@@ -81,7 +83,6 @@ class CustomerGroup
                         ->setIsDefault($isDefaultGroup);
 
                     $i18n = (new CustomerGroupI18n())
-                        ->setCustomerGroupId($customerGroup->getId())
                         ->setName($group['post_title'])
                         ->setLanguageISO($langIso);
 

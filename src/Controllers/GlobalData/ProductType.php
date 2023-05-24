@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ProductType as ProductTypeModel;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\ProductType as ProductTypeModel;
 
 class ProductType
 {
@@ -16,7 +16,7 @@ class ProductType
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullData(): array
+    public function pull(): array
     {
         $productTypes = [];
 

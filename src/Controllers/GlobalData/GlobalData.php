@@ -7,32 +7,36 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\GlobalData as GlobalDataModel;
-use JtlWooCommerceConnector\Controllers\BaseController;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\GlobalData as GlobalDataModel;
+use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class GlobalData extends BaseController
+class GlobalData extends AbstractBaseController implements PullInterface, PushInterface
 {
     /**
      * @return array<GlobalDataModel>
      * @throws \Exception
      */
-    public function pullData(): array
+    public function pull(QueryFilter $query): array
     {
         $globalData = (new GlobalDataModel())
-            ->addCurrency((new Currency())->pullData())
-            ->addLanguage((new Language())->pullData())
-            ->setProductTypes((new ProductType())->pullData())
-            ->setShippingClasses((new ShippingClass())->pullData())
-            ->setShippingMethods((new ShippingMethod())->pullData())
-            ->setCrossSellingGroups(CrossSellingGroup::all())
-            ->setTaxRates((new TaxRate())->pullData());
+            ->addCurrency((new Currency())->pull())
+            ->addLanguage((new Language())->pull())
+            ->setProductTypes(...(new ProductType())->pull())
+            ->setShippingClasses(...(new ShippingClass($this->db, $this->util))->pull())
+            ->setShippingMethods(...(new ShippingMethod())->pull())
+            ->setCrossSellingGroups(...CrossSellingGroup::all($this->util))
+            ->setTaxRates(...(new TaxRate($this->db, $this->util))->pull());
 
         $hasDefaultCustomerGroup = false;
-        foreach ((new CustomerGroup())->pullData() as $group) {
-            /** @var $group \jtl\Connector\Model\CustomerGroup */
+        foreach ((new CustomerGroup($this->db, $this->util))->pull() as $group) {
+            /** @var $group \jtl\Connector\Core\Model\CustomerGroup */
             if ($group->getIsDefault() === true) {
                 $hasDefaultCustomerGroup = true;
             }
@@ -67,7 +71,7 @@ class GlobalData extends BaseController
             )
             && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
         ) {
-            $globalData->setMeasurementUnits((new MeasurementUnit())->pullGermanizedData());
+            $globalData->setMeasurementUnits(...(new MeasurementUnit($this->db, $this->util))->pullGermanizedData());
         }
 
         if (
@@ -119,21 +123,21 @@ class GlobalData extends BaseController
                 \update_option('wgm_use_split_tax', 'on', true);
                 \update_option('gm_gross_shipping_costs_and_fees', 'off', true);
             }
-            $globalData->setMeasurementUnits((new MeasurementUnit())->pullGermanMarketData());
+            $globalData->setMeasurementUnits(...(new MeasurementUnit($this->db, $this->util))->pullGermanMarketData());
         }
 
         return [$globalData];
     }
 
     /**
-     * @param GlobalDataModel $data
+     * @param GlobalDataModel $model
      * @return GlobalDataModel
      */
-    public function pushData(GlobalDataModel $data): GlobalDataModel
+    public function push(AbstractModel $model): AbstractModel
     {
-        (new Currency())->pushData($data->getCurrencies());
-        (new ShippingClass())->pushData($data->getShippingClasses());
+        (new Currency())->push($model->getCurrencies());
+        (new ShippingClass($this->db, $this->util))->push($model->getShippingClasses());
 
-        return $data;
+        return $model;
     }
 }

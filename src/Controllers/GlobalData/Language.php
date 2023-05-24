@@ -7,34 +7,33 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use jtl\Connector\Model\Identity;
+use InvalidArgumentException;
+use jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WhiteCube\Lingua\Service;
 
 class Language
 {
     /**
-     * @return \jtl\Connector\Model\Language
-     * @throws \InvalidArgumentException
-     * @throws LanguageException
+     * @return \Jtl\Connector\Core\Model\Language
+     * @throws InvalidArgumentException
      */
-    public function pullData(): \jtl\Connector\Model\Language
+    public function pull(): \jtl\Connector\Core\Model\Language
     {
         $locale = \get_locale();
 
-        return (new \jtl\Connector\Model\Language())
-            ->setId(new Identity(Util::getInstance()->mapLanguageIso($locale)))
+        return (new \Jtl\Connector\Core\Model\Language())
+            ->setId(new Identity(Util::mapLanguageIso($locale)))
             ->setNameGerman($this->nameGerman($locale))
             ->setNameEnglish($this->nameEnglish($locale))
-            ->setLanguageISO(Util::getInstance()->mapLanguageIso($locale))
+            ->setLanguageISO(Util::mapLanguageIso($locale))
             ->setIsDefault(true);
     }
 
     /**
      * @param $locale
-     * @throws LanguageException
-     * @throws \InvalidArgumentException
+     * @return false|mixed|string
      */
     protected function nameGerman($locale)
     {
@@ -42,7 +41,7 @@ class Language
             return \locale_get_display_language($locale, 'de');
         }
 
-        $isoCode   = \strtoupper(LanguageUtil::map($locale));
+        $isoCode   = $this->localeToIso($locale);
         $countries = \WC()->countries->get_countries();
 
         return $countries[$isoCode] ?? '';
@@ -50,8 +49,7 @@ class Language
 
     /**
      * @param $locale
-     * @throws LanguageException
-     * @throws \InvalidArgumentException
+     * @return false|mixed|string
      */
     protected function nameEnglish($locale)
     {
@@ -59,9 +57,19 @@ class Language
             return \locale_get_display_language($locale, 'en');
         }
 
-        $isoCode   = \strtoupper(LanguageUtil::map($locale));
+        $isoCode   = $this->localeToIso($locale);
         $countries = \WC()->countries->get_countries();
 
         return $countries[$isoCode] ?? '';
     }
+
+    /**
+     * @param $locale
+     * @return mixed
+     */
+    protected function localeToIso($locale)
+    {
+        return Service::create($locale)->toISO_639_2b();
+    }
+
 }

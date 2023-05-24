@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Currency as CurrencyModel;
-use jtl\Connector\Model\Identity;
+use jtl\Connector\Core\Model\Currency as CurrencyModel;
+use jtl\Connector\Core\Model\Identity;
 
 class Currency
 {
@@ -21,7 +21,7 @@ class Currency
      * @return CurrencyModel
      * @throws \InvalidArgumentException
      */
-    public function pullData(): CurrencyModel
+    public function pull(): CurrencyModel
     {
         $iso = \get_woocommerce_currency();
 
@@ -41,7 +41,7 @@ class Currency
      * @param array $currencies
      * @return array
      */
-    public function pushData(array $currencies): array
+    public function push(array $currencies): array
     {
         /** @var CurrencyModel $currency */
         foreach ($currencies as $currency) {

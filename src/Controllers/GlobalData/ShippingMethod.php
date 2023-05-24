@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ShippingMethod as ShippingMethodModel;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\ShippingMethod as ShippingMethodModel;
 
 class ShippingMethod
 {
@@ -16,7 +16,7 @@ class ShippingMethod
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullData(): array
+    public function pull(): array
     {
         $shippingMethods = [];
 
