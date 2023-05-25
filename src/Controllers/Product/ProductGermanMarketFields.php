@@ -7,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;

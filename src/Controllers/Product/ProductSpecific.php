@@ -7,9 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use WC_Product_Attribute;

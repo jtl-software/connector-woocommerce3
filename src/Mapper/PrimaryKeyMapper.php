@@ -9,8 +9,7 @@ namespace JtlWooCommerceConnector\Mapper;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\IdentityType;
-use jtl\Connector\Core\Linker\IdentityLinker;
-use jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;

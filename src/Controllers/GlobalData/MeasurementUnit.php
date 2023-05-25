@@ -7,9 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\MeasurementUnit as MeasurementUnitModel;
-use jtl\Connector\Core\Model\MeasurementUnitI18n;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\MeasurementUnit as MeasurementUnitModel;
+use Jtl\Connector\Core\Model\MeasurementUnitI18n;
 use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SqlHelper;

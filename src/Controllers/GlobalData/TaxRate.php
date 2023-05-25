@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\TaxRate as TaxRateModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\TaxRate as TaxRateModel;
 use JtlWooCommerceConnector\Controllers\AbstractController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 

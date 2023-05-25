@@ -7,12 +7,12 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\ProductSpecialPrice as ProductSpecialPriceModel;
-use jtl\Connector\Core\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductSpecialPrice as ProductSpecialPriceModel;
+use Jtl\Connector\Core\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\Config;

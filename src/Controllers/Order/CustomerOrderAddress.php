@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Id;
 

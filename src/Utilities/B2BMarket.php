@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\AbstractModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 
 class B2BMarket extends WordpressUtils

@@ -7,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Model\Category as CategoryModel;
+use Jtl\Connector\Core\Model\Category as CategoryModel;
 
 class Category
 {

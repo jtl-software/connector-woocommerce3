@@ -9,7 +9,7 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\ProductStockLevel as ProductStockLevelModel;
+use Jtl\Connector\Core\Model\ProductStockLevel as ProductStockLevelModel;
 
 class ProductStockLevel extends AbstractBaseController implements PushInterface
 {

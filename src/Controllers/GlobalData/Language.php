@@ -8,8 +8,7 @@
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use InvalidArgumentException;
-use jtl\Connector\Core\Model\Identity;
-use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
 use WhiteCube\Lingua\Service;
 

@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 

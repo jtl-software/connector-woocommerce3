@@ -11,10 +11,10 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Payment as PaymentModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Payment as PaymentModel;
 use Jtl\Connector\Core\Model\QueryFilter;
-use jtl\Connector\Core\Definition\PaymentType;
+use Jtl\Connector\Core\Definition\PaymentType;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 

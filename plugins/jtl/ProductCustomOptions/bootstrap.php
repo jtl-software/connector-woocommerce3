@@ -6,7 +6,6 @@ use DI\Container;
 use Jtl\Connector\Core\Definition\Action;
 use Jtl\Connector\Core\Definition\Controller;
 use Jtl\Connector\Core\Definition\Event;
-use jtl\Connector\Core\Event\CustomerOrderEvent;
 use Jtl\Connector\Core\Plugin\PluginInterface;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

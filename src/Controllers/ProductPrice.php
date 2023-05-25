@@ -11,7 +11,7 @@ use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\ProductPrice as JtlProductPrice;
+use Jtl\Connector\Core\Model\ProductPrice as JtlProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\Product;
 
 class ProductPrice extends \JtlWooCommerceConnector\Controllers\Product\ProductPrice implements PushInterface

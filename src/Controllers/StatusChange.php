@@ -9,8 +9,8 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\CustomerOrder;
-use jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
+use Jtl\Connector\Core\Model\CustomerOrder;
+use Jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
 
 class StatusChange extends AbstractBaseController implements PushInterface
 {

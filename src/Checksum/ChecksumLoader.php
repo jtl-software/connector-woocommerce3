@@ -8,9 +8,8 @@
 namespace JtlWooCommerceConnector\Checksum;
 
 use Jtl\Connector\Core\Checksum\ChecksumLoaderInterface;
-use jtl\Connector\Core\Model\Checksum;
+use Jtl\Connector\Core\Model\Checksum;
 use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;

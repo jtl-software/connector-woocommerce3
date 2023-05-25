@@ -7,11 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use Jtl\Connector\Core\Controller\PullInterface;
-use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Core\Model\CustomerGroupI18n;
-use jtl\Connector\Core\Model\Identity;
-use Jtl\Connector\Core\Model\QueryFilter;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\CustomerGroupI18n;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;

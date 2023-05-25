@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\Currency as CurrencyModel;
-use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Currency as CurrencyModel;
+use Jtl\Connector\Core\Model\Identity;
 
 class Currency
 {

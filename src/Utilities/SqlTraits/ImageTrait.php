@@ -9,7 +9,7 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use jtl\Connector\Core\Definition\IdentityType;
+use Jtl\Connector\Core\Definition\IdentityType;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Utilities\Id;

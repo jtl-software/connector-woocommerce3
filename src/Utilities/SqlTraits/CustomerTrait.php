@@ -9,7 +9,6 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use JtlWooCommerceConnector\Logger\DatabaseLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

@@ -8,9 +8,9 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\ProductStockLevel as StockLevelModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductStockLevel as StockLevelModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;

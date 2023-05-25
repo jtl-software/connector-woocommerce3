@@ -7,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

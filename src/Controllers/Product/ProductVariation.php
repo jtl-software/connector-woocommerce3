@@ -7,12 +7,12 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\ProductVariation as ProductVariationModel;
-use jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
-use jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
-use jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductVariation as ProductVariationModel;
+use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
+use Jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
+use Jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;

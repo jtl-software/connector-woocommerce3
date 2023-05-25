@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\ShippingClass as ShippingClassModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ShippingClass as ShippingClassModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 

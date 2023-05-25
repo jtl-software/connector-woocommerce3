@@ -3,14 +3,14 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
-use jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
-use jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
-use jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
-use jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
-use jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
+use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
+use Jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
+use Jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;

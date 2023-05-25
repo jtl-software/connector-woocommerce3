@@ -2,8 +2,8 @@
 
 namespace jtl\CustomProductTabs;
 
-use jtl\Connector\Core\Event\ProductEvent;
-use jtl\Connector\Core\Model\TranslatableAttributeI18n;
+use Jtl\Connector\Core\Event\ProductEvent;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
 use JtlWooCommerceConnector\Utilities\Util;
 use Nette\Utils\RegexpException;
 

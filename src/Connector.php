@@ -23,7 +23,7 @@ use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 use Jtl\Connector\Core\Event\BoolEvent;
 use Jtl\Connector\Core\Event\RpcEvent;
 use Jtl\Connector\Core\Logger\LoggerService;
-use jtl\Connector\Core\Rpc\RequestPacket;
+use Jtl\Connector\Core\Rpc\RequestPacket;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;

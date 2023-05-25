@@ -7,9 +7,9 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
-use jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

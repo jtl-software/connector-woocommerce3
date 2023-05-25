@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\ProductType as ProductTypeModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ProductType as ProductTypeModel;
 
 class ProductType
 {

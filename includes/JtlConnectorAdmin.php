@@ -1,9 +1,9 @@
 <?php
 
 use Jtl\Connector\Core\Definition\IdentityType;
-use jtl\Connector\Core\Exception\MissingRequirementException;
-use jtl\Connector\Core\System\Check;
-use jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use Jtl\Connector\Core\Exception\MissingRequirementException;
+use Jtl\Connector\Core\System\Check;
+use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGroupModel;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -214,7 +214,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     private static function activate_category_tree(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $wpdb = $db->getWpDb();
+        $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
         $engine = $wpdb->get_var(sprintf(
             "SELECT ENGINE
@@ -351,7 +351,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                ! DB::checkIfFKExists(
+                ! DB::checkIfFKExists( //TODO:check DB
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )

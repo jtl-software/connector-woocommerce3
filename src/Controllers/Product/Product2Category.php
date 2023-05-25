@@ -8,9 +8,9 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Product as ProductModel;
-use jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;

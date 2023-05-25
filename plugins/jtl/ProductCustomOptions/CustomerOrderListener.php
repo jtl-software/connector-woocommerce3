@@ -2,7 +2,7 @@
 
 namespace jtl\ProductCustomOptions;
 
-use jtl\Connector\Core\Event\CustomerOrderEvent;
+use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
 
 /**

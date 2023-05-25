@@ -7,8 +7,8 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Core\Model\CustomerOrderItem as CustomerOrderItemModel;
-use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\CustomerOrderItem as CustomerOrderItemModel;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
