@@ -24,6 +24,8 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             {
                 copy(sprintf('%s.example', $features), $features);
             }
+
+            $application->run($connector);
         }
     }
 

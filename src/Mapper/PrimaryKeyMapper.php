@@ -186,7 +186,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $hostId
      * @param $type
      */
-    public function delete($endpointId, $hostId, $type): bool
+    public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {
         $where     = '';
         $tableName = self::getTableName($type);
