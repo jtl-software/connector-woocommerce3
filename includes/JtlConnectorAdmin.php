@@ -877,8 +877,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     <form method="post"
                           id="mainform"
                           class="form-horizontal col-10 bg-light"
-                          action="<?php echo esc_html(admin_url('admin-post.php')); ?>
-                          ?action=settings_save_woo-jtl-connector"
+                          action="<?php echo esc_html(admin_url('admin-post.php'));
+                          ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
@@ -1981,6 +1981,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.39.4':
             case '1.39.5':
             case '1.39.6':
+            case '1.39.7':
+            case '1.39.8':
             default:
                 self::activate_linking();
         }

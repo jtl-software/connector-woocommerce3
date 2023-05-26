@@ -169,14 +169,13 @@ abstract class BaseController extends Controller
      * @param $terms
      * @param $taxonomy
      * @param bool $append
-
      */
     protected function wpSetObjectTerms(
         $objectId,
         $terms,
         $taxonomy,
         bool $append = false
-    ): mixed {
+    ) {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 

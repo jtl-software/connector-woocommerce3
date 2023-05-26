@@ -17,6 +17,7 @@ final class SupportedPlugins
         PLUGIN_GERMAN_MARKET                                       = 'German Market',
         PLUGIN_PERFECT_WOO_BRANDS                                  = 'Perfect WooCommerce Brands',
         PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE                      = 'Perfect Brands for WooCommerce',
+        PLUGIN_PERFECT_BRANDS_WOOCOMMERCE                          = 'Perfect Brands WooCommerce',
         PLUGIN_FB_FOR_WOO                                          = 'Facebook for WooCommerce',
         PLUGIN_WOOCOMMERCE                                         = 'WooCommerce',
         PLUGIN_WOOCOMMERCE_GERMANIZED                              = 'WooCommerce Germanized',
@@ -55,6 +56,7 @@ final class SupportedPlugins
     public const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
         self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE,
+        self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE,
         self::PLUGIN_B2B_MARKET,
         self::PLUGIN_GERMAN_MARKET,
         self::PLUGIN_FB_FOR_WOO,
@@ -116,9 +118,9 @@ final class SupportedPlugins
      *
      * @param bool $asString
      *
-     * @return mixed
+     * @return array|string
      */
-    public static function getSupported(bool $asString = false): mixed
+    public static function getSupported(bool $asString = false)
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
@@ -138,16 +140,18 @@ final class SupportedPlugins
     }
 
     /**
+     * Returns all not supported active plugins or all not supported plugins
+     *
      * @param bool $asString
      * @param bool $all
      * @param bool $asArray
-     * @return mixed
+     * @return array|string
      */
     public static function getNotSupportedButActive(
         bool $asString = false,
         bool $all = false,
         bool $asArray = false
-    ): mixed {
+    ) {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
         $tmp     = [];
@@ -212,7 +216,8 @@ final class SupportedPlugins
     {
         return (
             self::isActive(self::PLUGIN_PERFECT_WOO_BRANDS) ||
-            self::isActive(self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE)
+            self::isActive(self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE) ||
+            self::isActive(self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE)
         );
     }
 

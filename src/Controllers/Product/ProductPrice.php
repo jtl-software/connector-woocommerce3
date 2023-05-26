@@ -173,7 +173,6 @@ class ProductPrice extends BaseController
      * @param $groupSlug
      * @param \WC_Product $product
      * @param ProductModel $model
-     * @return mixed
      * @throws \InvalidArgumentException
      */
     private function getBulkPrices(
@@ -182,7 +181,7 @@ class ProductPrice extends BaseController
         $groupSlug,
         \WC_Product $product,
         ProductModel $model
-    ): mixed {
+    ) {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -519,12 +518,13 @@ class ProductPrice extends BaseController
 
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
+            $decimalCount = \strlen(explode('.', $regularPrice)[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(
                     $productId,
                     '_price',
-                    \wc_format_decimal($regularPrice),
+                    \wc_format_decimal($regularPrice, $decimalCount),
                     \get_post_meta($productId, '_price', true)
                 );
             }
@@ -532,7 +532,7 @@ class ProductPrice extends BaseController
             \update_post_meta(
                 $productId,
                 '_regular_price',
-                \wc_format_decimal($regularPrice),
+                \wc_format_decimal($regularPrice, $decimalCount),
                 \get_post_meta($productId, '_regular_price', true)
             );
         }
