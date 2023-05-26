@@ -11,7 +11,7 @@ use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
 use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Util;
 
 trait WawiProductPriceSchmuddelTrait
@@ -35,7 +35,7 @@ trait WawiProductPriceSchmuddelTrait
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
                 if (\count($product->getPrices()) === 1) {
-                    $customerGroups = (new CustomerGroup($this->database, $this->util))->pullData(); //TODO: Check mal hier
+                    $customerGroups = (new CustomerGroupController($this->database, $this->util))->pullData(); //TODO: Check mal hier
 
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $cKey => $customerGroup) {

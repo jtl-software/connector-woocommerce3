@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Model\AbstractModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 
 class B2BMarket extends WordpressUtils
 {
@@ -68,7 +68,7 @@ class B2BMarket extends WordpressUtils
      */
     public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
     {
-        $customerGroups    = ( new CustomerGroup($this->db, $this->util) )->pullData();
+        $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pullData();
         $customerGroupsIds = \array_values(
             \array_map(static function (\jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
                 if ($customerGroup->getId() === null) {

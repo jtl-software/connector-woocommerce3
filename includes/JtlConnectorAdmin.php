@@ -4,7 +4,7 @@ use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGroupModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController as CustomerGroupModel;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;

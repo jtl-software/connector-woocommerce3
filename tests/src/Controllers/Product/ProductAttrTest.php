@@ -4,7 +4,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
     use jtl\Connector\Model\ProductAttrI18n;
     use Jtl\UnitTest\TestCase;
-    use JtlWooCommerceConnector\Controllers\Product\ProductAttr;
+    use JtlWooCommerceConnector\Controllers\Product\ProductAttrController;
     use PHPUnit\Framework\ExpectationFailedException;
     use PHPUnit\Framework\MockObject\RuntimeException;
 
@@ -19,7 +19,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          */
         public function testHasWcAttributePrefix(string $attributeName, bool $expectedResult): void
         {
-            $result = $this->invokeMethod(new ProductAttr(), 'hasWcAttributePrefix', $attributeName);
+            $result = $this->invokeMethod(new ProductAttrController(), 'hasWcAttributePrefix', $attributeName);
             $this->assertEquals($expectedResult, $result);
         }
 
@@ -43,7 +43,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          */
         public function testConvertLegacyAttributeName(string $attributeName, string $expectedAttributeName): void
         {
-            $result = $this->invokeMethod(new ProductAttr(), 'convertLegacyAttributeName', $attributeName);
+            $result = $this->invokeMethod(new ProductAttrController(), 'convertLegacyAttributeName', $attributeName);
             $this->assertEquals($expectedAttributeName, $result);
         }
 
@@ -70,7 +70,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         {
             $productId = 100;
 
-            $productAttrController = $this->getMockBuilder(ProductAttr::class)
+            $productAttrController = $this->getMockBuilder(ProductAttrController::class)
                 ->disableOriginalConstructor()
                 ->setMethods(['wpRemoveObjectTerms', 'wpSetObjectTerms', 'updatePostMeta'])
                 ->getMock();
@@ -118,11 +118,11 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
             $this->assertEquals(
                 $attrI18n->getName(),
-                $this->invokeMethod(new ProductAttr(), 'wcSanitizeTaxonomyName', $attrI18n->getName())
+                $this->invokeMethod(new ProductAttrController(), 'wcSanitizeTaxonomyName', $attrI18n->getName())
             );
             $this->assertEquals(
                 $attrI18n->getName(),
-                $this->invokeMethod(new ProductAttr(), 'wcSanitizeTaxonomyName', $attrI18n)
+                $this->invokeMethod(new ProductAttrController(), 'wcSanitizeTaxonomyName', $attrI18n)
             );
         }
     }

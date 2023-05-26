@@ -50,7 +50,7 @@ class ImageTest extends TestCase
      */
     public function testGetImageAltText(Image $image, $expectedAltText)
     {
-        $imageController = new \JtlWooCommerceConnector\Controllers\Image();
+        $imageController = new \JtlWooCommerceConnector\Controllers\ImageController();
 
         $controller  = new \ReflectionClass($imageController);
         $getImageAlt = $controller->getMethod('getImageAlt');

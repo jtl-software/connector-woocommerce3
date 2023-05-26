@@ -13,7 +13,7 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractI18n;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Controllers\Order\CustomerOrderController;
 use WhiteCube\Lingua\Service;
 
@@ -221,7 +221,7 @@ class Util extends WordpressUtils
      */
     public function isValidCustomerGroup($group): bool
     {
-        $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        $result = empty($group) || $group === CustomerGroupController::DEFAULT_GROUP;
 
         if ($result) {
             return $result;
