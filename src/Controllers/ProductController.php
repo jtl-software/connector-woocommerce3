@@ -5,7 +5,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace JtlWooCommerceConnector\Controllers\Product;
+namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
 use Exception;
@@ -20,7 +20,17 @@ use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
-use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
+use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController;
+use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
+use JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController;
+use JtlWooCommerceConnector\Controllers\Product\ProductGermanMarketFieldsController;
+use JtlWooCommerceConnector\Controllers\Product\ProductI18NController;
+use JtlWooCommerceConnector\Controllers\Product\ProductManufacturerController;
+use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
+use JtlWooCommerceConnector\Controllers\Product\ProductPriceController;
+use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPriceController;
+use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
@@ -157,7 +167,7 @@ class ProductController extends AbstractBaseController implements
                 ->setSpecifics(...$productVariationSpecificAttribute['productSpecifics']);
             if ($product->managing_stock()) {
                 $productModel->setStockLevel(
-                    (new ProductStockLevelController($this->db, $this->util))->pullData($product)->getStockLevel()
+                    (new ProductStockLevelController($this->db, $this->util))->pullData($product)->getStockLevel() //TODO::Sinn? es gibt doch keinen pull
                 );
             }
 
@@ -607,7 +617,7 @@ class ProductController extends AbstractBaseController implements
         \update_post_meta($productId, '_variation_description', $meta->getDescription());
         \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
 
-        (new ProductStockLevelController($this->db, $this->util))->pushDataChild($product);
+        (new ProductStockLevelController($this->db, $this->util))->pushDataChild($product); //TODO: wieder keinen Sinn
     }
 
     /**
@@ -621,7 +631,7 @@ class ProductController extends AbstractBaseController implements
 
         \update_post_meta($productId, '_visibility', 'visible');
 
-        (new ProductStockLevelController($this->db, $this->util))->pushDataParent($product);
+        (new ProductStockLevelController($this->db, $this->util))->pushDataParent($product); //TODO schon wieder
 
         if ($product->getIsMasterProduct()) {
             $this->util->addMasterProductToSync($productId);

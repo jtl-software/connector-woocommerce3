@@ -221,7 +221,7 @@ class CategoryController extends AbstractBaseController implements
      * @param CategoryModel $model
      * @return CategoryModel
      */
-    protected function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel $model): AbstractModel
     {
         $categoryId = $model->getId()->getEndpoint();
 

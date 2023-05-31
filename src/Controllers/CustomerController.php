@@ -48,7 +48,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     {
         $customers = [];
 
-        $customerIds = $this->db->queryList(SqlHelper::customerNotLinked($limit));
+        $customerIds = $this->db->queryList(SqlHelper::customerNotLinked($limit, $this->logger));
 
         foreach ($customerIds as $customerId) {
             $wcCustomer = new \WC_Customer($customerId);
@@ -119,7 +119,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     {
         $customers = [];
 
-        $guests = $this->db->queryList(SqlHelper::guestNotLinked($limit));
+        $guests = $this->db->queryList(SqlHelper::guestNotLinked($limit, $this->logger));
 
         foreach ($guests as $guest) {
             $order = new \WC_Order((Id::unlink($guest)[1]));
@@ -230,8 +230,8 @@ class CustomerController extends AbstractBaseController implements PullInterface
      */
     public function statistic(QueryFilter $query): int
     {
-        $customers  = (int)$this->db->queryOne(SqlHelper::customerNotLinked(null));
-        $customers += (int)$this->db->queryOne(SqlHelper::guestNotLinked(null));
+        $customers  = (int)$this->db->queryOne(SqlHelper::customerNotLinked(null, $this->logger));
+        $customers += (int)$this->db->queryOne(SqlHelper::guestNotLinked(null, $this->logger));
 
         return $customers;
     }

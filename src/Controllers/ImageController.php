@@ -11,7 +11,12 @@ namespace JtlWooCommerceConnector\Controllers;
 use Exception;
 use http\Exception\RuntimeException;
 use InvalidArgumentException;
+use Jtl\Connector\Core\Controller\DeleteInterface;
+use Jtl\Connector\Core\Controller\PullInterface;
+use Jtl\Connector\Core\Controller\PushInterface;
+use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Definition\IdentityType;
+use Jtl\Connector\Core\Event\StatisticEvent;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use Jtl\Connector\Core\Model\AbstractImage;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -29,7 +34,11 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ImageController extends AbstractBaseController
+class ImageController extends AbstractBaseController implements
+    PullInterface,
+    StatisticInterface,
+    PushInterface,
+    DeleteInterface
 {
     public const GALLERY_DIVIDER    = ',';
     public const PRODUCT_THUMBNAIL  = '_thumbnail_id';

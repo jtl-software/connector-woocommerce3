@@ -5,7 +5,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-namespace JtlWooCommerceConnector\Controllers\Order;
+namespace JtlWooCommerceConnector\Controllers;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use InvalidArgumentException;
@@ -17,8 +17,9 @@ use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Model\KeyValueAttribute;
 use Jtl\Connector\Core\Model\QueryFilter;
-use JtlWooCommerceConnector\Controllers\AbstractBaseController;
-use JtlWooCommerceConnector\Controllers\PaymentController;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderBillingAddressController;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderItemController;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderShippingAddressController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;

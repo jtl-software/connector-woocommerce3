@@ -13,8 +13,8 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractI18n;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
+use JtlWooCommerceConnector\Controllers\CustomerOrderController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
-use JtlWooCommerceConnector\Controllers\Order\CustomerOrderController;
 use WhiteCube\Lingua\Service;
 
 /**
