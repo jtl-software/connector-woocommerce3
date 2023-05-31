@@ -142,7 +142,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $type
      * @return bool|null
      */
-    public function save($endpointId, $hostId, $type): bool
+    public function save(int $type, string $endpointId, int $hostId): bool
     {
         $tableName = self::getTableName($type);
 
