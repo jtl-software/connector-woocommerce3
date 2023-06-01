@@ -170,7 +170,7 @@ class ProductVariationController extends AbstractBaseController
         array $attributesFilteredVariationSpecifics
     ): ?array {
         $result                  = null;
-        $productVaSpeAttrHandler = new ProductVaSpeAttrHandlerController();
+        $productVaSpeAttrHandler = new ProductVaSpeAttrHandlerController($this->db, $this->util);
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
             $taxonomy       = $this->createVariantSlug((string)$key);

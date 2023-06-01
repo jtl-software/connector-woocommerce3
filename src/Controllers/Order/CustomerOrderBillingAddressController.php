@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
 use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\CustomerOrderController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -35,7 +36,6 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
             ->setEMail($order->get_billing_email())
             ->setCompany($order->get_billing_company())
             ->setPhone($order->get_billing_phone())
-            ->setCustomerId($this->createCustomerId($order))
             ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
 
         if (\strcmp($address->getCity(), '') === 0) {

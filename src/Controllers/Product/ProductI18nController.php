@@ -14,7 +14,7 @@ use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
-class ProductI18NController extends AbstractBaseController
+class ProductI18nController extends AbstractBaseController
 {
     /**
      * @param \WC_Product $product

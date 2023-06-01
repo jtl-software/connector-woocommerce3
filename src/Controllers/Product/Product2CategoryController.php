@@ -51,7 +51,7 @@ class Product2CategoryController extends AbstractBaseController
      * @param ProductModel $model
      * @return void
      */
-    public function pushData(AbstractModel $model): AbstractModel
+    public function pushData(AbstractModel $model): void
     {
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
         $wcProduct->set_category_ids($this->getCategoryIds($model->getCategories()));

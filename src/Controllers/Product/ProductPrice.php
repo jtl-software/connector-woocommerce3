@@ -18,7 +18,7 @@ use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
-class ProductPriceController extends AbstractBaseController
+class ProductPrice extends AbstractBaseController
 {
     public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 

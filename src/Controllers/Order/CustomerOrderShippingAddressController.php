@@ -9,6 +9,7 @@ namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
 use Jtl\Connector\Core\Model\Identity;
+use JtlWooCommerceConnector\Controllers\CustomerOrderController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 

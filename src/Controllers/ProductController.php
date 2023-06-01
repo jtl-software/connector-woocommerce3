@@ -25,10 +25,10 @@ use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController
 use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
 use JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductGermanMarketFieldsController;
-use JtlWooCommerceConnector\Controllers\Product\ProductI18NController;
+use JtlWooCommerceConnector\Controllers\Product\ProductI18nController;
 use JtlWooCommerceConnector\Controllers\Product\ProductManufacturerController;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
-use JtlWooCommerceConnector\Controllers\Product\ProductPriceController;
+use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPriceController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
@@ -144,10 +144,10 @@ class ProductController extends AbstractBaseController implements
             }
 
             $specialPrices = (new ProductSpecialPriceController($this->db, $this->util))->pullData($product, $productModel);
-            $prices        = (new ProductPriceController($this->db, $this->util))->pullData($product, $productModel);
+            $prices        = (new ProductPrice($this->db, $this->util))->pullData($product, $productModel);
 
             $productModel
-                ->addI18n((new ProductI18NController($this->db, $this->util))->pullData($product, $productModel))
+                ->addI18n((new ProductI18nController($this->db, $this->util))->pullData($product, $productModel))
                 ->setPrices(...$prices)
                 ->setSpecialPrices(...$specialPrices)
                 ->setCategories(...(new Product2CategoryController($this->db, $this->util))->pullData($product));
@@ -167,7 +167,10 @@ class ProductController extends AbstractBaseController implements
                 ->setSpecifics(...$productVariationSpecificAttribute['productSpecifics']);
             if ($product->managing_stock()) {
                 $productModel->setStockLevel(
-                    (new ProductStockLevelController($this->db, $this->util))->pullData($product)->getStockLevel() //TODO::Sinn? es gibt doch keinen pull
+                    (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController(
+                        $this->db,
+                        $this->util
+                    ))->pullData($product)->getStockLevel()
                 );
             }
 
@@ -592,7 +595,8 @@ class ProductController extends AbstractBaseController implements
         (new Product2CategoryController($this->db, $this->util))->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
 
-        (new ProductPriceController($this->db, $this->util))->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
+        (new ProductPrice($this->db, $this->util))
+            ->savePrices($wcProduct, $product->getVat(), $productType, ...$product->getPrices());
 
         (new ProductSpecialPriceController($this->db, $this->util))->pushData($product, $wcProduct, $productType);
     }
@@ -617,7 +621,8 @@ class ProductController extends AbstractBaseController implements
         \update_post_meta($productId, '_variation_description', $meta->getDescription());
         \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
 
-        (new ProductStockLevelController($this->db, $this->util))->pushDataChild($product); //TODO: wieder keinen Sinn
+        (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController($this->db, $this->util))
+            ->pushDataChild($product);
     }
 
     /**
@@ -631,7 +636,8 @@ class ProductController extends AbstractBaseController implements
 
         \update_post_meta($productId, '_visibility', 'visible');
 
-        (new ProductStockLevelController($this->db, $this->util))->pushDataParent($product); //TODO schon wieder
+        (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController($this->db, $this->util))
+            ->pushDataParent($product);
 
         if ($product->getIsMasterProduct()) {
             $this->util->addMasterProductToSync($productId);

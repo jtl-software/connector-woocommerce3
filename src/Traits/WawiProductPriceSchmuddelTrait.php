@@ -29,13 +29,13 @@ trait WawiProductPriceSchmuddelTrait
         $defaultPrices   = null;
         $defaultPriceNet = 0;
         $prices          = [];
-        $util            = new Util(); //Todo: CHeck mal hier
+        $util            = new Util($this->db); //Todo: CHeck mal hier
         $vat             = $util->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
                 if (\count($product->getPrices()) === 1) {
-                    $customerGroups = (new CustomerGroupController($this->database, $this->util))->pullData(); //TODO: Check mal hier
+                    $customerGroups = (new CustomerGroupController($this->db, $this->util))->pull();
 
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $cKey => $customerGroup) {

@@ -15,6 +15,7 @@ use Jtl\Connector\Core\Model\ProductSpecialPrice as ProductSpecialPriceModel;
 use Jtl\Connector\Core\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
+use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -675,7 +676,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                     \get_post_meta($productId, $priceMetaKey, true)
                 );
 
-                if ($productType === ProductController::TYPE_CHILD && isset($COPpriceTypeMetaKey) && isset($COPpriceMetaKey)) {
+                if (
+                    $productType === ProductController::TYPE_CHILD
+                    & isset($COPpriceTypeMetaKey)
+                    && isset($COPpriceMetaKey)
+                ) {
                     \update_post_meta(
                         $masterProductId->getEndpoint(),
                         $COPpriceMetaKey,
