@@ -11,19 +11,20 @@ use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use Jtl\Connector\Core\Model\ProductPrice as JtlProductPrice;
+use Jtl\Connector\Core\Model\Product;
+use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 
-class ProductPriceController extends Product\ProductPrice implements PushInterface
+class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @param JtlProductPrice $model
+     * @param Product $model
      * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
-        $wcProduct = \wc_get_product($model->getProductTypeId()->getEndpoint());
+        $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 
         if ($wcProduct !== false) {
             $vat = $model->getVat();
