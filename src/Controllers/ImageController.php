@@ -114,7 +114,6 @@ class ImageController extends AbstractBaseController implements
                     throw new \Exception(\sprintf("Invalid image type '%s'", $type));
             }
 
-
             $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
@@ -431,7 +430,7 @@ class ImageController extends AbstractBaseController implements
                 $model->getId()->setEndpoint($this->pushProductImage($model));
             } elseif ($model instanceof CategoryImage) {
                 $model->getId()->setEndpoint($this->pushCategoryImage($model));
-            } elseif ($model instanceof CategoryImage) {
+            } elseif ($model instanceof ManufacturerImage) {
                 $model->getId()->setEndpoint($this->pushManufacturerImage($model));
             }
         }
@@ -513,7 +512,7 @@ class ImageController extends AbstractBaseController implements
      */
     protected function relinkImage(int $newEndpointId, AbstractImage $image): void
     {
-        $primaryKeyMapper = \Application()->getConnector()->getPrimaryKeyMapper(); //TODO: was geht hier
+        $primaryKeyMapper = $this->primaryKeyMapper;
 
         switch (\get_class($image)) {
             case ProductImage::class:
@@ -603,11 +602,11 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractImage $image
+     * @param ProductImage $image
      * @return string|null
      * @throws Exception
      */
-    private function pushProductImage(AbstractImage $image): ?string
+    private function pushProductImage(ProductImage $image): ?string
     {
         $productId = (int)$image->getForeignKey()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
@@ -656,11 +655,11 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractImage $image
+     * @param CategoryImage $image
      * @return string|null
      * @throws Exception
      */
-    private function pushCategoryImage(AbstractImage $image): ?string
+    private function pushCategoryImage(CategoryImage $image): ?string
     {
         $categoryId = (int)$image->getForeignKey()->getEndpoint();
 
@@ -675,11 +674,11 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractImage $image
+     * @param ManufacturerImage $image
      * @return string|null
      * @throws Exception
      */
-    private function pushManufacturerImage(AbstractImage $image): ?string
+    private function pushManufacturerImage(ManufacturerImage $image): ?string
     {
         $termId = (int)$image->getForeignKey()->getEndpoint();
 
@@ -701,7 +700,7 @@ class ImageController extends AbstractBaseController implements
      * @return AbstractModel
      * @throws Exception
      */
-    public function delete(AbstractModel $model, bool $realDelete = true): AbstractModel
+    public function deleteData(AbstractModel $model, bool $realDelete = true): AbstractModel
     {
         switch ($model->getRelationType()) {
             case IdentityType::PRODUCT_IMAGE:
@@ -715,6 +714,17 @@ class ImageController extends AbstractBaseController implements
 
         return $model;
     }
+
+    /**
+     * @param AbstractImage $model
+     * @return AbstractModel
+     * @throws Exception
+     */
+    public function delete(AbstractModel $model): AbstractModel
+    {
+        return $this->deleteData($model);
+    }
+
 
     /**
      * @param AbstractImage $image

@@ -20,7 +20,8 @@ class ProductPriceController extends ProductPrice implements PushInterface
      * @param Product $model
      * @return AbstractModel
      * @throws InvalidArgumentException
-     * @throws Exception
+     * @throws
+     * Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
