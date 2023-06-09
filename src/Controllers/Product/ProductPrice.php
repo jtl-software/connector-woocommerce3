@@ -14,6 +14,7 @@ use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
 use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
+use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -335,7 +336,7 @@ class ProductPrice extends AbstractBaseController
 
                 foreach ($productPrice->getItems() as $item) {
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
-                    if ($item->getQuantity() === 0) {
+                    if ($item->getQuantity() === 0.0) {
                         if ((string)$customerGroup->ID === $defaultCustomerGroup && $autoB2BOptions) {
                             $this->updateDefaultProductPrice($item, $productId, $vat);
                         }
@@ -511,7 +512,7 @@ class ProductPrice extends AbstractBaseController
     {
         $regularPrice = $this->getRegularPrice($item, $vat);
 
-        if ($item->getQuantity() === 0) {
+        if ($item->getQuantity() === 0.0) {
             $salePrice    = \get_post_meta($productId, '_sale_price', true);
             $decimalCount = \strlen(\explode('.', $regularPrice)[1]);
 

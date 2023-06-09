@@ -20,8 +20,6 @@ class ProductPriceController extends ProductPrice implements PushInterface
      * @param Product $model
      * @return AbstractModel
      * @throws InvalidArgumentException
-     * @throws
-     * Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
@@ -37,7 +35,7 @@ class ProductPriceController extends ProductPrice implements PushInterface
                 $wcProduct,
                 $vat,
                 $this->getJtlProductType($wcProduct),
-                ...[$model]
+                ...$model->getPrices()
             );
 
             // Update the max and min prices for the parent product
