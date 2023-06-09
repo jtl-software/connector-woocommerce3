@@ -101,7 +101,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $relationType
      * @return string|null
      */
-    public function getEndpointId($hostId, $type, $relationType = null): ?string
+    public function getEndpointId($type, $hostId, $relationType = null): ?string
     {
         $clause    = '';
         $tableName = self::getTableName($type);
