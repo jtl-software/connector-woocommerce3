@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.39.9 _2023-06-13_
 - CO-2230 - fix Invisibility Type
 - CO-2348 - fix cost splitting for shipping
 
