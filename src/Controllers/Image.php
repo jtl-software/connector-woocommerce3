@@ -511,7 +511,7 @@ class Image extends BaseController
     private function sanitizeImageName(string $name): string
     {
         $name = \iconv('utf-8', 'ascii//translit', $name);
-        $name = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = \preg_replace('#[^A-Za-z0-9\-_ ]#', '-', $name);
         $name = \preg_replace('#-{2,}#', '-', $name);
         $name = \trim($name, '-');
 
@@ -528,6 +528,7 @@ class Image extends BaseController
     {
         $i            = 1;
         $originalName = $name;
+        $name         = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         do {
             $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
