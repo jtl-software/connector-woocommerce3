@@ -48,8 +48,8 @@ class ChecksumLoader extends AbstractTestCase
         $db = $this->createDbMock(['queryOne']);
         $db->expects($this->once())->method('queryOne')->willReturn($checksumId);
 
-        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumReadQuery']);
-        $checksumLoader->expects($this->once())->method('getChecksumReadQuery');
+        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumRead']);
+        $checksumLoader->expects($this->once())->method('getChecksumRead');
 
         $result = $checksumLoader->read('c_1', IdentityType::CATEGORY);
 
