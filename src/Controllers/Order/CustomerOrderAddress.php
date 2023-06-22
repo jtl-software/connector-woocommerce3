@@ -30,25 +30,31 @@ class CustomerOrderAddress extends BaseController
      */
     public function createCustomerId(\WC_Order $order): Identity
     {
-        return new Identity($order->get_customer_id() !== 0 ? $order->get_customer_id() : Id::link([Id::GUEST_PREFIX, $order->get_id()]));
+        return new Identity(
+            $order->get_customer_id() !== 0 ? $order->get_customer_id() : Id::link([Id::GUEST_PREFIX, $order->get_id()])
+        );
     }
 
-    protected function createDefaultAddresses(DataModel $address): void
+    protected function createDefaultAddresses(DataModel $address, \WC_Order $order = null): void
     {
-        if (\strcmp($address->getCity(), '') === 0) {
-            $address->setCity(get_option('woocommerce_store_city'));
+        if (empty($address->getCity())) {
+            $address->setCity(\get_option('woocommerce_store_city'));
         }
 
-        if (\strcmp($address->getZipCode(), '') === 0) {
-            $address->setZipCode(get_option('woocommerce_store_postcode'));
+        if (empty($address->getZipCode())) {
+            $address->setZipCode(\get_option('woocommerce_store_postcode'));
         }
 
-        if (\strcmp($address->getStreet(), '') === 0) {
-            $address->setStreet(get_option('woocommerce_store_address'));
+        if (empty($address->getStreet())) {
+            $address->setStreet(\get_option('woocommerce_store_address'));
         }
 
-        if (\strcmp($address->getCountryIso(), '') === 0) {
-            $address->setCountryIso(get_option('woocommerce_default_country'));
+        if (empty($address->getCountryIso())) {
+            $address->setCountryIso(\get_option('woocommerce_default_country'));
+        }
+
+        if (empty($address->getLastName())) {
+            $address->setLastName('NoLastNameGiven');
         }
     }
 }

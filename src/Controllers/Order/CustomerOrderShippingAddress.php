@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -28,7 +29,13 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setCompany($order->get_shipping_company())
             ->setCustomerId($this->createCustomerId($order));
 
-        $this->createDefaultAddresses($address);
+        if ($this->emptyAddressCheck($address)) {
+            $this->useBillingAddress($address, $order);
+        }
+
+        if ($this->emptyAddressCheck($address)) {
+            $this->createDefaultAddresses($address, $order);
+        }
 
         if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE, '>=', '5.6.0')) {
             $address->setPhone($order->get_shipping_phone());
@@ -36,7 +43,8 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
 
         $dhlPostNumber = '';
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+        if (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
@@ -56,5 +64,42 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
         }
 
         return $address;
+    }
+
+    private function useBillingAddress(CustomerOrderShippingAddressModel $address, \WC_Order $order): void
+    {
+        if (empty($address->getCity())) {
+            $address->setCity($order->get_billing_city());
+        }
+
+        if (empty($address->getZipCode())) {
+            $address->setZipCode($order->get_billing_postcode());
+        }
+
+        if (empty($address->getStreet())) {
+            $address->setStreet($order->get_billing_address_1());
+        }
+
+        if (empty($address->getCountryIso())) {
+            $address->setCountryIso($order->get_billing_country());
+        }
+
+        if (empty($address->getLastName())) {
+            $address->setLastName($order->get_billing_last_name());
+        }
+    }
+
+    private function emptyAddressCheck(CustomerOrderShippingAddressModel $address): bool
+    {
+        if (
+            empty($address->getCity())
+            || empty($address->getStreet())
+            || empty($address->getCountryIso())
+            || empty($address->getLastName())
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }
