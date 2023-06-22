@@ -87,7 +87,9 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $customerOrder
                 ->setItems(...(new CustomerOrderItemController($this->db, $this->util))->pull($order))
                 ->setBillingAddress((new CustomerOrderBillingAddressController($this->db, $this->util))->pull($order))
-                ->setShippingAddress((new CustomerOrderShippingAddressController($this->db, $this->util))->pull($order));
+                ->setShippingAddress(
+                    (new CustomerOrderShippingAddressController($this->db, $this->util))->pull($order)
+                );
 
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());
@@ -167,7 +169,10 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
-                if (!empty($orderMetaData) && $orderMetaData['instruction_type'] === PaymentController::PAY_UPON_INVOICE) {
+                if (
+                    !empty($orderMetaData)
+                    && $orderMetaData['instruction_type'] === PaymentController::PAY_UPON_INVOICE
+                ) {
                     $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
                     if (!empty($bankData)) {
                         $pui = (\sprintf(

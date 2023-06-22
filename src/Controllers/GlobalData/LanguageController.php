@@ -70,5 +70,4 @@ class LanguageController
     {
         return Service::create($locale)->toISO_639_2b();
     }
-
 }

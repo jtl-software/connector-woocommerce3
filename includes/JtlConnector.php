@@ -20,8 +20,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             $application = new Application(CONNECTOR_DIR);
 
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
-            if (!file_exists($features))
-            {
+            if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
             }
 

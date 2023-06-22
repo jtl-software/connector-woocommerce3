@@ -212,7 +212,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function activate_category_tree(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    private static function activate_category_tree(Db $db): void
     {
         $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
@@ -496,7 +497,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function loadFeaturesJson(string $featuresJsonPath): void
     {
-        $features         = Config::get(Config::OPTIONS_FEATURES_JSON);
+        $features = Config::get(Config::OPTIONS_FEATURES_JSON);
         if (! empty($features)) {
             $featuresJson = json_decode($features, true);
             if (is_array($featuresJson)) {
@@ -877,7 +878,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                           id="mainform"
                           class="form-horizontal col-10 bg-light"
                           action="<?php echo esc_html(admin_url('admin-post.php'));
-                          ?>?action=settings_save_woo-jtl-connector"
+                            ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
@@ -2011,7 +2012,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ];
 
         foreach ($imageMapping as $relationType => $identityType) {
-            $updateIdentityQuery = sprintf('UPDATE `%sjtl_connector_link_image` SET `type` = %d WHERE `type` = %d', $db->getWpDb()->prefix, $relationType, $identityType);
+            $updateIdentityQuery = sprintf(
+                'UPDATE `%sjtl_connector_link_image` SET `type` = %d WHERE `type` = %d',
+                $db->getWpDb()->prefix,
+                $relationType,
+                $identityType
+            );
             $db->query($updateIdentityQuery);
         }
     }

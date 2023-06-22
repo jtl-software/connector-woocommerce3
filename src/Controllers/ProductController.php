@@ -143,8 +143,10 @@ class ProductController extends AbstractBaseController implements
                 $productModel->setMasterProductId(new Identity($product->get_parent_id()));
             }
 
-            $specialPrices = (new ProductSpecialPriceController($this->db, $this->util))->pullData($product, $productModel);
-            $prices        = (new ProductPrice($this->db, $this->util))->pullData($product, $productModel);
+            $specialPrices = (new ProductSpecialPriceController($this->db, $this->util))
+                ->pullData($product, $productModel);
+            $prices        = (new ProductPrice($this->db, $this->util))
+                ->pullData($product, $productModel);
 
             $productModel
                 ->addI18n((new ProductI18nController($this->db, $this->util))->pullData($product, $productModel))

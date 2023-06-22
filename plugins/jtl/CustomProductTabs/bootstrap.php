@@ -32,7 +32,6 @@ class Bootstrap implements PluginInterface
                 new ProductListener($container->get(Util::class)),
                 'onProductAfterPush'
             ]);
-
         }
     }
 }

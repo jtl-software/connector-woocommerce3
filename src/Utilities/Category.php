@@ -83,7 +83,6 @@ class Category
                 \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
             }
-
         }
         foreach ((array) $categories as $category) {
             \wc_set_term_order($category['category_id'], ++$count, 'product_cat');

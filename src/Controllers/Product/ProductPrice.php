@@ -323,7 +323,11 @@ class ProductPrice extends AbstractBaseController
                 $customerGroupMeta = \get_post_meta($customerGroupId);
             }
 
-            if ($customerGroupId === CustomerGroupController::DEFAULT_GROUP && \is_null($customerGroupMeta) && !$autoB2BOptions) {
+            if (
+                $customerGroupId === CustomerGroupController::DEFAULT_GROUP
+                && \is_null($customerGroupMeta)
+                && !$autoB2BOptions
+            ) {
                 foreach ($productPrice->getItems() as $item) {
                     $this->updateDefaultProductPrice($item, $productId, $vat);
                 }

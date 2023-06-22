@@ -39,7 +39,9 @@ class PaymentController extends AbstractBaseController implements PullInterface,
 
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        $completedOrders = $this->db->queryList(SqlHelper::paymentCompletedPull($includeCompletedOrders, $query->getLimit()));
+        $completedOrders = $this->db->queryList(
+            SqlHelper::paymentCompletedPull($includeCompletedOrders, $query->getLimit())
+        );
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);

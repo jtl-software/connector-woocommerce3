@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Models;
 use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
+
 /**
  * Class CrossSelling
  * @package JtlWooCommerceConnector\Models
@@ -68,13 +69,13 @@ class CrossSellingGroup
     protected static function createFromArray(array $groupData, Util $util): \Jtl\Connector\Core\Model\CrossSellingGroup
     {
         $crossSellingGroup = new \Jtl\Connector\Core\Model\CrossSellingGroup();
-        $crossSellingGroup->setId(new Identity($groupData['endpointId'])); //TODO: check mal of setID später gefunden wird
+        $crossSellingGroup->setId(new Identity($groupData['endpointId']));
 
         $i18n = new CrossSellingGroupI18n();
         $i18n->setLanguageISO($util->getWooCommerceLanguage());
         $i18n->setName($groupData['name']);
 
-        $crossSellingGroup->addI18n($i18n); //TODO: check mal später ob addI18n noch gelb markiert wird
+        $crossSellingGroup->addI18n($i18n);
 
         return $crossSellingGroup;
     }

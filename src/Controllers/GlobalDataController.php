@@ -79,7 +79,8 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
             )
             && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
         ) {
-            $globalData->setMeasurementUnits(...(new MeasurementUnitController($this->db, $this->util))->pullGermanizedData());
+            $globalData
+                ->setMeasurementUnits(...(new MeasurementUnitController($this->db, $this->util))->pullGermanizedData());
         }
 
         if (
@@ -131,7 +132,9 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
                 \update_option('wgm_use_split_tax', 'on', true);
                 \update_option('gm_gross_shipping_costs_and_fees', 'off', true);
             }
-            $globalData->setMeasurementUnits(...(new MeasurementUnitController($this->db, $this->util))->pullGermanMarketData());
+            $globalData->setMeasurementUnits(
+                ...(new MeasurementUnitController($this->db, $this->util))->pullGermanMarketData()
+            );
         }
 
         return [$globalData];

@@ -28,7 +28,7 @@ class ManufacturerController extends AbstractBaseController implements
     StatisticInterface
 {
     private static $idCache = [];
-    
+
     /**
      * @param $limit
      * @return array
