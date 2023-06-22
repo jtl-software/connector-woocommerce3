@@ -150,7 +150,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
      *
      * @return Action
      */
-    private function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
+    public function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
     {
         if ($request->getAction() === 'pull') {
             $event = new HandlePullEvent($request->getController(), $request->getParams());

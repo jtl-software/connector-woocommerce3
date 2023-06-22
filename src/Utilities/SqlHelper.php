@@ -24,7 +24,7 @@ use JtlWooCommerceConnector\Utilities\SqlTraits\SpecificTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\TaxesTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\WooCommerceDataTrait;
 
-final class SqlHelper
+class SqlHelper
 {
     use CategoryTrait;
     use CrossSellingTrait;

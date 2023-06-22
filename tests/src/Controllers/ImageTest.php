@@ -85,10 +85,10 @@ class ImageTest extends TestCase
     {
         return [
             [
-                (new ProductImage())->setName('Default name')->setI18ns(...[
+                (new ProductImage())->setName('Default name')->setI18ns(
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger'),
-                    (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng'),
-                ]),
+                    (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng')
+                ),
                 'Alt text default'
             ],
             [

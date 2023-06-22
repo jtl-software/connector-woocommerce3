@@ -51,7 +51,7 @@ class ChecksumLoader extends AbstractTestCase
         $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumRead']);
         $checksumLoader->expects($this->once())->method('getChecksumRead');
 
-        $result = $checksumLoader->read($checksumId, IdentityType::CATEGORY);
+        $result = $checksumLoader->read('c_1', IdentityType::CATEGORY);
 
         $this->assertEquals($checksumId, $result);
     }
