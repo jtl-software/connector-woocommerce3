@@ -45,7 +45,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $plugin = \get_plugin_data(\WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
 
             if (isset($plugin['Version']) && \version_compare($plugin['Version'], '1.6.0') < 0) {
-                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit); //TODO: was geht hier?
+                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
             } else {
                 $unit       = $germanizedUtils->getUnit($wcProduct);
                 $unitObject = \get_term_by('slug', $unit, 'product_unit');

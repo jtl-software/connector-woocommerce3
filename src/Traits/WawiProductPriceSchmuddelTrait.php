@@ -29,7 +29,7 @@ trait WawiProductPriceSchmuddelTrait
         $defaultPrices   = null;
         $defaultPriceNet = 0;
         $prices          = [];
-        $util            = new Util($this->db); //Todo: CHeck mal hier
+        $util            = new Util($this->db);
         $vat             = $util->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
         foreach ($pushedPrices as $pKey => $pValue) {

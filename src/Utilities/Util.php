@@ -390,7 +390,7 @@ class Util extends WordpressUtils
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
             \is_callable([ 'BM_Helper', 'delete_b2b_transients' ])
         ) {
-            \BM_Helper::delete_b2b_transients();  //TODO: check später
+            \BM_Helper::delete_b2b_transients();
         }
     }
 

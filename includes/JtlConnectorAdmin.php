@@ -352,7 +352,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                ! DB::checkIfFKExists( //TODO:check DB
+                !DB::checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -1486,7 +1486,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $key => $customerGroup) {
-                if (count($customerGroup->getI18ns()) > 0) { //TODO:keine Ahnung
+                if (count($customerGroup->getI18ns()) > 0) {
                     /** @var CustomerGroupI18nModel $i18n */
                     $i18n                                              = $customerGroup->getI18ns()[0];
                     $options[ $customerGroup->getId()->getEndpoint() ] = $i18n->getName();
@@ -1759,7 +1759,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $installed_version = Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
 
-        switch ($installed_version) { //TODO: mit Tim klären
+        switch ($installed_version) {
             case '1.0':
                 self::update_to_multi_linking();
             // no break

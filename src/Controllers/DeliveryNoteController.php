@@ -14,8 +14,6 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 use AST_Pro_Actions;
 
-//TODO: was geht hier
-
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
@@ -79,7 +77,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
         } else {
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
-                $shipmentTrackingActions = AST_Pro_Actions::get_instance(); //TODO: was geht hier ab?
+                $shipmentTrackingActions = AST_Pro_Actions::get_instance();
             }
         }
         return $shipmentTrackingActions;
