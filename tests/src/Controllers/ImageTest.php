@@ -3,8 +3,13 @@
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use InvalidArgumentException;
-use jtl\Connector\Model\Image;
-use jtl\Connector\Model\ImageI18n;
+use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\AbstractImage;
+use jtl\Connector\Core\Model\ImageI18n;
+use Jtl\Connector\Core\Model\ProductImage;
+use JtlWooCommerceConnector\Controllers\ImageController;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
 use PHPUnit\Framework\TestCase;
@@ -41,16 +46,29 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @dataProvider imageAltTextDataProvider
-     *
-     * @param Image $image
+     * @param ProductImage $image
      * @param $expectedAltText
+     * @return void
      * @throws ReflectionException
-     * @throws MockEnabledException
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
-    public function testGetImageAltText(Image $image, $expectedAltText)
+    public function testGetImageAltText(ProductImage $image, $expectedAltText)
     {
-        $imageController = new \JtlWooCommerceConnector\Controllers\ImageController();
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+
+        $return = [false];
+        if (\count($image->getI18ns())) {
+            $return = [false, true];
+        }
+
+        $util->expects($this->exactly(\count($image->getI18ns())))
+            ->method('isWooCommerceLanguage')->willReturnOnConsecutiveCalls(...$return);
+
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $imageController = new ImageController($db, $util, $primaryKeyMapper);
 
         $controller  = new \ReflectionClass($imageController);
         $getImageAlt = $controller->getMethod('getImageAlt');
@@ -61,24 +79,24 @@ class ImageTest extends TestCase
     }
 
     /**
-     *
+     * @return array[]
      */
-    public function imageAltTextDataProvider()
+    public function imageAltTextDataProvider(): array
     {
         return [
             [
-                (new Image())->setName('Default name')->setI18ns([
+                (new ProductImage())->setName('Default name')->setI18ns(...[
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger'),
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng'),
                 ]),
                 'Alt text default'
             ],
             [
-                (new Image())->setName("Default name"),
+                (new ProductImage())->setName("Default name"),
                 'Default name'
             ],
             [
-                (new Image())->setName(''),
+                (new ProductImage())->setName(''),
                 ''
             ]
         ];

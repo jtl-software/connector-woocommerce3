@@ -5,7 +5,9 @@ namespace JtlWooCommerceConnector\Tests\Utilities;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 class UtilTest extends TestCase
 {
@@ -235,4 +237,25 @@ class UtilTest extends TestCase
             [' TruE ', true],
         ];
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
+     * @throws ExpectationFailedException
+     */
+    public function testMapLanguageIso(string $locale, string $expectedResult)
+    {
+        $iso = Util::mapLanguageIso($locale);
+        $this->assertEquals($expectedResult, $iso);
+    }
+
+    public function mapLanguageIsoDataProvider(): array
+    {
+        return [
+            ['de_de', 'de'],
+            ['de', 'de'],
+            ['de_ch', 'de']
+        ];
+    }
+
 }
