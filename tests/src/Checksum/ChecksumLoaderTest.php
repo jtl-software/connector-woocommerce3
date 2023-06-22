@@ -51,7 +51,7 @@ class ChecksumLoader extends AbstractTestCase
         $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumRead']);
         $checksumLoader->expects($this->once())->method('getChecksumRead');
 
-        $result = $checksumLoader->read('c_1', IdentityType::CATEGORY);
+        $result = $checksumLoader->read($checksumId, IdentityType::CATEGORY);
 
         $this->assertEquals($checksumId, $result);
     }
@@ -81,8 +81,8 @@ class ChecksumLoader extends AbstractTestCase
         $db         = $this->createDbMock(['query']);
         $db->expects($this->once())->method('query')->willReturn([]);
 
-        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumWriteQuery']);
-        $checksumLoader->expects($this->once())->method('getChecksumWriteQuery');
+        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumWrite']);
+        $checksumLoader->expects($this->once())->method('getChecksumWrite');
 
         $result = $checksumLoader->write('c_1', IdentityType::CATEGORY, $checksumId);
         $this->assertEquals([], $result);
@@ -112,8 +112,8 @@ class ChecksumLoader extends AbstractTestCase
         $db = $this->createDbMock(['query']);
         $db->expects($this->once())->method('query')->willReturn([]);
 
-        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumDeleteQuery']);
-        $checksumLoader->expects($this->once())->method('getChecksumDeleteQuery');
+        $checksumLoader = $this->getChecksumLoaderMock($db, ['getChecksumDelete']);
+        $checksumLoader->expects($this->once())->method('getChecksumDelete');
 
         $result = $checksumLoader->delete('c_1', IdentityType::CATEGORY);
         $this->assertEquals([], $result);
