@@ -258,5 +258,4 @@ class UtilTest extends TestCase
             ['de_ch', 'de']
         ];
     }
-
 }

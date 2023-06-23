@@ -108,5 +108,4 @@ abstract class AbstractTestCase extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
     }
-
 }
