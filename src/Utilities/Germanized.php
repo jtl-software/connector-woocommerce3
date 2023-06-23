@@ -11,7 +11,7 @@ namespace JtlWooCommerceConnector\Utilities;
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Germanized
+class Germanized
 {
     /**
      * @var array Index used in database mapped to translated salutation.

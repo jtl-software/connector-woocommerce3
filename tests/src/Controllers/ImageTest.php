@@ -46,6 +46,7 @@ class ImageTest extends TestCase
     }
 
     /**
+     * @dataprovider imageAltTextDataProvider
      * @param ProductImage $image
      * @param $expectedAltText
      * @return void
