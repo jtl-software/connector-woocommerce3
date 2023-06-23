@@ -239,7 +239,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @dataprovider mapLanguageIsoDataProvider
+     * @dataProvider mapLanguageIsoDataProvider
      * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      * @throws ExpectationFailedException
