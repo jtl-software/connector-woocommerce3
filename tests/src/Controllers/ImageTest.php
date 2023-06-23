@@ -4,7 +4,7 @@ namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
-use jtl\Connector\Core\Model\ImageI18n;
+use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -86,6 +86,7 @@ class ImageTest extends TestCase
         return [
             [
                 (new ProductImage())->setName('Default name')->setI18ns(
+                    (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger'),
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng')
                 ),
                 'Alt text default'
