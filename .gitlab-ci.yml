@@ -46,7 +46,7 @@ test:unit:
       junit: junit.xml
 
 build:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
   stage: build
   variables:
     VERSION: dev
@@ -67,7 +67,7 @@ build:
       - dist/
 
 build:zip:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
   stage: build
   variables:
     VERSION: dev
