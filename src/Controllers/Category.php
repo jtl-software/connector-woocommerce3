@@ -122,7 +122,7 @@ class Category extends BaseController
 
         $urlPath = $meta->getUrlPath();
 
-        $categoryData['slug'] = $meta->getName();
+        $categoryData['slug'] = \strtolower($meta->getName());
         if (!empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
         }
