@@ -1,8 +1,9 @@
-<?php
+<?php //phpcs:ignore PSR1.Files.SideEffects.FoundWithSymbols
+
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.39.4
+ * Version: 1.39.9
  * Requires PHP: 7.2
  * WC tested up to: 6.3
  * Author: JTL-Software GmbH
@@ -12,7 +13,7 @@
  * Requires at least WooCommerce: 3.4.7
  * Text Domain: woo-jtl-connector
  *
- * @author Jan Weskamp <jan.weskamp@jtl-software.com>
+ * @author JTL-Software-GmbH <info@jtl-software.com>
  */
 
 define('JTLWCC_TEXT_DOMAIN', 'woo-jtl-connector');
@@ -47,7 +48,6 @@ try {
         }
     }
 } catch (\Exception $e) {
-
 }
 
 add_action('init', 'jtlwcc_load_internationalization');
@@ -59,7 +59,7 @@ if (jtlwcc_rewriting_disabled()) {
 } else {
     require_once JTLWCC_INCLUDES_DIR . 'JtlConnector.php';
     require_once JTLWCC_INCLUDES_DIR . 'JtlConnectorAdmin.php';
-    
+
     register_activation_hook(__FILE__, [
         'JtlConnectorAdmin',
         'plugin_activation',
@@ -68,9 +68,9 @@ if (jtlwcc_rewriting_disabled()) {
         'JtlConnectorAdmin',
         'plugin_deactivation',
     ]);
-    
+
     add_action('parse_request', 'JtlConnector::capture_request', 1);
-    
+
     if (is_admin()) {
         add_action('init', [
             'JtlConnectorAdmin',
@@ -145,47 +145,46 @@ function woo_jtl_connector_settings_javascript()
 
 function downloadJTLLogs()
 {
-    $logDir = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
-    $url = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
-    
+    $url      = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
+
     // Get real path for our folder
     $rootPath = $logDir;
-    
+
     // Initialize archive object
     $zip = new ZipArchive();
     $zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-    
+
     // Create recursive directory iterator
     /** @var SplFileInfo[] $files */
-    $files = new RecursiveIteratorIterator(
+    $files        = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($rootPath),
         RecursiveIteratorIterator::LEAVES_ONLY
     );
     $filesCounter = 0;
     foreach ($files as $name => $file) {
-        
         if ($file->getFilename() === '.gitkeep') {
             continue;
         }
-        
+
         // Skip directories (they would be added automatically)
         if (!$file->isDir()) {
             // Get real and relative path for current file
-            $filePath = $file->getRealPath();
+            $filePath     = $file->getRealPath();
             $relativePath = substr($filePath, strlen($rootPath) + 1);
-            
+
             // Add current file to archive
             $zip->addFile($filePath, $relativePath);
             $filesCounter++;
         }
     }
-    
+
     // Zip archive will be created only after closing object
     $zip->close();
-    
+
     header('Content-Type: application/json; charset=UTF-8');
-    
+
     if ($filesCounter > 0) {
         print json_encode($url);
     } else {
@@ -195,42 +194,41 @@ function downloadJTLLogs()
             'code'    => 451,
         ]));
     }
-    
+
     wp_die();
     //self::display_page();
 }
 
 function clearJTLLogs()
 {
-    $logDir = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
-    
+
     if (file_exists($zip_file)) {
         unlink($zip_file);
     }
-    
+
     $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($logDir),
         RecursiveIteratorIterator::LEAVES_ONLY
     );
-    
+
     foreach ($files as $name => $file) {
-        
         if ($file->getFilename() === '.gitkeep') {
             continue;
         }
-        
+
         if (!$file->isDir()) {
             $filePath = $file->getRealPath();
-            
+
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
         }
     }
-    
+
     echo 'success';
-    
+
     wp_die();
 }
 
@@ -270,8 +268,10 @@ function jtlwcc_deactivate_plugin()
  */
 function jtlwcc_woocommerce_deactivated()
 {
-    return !in_array(JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
-        apply_filters('active_plugins', get_option('active_plugins')));
+    return !in_array(
+        JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
+        apply_filters('active_plugins', get_option('active_plugins'))
+    );
 }
 
 /**
@@ -291,8 +291,10 @@ function woo_jtl_connector_menu_link()
  */
 function jtlwcc_connector_activated()
 {
-    return in_array('woo-jtl-connector/woo-jtl-connector.php',
-        apply_filters('active_plugins', get_option('active_plugins')));
+    return in_array(
+        'woo-jtl-connector/woo-jtl-connector.php',
+        apply_filters('active_plugins', get_option('active_plugins'))
+    );
 }
 
 /**
@@ -303,7 +305,7 @@ function jtlwcc_connector_activated()
 function jtlwcc_get_woocommerce_version()
 {
     $plugin = get_plugin_data(WP_PLUGIN_DIR . '/' . JTLWCC_WOOCOMMERCE_PLUGIN_FILE);
-    
+
     return isset($plugin['Version']) ? $plugin['Version'] : '0';
 }
 
@@ -313,14 +315,16 @@ function jtlwcc_get_woocommerce_version()
 function jtlwcc_rewriting_disabled()
 {
     $permalink_structure = \get_option('permalink_structure');
-    
+
     return empty($permalink_structure);
 }
 
 function jtlwcc_woocommerce_not_activated()
 {
-    jtlwcc_show_wordpress_error(__('Activate WooCommerce in order to use the JTL-Connector.', JTLWCC_TEXT_DOMAIN),
-        true);
+    jtlwcc_show_wordpress_error(
+        __('Activate WooCommerce in order to use the JTL-Connector.', JTLWCC_TEXT_DOMAIN),
+        true
+    );
 }
 
 function jtlwcc_wrong_woocommerce_version()
@@ -330,13 +334,19 @@ function jtlwcc_wrong_woocommerce_version()
 
 function jtlwcc_rewriting_not_activated()
 {
-    jtlwcc_show_wordpress_error(__('Rewriting is disabled. Please select another permalink setting.',
-        JTLWCC_TEXT_DOMAIN));
+    jtlwcc_show_wordpress_error(__(
+        'Rewriting is disabled. Please select another permalink setting.',
+        JTLWCC_TEXT_DOMAIN
+    ));
 }
 
 function jtlwcc_show_wordpress_error($message, $show_install_link = false)
 {
-    $link = $show_install_link ? '<a class="" href="' . admin_url("plugin-install.php?tab=search&s=" . urlencode("WooCommerce")) . '">WooCommerce</a>' : '';
-    
+    $link = $show_install_link
+        ? '<a class="" href="' .
+          admin_url("plugin-install.php?tab=search&s=" .
+                    urlencode("WooCommerce")) . '">WooCommerce</a>'
+        : '';
+
     echo "<div class='error'><h3>JTL-Connector</h3><p>$message</p><p>$link</p></div>";
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -21,13 +22,14 @@ class Payment extends BaseController
     /**
      *
      */
-    const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+    public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
      * @param $limit
      * @return array
+     * @throws \InvalidArgumentException
      */
-    public function pullData($limit)
+    public function pullData($limit): array
     {
         $payments = [];
 
@@ -50,7 +52,11 @@ class Payment extends BaseController
                 ->setTotalSum((float)$order->get_total())
                 ->setPaymentModuleCode($paymentModuleCode)
                 ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
-                ->setCreationDate($order->get_date_paid() ? $order->get_date_paid() : $order->get_date_completed());
+                ->setCreationDate(
+                    $order->get_date_paid()
+                        ? $order->get_date_paid()
+                        : $order->get_date_completed()
+                );
         }
 
         return $payments;
@@ -64,9 +70,8 @@ class Payment extends BaseController
     protected function getTransactionId(string $paymentModuleCode, \WC_Order $order): string
     {
         $transactionId = $order->get_transaction_id();
-        switch ($paymentModuleCode) {
-            case PaymentTypes::TYPE_AMAPAY:
-                $transactionId = $order->get_meta('amazon_charge_id');
+        if ($paymentModuleCode == PaymentTypes::TYPE_AMAPAY) {
+            $transactionId = $order->get_meta('amazon_charge_id');
         }
 
         return (string)$transactionId;
@@ -77,7 +82,7 @@ class Payment extends BaseController
      * @return PaymentModel
      * @throws \WC_Data_Exception
      */
-    public function pushData(PaymentModel $data)
+    public function pushData(PaymentModel $data): PaymentModel
     {
         $order = \wc_get_order((int)$data->getCustomerOrderId()->getEndpoint());
 
@@ -95,7 +100,7 @@ class Payment extends BaseController
     /**
      * @return int
      */
-    protected function getStats()
+    protected function getStats(): int
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
 

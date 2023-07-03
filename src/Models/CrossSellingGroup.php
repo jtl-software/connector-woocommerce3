@@ -1,4 +1,5 @@
 <?php
+
 namespace JtlWooCommerceConnector\Models;
 
 use jtl\Connector\Model\CrossSellingGroupI18n;
@@ -11,13 +12,13 @@ use JtlWooCommerceConnector\Utilities\Util;
  */
 class CrossSellingGroup
 {
-    const TYPE_CROSS_SELL = "1";
-    const TYPE_UP_SELL = "2";
+    public const TYPE_CROSS_SELL = "1";
+    public const TYPE_UP_SELL    = "2";
 
     /**
      * @var array
      */
-    protected static $groups = [
+    protected static array $groups = [
         [
             'endpointId' => self::TYPE_CROSS_SELL,
             'name' => 'WooCommerce-CrossSelling',
@@ -32,8 +33,9 @@ class CrossSellingGroup
 
     /**
      * @return array
+     * @throws \InvalidArgumentException
      */
-    public static function all()
+    public static function all(): array
     {
         $groups = [];
         foreach (self::$groups as $group) {
@@ -44,7 +46,7 @@ class CrossSellingGroup
 
     /**
      * @param $name
-     * @return bool|\jtl\Connector\Model\CrossSellingGroup
+     * @throws \InvalidArgumentException
      */
     public static function getByWooCommerceName($name)
     {
@@ -62,8 +64,9 @@ class CrossSellingGroup
     /**
      * @param array $groupData
      * @return \jtl\Connector\Model\CrossSellingGroup
+     * @throws \InvalidArgumentException
      */
-    protected static function createFromArray(array $groupData)
+    protected static function createFromArray(array $groupData): \jtl\Connector\Model\CrossSellingGroup
     {
         $crossSellingGroup = new \jtl\Connector\Model\CrossSellingGroup();
         $crossSellingGroup->setId(new Identity($groupData['endpointId']));
@@ -80,10 +83,9 @@ class CrossSellingGroup
     /**
      * @param $columnName
      * @param $value
-     * @return false|int|string
      */
     protected static function findKeyByColumn($columnName, $value)
     {
-        return array_search($value, array_column(self::$groups, $columnName));
+        return \array_search($value, \array_column(self::$groups, $columnName));
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -16,7 +17,12 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerOrderBillingAddress extends CustomerOrderAddress
 {
-    public function pullData(\WC_Order $order)
+    /**
+     * @param \WC_Order $order
+     * @return CustomerOrderBillingAddressModel
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(\WC_Order $order): CustomerOrderBillingAddressModel
     {
         $address = (new CustomerOrderBillingAddressModel())
             ->setId(new Identity(CustomerOrder::BILLING_ID_PREFIX . $order->get_id()))

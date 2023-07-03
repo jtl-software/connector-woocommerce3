@@ -3,8 +3,33 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- CO-2242 - added customer group special price support
 - CO-2263 - fix empty delivery addresses
+
+## 1.39.9 _2023-06-13_
+- CO-2230 - fix Invisibility Type
+- CO-2348 - fix cost splitting for shipping
+
+## 1.39.8 _2023-05-10_
+- Hotfix - return type
+
+## 1.39.7 _2023-05-09_
+- CO-2210 - fix customer import if db prefix is not wp_
+- CO-2228 - fix wrong price calculation
+- CO-2230 - fix B2B-Market customer group visibility
+- CO-2268 - fixed manufacturer rank math meta fields
+- CO-2297 - fix perfect brands plugin name
+- CO-2346 - fixed next available inflow date
+
+## 1.39.6 _2023-04-11_
+- CO-2316 - cast string to float for tax calculation
+
+## 1.39.5 _2023-03-14_
+- CO-2242 - added customer group special price support
+<<<<<<< CHANGELOG.md
+- CO-2263 - fix empty delivery addresses
+=======
+- CO-1803 - delivery cost calc fixed
+>>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support

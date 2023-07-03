@@ -14,7 +14,12 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class CustomerOrderShippingAddress extends CustomerOrderAddress
 {
-    public function pullData(\WC_Order $order)
+    /**
+     * @param \WC_Order $order
+     * @return CustomerOrderShippingAddressModel
+     * @throws \InvalidArgumentException
+     */
+    public function pullData(\WC_Order $order): CustomerOrderShippingAddressModel
     {
         $address = (new CustomerOrderShippingAddressModel())
             ->setId(new Identity(CustomerOrder::SHIPPING_ID_PREFIX . $order->get_id()))
