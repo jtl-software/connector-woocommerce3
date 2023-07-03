@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2263 - fix empty delivery addresses
 
 ## 1.39.9 _2023-06-13_
 - CO-2230 - fix Invisibility Type
@@ -24,7 +25,11 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
+<<<<<<< CHANGELOG.md
+- CO-2263 - fix empty delivery addresses
+=======
 - CO-1803 - delivery cost calc fixed
+>>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support

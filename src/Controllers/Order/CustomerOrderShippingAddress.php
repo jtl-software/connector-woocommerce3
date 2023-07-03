@@ -34,13 +34,15 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
             ->setCompany($order->get_shipping_company())
             ->setCustomerId($this->createCustomerId($order));
 
-        if (
-            SupportedPlugins::comparePluginVersion(
-                SupportedPlugins::PLUGIN_WOOCOMMERCE,
-                '>=',
-                '5.6.0'
-            )
-        ) {
+        if ($this->emptyAddressCheck($address)) {
+            $this->useBillingAddress($address, $order);
+        }
+
+        if ($this->emptyAddressCheck($address)) {
+            $this->createDefaultAddresses($address, $order);
+        }
+
+        if (SupportedPlugins::comparePluginVersion(SupportedPlugins::PLUGIN_WOOCOMMERCE, '>=', '5.6.0')) {
             $address->setPhone($order->get_shipping_phone());
         }
 
@@ -67,5 +69,42 @@ class CustomerOrderShippingAddress extends CustomerOrderAddress
         }
 
         return $address;
+    }
+
+    private function useBillingAddress(CustomerOrderShippingAddressModel $address, \WC_Order $order): void
+    {
+        if (empty($address->getCity())) {
+            $address->setCity($order->get_billing_city());
+        }
+
+        if (empty($address->getZipCode())) {
+            $address->setZipCode($order->get_billing_postcode());
+        }
+
+        if (empty($address->getStreet())) {
+            $address->setStreet($order->get_billing_address_1());
+        }
+
+        if (empty($address->getCountryIso())) {
+            $address->setCountryIso($order->get_billing_country());
+        }
+
+        if (empty($address->getLastName())) {
+            $address->setLastName($order->get_billing_last_name());
+        }
+    }
+
+    private function emptyAddressCheck(CustomerOrderShippingAddressModel $address): bool
+    {
+        if (
+            empty($address->getCity())
+            || empty($address->getStreet())
+            || empty($address->getCountryIso())
+            || empty($address->getLastName())
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

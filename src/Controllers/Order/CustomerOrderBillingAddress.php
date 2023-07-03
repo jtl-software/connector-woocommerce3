@@ -39,30 +39,9 @@ class CustomerOrderBillingAddress extends CustomerOrderAddress
             ->setPhone($order->get_billing_phone())
             ->setCustomerId($this->createCustomerId($order))
             ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
-
-        if (\strcmp($address->getCity(), '') === 0) {
-            $address->setCity(\get_option('woocommerce_store_city'));
-        }
-
-        if (\strcmp($address->getZipCode(), '') === 0) {
-            $address->setZipCode(\get_option('woocommerce_store_postcode'));
-        }
-
-        if (
-            \strcmp($address->getStreet(), '') === 0
-            && \strcmp($address->getExtraAddressLine(), '') === 0
-        ) {
-            $address->setExtraAddressLine(\get_option('woocommerce_store_postcode'));
-        }
-
-        if (\strcmp($address->getStreet(), '') === 0) {
-            $address->setStreet(\get_option('woocommerce_store_address'));
-        }
-
-        if (\strcmp($address->getCountryIso(), '') === 0) {
-            $address->setCountryIso(\get_option('woocommerce_default_country'));
-        }
-
+        
+        $this->createDefaultAddresses($address);
+        
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
