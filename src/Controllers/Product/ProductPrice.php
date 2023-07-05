@@ -517,8 +517,8 @@ class ProductPrice extends BaseController
         $regularPrice = $this->getRegularPrice($item, $vat);
 
         if ($item->getQuantity() === 0) {
-            $salePrice = \get_post_meta($productId, '_sale_price', true);
-            $decimalCount = \strlen(explode('.', $regularPrice)[1]);
+            $salePrice    = \get_post_meta($productId, '_sale_price', true);
+            $decimalCount = \strlen(\explode('.', $regularPrice)[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(
