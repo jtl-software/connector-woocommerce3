@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2362 remove space in image title
 
 ## 1.39.9 _2023-06-13_
 - CO-2230 - fix Invisibility Type
