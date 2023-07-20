@@ -15,6 +15,7 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Definition\Controller;
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Event\StatisticEvent;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
@@ -45,6 +46,9 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_THUMBNAIL = 'thumbnail_id';
     public const GALLERY_KEY        = '_product_image_gallery';
     public const MANUFACTURER_KEY   = 'pwb_brand_image';
+    public const PRODUCT_IMAGE      = 'product';
+    public const CATEGORY_IMAGE     = 'category';
+    public const MANUFACTURER_IMAGE = 'manufacturer';
 
     private $alreadyLinked = [];
 
@@ -703,11 +707,11 @@ class ImageController extends AbstractBaseController implements
     public function deleteData(AbstractModel $model, bool $realDelete = true): AbstractModel
     {
         switch ($model->getRelationType()) {
-            case IdentityType::PRODUCT_IMAGE:
+            case self::PRODUCT_IMAGE:
                 $this->deleteProductImage($model, $realDelete);
                 break;
-            case IdentityType::CATEGORY_IMAGE:
-            case IdentityType::MANUFACTURER_IMAGE:
+            case self::CATEGORY_IMAGE:
+            case self::MANUFACTURER_IMAGE:
                 $this->deleteImageTermMeta($model, $realDelete);
                 break;
         }
@@ -756,6 +760,9 @@ class ImageController extends AbstractBaseController implements
         \delete_term_meta($image->getForeignKey()->getEndpoint(), $metaKey);
 
         if ($realDelete) {
+            if (empty($id) && \strpos($endpointId, "_") === false) {
+                $id = $endpointId;
+            }
             $this->deleteIfNotUsedByOthers((int) $id);
         }
     }
