@@ -349,7 +349,7 @@ class Product extends BaseController
         $wcProduct   = \wc_get_product($product->getId()->getEndpoint());
         $productType = $this->getType($product);
 
-        if (\is_null($wcProduct)) {
+        if (empty($wcProduct)) {
             return;
         }
 
