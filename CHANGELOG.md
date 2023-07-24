@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2263 - fix empty delivery addresses
+- CO-2377 - add hpos support
 
 ## 1.39.9 _2023-06-13_
 - CO-2230 - fix Invisibility Type
