@@ -333,6 +333,14 @@ class Util extends WordpressUtils
      */
     public static function mapLanguageIso($locale)
     {
+        if (\substr_count($locale, '_') == 2) {
+            $locale = \substr(
+                $locale,
+                0,
+                \strpos($locale, '_', 4)
+            );
+        }
+
         $language = Service::create($locale);
         return $language->toISO_639_1();
     }
