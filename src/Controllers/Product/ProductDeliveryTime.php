@@ -71,9 +71,9 @@ class ProductDeliveryTime extends BaseController
             }
 
             if (
-                $time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME) && Config::get(
-                    Config::OPTIONS_USE_DELIVERYTIME_CALC
-                ) === 'delivery_time_calc'
+                $time === 0
+                && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)
+                && Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_time_calc'
             ) {
                 return;
             }
