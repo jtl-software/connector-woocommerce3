@@ -444,7 +444,7 @@ class Image extends BaseController
             $attachment = \array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
-                'post_title' => \preg_replace('/\.[^.]+$/', '', $fileName),
+                'post_title' => \preg_replace('/\.[^.]+$/', '', $name),
                 'post_status' => 'inherit',
             ]);
 
