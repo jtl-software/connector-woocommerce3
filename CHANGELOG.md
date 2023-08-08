@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.39.10 _2023-08-08_
 - CO-2263 - fix empty delivery addresses
 - CO-2389 - fix delivery status
 - CO-2409 - support Additional Variation Images Gallery plugin
