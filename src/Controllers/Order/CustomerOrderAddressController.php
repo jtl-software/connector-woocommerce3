@@ -2,12 +2,10 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\Identity;
+use Jtl\Connector\Core\Model\AbstractOrderAddress;
+use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
-use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Id;
-use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CustomerOrderAddress
@@ -38,7 +36,7 @@ class CustomerOrderAddressController extends AbstractBaseController
         );
     }
 
-    protected function createDefaultAddresses(DataModel $address, \WC_Order $order = null): void
+    protected function createDefaultAddresses(AbstractOrderAddress $address, \WC_Order $order = null): void
     {
         if (empty($address->getCity())) {
             $address->setCity(\get_option('woocommerce_store_city'));
