@@ -2,9 +2,12 @@
 
 namespace JtlWooCommerceConnector\Controllers\Order;
 
-use Jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Model\DataModel;
+use jtl\Connector\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CustomerOrderAddress
@@ -33,5 +36,28 @@ class CustomerOrderAddressController extends AbstractBaseController
                 ? $order->get_customer_id()
                 : Id::link([Id::GUEST_PREFIX, $order->get_id()])
         );
+    }
+
+    protected function createDefaultAddresses(DataModel $address, \WC_Order $order = null): void
+    {
+        if (empty($address->getCity())) {
+            $address->setCity(\get_option('woocommerce_store_city'));
+        }
+
+        if (empty($address->getZipCode())) {
+            $address->setZipCode(\get_option('woocommerce_store_postcode'));
+        }
+
+        if (empty($address->getStreet())) {
+            $address->setStreet(\get_option('woocommerce_store_address'));
+        }
+
+        if (empty($address->getCountryIso())) {
+            $address->setCountryIso(\get_option('woocommerce_default_country'));
+        }
+
+        if (empty($address->getLastName())) {
+            $address->setLastName('NoLastNameGiven');
+        }
     }
 }

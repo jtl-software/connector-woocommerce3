@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.39.8
+ * Version: 1.39.10
  * Requires PHP: 7.2
  * WC tested up to: 6.3
  * Author: JTL-Software GmbH

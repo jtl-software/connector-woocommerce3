@@ -153,6 +153,11 @@ class CustomerOrderItemController extends AbstractBaseController
                 $vat = $this->calculateVat($priceNet, $priceGross, \wc_get_price_decimals());
             }
 
+            if ($vat == 0.0 && $priceNet == 0.0 && $priceGross == 0.0) {
+                $taxRateId = \array_key_first($taxes['total']);
+                $vat       = (float)$this->database->queryOne(SqlHelper::taxRateById($taxRateId));
+            }
+
             if ($useWcTaxes === false) {
                 $priceNet = (float)$order->get_item_subtotal($item, false, false);
             }
@@ -313,7 +318,9 @@ class CustomerOrderItemController extends AbstractBaseController
                         ->setPrice(\round($netPrice, Util::getPriceDecimals()))
                         ->setPriceGross(\round($priceGross, Util::getPriceDecimals()));
 
-                    $customerOrderItems[] = $customerOrderItem;
+                    if (!($customerOrderItem->getType() == 'shipping' && $customerOrderItem->getPrice() == 0.0)) {
+                        $customerOrderItems[] = $customerOrderItem;
+                    }
                 }
             } else {
                 /** @var CustomerOrderItemModel $customerOrderItem */

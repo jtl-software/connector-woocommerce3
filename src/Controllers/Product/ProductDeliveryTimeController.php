@@ -9,9 +9,12 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Controllers\BaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use WP_Error;
 
 class ProductDeliveryTimeController extends AbstractBaseController
@@ -69,7 +72,11 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 $time = \sprintf('%s-%s', $min, $max);
             }
 
-            if ($time === 0 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)) {
+            if (
+                $time === 0
+                && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)
+                && Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_time_calc'
+            ) {
                 return;
             }
 
@@ -97,9 +104,13 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 }
             }
 
-            $term = \get_term_by('slug', \wc_sanitize_taxonomy_name(
-                $this->util->removeSpecialchars($deliveryTimeString)
-            ), 'product_delivery_times');
+            $term = \get_term_by(
+                'slug',
+                \wc_sanitize_taxonomy_name(
+                    Util::removeSpecialchars($deliveryTimeString)
+                ),
+                'product_delivery_times'
+            );
 
             if ($term === false) {
                 //Add term
@@ -136,9 +147,13 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
-                $germanizedTerm = \get_term_by('slug', \wc_sanitize_taxonomy_name(
-                    $this->util->removeSpecialchars($deliveryTimeString)
-                ), $germanizedDeliveryTimeTaxonomyName);
+                $germanizedTerm = \get_term_by(
+                    'slug',
+                    \wc_sanitize_taxonomy_name(
+                        Util::removeSpecialchars($deliveryTimeString)
+                    ),
+                    $germanizedDeliveryTimeTaxonomyName
+                );
 
                 $germanizedTermId = false;
                 if ($germanizedTerm === false) {
