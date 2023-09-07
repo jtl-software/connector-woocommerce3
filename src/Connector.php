@@ -7,6 +7,8 @@
 
 namespace JtlWooCommerceConnector;
 
+\ini_set('display_errors', 'off');
+
 use DI\Container;
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Application\Request;
