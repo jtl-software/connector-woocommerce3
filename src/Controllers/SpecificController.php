@@ -173,7 +173,6 @@ class SpecificController extends AbstractBaseController implements
             \register_taxonomy($taxonomy, null);
 
             foreach ($model->getValues() as $key => $value) {
-                $value->getSpecificId()->setEndpoint($attributeId);
                 $metaValue             = null;
                 $defaultValueAvailable = false;
 
