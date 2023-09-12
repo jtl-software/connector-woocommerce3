@@ -1154,14 +1154,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'id'        => Config::OPTIONS_VARIATION_NAME_FORMAT,
             'value'     => Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT),
             'options'   => [
-                'default'         => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
-                'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'parent'          => __('{Product name}', JTLWCC_TEXT_DOMAIN),
+                'child'           => __('{Product variation name}', JTLWCC_TEXT_DOMAIN),
+                'default'         => __('Variation of {Product name}', JTLWCC_TEXT_DOMAIN),
+                'space'           => __('Variation of {Product name} Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
                 'brackets'        => __(
-                    'Variation #22 of Product name (Color: black, Size: S)',
+                    'Variation of {Product name} (Color: black, Size: S)',
                     JTLWCC_TEXT_DOMAIN
                 ),
-                'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
+                'space_parent'    => __('{Product name} Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
+                'brackets_parent' => __('{Product name} (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
             ],
             'helpBlock' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
         ];
