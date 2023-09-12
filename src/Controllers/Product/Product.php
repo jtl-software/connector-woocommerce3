@@ -234,8 +234,8 @@ class Product extends BaseController
         $endpoint = [
             'ID' => (int)$product->getId()->getEndpoint(),
             'post_type' => $isMasterProduct ? 'product' : 'product_variation',
-            'post_title' => $tmpI18n->getName(),
-            'post_name' => $tmpI18n->getUrlPath(),
+            'post_title' => $isMasterProduct ? $tmpI18n->getName() : $this->getVariationFormatName($tmpI18n, $product),
+            'post_name' => $isMasterProduct ? $tmpI18n->getUrlPath() : $this->getVariationFormatName($tmpI18n, $product),
             'post_content' => $tmpI18n->getDescription(),
             'post_excerpt' => $tmpI18n->getShortDescription(),
             'post_date' => $this->getCreationDate($creationDate),
@@ -311,6 +311,53 @@ class Product extends BaseController
 
         return $product;
     }
+
+    private function getVariationFormatName($i18n, $product): string
+    {
+        $parent = \wc_get_product($i18n->getProductId()->getEndpoint());
+        switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT, '')) {
+            case 'parent':
+                return $parent->get_title();
+            case 'child':
+                return $i18n->get_name();
+            case 'default':
+                return 'Variation of ' . $parent->get_title();
+            case 'space':
+                $attributes   = '';
+                $numAttribute = \count($parent->get_attributes());
+                foreach ($parent->get_attributes() as $key => $value) {
+                    --$numAttribute;
+                    $separator   = $numAttribute === 0 ? '' : ', ';
+                    $attributes .= \ucfirst(\str_replace('pa_', '', $key)) . ': ' . \ucfirst($value) . $separator;
+                }
+                return \sprintf(
+                    '%s %s',
+                    'Variation of ' . $parent->get_title(),
+                    $attributes
+                );
+            case 'brackets':
+                return \sprintf(
+                    '%s (%s)',
+                    'Variation of ' . $parent->get_title(),
+                    'empty string'
+                );
+            case 'space_parent':
+                return \sprintf(
+                    '%s %s',
+                    $parent->get_title(),
+                    'empty string'
+                );
+            case 'brackets_parent':
+                return \sprintf(
+                    '%s (%s)',
+                    $parent->get_title(),
+                    'empty string'
+                );
+        }
+        return $product->get_name();
+    }
+
+
 
     /**
      * @param ProductModel $product
