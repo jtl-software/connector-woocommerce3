@@ -1147,26 +1147,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
-        //Add variation select field
-        $fields[] = [
-            'title'     => __('Variation name format', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'jtl_connector_select',
-            'id'        => Config::OPTIONS_VARIATION_NAME_FORMAT,
-            'value'     => Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT),
-            'options'   => [
-                'default'         => __('Variation #22 of Product name', JTLWCC_TEXT_DOMAIN),
-                'space'           => __('Variation #22 of Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                'brackets'        => __(
-                    'Variation #22 of Product name (Color: black, Size: S)',
-                    JTLWCC_TEXT_DOMAIN
-                ),
-                'space_parent'    => __('Product name Color: black, Size: S', JTLWCC_TEXT_DOMAIN),
-                'brackets_parent' => __('Product name (Color: black, Size: S)', JTLWCC_TEXT_DOMAIN),
-            ],
-            'helpBlock' => __('Define how the child product name is formatted.', JTLWCC_TEXT_DOMAIN),
-        ];
-
-
         //Add sectionend
         $fields[] = [
             'type' => 'sectionend',
