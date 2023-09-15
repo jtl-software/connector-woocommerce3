@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2419 - allow start date for special price without end date
 
 ## 1.39.10 _2023-08-08_
 - CO-2263 - fix empty delivery addresses
