@@ -92,7 +92,8 @@ class ProductDeliveryTime extends BaseController
                 (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_status')
                 && (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+                    || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET))
             ) {
                 foreach ($product->getI18ns() as $i18n) {
                     if (Util::getInstance()->isWooCommerceLanguage($i18n->getLanguageISO())) {
