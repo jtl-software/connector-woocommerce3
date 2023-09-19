@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2418 - remove name format options
+- CO-2432 - consider german market plugin for delivery status calculation
 
 ## 1.39.10 _2023-08-08_
 - CO-2263 - fix empty delivery addresses
