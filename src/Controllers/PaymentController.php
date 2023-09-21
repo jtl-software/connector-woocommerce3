@@ -17,6 +17,7 @@ use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Definition\PaymentType;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Payment
@@ -50,11 +51,13 @@ class PaymentController extends AbstractBaseController implements PullInterface,
                 continue;
             }
 
+            $orderHostId = $this->getOrderHostId($order->get_id());
+
             $paymentModuleCode = $this->util->mapPaymentModuleCode($order);
 
             $payments[] = (new PaymentModel())
                 ->setId(new Identity($order->get_id()))
-                ->setCustomerOrderId(new Identity($order->get_id()))
+                ->setCustomerOrderId(new Identity($order->get_id(), $orderHostId))
                 ->setTotalSum((float)$order->get_total())
                 ->setPaymentModuleCode($paymentModuleCode)
                 ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
@@ -66,6 +69,17 @@ class PaymentController extends AbstractBaseController implements PullInterface,
         }
 
         return $payments;
+    }
+
+    /**
+    * @param int $endpointId
+    * @return int
+    * @throws InvalidArgumentException
+     */
+    public function getOrderHostId(int $endpointId): int
+    {
+        $query = \sprintf("Select host_id from wp_jtl_connector_link_order where endpoint_id = %s", $endpointId);
+        return $this->db->queryOne($query);
     }
 
     /**
