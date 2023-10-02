@@ -78,7 +78,12 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      */
     public function getOrderHostId(int $endpointId): int
     {
-        $query = \sprintf("Select host_id from wp_jtl_connector_link_order where endpoint_id = %s", $endpointId);
+        $query = \sprintf(
+            "Select host_id from %sjtl_connector_link_order where endpoint_id = %s",
+            $this->db->getWpDb()->prefix,
+            $endpointId
+        );
+
         return $this->db->queryOne($query);
     }
 
