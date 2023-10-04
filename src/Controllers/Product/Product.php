@@ -93,14 +93,16 @@ class Product extends BaseController
 
             //EAN / GTIN
             if (Util::useGtinAsEanEnabled()) {
-                $ean = '';
+                $manufacturerNumber = '';
+                $ean                = '';
 
                 if (
                     SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
                 ) {
-                    $ean = \get_post_meta($product->get_id(), '_ts_gtin');
+                    $manufacturerNumber = \get_post_meta($product->get_id(), '_ts_mpn', true);
+                    $ean                = \get_post_meta($product->get_id(), '_ts_gtin');
 
                     if (\is_array($ean) && \count($ean) > 0 && \array_key_exists(0, $ean)) {
                         $ean = $ean[0];
@@ -120,6 +122,7 @@ class Product extends BaseController
                 }
 
                 $productModel->setEan($ean);
+                $productModel->setManufacturerNumber($manufacturerNumber);
             }
 
             if ($product->get_parent_id() !== 0) {
