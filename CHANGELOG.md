@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2443 - add manufacturer number to product
 - CO-2418 - remove name format options
 
 ## 1.39.10 _2023-08-08_
