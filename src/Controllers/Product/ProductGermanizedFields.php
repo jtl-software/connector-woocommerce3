@@ -87,6 +87,9 @@ class ProductGermanizedFields extends BaseController
     private function updateGermanizedAttributes(ProductModel &$product): void
     {
         $id = $product->getId()->getEndpoint();
+
+        \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
+
         $this->updateGermanizedBasePriceAndUnits($product, $id);
     }
 
