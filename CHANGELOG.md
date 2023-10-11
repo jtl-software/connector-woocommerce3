@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2418 - remove name format options
+- CO-2416 - set germanized option "mark as shipped" true per default
 
 ## 1.39.10 _2023-08-08_
 - CO-2263 - fix empty delivery addresses

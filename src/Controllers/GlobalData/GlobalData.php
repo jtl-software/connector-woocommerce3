@@ -68,6 +68,7 @@ class GlobalData extends BaseController
             && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)
         ) {
             $globalData->setMeasurementUnits((new MeasurementUnit())->pullGermanizedData());
+            \update_option('woocommerce_gzd_shipments_auto_order_completed_shipped_enable', 'yes', true);
         }
 
         if (
