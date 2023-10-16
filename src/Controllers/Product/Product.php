@@ -396,6 +396,10 @@ class Product extends BaseController
 
                     $allowedTypes = \wc_get_product_types();
 
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOO_SUBSCRIPTIONS)) {
+                        $allowedTypes['variable_subscription'] = \__('Variable subscription', 'woocommerce');
+                    }
+
                     if (\in_array($value, \array_keys($allowedTypes))) {
                         $term = \get_term_by('slug', \wc_sanitize_taxonomy_name(
                             $value
