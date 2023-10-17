@@ -2,7 +2,7 @@
 Contributors: papryk, ntbyk, platzkejtl
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 6.0
+Tested up to: 6.3
 Requires PHP: 7.2
 WC requires at least: 3.4
 WC tested up to: 6.3
