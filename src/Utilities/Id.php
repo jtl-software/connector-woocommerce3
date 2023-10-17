@@ -7,9 +7,9 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Linker\IdentityLinker;
+use Jtl\Connector\Core\Definition\IdentityType;
 
-final class Id
+class Id
 {
     public const SEPARATOR           = '_';
     public const PRODUCT_PREFIX      = 'p';
@@ -48,18 +48,23 @@ final class Id
     /**
      * @param $endpoint
      */
-    public static function unlinkProductImage($endpoint)
+    public static function unlinkImage($endpointId)
     {
-        if (\strstr($endpoint, self::PRODUCT_PREFIX . self::SEPARATOR)) {
-            $parts = self::unlink($endpoint);
-            if (\count($parts) === 3) {
-                return \array_splice($parts, 1);
-            }
+        list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
 
-            return '';
+        if ($typePrefix === self::CATEGORY_PREFIX) {
+            return [$parts, IdentityType::CATEGORY_IMAGE];
         }
 
-        return '';
+        if ($typePrefix === self::PRODUCT_PREFIX) {
+            return [$parts, IdentityType::PRODUCT_IMAGE];
+        }
+
+        if ($typePrefix === self::MANUFACTURER_PREFIX) {
+            return [$parts, IdentityType::MANUFACTURER_IMAGE];
+        }
+
+        return null;
     }
 
     /**
@@ -102,25 +107,6 @@ final class Id
         }
 
         return '';
-    }
-
-    /**
-     * @param $endpointId
-     * @return array|null
-     */
-    public static function unlinkImage($endpointId): ?array
-    {
-        list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
-
-        if ($typePrefix === self::CATEGORY_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_CATEGORY];
-        } elseif ($typePrefix === self::PRODUCT_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_PRODUCT];
-        } elseif ($typePrefix === self::MANUFACTURER_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_MANUFACTURER];
-        }
-
-        return null;
     }
 
     /**

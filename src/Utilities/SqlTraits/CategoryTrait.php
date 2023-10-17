@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:39
- */
-
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;

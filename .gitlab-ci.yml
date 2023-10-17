@@ -13,7 +13,6 @@ default:
     paths:
       - vendor
       - .composer-cache
-      - composer.lock
 
 include:
   - project: 'connector/connector-utils/CI-Templates'
@@ -37,7 +36,7 @@ test:unit:
   parallel:
     matrix:
       - BASE: 'php'
-        VERSION: [ '7.2','7.3','7.4' ]
+        VERSION: [ '7.4', '8.0', '8.1' ]
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:
@@ -47,7 +46,7 @@ test:unit:
       junit: junit.xml
 
 build:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
   stage: build
   variables:
     VERSION: dev
@@ -68,7 +67,7 @@ build:
       - dist/
 
 build:zip:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.1
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
   stage: build
   variables:
     VERSION: dev
