@@ -19,8 +19,8 @@ class CustomerGroupController extends AbstractBaseController
 {
     public const DEFAULT_GROUP = 'customer';
 
-    protected $db;
-    protected $util;
+    protected \JtlWooCommerceConnector\Utilities\Db $db;
+    protected \JtlWooCommerceConnector\Utilities\Util $util;
 
     /**
      * @return array

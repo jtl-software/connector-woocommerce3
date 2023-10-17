@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -35,7 +30,7 @@ class CategoryController extends AbstractBaseController implements
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function pull(QueryFilter $query): array
+    public function pull(QueryFilter $query): array //TODO:check
     {
         $categories = [];
 
@@ -105,7 +100,7 @@ class CategoryController extends AbstractBaseController implements
 
         $parentCategoryId = $model->getParentCategoryId();
 
-        if ($parentCategoryId !== null && isset(self::$idCache[$parentCategoryId->getHost()])) {
+        if (isset(self::$idCache[$parentCategoryId->getHost()])) {
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
 
