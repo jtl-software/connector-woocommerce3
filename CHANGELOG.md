@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.40.0 _2023_10_17_
 - CO-2418 - remove name format options
 - CO-2072 - migrate to core 5.1
 
@@ -31,11 +33,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
-<<<<<<< CHANGELOG.md
 - CO-2263 - fix empty delivery addresses
-=======
 - CO-1803 - delivery cost calc fixed
->>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support
