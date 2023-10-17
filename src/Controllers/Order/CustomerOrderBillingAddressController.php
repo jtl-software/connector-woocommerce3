@@ -37,9 +37,9 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
             ->setCompany($order->get_billing_company())
             ->setPhone($order->get_billing_phone())
             ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
-        
+
         $this->createDefaultAddresses($address);
-        
+
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
