@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- fix B2B Market
+- fix Additional text encountered after finished reading JSON content
 
 ## 1.40.0 _2023_10_17_
 - CO-2418 - remove name format options
