@@ -68,7 +68,7 @@ class B2BMarket extends WordpressUtils
      */
     public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
     {
-        $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pullData();
+        $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pull();
         $customerGroupsIds = \array_values(
             \array_map(static function (\jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
                 if ($customerGroup->getId() === null) {
