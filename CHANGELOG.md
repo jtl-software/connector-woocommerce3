@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.40.1 _2023-10-18_
 - fix B2B Market
 - fix Additional text encountered after finished reading JSON content
 
