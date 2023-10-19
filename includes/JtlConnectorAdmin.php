@@ -3,8 +3,9 @@
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController as CustomerGroupModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -329,7 +330,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable(): void
+    private static function createManufacturerLinkingTable($db): void
     {
         global $wpdb;
 
@@ -352,7 +353,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                !DB::checkIfFKExists(
+                !$db->checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -1461,7 +1462,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ];
 
 
-            $customerGroups = ( new CustomerGroupModel($db, $util) )->pull();
+            $customerGroups = ( new CustomerGroupController($db, $util) )->pull();
             $options        = [];
 
             /** @var CustomerGroupModel $customerGroup */
@@ -1783,7 +1784,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::createManufacturerLinkingTable();
+                self::createManufacturerLinkingTable($db);
             // no break
             case '1.8.0':
             case '1.8.0.1':
