@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @copyright 2010-2013 JTL-Software GmbH
- * @package   jtl\Connector\Shopware\Utilities
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -46,9 +41,10 @@ class Id
     }
 
     /**
-     * @param $endpoint
+     * @param $endpointId
+     * @return array|null
      */
-    public static function unlinkImage($endpointId)
+    public static function unlinkImage($endpointId): ?array
     {
         list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
 
@@ -78,8 +74,9 @@ class Id
 
     /**
      * @param $endpoint
+     * @return mixed|string
      */
-    public static function unlinkCategoryImage($endpoint)
+    public static function unlinkCategoryImage($endpoint): mixed
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -99,8 +96,9 @@ class Id
 
     /**
      * @param $endpoint
+     * @return mixed|string
      */
-    public static function unlinkManufacturerImage($endpoint)
+    public static function unlinkManufacturerImage($endpoint): mixed
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];

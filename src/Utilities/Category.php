@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Model\Category as CategoryModel;
+use Psr\Log\InvalidArgumentException;
 
 class Category
 {
@@ -22,6 +18,9 @@ class Category
         $this->db = $db;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function fillCategoryLevelTable(array $parentIds = null, $level = 0): void
     {
         global $wpdb;
@@ -67,6 +66,7 @@ class Category
      * @param array|null $parent
      * @param $count
      * @return void
+     * @throws InvalidArgumentException
      */
     public function saveCategoryLevelsAsPreOrder(array $parent = null, &$count = 0): void
     {
@@ -94,6 +94,7 @@ class Category
      * @param CategoryModel $category
      * @param $isNew
      * @return void
+     * @throws InvalidArgumentException
      */
     public function updateCategoryTree(CategoryModel $category, $isNew): void
     {

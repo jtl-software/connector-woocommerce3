@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 use InvalidArgumentException;
@@ -40,7 +35,7 @@ class Util extends WordpressUtils
         $this->locale = $this->mapLanguageIso(get_locale());
     }
 
-    public function getWooCommerceLanguage()
+    public function getWooCommerceLanguage(): string
     {
         return $this->locale;
     }
@@ -136,9 +131,9 @@ class Util extends WordpressUtils
     /**
      * @param $price
      * @param $pd
-     *
+     * @return mixed|string
      */
-    public static function getNetPriceCutted($price, $pd)
+    public static function getNetPriceCutted($price, $pd): mixed
     {
         $position = \strrpos((string) $price, '.');
 
@@ -218,6 +213,7 @@ class Util extends WordpressUtils
      * @param $group
      *
      * @return bool
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function isValidCustomerGroup($group): bool
     {
@@ -329,9 +325,10 @@ class Util extends WordpressUtils
     /**
      * @param $locale
      *
-     * @throws InvalidArgumentException
+     * @return string
+     * @throws \Exception
      */
-    public static function mapLanguageIso($locale)
+    public static function mapLanguageIso($locale): string
     {
         if (\substr_count($locale, '_') == 2) {
             $locale = \substr(
@@ -594,7 +591,7 @@ class Util extends WordpressUtils
         }
     }
 
-    public function getStates()
+    public function getStates(): bool|array
     {
         return \WC()->countries->get_states();
     }

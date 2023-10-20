@@ -33,7 +33,6 @@ class CrossSellingGroup
 
     /**
      * @return array
-     * @throws \InvalidArgumentException
      */
     public static function all(Util $util): array
     {
@@ -46,6 +45,7 @@ class CrossSellingGroup
 
     /**
      * @param $name
+     * @param $util
      * @return false|\Jtl\Connector\Core\Model\CrossSellingGroup
      */
     public static function getByWooCommerceName($name, $util)
@@ -64,7 +64,7 @@ class CrossSellingGroup
     /**
      * @param array $groupData
      * @param Util $util
-     * @return CrossSellingGroup
+     * @return \Jtl\Connector\Core\Model\CrossSellingGroup
      */
     protected static function createFromArray(array $groupData, Util $util): \Jtl\Connector\Core\Model\CrossSellingGroup
     {
@@ -85,7 +85,7 @@ class CrossSellingGroup
      * @param $value
      * @return false|int|string
      */
-    protected static function findKeyByColumn($columnName, $value)
+    protected static function findKeyByColumn($columnName, $value): bool|int|string
     {
         return \array_search($value, \array_column(self::$groups, $columnName));
     }

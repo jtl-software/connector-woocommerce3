@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 
 class B2BMarket extends WordpressUtils
 {
-    protected $util;
+    protected Util $util;
 
     public function __construct(Db $database, Util $util)
     {
@@ -64,7 +65,7 @@ class B2BMarket extends WordpressUtils
      * @param AbstractModel ...$entities
      *
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
     {
