@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -12,6 +7,7 @@ use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use Psr\Log\InvalidArgumentException;
 use WC_Product_Attribute;
 
 class ProductSpecificController extends AbstractBaseController
@@ -151,6 +147,7 @@ class ProductSpecificController extends AbstractBaseController
     /**
      * @param $slug
      * @return string
+     * @throws InvalidArgumentException
      */
     public function getSpecificId($slug): string
     {

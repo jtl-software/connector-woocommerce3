@@ -1,18 +1,17 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
+use WC_Product_Attribute;
 
 class ProductAttrController extends AbstractBaseController
 {
@@ -23,16 +22,16 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
-     * @param \WC_Product $product
-     * @param \WC_Product_Attribute $attribute
+     * @param WC_Product $product
+     * @param WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pullData(
-        \WC_Product $product,
-        \WC_Product_Attribute $attribute,
+        WC_Product $product,
+        WC_Product_Attribute $attribute,
         $slug,
         $languageIso
     ): ProductAttrModel {
@@ -44,6 +43,8 @@ class ProductAttrController extends AbstractBaseController
      * @param $pushedAttributes
      * @param $attributesFilteredVariationsAndSpecifics
      * @param ProductModel $product
+     * @throws TranslatableAttributeException
+     * @throws \Exception
      */
     public function pushData(
         $productId,
@@ -302,16 +303,16 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
-     * @param \WC_Product_Attribute $attribute
+     * @param WC_Product $product
+     * @param WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function buildAttribute(
-        \WC_Product $product,
-        \WC_Product_Attribute $attribute,
+        WC_Product $product,
+        WC_Product_Attribute $attribute,
         $slug,
         $languageIso
     ): ProductAttrModel {
@@ -336,6 +337,7 @@ class ProductAttrController extends AbstractBaseController
      * @param ProductAttrI18nModel $i18n
      * @param array $attributes
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes): void
     {
@@ -357,6 +359,7 @@ class ProductAttrController extends AbstractBaseController
      * @param array $data
      * @param array $attributes
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function createOrUpdateExistingAttribute(ProductAttrI18nModel $i18n, array $data, array &$attributes): void
     {

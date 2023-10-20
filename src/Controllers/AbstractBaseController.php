@@ -16,12 +16,12 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     /**
      * @var string
      */
-    protected $controllerName;
+    protected string $controllerName;
 
     /**
      * @var LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * BaseController constructor.

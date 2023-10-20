@@ -5,6 +5,7 @@ namespace JtlWooCommerceConnector\Controllers;
 use Exception;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 use AST_Pro_Actions;
@@ -12,7 +13,7 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
+     * @param DeliverNoteModel $model
      * @return AbstractModel
      * @throws Exception
      */

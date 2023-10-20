@@ -6,6 +6,7 @@ use Jtl\Connector\Core\Model\AbstractOrderAddress;
 use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Id;
+use WC_Order;
 
 /**
  * Class CustomerOrderAddress
@@ -24,10 +25,10 @@ class CustomerOrderAddressController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @return Identity
      */
-    public function createCustomerId(\WC_Order $order): Identity
+    public function createCustomerId(WC_Order $order): Identity
     {
         return new Identity(
             $order->get_customer_id() !== 0
@@ -36,7 +37,7 @@ class CustomerOrderAddressController extends AbstractBaseController
         );
     }
 
-    protected function createDefaultAddresses(AbstractOrderAddress $address, \WC_Order $order = null): void
+    protected function createDefaultAddresses(AbstractOrderAddress $address, WC_Order $order = null): void
     {
         if (empty($address->getCity())) {
             $address->setCity(\get_option('woocommerce_store_city'));

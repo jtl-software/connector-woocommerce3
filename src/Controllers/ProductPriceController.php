@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
@@ -20,6 +15,7 @@ class ProductPriceController extends ProductPrice implements PushInterface
      * @param Product $model
      * @return AbstractModel
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -19,6 +14,7 @@ use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use Psr\Log\InvalidArgumentException;
 use WP_Error;
 
 class ManufacturerController extends AbstractBaseController implements
@@ -30,9 +26,9 @@ class ManufacturerController extends AbstractBaseController implements
     private static $idCache = [];
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -89,7 +85,7 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
+     * @param ManufacturerModel $model
      * @return ManufacturerModel
      * @throws \InvalidArgumentException
      */
@@ -221,6 +217,9 @@ class ManufacturerController extends AbstractBaseController implements
         return $model;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function statistic(QueryFilter $query): int
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {

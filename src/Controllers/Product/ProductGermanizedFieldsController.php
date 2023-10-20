@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -24,7 +20,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
@@ -35,7 +31,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param \WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct): void
     {

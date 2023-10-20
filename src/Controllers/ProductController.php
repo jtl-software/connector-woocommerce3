@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
@@ -14,6 +9,7 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -353,7 +349,8 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @return int|null
+     * @param QueryFilter $query
+     * @return int
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
@@ -402,6 +399,7 @@ class ProductController extends AbstractBaseController implements
      * @param ProductModel $jtlProduct
      * @param \WC_Product $wcProduct
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct): void
     {
@@ -712,6 +710,7 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param TaxRate ...$jtlTaxRates
      * @return string|null
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {

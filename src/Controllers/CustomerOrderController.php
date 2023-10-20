@@ -152,7 +152,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param \WC_Order $order
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
@@ -477,7 +476,9 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

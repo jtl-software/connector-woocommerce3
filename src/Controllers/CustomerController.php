@@ -161,8 +161,9 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param \Jtl\Connector\Core\Model\Customer $model
+     * @param CustomerModel $model
      * @return AbstractModel
+     * @throws InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {

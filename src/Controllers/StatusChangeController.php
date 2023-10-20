@@ -11,6 +11,7 @@ use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
+use Psr\Log\InvalidArgumentException;
 
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
@@ -47,6 +48,7 @@ class StatusChangeController extends AbstractBaseController implements PushInter
     /**
      * @param StatusChangeModel $statusChange
      * @return void
+     * @throws InvalidArgumentException
      */
     protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange): void
     {

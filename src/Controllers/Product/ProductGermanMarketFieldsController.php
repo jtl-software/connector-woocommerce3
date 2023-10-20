@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
@@ -15,27 +11,28 @@ use PhpUnitsOfMeasure\PhysicalQuantity\Area;
 use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
+use WC_Product;
 
 class ProductGermanMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
+    public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {
         $this->setBasePriceProperties($product, $wcProduct);
     }
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function setBasePriceProperties(ProductModel $product, \WC_Product $wcProduct): void
+    private function setBasePriceProperties(ProductModel $product, WC_Product $wcProduct): void
     {
         $metaKeys = $this->getGermanMarketMetaKeys($product->getMasterProductId()->getHost() === 0);
 
@@ -95,11 +92,11 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param array $metaKeys
      * @return bool
      */
-    private function hasGermanMarketUnitPrice(\WC_Product $wcProduct, array $metaKeys): bool
+    private function hasGermanMarketUnitPrice(WC_Product $wcProduct, array $metaKeys): bool
     {
         $result = false;
         /** @var \WC_Meta_Data $meta */
@@ -122,11 +119,11 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param array $metaKeys
      * @return array
      */
-    private function getGermanMarketMeta(\WC_Product $wcProduct, array $metaKeys): array
+    private function getGermanMarketMeta(WC_Product $wcProduct, array $metaKeys): array
     {
         $result = [];
 

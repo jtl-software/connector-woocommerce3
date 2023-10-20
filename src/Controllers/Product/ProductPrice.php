@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -18,18 +13,19 @@ use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 class ProductPrice extends AbstractBaseController
 {
     public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function pullData(\WC_Product $product, ProductModel $model): array
+    public function pullData(WC_Product $product, ProductModel $model): array
     {
         $prices          = [];
         $groupController = new CustomerGroupController($this->db, $this->util);
@@ -111,13 +107,13 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductModel $model
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param string $groupSlug
      * @return float|null
      */
     protected function getB2BMarketCustomerGroupPrice(
         ProductModel $model,
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         string $groupSlug
     ): ?float {
         $price = null;
@@ -168,15 +164,14 @@ class ProductPrice extends AbstractBaseController
      * @param $items
      * @param CustomerGroupModel $customerGroup
      * @param $groupSlug
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
-     * @throws \InvalidArgumentException
      */
     private function getBulkPrices(
         $items,
         CustomerGroupModel $customerGroup,
         $groupSlug,
-        \WC_Product $product,
+        WC_Product $product,
         ProductModel $model
     ) {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
@@ -205,10 +200,10 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @return float
      */
-    protected function netPrice(\WC_Product $product): float
+    protected function netPrice(WC_Product $product): float
     {
         $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
         $pd      = Util::getPriceDecimals();
@@ -265,7 +260,7 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param float $vat
      * @param string $productType
      * @param ProductPriceModel ...$productPrices
@@ -273,7 +268,7 @@ class ProductPrice extends AbstractBaseController
      * @throws \InvalidArgumentException
      */
     public function savePrices(
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         float $vat,
         string $productType,
         \jtl\Connector\Core\Model\ProductPrice ...$productPrices
@@ -287,14 +282,14 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param array $groupedProductPrices
      * @param float $vat
      * @param string $productType
      * @return void
      */
     public function updateProductPrices(
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         array $groupedProductPrices,
         float $vat,
         string $productType
@@ -405,14 +400,14 @@ class ProductPrice extends AbstractBaseController
     /**
      * @param \WP_Post $customerGroup
      * @param string $productType
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param float $regularPrice
      * @return void
      */
     public function updateB2BMarketCustomerGroupPrice(
         \WP_Post $customerGroup,
         string $productType,
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         float $regularPrice
     ): void {
         $pd        = Util::getPriceDecimals();
@@ -452,7 +447,7 @@ class ProductPrice extends AbstractBaseController
 
                 if ($productType === ProductController::TYPE_CHILD) {
                     $parentProduct = \wc_get_product($wcProduct->get_parent_id());
-                    if ($parentProduct instanceof \WC_Product) {
+                    if ($parentProduct instanceof WC_Product) {
                         $childParentPrice = \sprintf(
                             'bm_%s_%s_price',
                             $customerGroup->post_name,

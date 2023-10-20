@@ -44,17 +44,17 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     /**
      * @var Db
      */
-    protected $db;
+    protected Db $db;
 
     /**
      * @var LoggerService
      */
-    protected $loggerService;
+    protected LoggerService $loggerService;
 
     /**
      * @var SqlHelper
      */
-    protected $sqlHelper;
+    protected SqlHelper $sqlHelper;
 
     /**
      * @return void
@@ -99,6 +99,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     /**
      * @return bool
+     * @throws \InvalidArgumentException
      */
     public function handle(Application $application, Request $request): Response
     {
@@ -143,9 +144,9 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     /**
      * This method allows main entities to be added by plugins.
      *
-     * @param RequestPacket $requestPacket
-     *
-     * @return Action
+     * @param EventDispatcher $eventDispatcher
+     * @param Request $request
+     * @return Response
      */
     public function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
     {
