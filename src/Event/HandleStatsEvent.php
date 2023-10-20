@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
@@ -31,7 +26,7 @@ class HandleStatsEvent extends Event
         return $this->result;
     }
 
-    public function setResult($result)
+    public function setResult($result): static
     {
         $this->result = $result;
         return $this;

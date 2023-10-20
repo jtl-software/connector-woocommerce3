@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Mapper;
 
 use InvalidArgumentException;
@@ -21,17 +16,17 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     /**
      * @var Db
      */
-    protected $db;
+    protected Db $db;
 
     /**
      * @var LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface|NullLogger $logger;
 
     /**
      * @var SqlHelper
      */
-    protected $sqlHelper;
+    protected SqlHelper $sqlHelper;
 
     /**
      * @param Db $db
@@ -58,6 +53,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $endpointId
      * @param $type
      * @return int|null
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function getHostId($endpointId, $type): ?int
     {
@@ -100,6 +96,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $type
      * @param $relationType
      * @return string|null
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function getEndpointId($type, $hostId, $relationType = null): ?string
     {
@@ -137,10 +134,11 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $type
-     * @return bool|null
+     * @param int $type
+     * @param string $endpointId
+     * @param int $hostId
+     * @return bool
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function save(int $type, string $endpointId, int $hostId): bool
     {
@@ -182,9 +180,11 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $type
+     * @param int $type
+     * @param string|null $endpointId
+     * @param int|null $hostId
+     * @return bool
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function delete(int $type, string $endpointId = null, int $hostId = null): bool
     {

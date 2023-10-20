@@ -27,7 +27,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
         $this->logger = new NullLogger();
     }
 
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
@@ -96,7 +96,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
         return (bool)$rows;
     }
 
-    public function getChecksumRead($endpointId, $type)
+    public function getChecksumRead($endpointId, $type): string
     {
         global $wpdb;
 
@@ -112,7 +112,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumWrite($endpointId, $type, $checksum)
+    public function getChecksumWrite($endpointId, $type, $checksum): string
     {
         global $wpdb;
 
@@ -126,7 +126,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumDelete($endpointId, $type)
+    public function getChecksumDelete($endpointId, $type): string
     {
         global $wpdb;
         $jcpc = $wpdb->prefix . 'jtl_connector_product_checksum';
