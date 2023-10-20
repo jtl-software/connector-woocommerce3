@@ -25,6 +25,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             }
 
             $application->run($connector);
+            exit();
         }
     }
 
