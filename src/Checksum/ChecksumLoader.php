@@ -57,10 +57,10 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @param $endpointId
      * @param $type
      * @param $checksum
-     * @return array|false|null
+     * @return bool
      * @throws InvalidArgumentException
      */
-    public function write($endpointId, $type, $checksum)
+    public function write($endpointId, $type, $checksum): bool
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
             return false;
@@ -72,16 +72,16 @@ class ChecksumLoader implements ChecksumLoaderInterface
             \sprintf('Write: endpointId (%s), type (%s) - checksum (%s)', $endpointId, $type, $checksum)
         );
 
-        return $statement;
+        return (bool)$statement;
     }
 
     /**
      * @param $endpointId
      * @param $type
-     * @return array|false|null
+     * @return bool
      * @throws InvalidArgumentException
      */
-    public function delete($endpointId, $type)
+    public function delete($endpointId, $type): bool
     {
         if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
             return false;
@@ -93,7 +93,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
             \sprintf('Delete with endpointId (%s), type (%s)', $endpointId, $type)
         );
 
-        return $rows;
+        return (bool)$rows;
     }
 
     public function getChecksumRead($endpointId, $type)
