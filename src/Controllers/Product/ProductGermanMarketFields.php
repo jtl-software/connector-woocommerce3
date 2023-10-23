@@ -352,6 +352,11 @@ class ProductGermanMarketFields extends BaseController
     private function clearPPU(ProductModel $product, array $metaKeys): void
     {
         $productId = $product->getId()->getEndpoint();
+
+        if (empty(\wc_get_product($productId))) {
+            return;
+        }
+
         $metaData  = $this->getGermanMarketMeta(
             \wc_get_product($productId),
             $metaKeys
