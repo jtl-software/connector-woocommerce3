@@ -141,7 +141,10 @@ class CustomerOrderItemController extends AbstractBaseController
             if (!empty($taxes) && isset($taxes['subtotal']) && \is_array($taxes['subtotal'])) {
                 $useWcTaxes  = true;
                 $taxesTotal  = \array_sum($taxes['subtotal']);
-                $taxesTotal /= $item->get_quantity();
+
+                if (!\is_null($item->get_quantity())) {
+                    $taxesTotal /= $item->get_quantity();
+                }
 
                 $priceNet   = (float)$order->get_item_subtotal($item, false, false);
                 $priceGross = (float)($priceNet + $taxesTotal);

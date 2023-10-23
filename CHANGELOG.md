@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2433 - null safe on get quantity
 
 ## 1.40.2 _2023-10-19_
 - CO-2450 - update property name
