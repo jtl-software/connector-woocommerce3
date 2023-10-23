@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
@@ -110,10 +105,10 @@ class ProductController extends AbstractBaseController implements
                 )
                 ->setShippingClassId(new Identity($product->get_shipping_class_id()));
 
-            //EAN / GTIN
+            //EAN / GTIN / MPN
             if ($this->util->useGtinAsEanEnabled()) {
                 $manufacturerNumber = '';
-                $ean = '';
+                $ean                = '';
 
                 if (
                     SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
@@ -717,6 +712,7 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param TaxRate ...$jtlTaxRates
      * @return string|null
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {
