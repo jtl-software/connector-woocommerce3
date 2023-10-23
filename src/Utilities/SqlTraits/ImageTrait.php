@@ -9,9 +9,9 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use jtl\Connector\Linker\IdentityLinker;
+use Jtl\Connector\Core\Definition\IdentityType;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
-use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
+use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Utilities\Id;
 
 trait ImageTrait
@@ -48,7 +48,7 @@ trait ImageTrait
             {$limitQuery}",
             Id::SEPARATOR,
             Id::CATEGORY_PREFIX,
-            IdentityLinker::TYPE_CATEGORY,
+            IdentityType::CATEGORY,
             CategoryUtil::TERM_TAXONOMY,
             ImageCtrl::CATEGORY_THUMBNAIL
         );
@@ -82,7 +82,7 @@ trait ImageTrait
             {$limitQuery}",
             Id::SEPARATOR,
             Id::MANUFACTURER_PREFIX,
-            IdentityLinker::TYPE_MANUFACTURER,
+            IdentityType::MANUFACTURER,
             'pwb-brand',
             ImageCtrl::MANUFACTURER_KEY
         );
@@ -113,7 +113,7 @@ trait ImageTrait
             AND l.host_id IS NULL
             GROUP BY p.ID, pm.meta_value",
             Id::SEPARATOR,
-            IdentityLinker::TYPE_PRODUCT,
+            IdentityType::PRODUCT,
             ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
@@ -151,7 +151,7 @@ trait ImageTrait
 			SELECT endpoint_id
 			FROM {$jcli}
 			WHERE `type` = '%d'",
-            IdentityLinker::TYPE_PRODUCT
+            IdentityType::PRODUCT
         );
     }
 
@@ -184,7 +184,7 @@ trait ImageTrait
             FROM {$wpdb->posts} p2)
             {$limitQuery}",
             Id::SEPARATOR,
-            IdentityLinker::TYPE_PRODUCT,
+            IdentityType::PRODUCT,
             ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
@@ -233,7 +233,7 @@ trait ImageTrait
             WHERE `type` = %d
             AND endpoint_id
             LIKE '%%%s{$productId}'",
-            IdentityLinker::TYPE_PRODUCT,
+            IdentityType::PRODUCT,
             Id::SEPARATOR
         );
     }

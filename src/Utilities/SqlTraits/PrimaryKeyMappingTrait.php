@@ -152,7 +152,7 @@ trait PrimaryKeyMappingTrait
      * @param $tableName
      * @return string
      */
-    public static function primaryKeyMappingDelete($where, $tableName): string
+    public function primaryKeyMappingDelete($where, $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $tableName;

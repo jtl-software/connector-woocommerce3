@@ -11,7 +11,6 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 trait CustomerOrderTrait
 {

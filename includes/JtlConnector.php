@@ -1,20 +1,11 @@
 <?php
 
+use Jtl\Connector\Core\Application\Application;
+use Jtl\Connector\Core\Config\ConfigSchema;
+use JtlWooCommerceConnector\Connector;
+
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
-    protected static $_instance = null; //phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
-
-    /**
-     * @return JtlConnector|null
-     */
-    public static function instance(): ?JtlConnector
-    {
-        if (is_null(self::$_instance)) {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }
-
     /**
      * @return void
      */
@@ -23,21 +14,18 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
         global $wp;
 
         if (!empty($wp->request) && ($wp->request === 'jtlconnector' || $wp->request === 'index.php/jtlconnector')) {
-            $application = null;
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_destroy();
-            }
-
             self::unslash_gpc();
 
-            try {
-                require(JTLWCC_CONNECTOR_DIR . '/src/bootstrap.php');
-            } catch (\Exception $e) {
-                if (is_object($application)) {
-                    $handler = $application->getErrorHandler()->getExceptionHandler();
-                    $handler($e);
-                }
+            $connector   = new Connector();
+            $application = new Application(CONNECTOR_DIR);
+
+            $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
+            if (!file_exists($features)) {
+                copy(sprintf('%s.example', $features), $features);
             }
+
+            $application->run($connector);
+            exit();
         }
     }
 

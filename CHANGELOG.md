@@ -4,7 +4,17 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2443 - add manufacturer number to product
+
+## 1.40.2 _2023-10-19_
+- CO-2450 - update property name
+
+## 1.40.1 _2023-10-18_
+- fix B2B Market
+- fix Additional text encountered after finished reading JSON content
+
+## 1.40.0 _2023_10_17_
 - CO-2418 - remove name format options
+- CO-2072 - migrate to core 5.1
 
 ## 1.39.10 _2023-08-08_
 - CO-2263 - fix empty delivery addresses

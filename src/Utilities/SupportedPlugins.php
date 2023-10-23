@@ -7,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-final class SupportedPlugins
+class SupportedPlugins
 {
     //THEMESPECIALS
 
@@ -22,7 +22,7 @@ final class SupportedPlugins
         PLUGIN_WOOCOMMERCE                                         = 'WooCommerce',
         PLUGIN_WOOCOMMERCE_GERMANIZED                              = 'WooCommerce Germanized',
         PLUGIN_WOOCOMMERCE_GERMANIZED2                             = 'Germanized for WooCommerce',
-        PLUGIN_WOOCOMMERCE_GERMANIZEDPRO                           = 'Germanized for WooCommerce Pro', //TODO:CHECK THAT
+        PLUGIN_WOOCOMMERCE_GERMANIZEDPRO                           = 'Germanized for WooCommerce Pro',
         PLUGIN_WOOCOMMERCE_BLOCKS                                  = 'WooCommerce Blocks',
         PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS                          = 'Atomion WooCommerce Blocks',
         PLUGIN_WOOF_WC_PRODUCT_FILTER                              = 'WOOF - WooCommerce Products Filter',
