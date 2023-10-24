@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- Fix Session is invalid error if session has been started before 
 - CO-2443 - add manufacturer number to product
 
 ## 1.40.2 _2023-10-19_

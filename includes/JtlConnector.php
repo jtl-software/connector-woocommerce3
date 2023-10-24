@@ -19,6 +19,11 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             $connector   = new Connector();
             $application = new Application(CONNECTOR_DIR);
 
+            // abort existing session
+            if (\session_status() === PHP_SESSION_ACTIVE) {
+                \session_abort();
+            }
+
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
             if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
