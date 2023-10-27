@@ -654,6 +654,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'compatible_plugins_field',
             ]
         );
+        add_action(
+            'woocommerce_admin_field_clear_cache_btn',
+            [
+                'JtlConnectorAdmin',
+                'clear_cache_btn',
+            ]
+        );
 
         //NEW PAGE
         add_action('admin_menu', 'woo_jtl_connector_add_admin_menu');
@@ -1547,6 +1554,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
+
+        $fields[] = [
+            'title'             => __('Clear Connector Cache', JTLWCC_TEXT_DOMAIN),
+            'type'              => 'clear_cache_btn',
+            'desc'      => __(
+                'Delete JTL-WooCommerce-Connector cache. 
+                Delete at your own risk!',
+                JTLWCC_TEXT_DOMAIN
+            ),
+            'clearCacheText'    => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //phpcs:disable
         $fields[] = [
             'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
@@ -1564,6 +1583,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 JTLWCC_TEXT_DOMAIN
             ),
         ];
+
         //phpcs:enable
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
@@ -2742,6 +2762,23 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
                 <button type="button" id="clearLogBtn"
                         class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * @param array $field
+     * @return void
+     */
+    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public static function clear_cache_btn(array $field): void
+    {
+        ?>
+        <div class="form-group row">
+            <div class="btn-group btn-group-lg col-12" role="group">
+                <button type="button" id="clearCacheBtn"
+                        class="btn btn-outline-danger"><?= $field['clearCacheText'] ?></button>
             </div>
         </div>
         <?php
