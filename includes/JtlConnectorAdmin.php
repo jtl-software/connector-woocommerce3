@@ -29,6 +29,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws UnexpectedValueException
      */
     public static function plugin_activation(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -36,6 +37,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
+
+        clearConnectorCache();
 
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
