@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2461_clear_connector_cache_button
 
 ## 1.40.3 _2023-10-25_
 - Fix Session is invalid error if session has been started before 
