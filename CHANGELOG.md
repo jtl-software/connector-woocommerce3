@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2466 - fix undefined method in manufacturer model
 
 ## 1.40.3 _2023-10-25_
 - Fix Session is invalid error if session has been started before 

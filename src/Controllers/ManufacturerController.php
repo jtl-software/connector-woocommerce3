@@ -15,6 +15,7 @@ use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Manufacturer as ManufacturerModel;
 use Jtl\Connector\Core\Model\ManufacturerI18n as ManufacturerI18nModel;
+use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
@@ -89,7 +90,7 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
+     * @param ManufacturerModel $model
      * @return ManufacturerModel
      * @throws \InvalidArgumentException
      */
@@ -145,6 +146,8 @@ class ManufacturerController extends AbstractBaseController implements
 
             if ($term instanceof \WP_Term) {
                 $model->getId()->setEndpoint($term->term_id);
+
+                /** @var Product $i18n */
                 foreach ($model->getI18ns() as $i18n) {
                     $i18n->getManufacturerId()->setEndpoint($term->term_id);
                     if (
