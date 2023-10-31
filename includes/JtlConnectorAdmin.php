@@ -1559,14 +1559,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ];
 
         $fields[] = [
-            'title'             => __('Clear Connector Cache', JTLWCC_TEXT_DOMAIN),
-            'type'              => 'clear_cache_btn',
-            'desc'      => __(
-                'Delete JTL-WooCommerce-Connector cache. 
-                Delete at your own risk!',
+            'title'          => __('Clear Connector Cache', JTLWCC_TEXT_DOMAIN),
+            'type'           => 'clear_cache_btn',
+            'desc'           => __(
+                'Delete WooCommerce Connector cache.',
                 JTLWCC_TEXT_DOMAIN
             ),
-            'clearCacheText'    => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
+            'clearCacheText' => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
         ];
 
         //phpcs:disable
@@ -2625,6 +2624,33 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         <?php
     }
 
+    /**
+     * @param array $field
+     * @return void
+     */
+    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public static function clear_cache_btn(array $field): void
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="clear_cache_btn"><?= $field['title'] ?></label>
+            <div class="btn-group btn-group-lg col-2" role="group">
+                <button type="button" id="clearCacheBtn"
+                        class="btn btn-outline-danger"><?= $field['clearCacheText'] ?></button>
+            </div>
+            <?php
+            if (isset($field['desc']) && $field['desc'] !== '') {
+                ?>
+                <small id="clear_cache_btn_desc" class="form-text text-muted col-12">
+                    <?= $field['desc'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
 
     /**
@@ -2765,23 +2791,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
                 <button type="button" id="clearLogBtn"
                         class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
-            </div>
-        </div>
-        <?php
-    }
-
-    /**
-     * @param array $field
-     * @return void
-     */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function clear_cache_btn(array $field): void
-    {
-        ?>
-        <div class="form-group row">
-            <div class="btn-group btn-group-lg col-12" role="group">
-                <button type="button" id="clearCacheBtn"
-                        class="btn btn-outline-danger"><?= $field['clearCacheText'] ?></button>
             </div>
         </div>
         <?php
