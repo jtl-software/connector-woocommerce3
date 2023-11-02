@@ -142,7 +142,7 @@ function woo_jtl_connector_settings_javascript()
 
             $("#clearCacheBtn").click(
                 () => {
-                    let result = confirm("Are you sure you want to clear the connector cash?");
+                    let result = confirm("Are you sure you want to clear the connector cache?");
                     if (result) {
 
                         let data = {
