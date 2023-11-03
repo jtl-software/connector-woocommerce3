@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2458 - consider attribute IDs during product pull
+- Fix Customer Group Prices
 
 ## 1.40.3 _2023-10-25_
 - Fix Session is invalid error if session has been started before 
@@ -44,11 +46,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
-<<<<<<< CHANGELOG.md
 - CO-2263 - fix empty delivery addresses
-=======
 - CO-1803 - delivery cost calc fixed
->>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support
