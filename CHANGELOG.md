@@ -4,6 +4,14 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 1.40.4 _2023-11-06_
+- CO-2458 - consider attribute IDs during product pull
+- Fix Customer Group Prices
+
+## 1.40.3 _2023-10-25_
+- Fix Session is invalid error if session has been started before 
+- CO-2443 - add manufacturer number to product
+
 ## 1.40.2 _2023-10-19_
 - CO-2450 - update property name
 

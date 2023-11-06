@@ -305,6 +305,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         $attribute = ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::DELIVERY_TIME_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
 
@@ -327,6 +328,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::DOWNLOADABLE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -350,6 +352,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::PURCHASE_ONLY_ONE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -373,6 +376,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::PAYABLE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -409,6 +413,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::VISIBILITY))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -429,6 +434,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::VIRTUAL_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -450,6 +456,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::PRODUCT_TYPE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -471,6 +478,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::PURCHASE_NOTE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -499,6 +507,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::FACEBOOK_SYNC_STATUS_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -520,6 +529,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::GZD_IS_SERVICE))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -541,6 +551,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::GZD_MIN_AGE))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -568,6 +579,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::GM_DIGITAL_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -597,6 +609,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::GM_SUPPRESS_SHIPPPING_NOTICE))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -620,6 +633,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_id() . '_' . self::GM_ALT_DELIVERY_NOTE_ATTR))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }

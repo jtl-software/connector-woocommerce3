@@ -30,8 +30,10 @@ use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerControlle
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;
 use WC_Data_Exception;
@@ -104,16 +106,18 @@ class ProductController extends AbstractBaseController implements
                 )
                 ->setShippingClassId(new Identity($product->get_shipping_class_id()));
 
-            //EAN / GTIN
+            //EAN / GTIN / MPN
             if ($this->util->useGtinAsEanEnabled()) {
-                $ean = '';
+                $manufacturerNumber = '';
+                $ean                = '';
 
                 if (
                     SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
                 ) {
-                    $ean = \get_post_meta($product->get_id(), '_ts_gtin');
+                    $manufacturerNumber = \get_post_meta($product->get_id(), '_ts_mpn', true);
+                    $ean                = \get_post_meta($product->get_id(), '_ts_gtin');
 
                     if (\is_array($ean) && \count($ean) > 0 && \array_key_exists(0, $ean)) {
                         $ean = $ean[0];
@@ -133,6 +137,7 @@ class ProductController extends AbstractBaseController implements
                 }
 
                 $productModel->setEan($ean);
+                $productModel->setManufacturerNumber($manufacturerNumber);
             }
 
             if ($product->get_parent_id() !== 0) {
