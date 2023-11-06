@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2471 - update argument order in image push
 - CO-2458 - consider attribute IDs during product pull
 - Fix Customer Group Prices
 
