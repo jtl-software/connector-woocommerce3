@@ -1,5 +1,6 @@
 <?php
 
+use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
@@ -893,7 +894,17 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
                         </div>
+
                         <?php
+                        if ($submit) {
+                            ?>
+                            <div class="form-group row">
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
+                            </div>
+                            <?php
+                        }
                         print '' . woocommerce_admin_fields($options) . '';
                         if ($submit) {
                             ?>
@@ -1558,13 +1569,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
 
+
         $fields[] = [
-            'title'          => __('Clear Connector Cache', JTLWCC_TEXT_DOMAIN),
-            'type'           => 'clear_cache_btn',
-            'desc'           => __(
-                'Delete WooCommerce Connector cache.',
+            'title'     => __('Use Cache', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __(
+                'Use Serializer Cache (Default : Enabled). Disable if you get the "empty response" error.',
                 JTLWCC_TEXT_DOMAIN
             ),
+            'id'        => Config::OPTIONS_USE_CACHE,
+            'value'     => Config::get(Config::OPTIONS_USE_CACHE, true),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
+        $fields[] = [
+            'title'          => '',
+            'type'           => 'clear_cache_btn',
+            'desc'           => '',
             'clearCacheText' => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
         ];
 
@@ -2937,10 +2959,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             Config::set($key, $value);
         }
-        Config::updateDeveloperLoggingSettings((bool) Config::get(
-            Config::OPTIONS_DEVELOPER_LOGGING,
-            false
-        ));
+        Config::updateDeveloperLoggingSettings(
+            (bool) Config::get(
+                Config::OPTIONS_DEVELOPER_LOGGING,
+                false
+            )
+        );
+        Config::writeCoreConfigFile(ConfigSchema::SERIALIZER_ENABLE_CACHE,
+            (bool) Config::get(
+                    Config::OPTIONS_USE_CACHE,
+                    true
+            )
+        );
 
         $request = $_SERVER["HTTP_REFERER"];
 

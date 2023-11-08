@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
+use Jtl\Connector\Core\Config\ConfigSchema;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -45,7 +46,8 @@ class Config
         OPTIONS_CUSTOM_CHECKOUT_FIELDS                   = 'jtlconnector_custom_checkout_fields',
         OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE                = 'jtlconnector_limit_customer_query',
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
-        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than';
+        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than',
+        OPTIONS_USE_CACHE                                = 'jtlconnector_disable_cache';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -85,6 +87,7 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => true,
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
+        Config::OPTIONS_USE_CACHE => true
     ];
 
     public const JTLWCC_CONFIG = [
@@ -114,6 +117,7 @@ class Config
         Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN => 'int',
         //Page
         Config::OPTIONS_DEVELOPER_LOGGING => 'bool',
+        Config::OPTIONS_USE_CACHE => 'bool',
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => 'bool',
@@ -187,6 +191,11 @@ class Config
      */
     public static function updateDeveloperLoggingSettings(bool $value): bool
     {
+        return self::writeCoreConfigFile(self::OPTIONS_DEVELOPER_LOGGING, $value);
+    }
+
+    public static function writeCoreConfigFile(string $key, $value): bool
+    {
         $file = \CONNECTOR_DIR . '/config/config.json';
 
         $config = new \stdClass();
@@ -199,7 +208,24 @@ class Config
             }
         }
 
-        $config->{self::OPTIONS_DEVELOPER_LOGGING} = $value;
+        // convert json dot selector to array recursively
+        // e.g. "foo.bar" => ["foo" => ["bar" => $value]]
+        // "foo.bar.baz" => ["foo" => ["bar" => ["baz" => $value]]]
+        if(\strpos($key, '.') !== false) {
+            $keyParts = \explode('.', $key);
+            $prev = null;
+            foreach ($keyParts as $keyPart) {
+                if($prev === null) {
+                    $prev = $config->{$keyPart} ?? new \stdClass();
+                    $config->{$keyPart} = $prev;
+                }else {
+                    $prev->{$keyPart} = $value;
+                    $prev = $prev->{$keyPart};
+                }
+            }
+        }else {
+            $config->{$key} = $value;
+        }
 
         return (bool)\file_put_contents($file, \json_encode($config));
     }
