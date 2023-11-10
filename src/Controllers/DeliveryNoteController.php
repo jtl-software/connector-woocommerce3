@@ -10,6 +10,7 @@ namespace JtlWooCommerceConnector\Controllers;
 use Exception;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\DeliveryNote as DeliveryNoteModel;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use WC_Advanced_Shipment_Tracking_Actions;
 use AST_Pro_Actions;
@@ -17,7 +18,7 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
+     * @param DeliveryNoteModel $model
      * @return AbstractModel
      * @throws Exception
      */
@@ -62,6 +63,18 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                     $shipmentTrackingActions->add_tracking_item($order->get_id(), $trackingInfoItem);
                 }
             }
+        } elseif (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+        ) {
+            $orderId = $model->getCustomerOrderId()->getEndpoint();
+            $order   = \wc_get_order($orderId);
+
+            $swItems = $model->getItems();
+
+
+            $germanizedShippments = \wc_gzd_get_shipments_by_order($order->get_id());
         }
 
         return $model;
