@@ -211,19 +211,19 @@ class Config
         // convert json dot selector to array recursively
         // e.g. "foo.bar" => ["foo" => ["bar" => $value]]
         // "foo.bar.baz" => ["foo" => ["bar" => ["baz" => $value]]]
-        if(\strpos($key, '.') !== false) {
+        if (\strpos($key, '.') !== false) {
             $keyParts = \explode('.', $key);
-            $prev = null;
+            $prev     = null;
             foreach ($keyParts as $keyPart) {
-                if($prev === null) {
-                    $prev = $config->{$keyPart} ?? new \stdClass();
+                if ($prev === null) {
+                    $prev               = $config->{$keyPart} ?? new \stdClass();
                     $config->{$keyPart} = $prev;
-                }else {
+                } else {
                     $prev->{$keyPart} = $value;
-                    $prev = $prev->{$keyPart};
+                    $prev             = $prev->{$keyPart};
                 }
             }
-        }else {
+        } else {
             $config->{$key} = $value;
         }
 
