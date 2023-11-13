@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2471 - update argument order in image push
 - CO-2461 - add clear cache button, add disable cache button
 - fix debug log setting
 
