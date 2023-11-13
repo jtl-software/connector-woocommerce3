@@ -1,5 +1,6 @@
 <?php
 
+use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
@@ -29,6 +30,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws UnexpectedValueException
      */
     public static function plugin_activation(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -36,6 +38,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
+
+        clearConnectorCache();
 
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
@@ -654,6 +658,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'compatible_plugins_field',
             ]
         );
+        add_action(
+            'woocommerce_admin_field_clear_cache_btn',
+            [
+                'JtlConnectorAdmin',
+                'clear_cache_btn',
+            ]
+        );
 
         //NEW PAGE
         add_action('admin_menu', 'woo_jtl_connector_add_admin_menu');
@@ -883,7 +894,17 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
                         </div>
+
                         <?php
+                        if ($submit) {
+                            ?>
+                            <div class="form-group row">
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
+                            </div>
+                            <?php
+                        }
                         print '' . woocommerce_admin_fields($options) . '';
                         if ($submit) {
                             ?>
@@ -1547,6 +1568,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
+
+
+        $fields[] = [
+            'title'     => __('Use Cache', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __(
+                'Use Serializer Cache (Default : Enabled). Disable if you get the "empty response" error.',
+                JTLWCC_TEXT_DOMAIN
+            ),
+            'id'        => Config::OPTIONS_USE_CACHE,
+            'value'     => Config::get(Config::OPTIONS_USE_CACHE, true),
+            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
+            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+        ];
+
+        $fields[] = [
+            'title'          => '',
+            'type'           => 'clear_cache_btn',
+            'desc'           => '',
+            'clearCacheText' => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
+        ];
+
         //phpcs:disable
         $fields[] = [
             'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
@@ -1564,6 +1607,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 JTLWCC_TEXT_DOMAIN
             ),
         ];
+
         //phpcs:enable
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
@@ -1972,6 +2016,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.40.1':
             case '1.40.2':
             case '1.40.3':
+            case '1.40.4':
             default:
                 self::activate_linking();
         }
@@ -2602,6 +2647,33 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         <?php
     }
 
+    /**
+     * @param array $field
+     * @return void
+     */
+    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public static function clear_cache_btn(array $field): void
+    {
+        ?>
+        <div class="form-group row">
+            <label class="col-12" for="clear_cache_btn"><?= $field['title'] ?></label>
+            <div class="btn-group btn-group-lg col-2" role="group">
+                <button type="button" id="clearCacheBtn"
+                        class="btn btn-outline-danger"><?= $field['clearCacheText'] ?></button>
+            </div>
+            <?php
+            if (isset($field['desc']) && $field['desc'] !== '') {
+                ?>
+                <small id="clear_cache_btn_desc" class="form-text text-muted col-12">
+                    <?= $field['desc'] ?>
+                </small>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
 
     /**
@@ -2888,10 +2960,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             Config::set($key, $value);
         }
-        Config::updateDeveloperLoggingSettings((bool) Config::get(
-            Config::OPTIONS_DEVELOPER_LOGGING,
-            false
-        ));
+        Config::updateDeveloperLoggingSettings(
+            (bool) Config::get(
+                Config::OPTIONS_DEVELOPER_LOGGING,
+                false
+            )
+        );
+        Config::writeCoreConfigFile(ConfigSchema::SERIALIZER_ENABLE_CACHE,
+            (bool) Config::get(
+                    Config::OPTIONS_USE_CACHE,
+                    true
+            )
+        );
 
         $request = $_SERVER["HTTP_REFERER"];
 
