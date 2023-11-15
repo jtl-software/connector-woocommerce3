@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Model\DataModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use Jtl\Connector\Core\Model\AbstractModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 
 class B2BMarket extends WordpressUtils
 {
+    protected $util;
+
+    public function __construct(Db $database, Util $util)
+    {
+        parent::__construct($database);
+        $this->util = $util;
+    }
+
     /**
      * @param array     $customerGroupIds
      * @param string    $metaKey
-     * @param DataModel ...$models
+     * @param AbstractModel ...$models
      *
      * @return void
      * @noinspection PhpPossiblePolymorphicInvocationInspection
@@ -20,7 +28,7 @@ class B2BMarket extends WordpressUtils
     protected function setB2BCustomerGroupBlacklist(
         array $customerGroupIds,
         string $metaKey,
-        DataModel ...$models
+        AbstractModel ...$models
     ): void {
         foreach ($models as $model) {
             $modelId = $model->getId()->getEndpoint();
@@ -28,7 +36,7 @@ class B2BMarket extends WordpressUtils
                 continue;
             }
             $newCustomerGroupBlacklist = \array_map(
-                static fn(DataModel $invisibility): string => $invisibility->getCustomerGroupId()->getEndpoint(),
+                static fn(AbstractModel $invisibility): string => $invisibility->getCustomerGroupId()->getEndpoint(),
                 $model->getInvisibilities()
             );
 
@@ -53,16 +61,16 @@ class B2BMarket extends WordpressUtils
 
     /**
      * @param string    $controller
-     * @param DataModel ...$entities
+     * @param AbstractModel ...$entities
      *
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function handleCustomerGroupsBlacklists(string $controller, DataModel ...$entities): void
+    public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
     {
-        $customerGroups    = ( new CustomerGroup() )->pullData();
+        $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pull();
         $customerGroupsIds = \array_values(
-            \array_map(static function (\jtl\Connector\Model\CustomerGroup $customerGroup) {
+            \array_map(static function (\jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
                 if ($customerGroup->getId() === null) {
                     return '';
                 }
