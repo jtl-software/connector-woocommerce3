@@ -68,18 +68,107 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
+            //TODO: entferne alle Kommentare nach CR
+            #WC Order wird inkl items geholt
             $orderId = $model->getCustomerOrderId()->getEndpoint();
             $order   = \wc_get_order($orderId);
+            $order->get_items();
 
-            $swItems = $model->getItems();
+            #Shipments zum order werden geholt
+            $wcShipments = \wc_gzd_get_shipments_by_order($order->get_id());
+            $wcShipment  = false;
 
+            $statusSet = false;
 
-            $germanizedShippments = \wc_gzd_get_shipments_by_order($order->get_id());
+            foreach ($wcShipments as $wcShipment) {
+                #Beachte nur die Shipments mit status processing/draft, da abgeschlossene nicht relevant sind
+                if ($wcShipment->get_status() == 'processing' || $wcShipment->get_status() == 'draft') {
+                    $numWcShipmentPositions   = 0;
+                    $numWawiShipmentPositions = 0;
+
+                    #Da Wawi Federführend, gibt es nur einen einzigen Fall, indem in WC ein offenes Shipment
+                    #existieren kann, undzwar, wenn WC mit Bestelleingang automatisch eine Sendung erstellt
+                    #und alle Items reinpackt
+                    #wenn wir von der Wawi aus ebenfalls alle items gleichzeitig in einer Sendung schicken
+                    #dann Stimmen die Anzahl-Wawi items mit Anzahl-WC items überein.
+
+                    #hole Anzahl WC Items
+                    foreach ($wcShipment->get_items() as $wcShipmentItem) {
+                        $numWcShipmentPositions += (int)$wcShipmentItem->get_quantity();
+                    }
+
+                    #hole Amzahl Wawi Items
+                    foreach ($model->getItems() as $item) {
+                        $numWawiShipmentPositions += (int)$item->getQuantity();
+                    }
+
+                    #wenn sie übereinstimmen, dann kann die bereits existierende Sendung genutzt werden. Da muss
+                    #nur noch der Status auf shipped gesetzt werden. Wenn die Zahl nicht übereinstimmt, dann handeld
+                    #es sich um eine Teilsendung => Behalte die existierende Sendung, aber lösche alle ihre Items
+                    #um sie für den nächsten Schritt vorzubereiten
+                    if ($numWcShipmentPositions != $numWawiShipmentPositions) {
+                        $wcShipment->remove_items();
+                        break;
+                    } else {
+                        $wcShipment->set_status('shipped');
+                        $statusSet = true;
+                        break;
+                    }
+                } else {
+                    #es kann vorkommen, dass nur bereits abgeschlossene Sendungen in WC existieren. Daher wird die
+                    #Variable hier false gesetzt um später daran zu erkennen, ob eine neue Sendung erstellt werden muss
+                    $wcShipment = false;
+                }
+            }
+
+            #erstelle eine neue Sendung (WC fügt automatisch alle items hinzu) und leere die items.
+            if ($wcShipment === false) {
+                $wcShipmentOrder = \wc_gzd_get_shipment_order($order);
+                $wcShipment      = \wc_gzd_create_shipment(
+                    $wcShipmentOrder,
+                    array('props' => array('status' => 'processing'))
+                );
+                $wcShipment->remove_items();
+            }
+
+            #solange der Sendungsstatus oben nicht auf 'shipped' gesetzt wurde, muss die Sendung noch aktualisiert
+            #werden. Über die $orderItemId kann jeweils ein Item erstellt und der Sendung hinzugefügt werden
+            if (!$statusSet) {
+                foreach ($model->getItems() as $item) {
+                    $orderItemName = $this->db->query(
+                        \sprintf(
+                            "SELECT post_title FROM `%s%s` WHERE id = '%s'",
+                            $this->db->getWpDb()->prefix,
+                            'posts',
+                            $item->getProductId()->getEndpoint()
+                        )
+                    )[0]['post_title'];
+
+                    $orderItemId = $this->db->query(
+                        \sprintf(
+                            "SELECT * FROM `%s%s` WHERE order_id = '%s' AND order_item_name LIKE '%s'",
+                            $this->db->getWpDb()->prefix,
+                            'woocommerce_order_items',
+                            $orderId,
+                            $orderItemName
+                        )
+                    )[0]['order_item_id'];
+
+                    $newItem = new \WC_Order_Item_Product($orderItemId);
+                    $item    = \wc_gzd_create_shipment_item(
+                        $wcShipment,
+                        $newItem,
+                        array('quantity' => $item->getQuantity())
+                    );
+                    $wcShipment->add_item($item);
+                }
+
+                $wcShipment->set_status('shipped');
+                $wcShipment->save();
+            }
         }
-
         return $model;
     }
-
     /**
      * @return object|WC_Advanced_Shipment_Tracking_Actions|null
      */

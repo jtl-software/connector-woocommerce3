@@ -152,17 +152,17 @@
     },
     "DeliveryNoteItem": {
       "pull": false,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "DeliveryNoteItemInfo": {
       "pull": false,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "DeliveryNoteTrackingList": {
       "pull": false,
-      "push": false,
+      "push": true,
       "delete": false
     },
     "FileUpload": {
