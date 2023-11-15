@@ -62,7 +62,8 @@ trait CustomerTrait
         ) {
             $pullGroups = Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, []);
         }
-
+        // filter for other plugins to add or remove customer groups
+        $pullGroups = apply_filters('jtlwoo_pull_customer_groups',$pullGroups);
         return \sprintf("
             SELECT %s
             FROM `%s` um
