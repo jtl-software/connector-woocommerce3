@@ -534,9 +534,9 @@ class ImageController extends AbstractBaseController implements
         }
 
         $primaryKeyMapper->delete(
+            $image->getRelationType(),
             $image->getId()->getEndpoint(),
-            $image->getId()->getHost(),
-            $image->getRelationType()
+            $image->getId()->getHost()
         );
         $primaryKeyMapper->save($type, $newEndpoint, $image->getId()->getHost());
 

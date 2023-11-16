@@ -102,7 +102,7 @@ class ProductPrice extends AbstractBaseController
                     ->setId(new Identity($product->get_id()))
                     ->setProductId(new Identity($product->get_id()))
                     ->setCustomerGroupId($customerGroup->getId())
-                    ->setItems($items);
+                    ->setItems(...$items);
             }
         }
 

@@ -5,6 +5,15 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 - CO-2466 - fix undefined method in manufacturer model
 
+## 1.41.0
+- CO-2471 - update argument order in image push
+- CO-2461 - add clear cache button, add disable cache button
+- fix debug log setting
+
+## 1.40.4 _2023-11-06_
+- CO-2458 - consider attribute IDs during product pull
+- Fix Customer Group Prices
+
 ## 1.40.3 _2023-10-25_
 - Fix Session is invalid error if session has been started before 
 - CO-2443 - add manufacturer number to product
@@ -45,11 +54,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
-<<<<<<< CHANGELOG.md
 - CO-2263 - fix empty delivery addresses
-=======
 - CO-1803 - delivery cost calc fixed
->>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support
