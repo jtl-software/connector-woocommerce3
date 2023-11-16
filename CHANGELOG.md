@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2476 - change image type parameter
 
 ## 1.41.0
 - CO-2471 - update argument order in image push
