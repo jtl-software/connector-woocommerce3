@@ -11,6 +11,7 @@ use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
@@ -91,6 +92,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, $id);
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+            $this->updateGermanizedProFoodProductData($product, $id);
+        }
     }
 
     /**
@@ -141,5 +145,43 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             \delete_post_meta($id, '_unit_price_regular');
             \delete_post_meta($id, '_unit_base');
         }
+    }
+
+    private function updateGermanizedProFoodProductData($product, $id) {
+        $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
+    }
+    private function getGermanizedProFoodMetaKeys() {
+        $result = [
+            //Deposit
+        '_deposit_type',
+            '_deposit_quantity',
+            //general food attribute
+            '_net_filling_quantity',
+            '_drained_weight',
+            'alcohol_content',
+            'nutri_score',
+            'allergene_ids',
+            //ingredients
+            '_ingredients',
+            //description
+            '_food_description',
+            //distributor
+            '_food_distributor',
+            //origin
+            '_food_place_of_origin',
+            //Nutricinal Deklaration
+            '_nutrient_reference_value',
+            '_nutrient_135',
+            //bis
+            '_nutrient_148',
+            //und
+            '_nutrient_149_value',
+            '_nutrient_149_ref_value',
+            //bis
+            '_nutrient_156_value',
+            '_nutrient_156_ref_value'
+        ];
+
+        return $result;
     }
 }
