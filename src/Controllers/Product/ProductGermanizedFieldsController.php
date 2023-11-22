@@ -9,6 +9,8 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -69,6 +71,31 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $product->setBasePriceUnitId(new Identity($unitObject->term_id));
             $product->setBasePriceUnitCode($code);
             $product->setBasePriceUnitName($unitObject->name);
+        }
+
+        #edge case, what if gzd pro doesnt exist and meta value is null?
+        if ($wcProduct->get_meta('_is_food') === 'yes') {
+            $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
+
+            foreach ($wcProduct->get_meta_data() as $metaData) {
+                if (
+                    \in_array($metaKey = $metaData->get_data()['key'], $foodMetaKey)
+                    && ($metaValue = $metaData->get_data()['value']) !== ''
+                ) {
+                    $metaKey = 'wc_gzd' . $metaKey;
+
+                    $i18n = (new ProductAttrI18nModel())
+                        ->setName($metaKey)
+                        ->setValue($metaValue)
+                        ->setLanguageIso($this->util->getWooCommerceLanguage());
+
+                    $attribute = (new TranslatableAttribute())
+                        ->setId(new Identity($product->getId()->getEndpoint() . '_' . $metaKey))
+                        ->setI18ns($i18n);
+
+                    $product->addAttribute($attribute);
+                }
+            }
         }
     }
 
@@ -153,14 +180,14 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     private function getGermanizedProFoodMetaKeys() {
         $result = [
             //Deposit
-        '_deposit_type',
+            '_deposit_type',
             '_deposit_quantity',
             //general food attribute
             '_net_filling_quantity',
             '_drained_weight',
-            'alcohol_content',
-            'nutri_score',
-            'allergene_ids',
+            '_alcohol_content',
+            '_nutri_score',
+            '_allergene_ids',
             //ingredients
             '_ingredients',
             //description
