@@ -80,8 +80,26 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             foreach ($wcProduct->get_meta_data() as $metaData) {
                 if (
                     \in_array($metaKey = $metaData->get_data()['key'], $foodMetaKey)
-                    && ($metaValue = $metaData->get_data()['value']) !== ''
+                    && !empty($metaValue = $metaData->get_data()['value'])
                 ) {
+                    if ($metaKey == '_nutrient_ids') {
+                        $nutrientMetaValues = $metaValue;
+                        $metaValue          = [];
+                        foreach ($nutrientMetaValues as $nutrientId => $nutrient) {
+                            $nutrientValueKey    = '_' . (string)$nutrientId . '_value';
+                            $nutrientRefValueKey = '_' . (string)$nutrientId . '_ref_value';
+
+                            $metaValue[$nutrientValueKey]    = $nutrient['value'];
+                            $metaValue[$nutrientRefValueKey] = $nutrient['ref_value'];
+                        }
+                    } elseif ($metaKey == '_allergen_ids') {
+                        $allergenMetaValues = $metaValue;
+                        $metaValue          = [];
+                        foreach ($allergenMetaValues as $allergene) {
+                            $metaValue[] = (string)$allergene;
+                        }
+                    }
+
                     $metaKey = 'wc_gzd' . $metaKey;
 
                     $i18n = (new ProductAttrI18nModel())
@@ -179,6 +197,8 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
     private function getGermanizedProFoodMetaKeys() {
         $result = [
+            //Food Product
+            '_is_food',
             //Deposit
             '_deposit_type',
             '_deposit_quantity',
@@ -187,7 +207,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             '_drained_weight',
             '_alcohol_content',
             '_nutri_score',
-            '_allergene_ids',
+            '_allergen_ids',
             //ingredients
             '_ingredients',
             //description
@@ -199,14 +219,20 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             //Nutricinal Deklaration
             '_nutrient_reference_value',
             '_nutrient_135',
-            //bis
+            '_nutrient_136',
+            '_nutrient_137',
+            '_nutrient_138',
+            '_nutrient_139',
+            '_nutrient_140',
+            '_nutrient_141',
+            '_nutrient_142',
+            '_nutrient_143',
+            '_nutrient_144',
+            '_nutrient_145',
+            '_nutrient_146',
+            '_nutrient_147',
             '_nutrient_148',
-            //und
-            '_nutrient_149_value',
-            '_nutrient_149_ref_value',
-            //bis
-            '_nutrient_156_value',
-            '_nutrient_156_ref_value'
+            '_nutrient_ids',
         ];
 
         return $result;
