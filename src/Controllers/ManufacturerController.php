@@ -89,7 +89,7 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
+     * @param ManufacturerModel $model
      * @return ManufacturerModel
      * @throws \InvalidArgumentException
      */
@@ -145,8 +145,8 @@ class ManufacturerController extends AbstractBaseController implements
 
             if ($term instanceof \WP_Term) {
                 $model->getId()->setEndpoint($term->term_id);
+
                 foreach ($model->getI18ns() as $i18n) {
-                    $i18n->getManufacturerId()->setEndpoint($term->term_id);
                     if (
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
                         || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
