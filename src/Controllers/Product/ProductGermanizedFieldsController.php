@@ -82,24 +82,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     \in_array($metaKey = $metaData->get_data()['key'], $foodMetaKey)
                     && !empty($metaValue = $metaData->get_data()['value'])
                 ) {
-                    if ($metaKey == '_nutrient_ids') {
-                        $nutrientMetaValues = $metaValue;
-                        $metaValue          = [];
-                        foreach ($nutrientMetaValues as $nutrientId => $nutrient) {
-                            $nutrientValueKey    = '_' . (string)$nutrientId . '_value';
-                            $nutrientRefValueKey = '_' . (string)$nutrientId . '_ref_value';
-
-                            $metaValue[$nutrientValueKey]    = $nutrient['value'];
-                            $metaValue[$nutrientRefValueKey] = $nutrient['ref_value'];
-                        }
-                    } elseif ($metaKey == '_allergen_ids') {
-                        $allergenMetaValues = $metaValue;
-                        $metaValue          = [];
-                        foreach ($allergenMetaValues as $allergene) {
-                            $metaValue[] = (string)$allergene;
-                        }
-                    }
-
                     $metaKey = 'wc_gzd' . $metaKey;
 
                     $i18n = (new ProductAttrI18nModel())
@@ -137,8 +119,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, $id);
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-            $this->updateGermanizedProFoodProductData($product, $id);
+
+        if ($this->isGermanizedProFoodProduct($product)) {
+            $this->updateGermanizedProFoodProductData($product);
         }
     }
 
@@ -192,31 +175,47 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
     }
 
-    private function updateGermanizedProFoodProductData($product, $id) {
+    private function updateGermanizedProFoodProductData($product)
+    {
+        $id          = $product->getId()->getEndpoint();
         $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
+
+        foreach ($product->getAttributes() as $attribute) {
+            foreach ($attribute->getI18ns() as $i18n) {
+                if (
+                    $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
+                    && \in_array($metaKey = \str_replace('wc_gzd', '', $i18n->getName()), $foodMetaKey)
+                ) {
+                    if (empty($metaValue = $i18n->getValue())) {
+                        \delete_post_meta($id, $metaKey);
+                        continue;
+                    }
+
+                    if ($metaKey == '_nutrient_ids' || $metaKey == '_allergen_ids') {
+                        $metaValue = \json_decode($metaValue, true);
+                    }
+
+                    \update_post_meta($id, $metaKey, $metaValue);
+                }
+            }
+        }
     }
-    private function getGermanizedProFoodMetaKeys() {
-        $result = [
-            //Food Product
+
+    private function getGermanizedProFoodMetaKeys(): array
+    {
+        return [
             '_is_food',
-            //Deposit
             '_deposit_type',
             '_deposit_quantity',
-            //general food attribute
             '_net_filling_quantity',
             '_drained_weight',
             '_alcohol_content',
             '_nutri_score',
             '_allergen_ids',
-            //ingredients
             '_ingredients',
-            //description
             '_food_description',
-            //distributor
             '_food_distributor',
-            //origin
             '_food_place_of_origin',
-            //Nutricinal Deklaration
             '_nutrient_reference_value',
             '_nutrient_135',
             '_nutrient_136',
@@ -234,7 +233,19 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             '_nutrient_148',
             '_nutrient_ids',
         ];
+    }
 
-        return $result;
+    private function isGermanizedProFoodProduct($product): bool
+    {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+            foreach ($product->getAttributes() as $attribute) {
+                foreach ($attribute->getI18ns() as $i18n) {
+                    if ($i18n->getName() === 'wc_gzd_is_food') {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
