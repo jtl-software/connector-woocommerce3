@@ -26,7 +26,7 @@ class CustomerOrderListener
      */
     public function __construct(Db $db)
     {
-        $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []); //TODO:: check das
+        $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
         $this->db               = $db;
     }
 

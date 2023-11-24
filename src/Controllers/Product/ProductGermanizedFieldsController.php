@@ -73,7 +73,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $product->setBasePriceUnitName($unitObject->name);
         }
 
-        #edge case, what if gzd pro doesnt exist and meta value is null?
         if ($wcProduct->get_meta('_is_food') === 'yes') {
             $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
 
