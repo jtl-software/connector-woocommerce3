@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2466 - fix undefined method in manufacturer model
+- CO-2460 - implement compatibility with germanized pro food
 
 ## 1.41.0
 - CO-2471 - update argument order in image push
