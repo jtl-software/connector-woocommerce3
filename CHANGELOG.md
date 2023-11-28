@@ -5,6 +5,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 - CO-2466 - fix undefined method in manufacturer model
 - CO-2476 - change image type parameter
+- CO-2453 - change json to array
 
 ## 1.41.0
 - CO-2471 - update argument order in image push
