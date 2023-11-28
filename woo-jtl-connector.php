@@ -3,9 +3,9 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.40.4
+ * Version: 1.41.0
  * Requires PHP: 7.4
- * WC tested up to: 6.3
+ * WC tested up to: 8.2
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
  * License: GPL3
@@ -83,6 +83,7 @@ if (jtlwcc_rewriting_disabled()) {
         add_action('admin_footer', 'woo_jtl_connector_settings_javascript', PHP_INT_MAX);
         add_action('wp_ajax_downloadJTLLogs', 'downloadJTLLogs', PHP_INT_MAX);
         add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
+        add_action('wp_ajax_clearConnectorCache', 'clearConnectorCache', PHP_INT_MAX);
     }
 }
 
@@ -123,6 +124,29 @@ function woo_jtl_connector_settings_javascript()
 
                         let data = {
                             'action': 'clearJTLLogs',
+                        };
+
+                        jQuery.ajax(
+                            {
+                                url: ajaxurl,
+                                type: 'POST',
+                                data: data,
+                                success: (response) => {
+                                    //console.log(response);
+                                },
+                            }
+                        );
+                    }
+                }
+            );
+
+            $("#clearCacheBtn").click(
+                () => {
+                    let result = confirm("Are you sure you want to clear the connector cache?");
+                    if (result) {
+
+                        let data = {
+                            'action': 'clearConnectorCache',
                         };
 
                         jQuery.ajax(
@@ -232,6 +256,39 @@ function clearJTLLogs()
     wp_die();
 }
 
+
+/**
+ * @throws UnexpectedValueException
+ */
+function clearConnectorCache(): void
+{
+    $cacheDir = CONNECTOR_DIR . '/var/cache';
+
+    if (is_dir($cacheDir)) {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($cacheDir),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $name => $file) {
+            if ($file->getFilename() === '.gitkeep') {
+                continue;
+            }
+
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
+
+        echo 'success';
+
+        wp_die();
+    }
+}
 /**
  * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
  */
