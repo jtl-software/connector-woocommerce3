@@ -127,7 +127,7 @@ class CategoryController extends AbstractBaseController implements
 
         $urlPath = $meta->getUrlPath();
 
-        $categoryData['slug'] = $meta->getName();
+        $categoryData['slug'] = \strtolower($meta->getName());
         if (!empty($urlPath)) {
             $categoryData['slug'] = $urlPath;
         }

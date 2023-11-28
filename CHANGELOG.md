@@ -4,6 +4,17 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 1.41.1 _2023-11-28_
+- CO-2466 - fix undefined method in manufacturer model
+- CO-2476 - change image type parameter
+- CO-2453 - change json to array
+- CO-2365 - update logic category title
+
+## 1.41.0
+- CO-2471 - update argument order in image push
+- CO-2461 - add clear cache button, add disable cache button
+- fix debug log setting
+
 ## 1.40.4 _2023-11-06_
 - CO-2458 - consider attribute IDs during product pull
 - Fix Customer Group Prices

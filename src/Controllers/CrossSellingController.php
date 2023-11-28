@@ -75,7 +75,7 @@ class CrossSellingController extends AbstractBaseController implements
             \reset($crossSelling);
         }
 
-        return $crossSelling;
+        return \array_values($crossSelling);
     }
 
     /**
