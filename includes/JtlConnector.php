@@ -2,6 +2,7 @@
 
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
+use Jtl\Connector\Core\Config\FileConfig;
 use JtlWooCommerceConnector\Connector;
 
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
@@ -16,8 +17,11 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
         if (!empty($wp->request) && ($wp->request === 'jtlconnector' || $wp->request === 'index.php/jtlconnector')) {
             self::unslash_gpc();
 
+            $config = new FileConfig(\sprintf('%s/config/config.json', CONNECTOR_DIR));
+            $config->set(ConfigSchema::SERIALIZER_ENABLE_CACHE, false);
+
             $connector   = new Connector();
-            $application = new Application(CONNECTOR_DIR);
+            $application = new Application(CONNECTOR_DIR, $config);
 
             // abort existing session
             if (\session_status() === PHP_SESSION_ACTIVE) {
