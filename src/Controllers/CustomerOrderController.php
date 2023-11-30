@@ -46,6 +46,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param QueryFilter $query
      * @return array<int|CustomerOrderController>
      * @throws InvalidArgumentException
+     * @throws \WC_Data_Exception
      */
     public function pull(QueryFilter $query): array
     {
@@ -210,7 +211,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @return void
      * @throws EnvironmentIsBrokenException
-     * @throws InvalidArgumentException
      * @throws \TypeError
      */
     protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder): void
@@ -242,7 +242,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @param array $dhlPreferredDeliveryOptions
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setPreferredDeliveryOptions(
         CustomerOrderModel &$customerOrder,
@@ -354,7 +353,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     /**
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
     {

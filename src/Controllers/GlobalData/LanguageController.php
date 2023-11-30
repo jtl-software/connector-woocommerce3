@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
+use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Language as LanguageModel;
@@ -13,7 +14,7 @@ class LanguageController
     /**
      * @return LanguageModel
      * @throws InvalidArgumentException
-     * @throws \Exception
+     * @throws Exception
      */
     public function pull(): LanguageModel
     {
@@ -30,7 +31,7 @@ class LanguageController
     /**
      * @param $locale
      * @return false|mixed|string
-     * @throws \Exception
+     * @throws Exception
      */
     protected function nameGerman($locale): mixed
     {
@@ -47,7 +48,7 @@ class LanguageController
     /**
      * @param $locale
      * @return false|mixed|string
-     * @throws \Exception
+     * @throws Exception
      */
     protected function nameEnglish($locale): mixed
     {
@@ -63,10 +64,10 @@ class LanguageController
 
     /**
      * @param $locale
-     * @return mixed
-     * @throws \Exception
+     * @return string
+     * @throws Exception
      */
-    protected function localeToIso($locale): mixed
+    protected function localeToIso($locale): string
     {
         return Service::create($locale)->toISO_639_2b();
     }

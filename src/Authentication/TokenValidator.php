@@ -9,7 +9,7 @@ class TokenValidator implements TokenValidatorInterface
     /**
      * @var string
      */
-    protected $endpointToken;
+    protected string $endpointToken;
 
     /**
      * @param string $endpointToken

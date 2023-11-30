@@ -26,11 +26,11 @@ class CategoryController extends AbstractBaseController implements
     private static array $idCache = [];
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pull(QueryFilter $query): array //TODO:check
+    public function pull(QueryFilter $query): array
     {
         $categories = [];
 
@@ -215,6 +215,7 @@ class CategoryController extends AbstractBaseController implements
     /**
      * @param CategoryModel $model
      * @return CategoryModel
+     * @throws InvalidArgumentException
      */
     public function delete(AbstractModel $model): AbstractModel
     {

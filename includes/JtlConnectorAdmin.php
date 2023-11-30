@@ -72,6 +72,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function activate_linking(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -216,6 +217,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     private static function activate_category_tree(Db $db): void
@@ -392,7 +395,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @param $prefix
-     *
+     * @param $db
      * @return void
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -528,6 +531,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public static function init(): void
     {
@@ -1774,8 +1778,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
      * @throws ParseException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function update(Db $db): void
     {
@@ -2183,7 +2189,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function add_specifc_linking_tables(Db $db): void //phpcs:ignore
     {
@@ -2969,10 +2977,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 false
             )
         );
-        Config::writeCoreConfigFile(ConfigSchema::SERIALIZER_ENABLE_CACHE,
+        Config::writeCoreConfigFile(
+            ConfigSchema::SERIALIZER_ENABLE_CACHE,
             (bool) Config::get(
-                    Config::OPTIONS_USE_CACHE,
-                    true
+                Config::OPTIONS_USE_CACHE,
+                true
             )
         );
 

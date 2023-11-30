@@ -15,7 +15,6 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product $wcProduct
      * @return void
-     * @throws InvalidArgumentException
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {

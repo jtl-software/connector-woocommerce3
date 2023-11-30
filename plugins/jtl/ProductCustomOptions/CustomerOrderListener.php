@@ -4,6 +4,7 @@ namespace jtl\ProductCustomOptions;
 
 use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CustomerOrderListener
@@ -14,7 +15,7 @@ class CustomerOrderListener
     /**
      * @var array
      */
-    protected $customFieldNames = [];
+    protected mixed $customFieldNames = [];
 
     /**
      * @var Db
@@ -64,6 +65,7 @@ class CustomerOrderListener
     /**
      * @param int $wcOrderItemId
      * @return string
+     * @throws InvalidArgumentException
      */
     public function getCustomProductOptions(int $wcOrderItemId): string
     {

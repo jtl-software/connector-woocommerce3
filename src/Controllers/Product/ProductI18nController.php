@@ -17,7 +17,6 @@ class ProductI18nController extends AbstractBaseController
      * @param WC_Product $product
      * @param ProductModel $model
      * @return ProductI18nModel
-     * @throws InvalidArgumentException
      */
     public function pullData(WC_Product $product, ProductModel $model): ProductI18nModel
     {

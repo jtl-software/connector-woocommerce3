@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\InvalidArgumentException;
 use WC_Product;
 
 class ProductPrice extends AbstractBaseController
@@ -166,6 +167,7 @@ class ProductPrice extends AbstractBaseController
      * @param $groupSlug
      * @param WC_Product $product
      * @param ProductModel $model
+     * @return mixed
      */
     private function getBulkPrices(
         $items,
@@ -287,6 +289,7 @@ class ProductPrice extends AbstractBaseController
      * @param float $vat
      * @param string $productType
      * @return void
+     * @throws InvalidArgumentException
      */
     public function updateProductPrices(
         WC_Product $wcProduct,
@@ -335,7 +338,7 @@ class ProductPrice extends AbstractBaseController
 
                 foreach ($productPrice->getItems() as $item) {
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
-                    if ($item->getQuantity() === 0.0) {
+                    if ($item->getQuantity() === 0) {
                         if ((string)$customerGroup->ID === $defaultCustomerGroup && $autoB2BOptions) {
                             $this->updateDefaultProductPrice($item, $productId, $vat);
                         }

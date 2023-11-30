@@ -12,19 +12,20 @@ use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
 use Psr\Log\InvalidArgumentException;
+use WC_Order;
 
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
     /**
      * @param StatusChangeModel $model
      * @return StatusChangeModel
-     * @throws \WC_Data_Exception
+     * @throws \WC_Data_Exception|InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {
         $order = \wc_get_order($model->getCustomerOrderId()->getEndpoint());
 
-        if ($order instanceof \WC_Order) {
+        if ($order instanceof WC_Order) {
             if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
                 \add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
                     return false;
@@ -72,10 +73,10 @@ class StatusChangeController extends AbstractBaseController implements PushInter
 
     /**
      * @param StatusChangeModel $statusChange
-     * @param \WC_Order $wcOrder
+     * @param WC_Order $wcOrder
      * @return string|null
      */
-    private function mapStatus(StatusChangeModel $statusChange, \WC_Order $wcOrder): ?string
+    private function mapStatus(StatusChangeModel $statusChange, WC_Order $wcOrder): ?string
     {
         if ($statusChange->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
             return 'wc-cancelled';

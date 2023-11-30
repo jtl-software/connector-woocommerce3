@@ -31,9 +31,9 @@ class SpecificController extends AbstractBaseController implements
     private static $idCache = [];
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {

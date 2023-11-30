@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
@@ -52,6 +53,7 @@ class ProductSpecificController extends AbstractBaseController
      * @param array $pushedJtlSpecifics
      * @param array $pushedJtlAttributes
      * @return array
+     * @throws TranslatableAttributeException
      */
     public function pushData(
         $productId,

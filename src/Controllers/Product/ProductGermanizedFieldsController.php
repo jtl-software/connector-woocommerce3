@@ -8,6 +8,7 @@ use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 /**
  * Class ProductGermanizedFields
@@ -18,22 +19,22 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
+    public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {
         $this->setGermanizedAttributes($product, $wcProduct);
     }
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
-    private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct): void
+    private function setGermanizedAttributes(ProductModel &$product, WC_Product $wcProduct): void
     {
         $units           = new \WC_GZD_Units();
         $germanizedUtils = (new Germanized());
@@ -113,7 +114,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $salePrice = \get_post_meta($id, '_sale_price', true);
 
             if (! empty($salePrice)) {
-                if ($product->getBasePriceDivisor() !== 0) {
+                if ($product->getBasePriceDivisor() !== 0.0) {
                     $unitSale = \round((float)$salePrice / $product->getBasePriceDivisor(), $pd);
 
                     \update_post_meta($id, '_unit_price_sale', (float)$unitSale);
@@ -127,7 +128,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
             \update_post_meta($id, '_unit', $product->getBasePriceUnitName());
 
-            if ($product->getMeasurementQuantity() !== 0) {
+            if ($product->getMeasurementQuantity() !== 0.0) {
                 \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
             }
         } else {
