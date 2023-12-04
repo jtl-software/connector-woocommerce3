@@ -333,7 +333,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable($db): void
+    private static function createManufacturerLinkingTable(Db $db): void
     {
         global $wpdb;
 
