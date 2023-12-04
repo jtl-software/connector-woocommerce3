@@ -31,8 +31,6 @@ WooCommerce shops use, too. Further functions can be individually programmed and
 
 [Further information on JTL-Connector, a connector for third party shops](https://www.jtl-software.de/anbindung-shopsysteme)
 
-ATTENTION: PHP 8.1 is NOT Supported
-
 == Why use an ERP system? ==
 
 The free JTL-Wawi ERP system allows you to manage your business centrally with a single software.
