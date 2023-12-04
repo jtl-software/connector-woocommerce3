@@ -10,7 +10,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2453 - change json to array
 - CO-2365 - update logic category title
 
-## 1.41.0
+## 1.41.0 _2023-11-14_
 - CO-2471 - update argument order in image push
 - CO-2461 - add clear cache button, add disable cache button
 - fix debug log setting
@@ -30,7 +30,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - fix B2B Market
 - fix Additional text encountered after finished reading JSON content
 
-## 1.40.0 _2023_10_17_
+## 1.40.0 _2023-10-17_
 - CO-2418 - remove name format options
 - CO-2072 - migrate to core 5.1
 
