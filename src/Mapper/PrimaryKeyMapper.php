@@ -59,7 +59,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @param $type
      * @return int|null
      */
-    public function getHostId($endpointId, $type): ?int
+    public function getHostId($type, $endpointId): ?int
     {
         $tableName = self::getTableName($type);
 
