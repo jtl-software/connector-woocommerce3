@@ -3,7 +3,10 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- FIX Category Mapping HostId = 0
+
+
+## 1.41.2 _2023-12-05_
+- HOTFIX Category Mapping HostId = 0
 
 ## 1.41.1 _2023-11-28_
 - CO-2466 - fix undefined method in manufacturer model
