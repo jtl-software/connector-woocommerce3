@@ -55,7 +55,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @return int|null
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getHostId($endpointId, $type): ?int
+    public function getHostId($type, $endpointId): ?int
     {
         $tableName = self::getTableName($type);
 
