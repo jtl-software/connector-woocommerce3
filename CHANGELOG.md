@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2494 - disable cache
 
 
 ## 1.41.2 _2023-12-05_

@@ -83,7 +83,6 @@ if (jtlwcc_rewriting_disabled()) {
         add_action('admin_footer', 'woo_jtl_connector_settings_javascript', PHP_INT_MAX);
         add_action('wp_ajax_downloadJTLLogs', 'downloadJTLLogs', PHP_INT_MAX);
         add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
-        add_action('wp_ajax_clearConnectorCache', 'clearConnectorCache', PHP_INT_MAX);
     }
 }
 
@@ -124,29 +123,6 @@ function woo_jtl_connector_settings_javascript()
 
                         let data = {
                             'action': 'clearJTLLogs',
-                        };
-
-                        jQuery.ajax(
-                            {
-                                url: ajaxurl,
-                                type: 'POST',
-                                data: data,
-                                success: (response) => {
-                                    //console.log(response);
-                                },
-                            }
-                        );
-                    }
-                }
-            );
-
-            $("#clearCacheBtn").click(
-                () => {
-                    let result = confirm("Are you sure you want to clear the connector cache?");
-                    if (result) {
-
-                        let data = {
-                            'action': 'clearConnectorCache',
                         };
 
                         jQuery.ajax(
