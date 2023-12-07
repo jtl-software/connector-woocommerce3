@@ -333,7 +333,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable(): void
+    private static function createManufacturerLinkingTable(Db $db): void
     {
         global $wpdb;
 
@@ -356,7 +356,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                !DB::checkIfFKExists(
+                !$db->checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -1798,7 +1798,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::createManufacturerLinkingTable();
+                self::createManufacturerLinkingTable($db);
             // no break
             case '1.8.0':
             case '1.8.0.1':
