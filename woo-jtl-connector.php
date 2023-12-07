@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.41.1
+ * Version: 1.41.2
  * Requires PHP: 7.4
  * WC tested up to: 8.2
  * Author: JTL-Software GmbH
@@ -83,7 +83,6 @@ if (jtlwcc_rewriting_disabled()) {
         add_action('admin_footer', 'woo_jtl_connector_settings_javascript', PHP_INT_MAX);
         add_action('wp_ajax_downloadJTLLogs', 'downloadJTLLogs', PHP_INT_MAX);
         add_action('wp_ajax_clearJTLLogs', 'clearJTLLogs', PHP_INT_MAX);
-        add_action('wp_ajax_clearConnectorCache', 'clearConnectorCache', PHP_INT_MAX);
     }
 }
 
@@ -124,29 +123,6 @@ function woo_jtl_connector_settings_javascript()
 
                         let data = {
                             'action': 'clearJTLLogs',
-                        };
-
-                        jQuery.ajax(
-                            {
-                                url: ajaxurl,
-                                type: 'POST',
-                                data: data,
-                                success: (response) => {
-                                    //console.log(response);
-                                },
-                            }
-                        );
-                    }
-                }
-            );
-
-            $("#clearCacheBtn").click(
-                () => {
-                    let result = confirm("Are you sure you want to clear the connector cache?");
-                    if (result) {
-
-                        let data = {
-                            'action': 'clearConnectorCache',
                         };
 
                         jQuery.ajax(
