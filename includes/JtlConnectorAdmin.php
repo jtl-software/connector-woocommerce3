@@ -333,7 +333,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable(): void
+    private static function createManufacturerLinkingTable(Db $db): void
     {
         global $wpdb;
 
@@ -356,7 +356,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                !DB::checkIfFKExists(
+                !$db->checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -656,13 +656,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             [
                 'JtlConnectorAdmin',
                 'compatible_plugins_field',
-            ]
-        );
-        add_action(
-            'woocommerce_admin_field_clear_cache_btn',
-            [
-                'JtlConnectorAdmin',
-                'clear_cache_btn',
             ]
         );
 
@@ -1568,28 +1561,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
             'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
         ];
-
-
-        $fields[] = [
-            'title'     => __('Use Cache', JTLWCC_TEXT_DOMAIN),
-            'type'      => 'active_true_false_radio',
-            'desc'      => __(
-                'Use Serializer Cache (Default : Enabled). Disable if you get the "empty response" error.',
-                JTLWCC_TEXT_DOMAIN
-            ),
-            'id'        => Config::OPTIONS_USE_CACHE,
-            'value'     => Config::get(Config::OPTIONS_USE_CACHE, true),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
-        ];
-
-        $fields[] = [
-            'title'          => '',
-            'type'           => 'clear_cache_btn',
-            'desc'           => '',
-            'clearCacheText' => __('Clear Cache', JTLWCC_TEXT_DOMAIN),
-        ];
-
         //phpcs:disable
         $fields[] = [
             'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
@@ -1827,7 +1798,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::createManufacturerLinkingTable();
+                self::createManufacturerLinkingTable($db);
             // no break
             case '1.8.0':
             case '1.8.0.1':
@@ -2018,6 +1989,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.40.3':
             case '1.40.4':
             case '1.41.0':
+            case '1.41.1':
+            case '1.41.2':
             default:
                 self::activate_linking();
         }
@@ -2648,33 +2621,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         <?php
     }
 
-    /**
-     * @param array $field
-     * @return void
-     */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function clear_cache_btn(array $field): void
-    {
-        ?>
-        <div class="form-group row">
-            <label class="col-12" for="clear_cache_btn"><?= $field['title'] ?></label>
-            <div class="btn-group btn-group-lg col-2" role="group">
-                <button type="button" id="clearCacheBtn"
-                        class="btn btn-outline-danger"><?= $field['clearCacheText'] ?></button>
-            </div>
-            <?php
-            if (isset($field['desc']) && $field['desc'] !== '') {
-                ?>
-                <small id="clear_cache_btn_desc" class="form-text text-muted col-12">
-                    <?= $field['desc'] ?>
-                </small>
-                <?php
-            }
-            ?>
-        </div>
-        <?php
-    }
-
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
 
     /**
@@ -2965,12 +2911,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             (bool) Config::get(
                 Config::OPTIONS_DEVELOPER_LOGGING,
                 false
-            )
-        );
-        Config::writeCoreConfigFile(ConfigSchema::SERIALIZER_ENABLE_CACHE,
-            (bool) Config::get(
-                    Config::OPTIONS_USE_CACHE,
-                    true
             )
         );
 
