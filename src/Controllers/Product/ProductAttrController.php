@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
@@ -327,6 +328,7 @@ class ProductAttrController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return (new ProductAttrModel())
+            ->setId(new Identity($product->get_id() . '_' . $attribute->get_name()))
             ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }
