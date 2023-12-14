@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
@@ -80,16 +81,52 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 if (
                     \in_array($metaKey = $metaData->get_data()['key'], $foodMetaKey)
                     && !empty($metaValue = $metaData->get_data()['value'])
+                    && (in_array($metaKey, ['_nutrient_ids', '_allergen_ids']))
                 ) {
-                    $metaKey = 'wc_gzd' . $metaKey;
+                    foreach ($metaValue as $nutrientId => $values) {
+                        $nutrientSlug = $this->getNutrientTermData($nutrientId, 'getSlug');
+
+                        $wawiAttributeKey = 'wc_gzd_' . $nutrientSlug;
+
+                        $i18n = (new ProductAttrI18nModel())
+                            ->setName($wawiAttributeKey)
+                            ->setValue($values['value'])
+                            ->setLanguageIso($this->util->getWooCommerceLanguage());
+
+                        $attribute = (new TranslatableAttribute())
+                            ->setId(new Identity($product->getId()->getEndpoint() . '_' . $wawiAttributeKey))
+                            ->setI18ns($i18n);
+
+                        $product->addAttribute($attribute);
+
+                        if (!empty($values['ref_value'])) {
+                            $wawiAttributeKey = 'wc_gzd_ref_' . $nutrientSlug;;
+
+                            $i18n = (new ProductAttrI18nModel())
+                                ->setName($wawiAttributeKey)
+                                ->setValue($values['ref_value'])
+                                ->setLanguageIso($this->util->getWooCommerceLanguage());
+
+                            $attribute = (new TranslatableAttribute())
+                                ->setId(new Identity($product->getId()->getEndpoint() . '_' . $wawiAttributeKey))
+                                ->setI18ns($i18n);
+
+                            $product->addAttribute($attribute);
+                        }
+                    }
+                } elseif (
+                    \in_array($metaKey = $metaData->get_data()['key'], $foodMetaKey)
+                    && !empty($metaValue = $metaData->get_data()['value'])
+                ) {
+                    $wawiAttributeKey = 'wc_gzd' . $metaKey;
 
                     $i18n = (new ProductAttrI18nModel())
-                        ->setName($metaKey)
+                        ->setName($wawiAttributeKey)
                         ->setValue($metaValue)
                         ->setLanguageIso($this->util->getWooCommerceLanguage());
 
                     $attribute = (new TranslatableAttribute())
-                        ->setId(new Identity($product->getId()->getEndpoint() . '_' . $metaKey))
+                        ->setId(new Identity($product->getId()->getEndpoint() . '_' . $wawiAttributeKey))
                         ->setI18ns($i18n);
 
                     $product->addAttribute($attribute);
@@ -246,5 +283,21 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             }
         }
         return false;
+    }
+
+    private function getNutrientTermData($nutrientData, $flag): string
+    {
+        if (!in_array($flag, ['getSlug', 'getTermId'])) {
+            throw new InvalidArgumentException('Invalid flag argument');
+        }
+
+        $tableName = $this->db->getWpDb()->prefix . 'terms';
+
+        $selectColumn = $flag == 'getSlug' ? 'slug' : 'term_id';
+        $whereColumn = $selectColumn == 'slug' ? 'term_id' : 'slug';
+
+        return $this->db->queryOne(
+            sprintf('SELECT %s FROM %s WHERE %s = %s', $selectColumn, $tableName, $whereColumn, $nutrientData)
+        );
     }
 }
