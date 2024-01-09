@@ -199,7 +199,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|\Psr\Log\InvalidArgumentException
      */
     private function updateGermanizedProFoodProductData($product): void
     {
