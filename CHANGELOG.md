@@ -4,7 +4,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2494 - disable cache
-
+- CO-2496 - call method dynamically
+- CO-2460 - implement compatibility with germanized pro food
 
 ## 1.41.2 _2023-12-05_
 - HOTFIX Category Mapping HostId = 0
