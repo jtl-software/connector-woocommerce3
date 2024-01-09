@@ -16,6 +16,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Definition\IdentityType;
+use Jtl\Connector\Core\Definition\Model;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use Jtl\Connector\Core\Model\AbstractImage;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -534,9 +535,9 @@ class ImageController extends AbstractBaseController implements
         }
 
         $primaryKeyMapper->delete(
+            $type,
             $image->getId()->getEndpoint(),
-            $image->getId()->getHost(),
-            $image->getRelationType()
+            $image->getId()->getHost()
         );
         $primaryKeyMapper->save($type, $newEndpoint, $image->getId()->getHost());
 

@@ -1,5 +1,6 @@
 <?php
 
+use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
@@ -29,6 +30,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws UnexpectedValueException
      */
     public static function plugin_activation(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -36,6 +38,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
+
+        clearConnectorCache();
 
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
@@ -329,7 +333,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable(): void
+    private static function createManufacturerLinkingTable(Db $db): void
     {
         global $wpdb;
 
@@ -352,7 +356,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                !DB::checkIfFKExists(
+                !$db->checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -883,7 +887,17 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
                         </div>
+
                         <?php
+                        if ($submit) {
+                            ?>
+                            <div class="form-group row">
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
+                            </div>
+                            <?php
+                        }
                         print '' . woocommerce_admin_fields($options) . '';
                         if ($submit) {
                             ?>
@@ -1564,6 +1578,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 JTLWCC_TEXT_DOMAIN
             ),
         ];
+
         //phpcs:enable
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
@@ -1783,7 +1798,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::createManufacturerLinkingTable();
+                self::createManufacturerLinkingTable($db);
             // no break
             case '1.8.0':
             case '1.8.0.1':
@@ -1971,6 +1986,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.40.0':
             case '1.40.1':
             case '1.40.2':
+            case '1.40.3':
+            case '1.40.4':
+            case '1.41.0':
+            case '1.41.1':
+            case '1.41.2':
             default:
                 self::activate_linking();
         }
@@ -2887,10 +2907,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             Config::set($key, $value);
         }
-        Config::updateDeveloperLoggingSettings((bool) Config::get(
-            Config::OPTIONS_DEVELOPER_LOGGING,
-            false
-        ));
+        Config::updateDeveloperLoggingSettings(
+            (bool) Config::get(
+                Config::OPTIONS_DEVELOPER_LOGGING,
+                false
+            )
+        );
 
         $request = $_SERVER["HTTP_REFERER"];
 

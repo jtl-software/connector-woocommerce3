@@ -4,6 +4,30 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2433 - null safe on get quantity
+- CO-2494 - disable cache
+- CO-2496 - call method dynamically
+
+## 1.41.2 _2023-12-05_
+- HOTFIX Category Mapping HostId = 0
+
+## 1.41.1 _2023-11-28_
+- CO-2466 - fix undefined method in manufacturer model
+- CO-2476 - change image type parameter
+- CO-2453 - change json to array
+- CO-2365 - update logic category title
+
+## 1.41.0 _2023-11-14_
+- CO-2471 - update argument order in image push
+- CO-2461 - add clear cache button, add disable cache button
+- fix debug log setting
+
+## 1.40.4 _2023-11-06_
+- CO-2458 - consider attribute IDs during product pull
+- Fix Customer Group Prices
+
+## 1.40.3 _2023-10-25_
+- Fix Session is invalid error if session has been started before 
+- CO-2443 - add manufacturer number to product
 
 ## 1.40.2 _2023-10-19_
 - CO-2450 - update property name
@@ -12,7 +36,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - fix B2B Market
 - fix Additional text encountered after finished reading JSON content
 
-## 1.40.0 _2023_10_17_
+## 1.40.0 _2023-10-17_
 - CO-2418 - remove name format options
 - CO-2072 - migrate to core 5.1
 

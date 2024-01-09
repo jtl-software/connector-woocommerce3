@@ -1,4 +1,4 @@
-<?php
+<?php //phpcs:ignore
 
 namespace JtlWooCommerceConnector;
 
