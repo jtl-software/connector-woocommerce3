@@ -5,7 +5,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 - CO-2377 - add hpos support
 - CO-2494 - disable cache
-- CO-2496 - call method dynamically
+- CO-2496 - call method dynamically 
+- CO-2416 - set germanized option "mark as shipped" true per default
 
 ## 1.41.2 _2023-12-05_
 - HOTFIX Category Mapping HostId = 0
