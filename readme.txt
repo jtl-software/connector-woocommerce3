@@ -2,11 +2,11 @@
 Contributors: papryk, ntbyk, platzkejtl
 Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
 Requires at least: 4.7
-Tested up to: 6.0
-Requires PHP: 7.2
+Tested up to: 6.4
+Requires PHP: 7.4
 WC requires at least: 3.4
-WC tested up to: 6.3
-Stable tag: 1.39.9
+WC tested up to: 8.2
+Stable tag: 1.41.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -30,8 +30,6 @@ JTL-Wawi and JTL-Connector are out-of-the-box solutions that use a lot of the fu
 WooCommerce shops use, too. Further functions can be individually programmed and added using JTL-Connector.
 
 [Further information on JTL-Connector, a connector for third party shops](https://www.jtl-software.de/anbindung-shopsysteme)
-
-ATTENTION: PHP 8.1 is NOT Supported
 
 == Why use an ERP system? ==
 

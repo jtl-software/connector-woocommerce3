@@ -2,8 +2,8 @@
 
 namespace jtl\CustomProductTabs;
 
-use jtl\Connector\Event\Product\ProductAfterPushEvent;
-use jtl\Connector\Model\ProductAttrI18n;
+use Jtl\Connector\Core\Event\ProductEvent;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
 use JtlWooCommerceConnector\Utilities\Util;
 use Nette\Utils\RegexpException;
 
@@ -18,11 +18,24 @@ class ProductListener
         PRODUCT_CUSTOM_TABS_META_KEY         = 'yikes_woo_products_tabs';
 
     /**
-     * @param ProductAfterPushEvent $event
+     * @var Util
+     */
+    protected $util;
+
+    /**
+     * @param Util $util
+     */
+    public function __construct(Util $util)
+    {
+        $this->util = $util;
+    }
+
+    /**
+     * @param ProductEvent $event
      * @return void
      * @throws RegexpException
      */
-    public function onProductAfterPush(ProductAfterPushEvent $event): void
+    public function onProductAfterPush(ProductEvent $event): void
     {
         $product           = $event->getProduct();
         $productAttributes = $product->getAttributes();
@@ -38,7 +51,7 @@ class ProductListener
         }
 
         if (!empty($customProductTabs)) {
-            Util::getInstance()->updatePostMeta(
+            $this->util->updatePostMeta(
                 $product->getId()->getEndpoint(),
                 self::PRODUCT_CUSTOM_TABS_META_KEY,
                 $customProductTabs
@@ -47,15 +60,16 @@ class ProductListener
     }
 
     /**
-     * @param ProductAttrI18n ...$productAttributeI18ns
+     * @param TranslatableAttributeI18n ...$productAttributeI18ns
      * @return CustomProductTab|null
      * @throws RegexpException
      */
-    protected function findCustomProductTabAttribute(ProductAttrI18n ...$productAttributeI18ns): ?CustomProductTab
-    {
+    protected function findCustomProductTabAttribute(
+        TranslatableAttributeI18n ...$productAttributeI18ns
+    ): ?CustomProductTab {
         $customProductTab = null;
         foreach ($productAttributeI18ns as $productAttributeI18n) {
-            if (Util::getInstance()->isWooCommerceLanguage($productAttributeI18n->getLanguageISO())) {
+            if ($this->util->isWooCommerceLanguage($productAttributeI18n->getLanguageISO())) {
                 if (
                     \str_contains($productAttributeI18n->getName(), self::PRODUCT_CUSTOM_TABS_ATTRIBUTE_NEEDLE)
                 ) {
