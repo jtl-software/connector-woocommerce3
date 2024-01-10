@@ -7,17 +7,13 @@
 
 namespace JtlWooCommerceConnector\Event;
 
-use jtl\Connector\Result\Action;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleDeleteEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.delete';
 
-    /**
-     * @var Action
-     */
-    protected Action $result;
+    protected $result;
     protected $controller;
     protected $entities;
 
@@ -37,10 +33,7 @@ class HandleDeleteEvent extends Event
         return $this->entities;
     }
 
-    /**
-     * @return Action
-     */
-    public function getResult(): Action
+    public function getResult()
     {
         return $this->result;
     }

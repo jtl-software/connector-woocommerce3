@@ -3,8 +3,47 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- CO-2263 - fix empty delivery addresses
 - CO-2377 - add hpos support
+- CO-2494 - disable cache
+- CO-2496 - call method dynamically
+
+## 1.41.2 _2023-12-05_
+- HOTFIX Category Mapping HostId = 0
+
+## 1.41.1 _2023-11-28_
+- CO-2466 - fix undefined method in manufacturer model
+- CO-2476 - change image type parameter
+- CO-2453 - change json to array
+- CO-2365 - update logic category title
+
+## 1.41.0 _2023-11-14_
+- CO-2471 - update argument order in image push
+- CO-2461 - add clear cache button, add disable cache button
+- fix debug log setting
+
+## 1.40.4 _2023-11-06_
+- CO-2458 - consider attribute IDs during product pull
+- Fix Customer Group Prices
+
+## 1.40.3 _2023-10-25_
+- Fix Session is invalid error if session has been started before 
+- CO-2443 - add manufacturer number to product
+
+## 1.40.2 _2023-10-19_
+- CO-2450 - update property name
+
+## 1.40.1 _2023-10-18_
+- fix B2B Market
+- fix Additional text encountered after finished reading JSON content
+
+## 1.40.0 _2023-10-17_
+- CO-2418 - remove name format options
+- CO-2072 - migrate to core 5.1
+
+## 1.39.10 _2023-08-08_
+- CO-2263 - fix empty delivery addresses
+- CO-2389 - fix delivery status
+- CO-2409 - support Additional Variation Images Gallery plugin
 
 ## 1.39.9 _2023-06-13_
 - CO-2230 - fix Invisibility Type
@@ -26,11 +65,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## 1.39.5 _2023-03-14_
 - CO-2242 - added customer group special price support
-<<<<<<< CHANGELOG.md
 - CO-2263 - fix empty delivery addresses
-=======
 - CO-1803 - delivery cost calc fixed
->>>>>>> CHANGELOG.md
 
 ## 1.39.4 _2022-12-13_
 - CO-2163 - fix extra product options plugin support

@@ -2,19 +2,28 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Utilities\Singleton;
-
 /**
  * Class WordpressUtils
  * @package JtlWooCommerceConnector\Utilities
  */
-abstract class WordpressUtils extends Singleton
+abstract class WordpressUtils
 {
+    /**
+     * @var Db
+     */
+    protected Db $db;
+
+    public function __construct(Db $db)
+    {
+        $this->db = $db;
+    }
+
     /**
      * @param $postId
      * @param $metaKey
      * @param $metaValue
      * @param string $prevValue
+     * @return bool|int
      */
     public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = '')
     {
