@@ -67,9 +67,6 @@ class ProductAttrController extends AbstractBaseController
         $suppressShippingNotice = false;
         $variationPreselect     = [];
 
-        //GERMANIZED PRO
-        $food = false;
-
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
@@ -98,14 +95,6 @@ class ProductAttrController extends AbstractBaseController
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18n->getValue());
-                        }
-                    }
-
-                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-                        if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_IS_FOOD) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
-                            $this->addOrUpdateMetaField($productId, '_is_food', $value);
-                            $food = true;
                         }
                     }
 
@@ -267,10 +256,6 @@ class ProductAttrController extends AbstractBaseController
                 \substr(ProductVaSpeAttrHandlerController::FACEBOOK_SYNC_STATUS_ATTR, 3),
                 ''
             );
-        }
-
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO) && !$food) {
-            $this->addOrUpdateMetaField($productId, '_is_food', 'no');
         }
 
         if (!$payable) {
