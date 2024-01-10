@@ -12,11 +12,11 @@ use JtlWooCommerceConnector\Controllers\AbstractBaseController;
  */
 class ProductAdvancedCustomFieldsController extends AbstractBaseController
 {
-    public function pullData()
+    public function pullData(ProductModel &$product, \WC_Product $wcProduct)
     {
     }
 
-    public function pushData()
+    public function pushData(ProductModel $product)
     {
     }
 }

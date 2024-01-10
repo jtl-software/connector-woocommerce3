@@ -16,6 +16,7 @@ use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
 use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
+use JtlWooCommerceConnector\Controllers\Product\ProductAdvancedCustomFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
 use JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController;
@@ -199,6 +200,10 @@ class ProductController extends AbstractBaseController implements
                 }
             }
 
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOME_FIELDS)) {
+                (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pullData($productModel, $product);
+            }
+
             $products[] = $productModel;
         }
 
@@ -319,6 +324,10 @@ class ProductController extends AbstractBaseController implements
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
         ) {
             (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
+        }
+
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOME_FIELDS)) {
+            (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pushData($model);
         }
 
         \remove_filter('content_save_pre', 'wp_filter_post_kses');
