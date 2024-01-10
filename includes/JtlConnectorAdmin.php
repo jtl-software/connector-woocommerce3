@@ -1,16 +1,17 @@
 <?php
 
-use jtl\Connector\Application\Application;
-use jtl\Connector\Core\Exception\MissingRequirementException;
-use jtl\Connector\Core\System\Check;
-use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Config\ConfigSchema;
+use Jtl\Connector\Core\Definition\IdentityType;
+use Jtl\Connector\Core\Exception\MissingRequirementException;
+use Jtl\Connector\Core\System\Check;
+use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController as CustomerGroupModel;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -29,6 +30,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws UnexpectedValueException
      */
     public static function plugin_activation(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -36,6 +38,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
+
+        clearConnectorCache();
 
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
@@ -55,10 +59,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             Check::run();
             self::activate_linking();
             self::initDefaultConfigValues($buildVersion);
-            Application::getInstance()->createFeaturesFileIfNecessary(
-                sprintf('%s/config/features.json.example', CONNECTOR_DIR)
-            );
-            self::loadFeaturesJson();
         } catch (MissingRequirementException $exc) {
             if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX )) {
                 jtlwcc_deactivate_plugin();
@@ -75,6 +75,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function activate_linking(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $wpdb;
+
+        $db = new Db($wpdb);
 
         $createQuery = '
             CREATE TABLE IF NOT EXISTS `%s` (
@@ -141,7 +143,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
             } elseif (! $oldExists && ! $newExists) {
                 if (strcmp($table, 'category_level') === 0) {
-                    self::activate_category_tree();
+                    self::activate_category_tree($db);
                 } elseif (strcmp($table, 'product_checksum') === 0) {
                     self::activate_checksum($prefix);
                 } elseif (strcmp($table, 'customer') === 0) {
@@ -151,7 +153,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 } elseif (strcmp($table, 'image') === 0) {
                     self::createImageLinkingTable();
                 } elseif (strcmp($table, 'manufacturer') === 0) {
-                    self::createManufacturerLinkingTable();
+                    self::createManufacturerLinkingTable($db);
                 } elseif (strcmp($table, 'tax_class') === 0) {
                     self::createTaxClassLinkingTable();
                 } else {
@@ -172,7 +174,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $prefix    = $wpdb->prefix . $oldPrefix;
         }
 
-        self::add_constraints_for_multi_linking_tables($prefix);
+        self::add_constraints_for_multi_linking_tables($prefix, $db);
     }
 
     /**
@@ -214,9 +216,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function activate_category_tree(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    private static function activate_category_tree(Db $db): void
     {
-        global $wpdb;
+        $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
         $engine = $wpdb->get_var(sprintf(
             "SELECT ENGINE
@@ -228,7 +231,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $constraint = '';
 
         if ($engine === 'InnoDB') {
-            if (! DB::checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
+            if (!$db->checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
                 $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) 
                                REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
             }
@@ -330,7 +333,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function createManufacturerLinkingTable(): void
+    private static function createManufacturerLinkingTable(Db $db): void
     {
         global $wpdb;
 
@@ -353,7 +356,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                ! DB::checkIfFKExists(
+                !$db->checkIfFKExists(
                     $wpdb->prefix . 'jtl_connector_link_manufacturer',
                     'jtl_connector_link_manufacturer_1'
                 )
@@ -392,7 +395,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function add_constraints_for_multi_linking_tables($prefix): void
+    private static function add_constraints_for_multi_linking_tables($prefix, $db): void
     {
         global $wpdb;
 
@@ -404,35 +407,35 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ));
 
         if ($engine === 'InnoDB') {
-            if (! DB::checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
+            if (! $db->checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}product`
                 ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY  (`endpoint_id`) 
                 REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (! DB::checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
+            if (! $db->checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}order`
                             ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) 
                             REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (! DB::checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
+            if (! $db->checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}payment`
                             ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) 
                             REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (! DB::checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
+            if (! $db->checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}crossselling`
                             ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) 
                                 REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-            if (! DB::checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
+            if (! $db->checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}category`
                             ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) 
@@ -441,7 +444,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             }
 
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-            if (! DB::checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
+            if (! $db->checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
                 $wpdb->query(
                     "ALTER TABLE `{$prefix}specific`
                             ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) 
@@ -496,10 +499,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws Exception
      */
-    public static function loadFeaturesJson(): void
+    public static function loadFeaturesJson(string $featuresJsonPath): void
     {
-        $features         = Config::get(Config::OPTIONS_FEATURES_JSON);
-        $featuresJsonPath = Application()->getFeaturePath();
+        $features = Config::get(Config::OPTIONS_FEATURES_JSON);
         if (! empty($features)) {
             $featuresJson = json_decode($features, true);
             if (is_array($featuresJson)) {
@@ -529,7 +531,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     public static function init(): void
     {
         if (! self::$initiated) {
-            self::init_hooks();
+            global $wpdb;
+            $db = new Db($wpdb);
+            self::init_hooks($db);
             self::checkIfDefaultCustomerGroupIsSet();
             self::checkIfPullCustomerGroupIsSet();
         }
@@ -541,7 +545,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      */
-    public static function init_hooks(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public static function init_hooks(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         self::$initiated = true;
 
@@ -819,7 +823,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             );
         }
 
-        self::update();
+        self::update($db);
     }
 
     /**
@@ -878,12 +882,22 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                           id="mainform"
                           class="form-horizontal col-10 bg-light"
                           action="<?php echo esc_html(admin_url('admin-post.php'));
-                          ?>?action=settings_save_woo-jtl-connector"
+                            ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
                         </div>
+
                         <?php
+                        if ($submit) {
+                            ?>
+                            <div class="form-group row">
+                                <button type="submit" name="submit" id="submit" class="btn btn-outline-primary ml-3">
+                                    Änderungen speichern
+                                </button>
+                            </div>
+                            <?php
+                        }
                         print '' . woocommerce_admin_fields($options) . '';
                         if ($submit) {
                             ?>
@@ -1436,9 +1450,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 '>'
             )
         ) {
+            global $wpdb;
+            $db     = new Db($wpdb);
+            $util   = new Util($db);
             $roles  = [];
             $sql    = SqlHelper::customerGroupPull();
-            $result = Db::getInstance()->query($sql);
+            $result = $db->query($sql);
             $result = array_diff($result, [ 'guest' ]);
             foreach ($result as $role) {
                 $roles[ $role['post_name'] ] = translate_user_role($role['post_title']);
@@ -1458,7 +1475,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ];
 
 
-            $customerGroups = ( new CustomerGroupModel() )->pullData();
+            $customerGroups = ( new CustomerGroupModel($db, $util) )->pull();
             $options        = [];
 
             /** @var CustomerGroupModel $customerGroup */
@@ -1561,6 +1578,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 JTLWCC_TEXT_DOMAIN
             ),
         ];
+
         //phpcs:enable
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
@@ -1729,9 +1747,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      */
-    private static function update(): void
+    private static function update(Db $db): void
     {
-        global $wpdb;
+        $wpdb = $db->getWpDb();
 
         $installed_version = Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
@@ -1742,7 +1760,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             // no break
             case '1.3.0':
             case '1.3.1':
-                self::update_multi_linking_endpoint_types();
+                self::update_multi_linking_endpoint_types($db);
             // no break
             case '1.3.2':
             case '1.3.3':
@@ -1762,7 +1780,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.4.11':
             case '1.4.12':
             case '1.5.0':
-                self::add_specifc_linking_tables();
+                self::add_specifc_linking_tables($db);
             // no break
             case '1.5.1':
             case '1.5.2':
@@ -1780,7 +1798,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.6.4':
             case '1.7.0':
             case '1.7.1':
-                self::createManufacturerLinkingTable();
+                self::createManufacturerLinkingTable($db);
             // no break
             case '1.8.0':
             case '1.8.0.1':
@@ -1965,6 +1983,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.39.8':
             case '1.39.9':
             case '1.39.10':
+            case '1.40.0':
+            case '1.40.1':
+            case '1.40.2':
+            case '1.40.3':
+            case '1.40.4':
+            case '1.41.0':
+            case '1.41.1':
+            case '1.41.2':
             default:
                 self::activate_linking();
         }
@@ -1975,7 +2001,32 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
         self::updateDeliveryTimeCalc();
+        self::updateImageIdentities($db);
     }
+
+    protected static function updateImageIdentities(Db $db): void
+    {
+        $imageMapping = [
+            IdentityType::PRODUCT => IdentityType::PRODUCT_IMAGE,
+            IdentityType::CATEGORY => IdentityType::CATEGORY_IMAGE,
+            IdentityType::MANUFACTURER => IdentityType::MANUFACTURER_IMAGE,
+            IdentityType::SPECIFIC => IdentityType::SPECIFIC_IMAGE,
+            IdentityType::SPECIFIC_VALUE => IdentityType::SPECIFIC_VALUE_IMAGE,
+            IdentityType::PRODUCT_VARIATION_VALUE => IdentityType::PRODUCT_VARIATION_VALUE_IMAGE,
+            IdentityType::CONFIG_GROUP => IdentityType::CONFIG_GROUP_IMAGE,
+        ];
+
+        foreach ($imageMapping as $relationType => $identityType) {
+            $updateIdentityQuery = sprintf(
+                'UPDATE `%sjtl_connector_link_image` SET `type` = %d WHERE `type` = %d',
+                $db->getWpDb()->prefix,
+                $relationType,
+                $identityType
+            );
+            $db->query($updateIdentityQuery);
+        }
+    }
+
 
     /**
      * @return void
@@ -2033,19 +2084,19 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function get_table_name( $type ): ?string//phpcs:ignore
     {
         switch ($type) {
-            case IdentityLinker::TYPE_CATEGORY:
+            case IdentityType::CATEGORY:
                 return 'jtl_connector_link_category';
-            case IdentityLinker::TYPE_CUSTOMER:
+            case IdentityType::CUSTOMER:
                 return 'jtl_connector_link_customer';
-            case IdentityLinker::TYPE_PRODUCT:
+            case IdentityType::PRODUCT:
                 return 'jtl_connector_link_product';
-            case IdentityLinker::TYPE_IMAGE:
+            case 16:
                 return 'jtl_connector_link_image';
-            case IdentityLinker::TYPE_CUSTOMER_ORDER:
+            case IdentityType::CUSTOMER_ORDER:
                 return 'jtl_connector_link_order';
-            case IdentityLinker::TYPE_PAYMENT:
+            case IdentityType::PAYMENT:
                 return 'jtl_connector_link_payment';
-            case IdentityLinker::TYPE_CROSSSELLING:
+            case IdentityType::CROSS_SELLING:
                 return 'jtl_connector_link_crossselling';
         }
 
@@ -2055,7 +2106,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    private static function update_multi_linking_endpoint_types(): void //phpcs:ignore
+    private static function update_multi_linking_endpoint_types($db): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -2090,24 +2141,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             WHERE `endpoint_id` LIKE "%s_%%"';
         $wpdb->query(sprintf(
             $updateImageLinkingTable,
-            IdentityLinker::TYPE_CATEGORY,
+            IdentityType::CATEGORY,
             Id::CATEGORY_PREFIX
         ));
         $wpdb->query(sprintf(
             $updateImageLinkingTable,
-            IdentityLinker::TYPE_PRODUCT,
+            IdentityType::PRODUCT,
             Id::PRODUCT_PREFIX
         ));
 
-        self::add_constraints_for_multi_linking_tables('jtl_connector_link_');
+        self::add_constraints_for_multi_linking_tables('jtl_connector_link_', $db);
     }
 
     /**
      * @return void
      */
-    private static function add_specifc_linking_tables(): void //phpcs:ignore
+    private static function add_specifc_linking_tables(Db $db): void //phpcs:ignore
     {
-        global $wpdb;
+        $wpdb = $db->getWpDb();
 
         $query = '
             CREATE TABLE IF NOT EXISTS `%s` (
@@ -2129,7 +2180,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (
-                ! DB::checkIfFKExists(
+                ! $db->checkIfFKExists(
                     'jtl_connector_link_category',
                     'jtl_connector_link_category_1'
                 )
@@ -2143,7 +2194,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (
-                ! DB::checkIfFKExists(
+                ! $db->checkIfFKExists(
                     'jtl_connector_link_specific',
                     'jtl_connector_link_specific_1'
                 )
@@ -2259,8 +2310,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $defaultCustomerGroup = Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
+            global $wpdb;
             $sql                     = SqlHelper::customerGroupPull();
-            $b2bMarketCustomerGroups = Db::getInstance()->query($sql);
+            $b2bMarketCustomerGroups = (new Db($wpdb))->query($sql);
             if (
                 count($b2bMarketCustomerGroups) > 0
                 && ! in_array($defaultCustomerGroup, array_column($b2bMarketCustomerGroups, 'ID'))
@@ -2855,10 +2907,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             Config::set($key, $value);
         }
-        Config::updateDeveloperLoggingSettings((bool) Config::get(
-            Config::OPTIONS_DEVELOPER_LOGGING,
-            false
-        ));
+        Config::updateDeveloperLoggingSettings(
+            (bool) Config::get(
+                Config::OPTIONS_DEVELOPER_LOGGING,
+                false
+            )
+        );
 
         $request = $_SERVER["HTTP_REFERER"];
 

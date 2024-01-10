@@ -7,17 +7,13 @@
 
 namespace JtlWooCommerceConnector\Event;
 
-use jtl\Connector\Result\Action;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleStatsEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.stats';
 
-    /**
-     * @var Action
-     */
-    protected Action $result;
+    protected $result;
     protected $controller;
 
     public function __construct($controller)
@@ -30,17 +26,11 @@ class HandleStatsEvent extends Event
         return $this->controller;
     }
 
-    /**
-     * @return Action
-     */
-    public function getResult(): Action
+    public function getResult()
     {
         return $this->result;
     }
 
-    /**
-     * @param $result
-     */
     public function setResult($result)
     {
         $this->result = $result;

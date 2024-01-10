@@ -7,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-final class SupportedPlugins
+class SupportedPlugins
 {
     //THEMESPECIALS
 
@@ -22,7 +22,7 @@ final class SupportedPlugins
         PLUGIN_WOOCOMMERCE                                         = 'WooCommerce',
         PLUGIN_WOOCOMMERCE_GERMANIZED                              = 'WooCommerce Germanized',
         PLUGIN_WOOCOMMERCE_GERMANIZED2                             = 'Germanized for WooCommerce',
-        PLUGIN_WOOCOMMERCE_GERMANIZEDPRO                           = 'Germanized for WooCommerce Pro', //TODO:CHECK THAT
+        PLUGIN_WOOCOMMERCE_GERMANIZEDPRO                           = 'Germanized for WooCommerce Pro',
         PLUGIN_WOOCOMMERCE_BLOCKS                                  = 'WooCommerce Blocks',
         PLUGIN_ATOMION_WOOCOMMERCE_BLOCKS                          = 'Atomion WooCommerce Blocks',
         PLUGIN_WOOF_WC_PRODUCT_FILTER                              = 'WOOF - WooCommerce Products Filter',
@@ -36,7 +36,8 @@ final class SupportedPlugins
         PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE                        = 'VR pay eCommerce - WooCommerce',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE                = 'WPC Product Quantity for WooCommerce',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM        = 'WPC Product Quantity for WooCommerce (Premium)',
-        PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE = 'Additional Variation Images Gallery for WooCommerce',
+        PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
+            = 'Additional Variation Images Gallery for WooCommerce',
         PLUGIN_RANK_MATH_SEO                                       = 'Rank Math SEO',
         PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE               = 'Checkout Field Editor for WooCommerce',
 
