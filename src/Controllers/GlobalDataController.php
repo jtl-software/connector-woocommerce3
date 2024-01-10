@@ -77,6 +77,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
         ) {
             $globalData
                 ->setMeasurementUnits(...(new MeasurementUnitController($this->db, $this->util))->pullGermanizedData());
+            \update_option('woocommerce_gzd_shipments_auto_order_completed_shipped_enable', 'yes', true);
         }
 
         if (
