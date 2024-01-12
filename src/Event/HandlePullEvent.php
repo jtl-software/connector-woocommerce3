@@ -7,17 +7,13 @@
 
 namespace JtlWooCommerceConnector\Event;
 
-use jtl\Connector\Result\Action;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class HandlePullEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.pull';
 
-    /**
-     * @var Action
-     */
-    protected Action $result;
+    protected $result;
     protected $controller;
     protected $params;
 
@@ -37,17 +33,11 @@ class HandlePullEvent extends Event
         return $this->params;
     }
 
-    /**
-     * @return Action
-     */
-    public function getResult(): Action
+    public function getResult()
     {
         return $this->result;
     }
 
-    /**
-     * @param $result
-     */
     public function setResult($result)
     {
         $this->result = $result;

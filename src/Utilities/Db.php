@@ -7,11 +7,41 @@
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Core\Utilities\Singleton;
-use JtlWooCommerceConnector\Logger\DatabaseLogger;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
-class Db extends Singleton
+class Db implements LoggerAwareInterface
 {
+    /**
+     * @var \wpdb
+     */
+    protected $wpDb;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @param \wpdb $wpdb
+     */
+    public function __construct(\wpdb $wpdb)
+    {
+        $this->wpDb   = $wpdb;
+        $this->logger = new NullLogger();
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
+
     /**
      * Run a plain SQL query on the database.
      *
@@ -22,10 +52,10 @@ class Db extends Singleton
      */
     public function query(string $query, bool $shouldLog = true): ?array
     {
-        global $wpdb;
+        $wpdb = $this->getWpDb();
 
         if ($shouldLog) {
-            DatabaseLogger::getInstance()->writeLog($query);
+            $this->logger->debug($query);
         }
 
         return $wpdb->get_results($query, \ARRAY_A);
@@ -41,10 +71,10 @@ class Db extends Singleton
      */
     public function queryOne(string $query, bool $shouldLog = true): ?string
     {
-        global $wpdb;
+        $wpdb = $this->getWpDb();
 
         if ($shouldLog) {
-            DatabaseLogger::getInstance()->writeLog($query);
+            $this->logger->debug($query);
         }
 
         return $wpdb->get_var($query);
@@ -60,12 +90,12 @@ class Db extends Singleton
      */
     public function queryList(string $query, bool $shouldLog = true): array
     {
-        global $wpdb;
+        $wpdb = $this->getWpDb();
 
         $return = [];
 
         if ($shouldLog) {
-            DatabaseLogger::getInstance()->writeLog($query);
+            $this->logger->debug($query);
         }
 
         $result = $wpdb->get_results($query, \ARRAY_N);
@@ -82,11 +112,20 @@ class Db extends Singleton
     }
 
     /**
+     * @return \wpdb
+     */
+    public function getWpDb(): \wpdb
+    {
+        return $this->wpDb;
+    }
+
+
+    /**
      * @param $table
      * @param $constraint
      * @return bool
      */
-    public static function checkIfFKExists($table, $constraint): bool
+    public function checkIfFKExists($table, $constraint): bool
     {
         $sql  = "
                SELECT COUNT(*)
@@ -94,16 +133,8 @@ class Db extends Singleton
                   WHERE TABLE_SCHEMA = DATABASE()
                     AND TABLE_NAME = '{$table}'
                     AND CONSTRAINT_NAME = '{$constraint}';";
-        $test = Db::getInstance()->queryOne($sql);
+        $test = $this->queryOne($sql);
 
         return (bool)$test;
-    }
-
-    /**
-     * @return Singleton
-     */
-    public static function getInstance(): Singleton
-    {
-        return parent::getInstance();
     }
 }

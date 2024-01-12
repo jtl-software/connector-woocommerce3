@@ -2,8 +2,10 @@
 
 namespace JtlWooCommerceConnector\Tests\Controllers\Order;
 
-use JtlWooCommerceConnector\Controllers\Order\CustomerOrderItem;
+use JtlWooCommerceConnector\Controllers\Order\CustomerOrderItemController;
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CustomerOrderItemTest
@@ -21,7 +23,12 @@ class CustomerOrderItemTest extends AbstractTestCase
      */
     public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate)
     {
-        $vatRate = $this->invokeMethodFromObject(new CustomerOrderItem(), 'calculateVat', $priceNet, $priceGross);
+        $vatRate = $this->invokeMethodFromObject(
+            new CustomerOrderItemController($this->createDbMock(), $this->createUtilMock()),
+            'calculateVat',
+            $priceNet,
+            $priceGross
+        );
         $this->assertEquals($expectedVatRate, $vatRate);
     }
 

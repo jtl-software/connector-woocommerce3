@@ -8,7 +8,6 @@
 namespace JtlWooCommerceConnector\Utilities;
 
 use JtlWooCommerceConnector\Utilities\SqlTraits\CategoryTrait;
-use JtlWooCommerceConnector\Utilities\SqlTraits\ChecksumTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CrossSellingTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerGroupTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\CustomerOrderTrait;
@@ -25,10 +24,9 @@ use JtlWooCommerceConnector\Utilities\SqlTraits\SpecificTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\TaxesTrait;
 use JtlWooCommerceConnector\Utilities\SqlTraits\WooCommerceDataTrait;
 
-final class SqlHelper
+class SqlHelper
 {
     use CategoryTrait;
-    use ChecksumTrait;
     use CrossSellingTrait;
     use CustomerTrait;
     use CustomerGroupTrait;
