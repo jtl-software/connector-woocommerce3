@@ -208,7 +208,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             : $start->getTimestamp();
                     } else {
                         $dateTo   = '';
-                        $dateFrom = '';
+                        $dateFrom = \is_null($start = $specialPrice->getActiveFromDate()) ? '' : $start->getTimestamp();
                     }
 
                     if (\wc_prices_include_tax()) {
