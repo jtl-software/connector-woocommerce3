@@ -8,6 +8,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2496 - call method dynamically 
 - CO-2416 - set germanized option "mark as shipped" true per default 
 - CO-2419 - allow start date for special price without end date
+- CO-2512 - set id for custom attributes
 
 ## 1.41.2 _2023-12-05_
 - HOTFIX Category Mapping HostId = 0
