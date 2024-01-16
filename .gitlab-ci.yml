@@ -1,9 +1,10 @@
 variables:
   FF_USE_FASTZIP: 1
   COMPOSER_CACHE_DIR: ${CI_PROJECT_DIR}/.composer-cache
+  BASE_PHP_VERSION: '8.0'
 
 default:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   tags:
     - docker
   before_script:
@@ -36,7 +37,7 @@ test:unit:
   parallel:
     matrix:
       - BASE: 'php'
-        VERSION: [ '8.0', '8.1', '8.2', '8.3' ]
+        VERSION: [ '8.0', '8.1', '8.2' ] # no image for 8.3 yet
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:
@@ -46,7 +47,7 @@ test:unit:
       junit: junit.xml
 
 build:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   stage: build
   variables:
     VERSION: dev
@@ -67,7 +68,7 @@ build:
       - dist/
 
 build:zip:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   stage: build
   variables:
     VERSION: dev
