@@ -50,6 +50,12 @@ try {
 } catch (\Exception $e) {
 }
 
+
+add_action('before_woocommerce_init', function () {
+    if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
 add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
 

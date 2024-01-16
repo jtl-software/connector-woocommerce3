@@ -309,7 +309,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentIds = $productAttachments;
 
         foreach ($attachmentIds as $attachmentId) {
-            $endpointId = Id::linkProductImage($attachmentId, $productId);
+            $endpointId = Id::link([$attachmentId, $productId]);
 
             if (!\in_array($endpointId, $this->alreadyLinked, true)) {
                 $filtered[]            = $attachmentId;
