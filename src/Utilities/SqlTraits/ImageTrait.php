@@ -48,7 +48,7 @@ trait ImageTrait
             {$limitQuery}",
             Id::SEPARATOR,
             Id::CATEGORY_PREFIX,
-            IdentityType::CATEGORY,
+            IdentityType::CATEGORY_IMAGE,
             CategoryUtil::TERM_TAXONOMY,
             ImageCtrl::CATEGORY_THUMBNAIL
         );
@@ -82,7 +82,7 @@ trait ImageTrait
             {$limitQuery}",
             Id::SEPARATOR,
             Id::MANUFACTURER_PREFIX,
-            IdentityType::MANUFACTURER,
+            IdentityType::MANUFACTURER_IMAGE,
             'pwb-brand',
             ImageCtrl::MANUFACTURER_KEY
         );
@@ -113,7 +113,7 @@ trait ImageTrait
             AND l.host_id IS NULL
             GROUP BY p.ID, pm.meta_value",
             Id::SEPARATOR,
-            IdentityType::PRODUCT,
+            IdentityType::PRODUCT_IMAGE,
             ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
@@ -151,7 +151,7 @@ trait ImageTrait
 			SELECT endpoint_id
 			FROM {$jcli}
 			WHERE `type` = '%d'",
-            IdentityType::PRODUCT
+            IdentityType::PRODUCT_IMAGE
         );
     }
 
@@ -184,7 +184,7 @@ trait ImageTrait
             FROM {$wpdb->posts} p2)
             {$limitQuery}",
             Id::SEPARATOR,
-            IdentityType::PRODUCT,
+            IdentityType::PRODUCT_IMAGE,
             ImageCtrl::PRODUCT_THUMBNAIL
         );
     }
@@ -233,7 +233,7 @@ trait ImageTrait
             WHERE `type` = %d
             AND endpoint_id
             LIKE '%%%s{$productId}'",
-            IdentityType::PRODUCT,
+            IdentityType::PRODUCT_IMAGE,
             Id::SEPARATOR
         );
     }
