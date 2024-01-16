@@ -929,6 +929,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     //ALL
 
+    /**
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function getSpecificValueId(string $slug, string $value)
     {
         $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value));

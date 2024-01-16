@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -14,15 +10,16 @@ use Jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
+use WC_Product;
 
 class Product2CategoryController extends AbstractBaseController
 {
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullData(\WC_Product $product): array
+    public function pullData(WC_Product $product): array
     {
         $productCategories = [];
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 class SupportedPlugins
@@ -120,7 +115,7 @@ class SupportedPlugins
      *
      * @return array|string
      */
-    public static function getSupported(bool $asString = false)
+    public static function getSupported(bool $asString = false): array|string
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
@@ -151,7 +146,7 @@ class SupportedPlugins
         bool $asString = false,
         bool $all = false,
         bool $asArray = false
-    ) {
+    ): array|string {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
         $tmp     = [];

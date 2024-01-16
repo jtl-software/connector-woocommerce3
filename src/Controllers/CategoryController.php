@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -31,9 +26,9 @@ class CategoryController extends AbstractBaseController implements
     private static array $idCache = [];
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -105,7 +100,7 @@ class CategoryController extends AbstractBaseController implements
 
         $parentCategoryId = $model->getParentCategoryId();
 
-        if ($parentCategoryId !== null && isset(self::$idCache[$parentCategoryId->getHost()])) {
+        if (isset(self::$idCache[$parentCategoryId->getHost()])) {
             $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
         }
 
@@ -220,6 +215,7 @@ class CategoryController extends AbstractBaseController implements
     /**
      * @param CategoryModel $model
      * @return CategoryModel
+     * @throws InvalidArgumentException
      */
     public function delete(AbstractModel $model): AbstractModel
     {

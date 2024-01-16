@@ -1,11 +1,11 @@
 <?php
 
-use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController as CustomerGroupModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -71,6 +71,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function activate_linking(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -215,6 +216,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     private static function activate_category_tree(Db $db): void
@@ -391,7 +394,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @param $prefix
-     *
+     * @param $db
      * @return void
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -527,6 +530,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public static function init(): void
     {
@@ -544,6 +548,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      * @throws ParseException
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public static function init_hooks(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -1475,7 +1481,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ];
 
 
-            $customerGroups = ( new CustomerGroupModel($db, $util) )->pull();
+            $customerGroups = ( new CustomerGroupController($db, $util) )->pull();
             $options        = [];
 
             /** @var CustomerGroupModel $customerGroup */
@@ -1744,8 +1750,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
      * @throws ParseException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function update(Db $db): void
     {
@@ -2154,7 +2162,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function add_specifc_linking_tables(Db $db): void //phpcs:ignore
     {

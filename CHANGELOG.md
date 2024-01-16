@@ -12,6 +12,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2419 - allow start date for special price without end date
 - CO-2512 - set id for custom attributes
 - CO-2511 - solve image import loop
+- CO-2449 - migrate to core 5.2
 
 ## 1.41.2 _2023-12-05_
 - HOTFIX Category Mapping HostId = 0

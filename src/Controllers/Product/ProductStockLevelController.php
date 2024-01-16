@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Exception;
 use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductStockLevel as StockLevelModel;
@@ -20,7 +17,6 @@ class ProductStockLevelController extends AbstractBaseController
     /**
      * @param WC_Product $product
      * @return StockLevelModel
-     * @throws InvalidArgumentException
      */
     public function pullData(WC_Product $product): StockLevelModel
     {
@@ -34,7 +30,7 @@ class ProductStockLevelController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function pushDataChild(ProductModel $product): void
     {
@@ -70,7 +66,7 @@ class ProductStockLevelController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function pushDataParent(ProductModel $product): void
     {
@@ -120,6 +116,7 @@ class ProductStockLevelController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return string
+     * @throws TranslatableAttributeException
      */
     protected function getBackorderValue(ProductModel $product): string
     {

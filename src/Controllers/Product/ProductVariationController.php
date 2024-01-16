@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -17,7 +12,8 @@ use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
-use MailPoet\API\JSON\Error;
+use Psr\Log\InvalidArgumentException;
+use WC_Product;
 use WC_Product_Attribute;
 use WP_Error;
 
@@ -29,7 +25,6 @@ class ProductVariationController extends AbstractBaseController
      * @param WC_Product_Attribute $attribute
      * @param string $languageIso
      * @return ProductVariationModel|null
-     * @throws \InvalidArgumentException
      */
     public function pullDataParent(
         ProductModel $model,
@@ -82,13 +77,12 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
      * @param string $languageIso
      * @return array
-     * @throws \InvalidArgumentException
      */
-    public function pullDataChild(\WC_Product $product, ProductModel $model, string $languageIso = ''): array
+    public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
         $parentProduct     = \wc_get_product($product->get_parent_id());
         $productVariations = [];
@@ -163,6 +157,7 @@ class ProductVariationController extends AbstractBaseController
      * @param array $variationSpecificData
      * @param array $attributesFilteredVariationSpecifics
      * @return array|null
+     * @throws InvalidArgumentException
      */
     public function pushMasterData(
         string $productId,

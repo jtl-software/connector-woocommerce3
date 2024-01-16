@@ -1,32 +1,29 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
+use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use wpdb;
 
 class Db implements LoggerAwareInterface
 {
     /**
-     * @var \wpdb
+     * @var wpdb
      */
-    protected $wpDb;
+    protected wpdb $wpDb;
 
     /**
      * @var LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface|NullLogger $logger;
 
     /**
-     * @param \wpdb $wpdb
+     * @param wpdb $wpdb
      */
-    public function __construct(\wpdb $wpdb)
+    public function __construct(wpdb $wpdb)
     {
         $this->wpDb   = $wpdb;
         $this->logger = new NullLogger();
@@ -49,6 +46,7 @@ class Db implements LoggerAwareInterface
      * @param bool $shouldLog Query should be written to log files.
      *
      * @return array|null Database query results
+     * @throws InvalidArgumentException
      */
     public function query(string $query, bool $shouldLog = true): ?array
     {
@@ -68,6 +66,7 @@ class Db implements LoggerAwareInterface
      * @param bool $shouldLog Query should be written to log files.
      *
      * @return null|string Found value or null.
+     * @throws InvalidArgumentException
      */
     public function queryOne(string $query, bool $shouldLog = true): ?string
     {
@@ -87,6 +86,7 @@ class Db implements LoggerAwareInterface
      * @param bool $shouldLog Query should be written to log files.
      *
      * @return array The array of values
+     * @throws InvalidArgumentException
      */
     public function queryList(string $query, bool $shouldLog = true): array
     {
@@ -112,9 +112,9 @@ class Db implements LoggerAwareInterface
     }
 
     /**
-     * @return \wpdb
+     * @return wpdb
      */
-    public function getWpDb(): \wpdb
+    public function getWpDb(): wpdb
     {
         return $this->wpDb;
     }
@@ -124,6 +124,7 @@ class Db implements LoggerAwareInterface
      * @param $table
      * @param $constraint
      * @return bool
+     * @throws InvalidArgumentException
      */
     public function checkIfFKExists($table, $constraint): bool
     {

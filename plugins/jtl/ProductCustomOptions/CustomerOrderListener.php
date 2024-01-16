@@ -4,6 +4,7 @@ namespace jtl\ProductCustomOptions;
 
 use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CustomerOrderListener
@@ -14,7 +15,7 @@ class CustomerOrderListener
     /**
      * @var array
      */
-    protected $customFieldNames = [];
+    protected mixed $customFieldNames = [];
 
     /**
      * @var Db
@@ -26,7 +27,7 @@ class CustomerOrderListener
      */
     public function __construct(Db $db)
     {
-        $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []); //TODO:: check das
+        $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
         $this->db               = $db;
     }
 
@@ -64,6 +65,7 @@ class CustomerOrderListener
     /**
      * @param int $wcOrderItemId
      * @return string
+     * @throws InvalidArgumentException
      */
     public function getCustomProductOptions(int $wcOrderItemId): string
     {

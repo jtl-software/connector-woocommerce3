@@ -9,6 +9,7 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -29,13 +30,12 @@ use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerControlle
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;
 use WC_Data_Exception;
+use WC_Product;
 
 class ProductController extends AbstractBaseController implements
     PullInterface,
@@ -66,7 +66,7 @@ class ProductController extends AbstractBaseController implements
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
 
-            if (!$product instanceof \WC_Product) {
+            if (!$product instanceof WC_Product) {
                 continue;
             }
 
@@ -353,7 +353,8 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @return int|null
+     * @param QueryFilter $query
+     * @return int
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
@@ -400,10 +401,11 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $jtlProduct
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
+     * @throws TranslatableAttributeException
      */
-    private function updateProductType(ProductModel $jtlProduct, \WC_Product $wcProduct): void
+    private function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
         $productId            = $wcProduct->get_id();
         $customProductTypeSet = false;
@@ -484,12 +486,12 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws WC_Data_Exception
      * @throws Exception
      */
-    private function updateProductMeta(ProductModel $product, \WC_Product $wcProduct): void
+    private function updateProductMeta(ProductModel $product, WC_Product $wcProduct): void
     {
         $parent = $product->getMasterProductId()->getEndpoint();
 
@@ -587,12 +589,12 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param string $productType
      * @return void
      * @throws InvalidArgumentException
      */
-    private function updateProductRelations(ProductModel $product, \WC_Product $wcProduct, string $productType): void
+    private function updateProductRelations(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {
         (new Product2CategoryController($this->db, $this->util))->pushData($product);
         $this->fixProductPriceForCustomerGroups($product, $wcProduct);
@@ -605,12 +607,12 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param $meta
      * @return void
      * @throws Exception
      */
-    private function updateVariationCombinationChild(ProductModel $product, \WC_Product $wcProduct, $meta): void
+    private function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
     {
         $productId = (int)$product->getId()->getEndpoint();
 

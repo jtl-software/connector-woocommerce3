@@ -16,12 +16,12 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     /**
      * @var string
      */
-    protected $controllerName;
+    protected string $controllerName;
 
     /**
      * @var LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * BaseController constructor.
@@ -58,8 +58,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $postId
      * @param $metaKey
      * @param $value
+     * @return bool|int
      */
-    protected function updatePostMeta($postId, $metaKey, $value)
+    protected function updatePostMeta($postId, $metaKey, $value): bool|int
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }
@@ -68,8 +69,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $postId
      * @param $metaKey
      * @param $value
+     * @return bool|int
      */
-    protected function addPostMeta($postId, $metaKey, $value)
+    protected function addPostMeta($postId, $metaKey, $value): bool|int
     {
         return \add_post_meta($postId, $metaKey, $value, true);
     }
@@ -79,13 +81,14 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $terms
      * @param $taxonomy
      * @param bool $append
+     * @return array|\WP_Error|int|bool|string|null
      */
     protected function wpSetObjectTerms(
         $objectId,
         $terms,
         $taxonomy,
         bool $append = false
-    ) {
+    ): array|\WP_Error|int|bool|string|null {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 
@@ -93,8 +96,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $objectId
      * @param $terms
      * @param $taxonomy
+     * @return array|\WP_Error|bool|int|string|null
      */
-    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy)
+    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy): array|\WP_Error|bool|int|string|null
     {
         return \wp_remove_object_terms($objectId, $terms, $taxonomy);
     }
@@ -117,6 +121,7 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param string $taxonomy
      * @param string $output
      * @param string $filter
+     * @return \WP_Term|\WP_Error|bool|array|null
      */
     protected function getTermBy(
         $field,
@@ -124,14 +129,15 @@ abstract class AbstractBaseController extends AbstractController implements Logg
         string $taxonomy = '',
         string $output = \OBJECT,
         string $filter = 'raw'
-    ) {
+    ): \WP_Term|\WP_Error|bool|array|null {
         return \get_term_by($field, $value, $taxonomy, $output = \OBJECT, $filter = 'raw');
     }
 
     /**
      * @param $variable
+     * @return array|string
      */
-    protected function wcClean($variable)
+    protected function wcClean($variable): array|string
     {
         return \wc_clean($variable);
     }
@@ -148,9 +154,10 @@ abstract class AbstractBaseController extends AbstractController implements Logg
 
     /**
      * @param $postData
+     * @return int|\WP_Error
      * @throws \Exception
      */
-    protected function wpUpdatePost($postData)
+    protected function wpUpdatePost($postData): \WP_Error|int
     {
         return \wp_update_post($postData);
     }
