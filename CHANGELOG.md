@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2362 remove space in image title
 - CO-2377 - add hpos support
 - CO-2494 - disable cache
 - CO-2496 - call method dynamically 

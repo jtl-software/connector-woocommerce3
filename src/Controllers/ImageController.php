@@ -482,7 +482,7 @@ class ImageController extends AbstractBaseController implements
             $attachment = \array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
-                'post_title' => \preg_replace('/\.[^.]+$/', '', $fileName),
+                'post_title' => \preg_replace('/\.[^.]+$/', '', $name),
                 'post_status' => 'inherit',
             ]);
 
@@ -552,7 +552,7 @@ class ImageController extends AbstractBaseController implements
     private function sanitizeImageName(string $name): string
     {
         $name = \iconv('utf-8', 'ascii//translit', $name);
-        $name = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = \preg_replace('#[^A-Za-z0-9\-_ ]#', '-', $name);
         $name = \preg_replace('#-{2,}#', '-', $name);
         $name = \trim($name, '-');
 
@@ -569,6 +569,7 @@ class ImageController extends AbstractBaseController implements
     {
         $i            = 1;
         $originalName = $name;
+        $name         = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         do {
             $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
