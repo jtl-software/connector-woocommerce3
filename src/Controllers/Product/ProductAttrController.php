@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\Identity;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -22,16 +23,16 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
-     * @param WC_Product $product
-     * @param WC_Product_Attribute $attribute
+     * @param \WC_Product $product
+     * @param \WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullData(
-        WC_Product $product,
-        WC_Product_Attribute $attribute,
+        \WC_Product $product,
+        \WC_Product_Attribute $attribute,
         $slug,
         $languageIso
     ): ProductAttrModel {
@@ -303,16 +304,16 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $product
-     * @param WC_Product_Attribute $attribute
+     * @param \WC_Product $product
+     * @param \WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function buildAttribute(
-        WC_Product $product,
-        WC_Product_Attribute $attribute,
+        \WC_Product $product,
+        \WC_Product_Attribute $attribute,
         $slug,
         $languageIso
     ): ProductAttrModel {
@@ -328,6 +329,7 @@ class ProductAttrController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return (new ProductAttrModel())
+            ->setId(new Identity($product->get_id() . '_' . \wc_sanitize_taxonomy_name($attribute->get_name())))
             ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }
