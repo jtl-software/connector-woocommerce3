@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.42.0 _2024_01_16_
 - CO-2433 - null safe on get quantity
 - CO-2362 - remove space in image title
 - CO-2377 - add hpos support
