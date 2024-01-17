@@ -7,6 +7,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\TaxRate as TaxRateModel;
 use JtlWooCommerceConnector\Controllers\AbstractController;
@@ -16,7 +17,7 @@ class TaxRateController extends AbstractController
 {
     /**
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pull(): array
     {

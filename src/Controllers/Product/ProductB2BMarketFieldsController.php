@@ -1,37 +1,32 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
 
 class ProductB2BMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
+    public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {
         $this->setRRPProperty($product, $wcProduct);
     }
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
      */
-    private function setRRPProperty(ProductModel &$product, \WC_Product $wcProduct): void
+    private function setRRPProperty(ProductModel &$product, WC_Product $wcProduct): void
     {
         $rrp = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         if ($rrp !== '' && !empty($rrp)) {
@@ -42,13 +37,13 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pushData(ProductModel $product): void
     {
         $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
-        if ($wcProduct instanceof \WC_Product === false) {
+        if ($wcProduct instanceof WC_Product === false) {
             return;
         }
 
@@ -59,11 +54,11 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    protected function updateMinimumOrderQuantity(ProductModel $product, \WC_Product $wcProduct): void
+    protected function updateMinimumOrderQuantity(ProductModel $product, WC_Product $wcProduct): void
     {
         $groupController = new CustomerGroupController($this->db, $this->util);
 
@@ -94,11 +89,11 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param $quantityObject
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param $groupSlug
      * @return void
      */
-    protected function updateMinimumQuantityMetaFields($quantityObject, \WC_Product $wcProduct, $groupSlug): void
+    protected function updateMinimumQuantityMetaFields($quantityObject, WC_Product $wcProduct, $groupSlug): void
     {
         $minQuantityKey = \sprintf("bm_%s_min_quantity", $groupSlug);
         \update_post_meta(
@@ -118,10 +113,10 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      */
-    private function updateRRP(ProductModel $product, \WC_Product $wcProduct): void
+    private function updateRRP(ProductModel $product, WC_Product $wcProduct): void
     {
         $rrp = $product->getRecommendedRetailPrice();
         $rrp = \round($rrp, 4);
@@ -162,10 +157,10 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      */
-    private function updateSpecialPrices(ProductModel $product, \WC_Product $wcProduct): void
+    private function updateSpecialPrices(ProductModel $product, WC_Product $wcProduct): void
     {
         $jtlSpecialPrices = $product->getSpecialPrices();
 

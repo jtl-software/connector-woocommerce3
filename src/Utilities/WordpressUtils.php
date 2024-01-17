@@ -25,7 +25,7 @@ abstract class WordpressUtils
      * @param string $prevValue
      * @return bool|int
      */
-    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = '')
+    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = ''): bool|int
     {
         return \update_post_meta($postId, $metaKey, $metaValue, $prevValue);
     }

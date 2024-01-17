@@ -1,11 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
@@ -16,7 +10,6 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Definition\IdentityType;
-use Jtl\Connector\Core\Definition\Model;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use Jtl\Connector\Core\Model\AbstractImage;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -33,6 +26,7 @@ use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 class ImageController extends AbstractBaseController implements
     PullInterface,
@@ -49,9 +43,9 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_IMAGE     = 'category';
     public const MANUFACTURER_IMAGE = 'manufacturer';
 
-    private $alreadyLinked = [];
+    private array $alreadyLinked = [];
 
-    protected $primaryKeyMapper;
+    protected PrimaryKeyMapperInterface $primaryKeyMapper;
 
     public function __construct(Db $db, Util $util, PrimaryKeyMapperInterface $primaryKeyMapper)
     {
@@ -63,9 +57,10 @@ class ImageController extends AbstractBaseController implements
     // <editor-fold defaultstate="collapsed" desc="Pull">
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
      * @throws InvalidArgumentException
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -144,6 +139,7 @@ class ImageController extends AbstractBaseController implements
      * @param null $limit The limit.
      *
      * @return array The image entities.
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function productImagePull($limit = null): array
     {
@@ -169,7 +165,7 @@ class ImageController extends AbstractBaseController implements
                     foreach ($query->posts as $postId) {
                         $product = \wc_get_product($postId);
 
-                        if (!$product instanceof \WC_Product) {
+                        if (!$product instanceof WC_Product) {
                             continue;
                         }
 
@@ -201,11 +197,11 @@ class ImageController extends AbstractBaseController implements
     /**
      * Fetch the cover image and the gallery images for a given product.
      *
-     * @param \WC_Product $product The product for which the cover image and gallery images should be fetched.
+     * @param WC_Product $product The product for which the cover image and gallery images should be fetched.
      *
      * @return array An array with the image ids.
      */
-    private function fetchProductAttachmentIds(\WC_Product $product): array
+    private function fetchProductAttachmentIds(WC_Product $product): array
     {
         $attachmentIds = [];
 
@@ -245,6 +241,7 @@ class ImageController extends AbstractBaseController implements
      * @param int $postId The product which is owner of the images.
      *
      * @return array The filtered image data.
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function addProductImagesForPost(array $attachmentIds, int $postId): array
     {
@@ -256,6 +253,7 @@ class ImageController extends AbstractBaseController implements
      * @param $attachmentIds
      * @param $productId
      * @return array
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function fetchProductAttachments($attachmentIds, $productId): array
     {
@@ -309,7 +307,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentIds = $productAttachments;
 
         foreach ($attachmentIds as $attachmentId) {
-            $endpointId = Id::linkProductImage($attachmentId, $productId);
+            $endpointId = Id::link([$attachmentId, $productId]);
 
             if (!\in_array($endpointId, $this->alreadyLinked, true)) {
                 $filtered[]            = $attachmentId;
@@ -323,6 +321,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param $limit
      * @return array
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function categoryImagePull($limit): array
     {
@@ -342,6 +341,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param $limit
      * @return array
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function manufacturerImagePull($limit): array
     {
@@ -361,7 +361,9 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Stats">
     /**
-     * @return int|null
+     * @param QueryFilter $query
+     * @return int
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {
@@ -378,6 +380,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @return int|null
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function masterProductImageStats(): ?int
     {
@@ -482,7 +485,7 @@ class ImageController extends AbstractBaseController implements
             $attachment = \array_merge($attachment, [
                 'guid' => $uploadDir['url'] . '/' . $fileName,
                 'post_mime_type' => $fileType['type'],
-                'post_title' => \preg_replace('/\.[^.]+$/', '', $fileName),
+                'post_title' => \preg_replace('/\.[^.]+$/', '', $name),
                 'post_status' => 'inherit',
             ]);
 
@@ -552,7 +555,7 @@ class ImageController extends AbstractBaseController implements
     private function sanitizeImageName(string $name): string
     {
         $name = \iconv('utf-8', 'ascii//translit', $name);
-        $name = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = \preg_replace('#[^A-Za-z0-9\-_ ]#', '-', $name);
         $name = \preg_replace('#-{2,}#', '-', $name);
         $name = \trim($name, '-');
 
@@ -569,6 +572,7 @@ class ImageController extends AbstractBaseController implements
     {
         $i            = 1;
         $originalName = $name;
+        $name         = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         do {
             $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
@@ -614,7 +618,7 @@ class ImageController extends AbstractBaseController implements
         $productId = (int)$image->getForeignKey()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
-        if (!$wcProduct instanceof \WC_Product) {
+        if (!$wcProduct instanceof WC_Product) {
             return null;
         }
 
@@ -770,6 +774,7 @@ class ImageController extends AbstractBaseController implements
      * @param AbstractImage $image
      * @param $realDelete
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function deleteProductImage(AbstractImage $image, $realDelete): void
     {
@@ -784,7 +789,7 @@ class ImageController extends AbstractBaseController implements
         $productId    = (int)$ids[1];
 
         $wcProduct = \wc_get_product($productId);
-        if (!$wcProduct instanceof \WC_Product) {
+        if (!$wcProduct instanceof WC_Product) {
             return;
         }
 
@@ -835,6 +840,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int $attachmentId
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function deleteIfNotUsedByOthers(int $attachmentId): void
     {
@@ -852,6 +858,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int $attachmentId
      * @return bool
+     * @throws \Psr\Log\InvalidArgumentException
      */
     protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
     {
@@ -882,6 +889,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param $productId
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private function deleteAllProductImages($productId): void
     {

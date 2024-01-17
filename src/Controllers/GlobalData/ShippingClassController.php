@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\ShippingClass as ShippingClassModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
+use Psr\Log\InvalidArgumentException;
 
 class ShippingClassController extends AbstractBaseController
 {
@@ -18,7 +14,6 @@ class ShippingClassController extends AbstractBaseController
 
     /**
      * @return array
-     * @throws \InvalidArgumentException
      */
     public function pull(): array
     {
@@ -36,6 +31,7 @@ class ShippingClassController extends AbstractBaseController
     /**
      * @param array $shippingClasses
      * @return array
+     * @throws InvalidArgumentException
      */
     public function push(array $shippingClasses): array
     {

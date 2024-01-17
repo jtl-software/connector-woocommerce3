@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
 
 class ProductMetaSeoController extends AbstractBaseController
 {
@@ -44,11 +40,11 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param ProductModel $model
      * @return array|null
      */
-    public function pullData(\WC_Product $wcProduct, ProductModel $model): ?array
+    public function pullData(WC_Product $wcProduct, ProductModel $model): ?array
     {
         $values = null;
         if (
@@ -100,7 +96,7 @@ class ProductMetaSeoController extends AbstractBaseController
         string $metaKeywords
     ): void {
         $wcProduct = \wc_get_product($productId);
-        if (!$wcProduct instanceof \WC_Product) {
+        if (!$wcProduct instanceof WC_Product) {
             return;
         }
 
@@ -114,14 +110,14 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param string $metaTitle
      * @param string $metaDescription
      * @param string $metaKeywords
      * @return array
      */
     protected function getSeoValues(
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         string $metaTitle,
         string $metaDescription,
         string $metaKeywords

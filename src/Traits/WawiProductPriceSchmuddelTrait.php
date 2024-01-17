@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Traits;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -13,16 +8,17 @@ use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
 use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 trait WawiProductPriceSchmuddelTrait
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function fixProductPriceForCustomerGroups(ProductModel $product, \WC_Product $wcProduct): void
+    private function fixProductPriceForCustomerGroups(ProductModel $product, WC_Product $wcProduct): void
     {
         $pd              = \wc_get_price_decimals();
         $pushedPrices    = $product->getPrices();

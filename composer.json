@@ -23,8 +23,8 @@
     }
   },
   "require": {
-    "php": ">=7.4",
-    "jtl/connector": "5.1.*",
+    "php": ">=8.0",
+    "jtl/connector": "5.2.*",
     "symfony/yaml": "^3.4",
     "twbs/bootstrap": "^4.3",
     "theiconic/name-parser": "^0.1.1",

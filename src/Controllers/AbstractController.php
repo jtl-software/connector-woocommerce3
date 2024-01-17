@@ -2,7 +2,6 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
-use DI\Annotation\Inject;
 use DI\Container;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -12,17 +11,17 @@ abstract class AbstractController
     /**
      * @var Db
      */
-    protected $db;
+    protected Db $db;
 
     /**
      * @var Container
      */
-    protected $container;
+    protected Container $container;
 
     /**
      * @var Util
      */
-    protected $util;
+    protected Util $util;
 
     /**
      * @param Db $db
@@ -39,7 +38,7 @@ abstract class AbstractController
      * @param Container $container
      * @return void
      */
-    public function setContainer(Container $container)
+    public function setContainer(Container $container): void
     {
         $this->container = $container;
     }

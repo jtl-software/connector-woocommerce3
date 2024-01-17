@@ -1,17 +1,18 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use http\Exception\InvalidArgumentException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
+use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 /**
  * Class ProductGermanizedFields
@@ -22,9 +23,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
@@ -33,7 +34,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      */
@@ -117,7 +118,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $salePrice = \get_post_meta($id, '_sale_price', true);
 
             if (! empty($salePrice)) {
-                if ($product->getBasePriceDivisor() !== 0) {
+                if ($product->getBasePriceDivisor() !== 0.0) {
                     $unitSale = \round((float)$salePrice / $product->getBasePriceDivisor(), $pd);
 
                     \update_post_meta($id, '_unit_price_sale', (float)$unitSale);
@@ -128,10 +129,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 }
             }
 
-
             \update_post_meta($id, '_unit', $product->getBasePriceUnitName());
 
-            if ($product->getMeasurementQuantity() !== 0) {
+            if ($product->getMeasurementQuantity() !== 0.0) {
                 \update_post_meta($id, '_unit_product', $product->getMeasurementQuantity());
             }
         } else {

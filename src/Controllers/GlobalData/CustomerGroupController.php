@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -14,13 +9,15 @@ use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroupController extends AbstractBaseController
 {
     public const DEFAULT_GROUP = 'customer';
 
-    protected $db;
-    protected $util;
+    protected Db $db;
+    protected Util $util;
 
     /**
      * @return array
@@ -95,8 +92,9 @@ class CustomerGroupController extends AbstractBaseController
 
     /**
      * @param $customerId
+     * @return false|string
      */
-    public function getSlugById($customerId)
+    public function getSlugById($customerId): bool|string
     {
         $group = \get_post((int)$customerId);
         if ($group instanceof \WP_Post) {

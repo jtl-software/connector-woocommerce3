@@ -1,28 +1,24 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
 
 class ProductI18nController extends AbstractBaseController
 {
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
      * @return ProductI18nModel
-     * @throws \InvalidArgumentException
      */
-    public function pullData(\WC_Product $product, ProductModel $model): ProductI18nModel
+    public function pullData(WC_Product $product, ProductModel $model): ProductI18nModel
     {
         $i18n = (new ProductI18nModel())
             ->setLanguageISO($this->util->getWooCommerceLanguage())
@@ -58,7 +54,6 @@ class ProductI18nController extends AbstractBaseController
      * @param ProductI18nModel $i18n
      * @param array $tmpMeta
      * @return void
-     * @throws \InvalidArgumentException
      */
     protected function setI18nSeoData(ProductI18nModel $i18n, array $tmpMeta): void
     {
@@ -69,10 +64,10 @@ class ProductI18nController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @return string
      */
-    private function name(\WC_Product $product): string
+    private function name(WC_Product $product): string
     {
         if ($product instanceof \WC_Product_Variation) {
             switch (Config::get(Config::OPTIONS_VARIATION_NAME_FORMAT, '')) {

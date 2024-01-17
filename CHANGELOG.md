@@ -3,11 +3,19 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2523 - read version from config
+
+## 1.42.0 _2024_01_16_
+- CO-2433 - null safe on get quantity
+- CO-2362 - remove space in image title
 - CO-2377 - add hpos support
 - CO-2494 - disable cache
 - CO-2496 - call method dynamically 
-- CO-2416 - set germanized option "mark as shipped" true per default
-- CO-2523 - read version from config
+- CO-2416 - set germanized option "mark as shipped" true per default 
+- CO-2419 - allow start date for special price without end date
+- CO-2512 - set id for custom attributes
+- CO-2511 - solve image import loop
+- CO-2449 - migrate to core 5.2
 
 ## 1.41.2 _2023-12-05_
 - HOTFIX Category Mapping HostId = 0

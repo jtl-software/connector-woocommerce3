@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;
@@ -166,8 +161,9 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param \Jtl\Connector\Core\Model\Customer $model
+     * @param CustomerModel $model
      * @return AbstractModel
+     * @throws InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {

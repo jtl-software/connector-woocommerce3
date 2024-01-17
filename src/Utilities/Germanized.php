@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 /**
@@ -53,6 +48,7 @@ class Germanized
 
     /**
      * @param $code
+     * @return mixed|string
      */
     public function parseUnit($code)
     {
@@ -77,8 +73,9 @@ class Germanized
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnit($wcProduct)
+    public function getUnit($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
@@ -90,8 +87,9 @@ class Germanized
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnitProduct($wcProduct)
+    public function getUnitProduct($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
@@ -103,8 +101,9 @@ class Germanized
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnitBase($wcProduct)
+    public function getUnitBase($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();

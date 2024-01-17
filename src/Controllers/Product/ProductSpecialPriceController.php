@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use Jtl\Connector\Core\Model\Identity;
@@ -19,16 +15,17 @@ use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 class ProductSpecialPriceController extends AbstractBaseController
 {
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param ProductModel $model
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullData(\WC_Product $product, ProductModel $model): array
+    public function pullData(WC_Product $product, ProductModel $model): array
     {
         $specialPrices   = [];
         $groupController = (new CustomerGroupController($this->db, $this->util));
@@ -125,10 +122,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
     /**
      * @param $priceNet
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @return float
      */
-    protected function getPriceNet($priceNet, \WC_Product $product): float
+    protected function getPriceNet($priceNet, WC_Product $product): float
     {
         $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
         $pd      = $this->util->getPriceDecimals();
@@ -144,12 +141,12 @@ class ProductSpecialPriceController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param string $productType
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pushData(ProductModel $product, \WC_Product $wcProduct, string $productType): void
+    public function pushData(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {
         $pd = Util::getPriceDecimals();
 
@@ -208,7 +205,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             : $start->getTimestamp();
                     } else {
                         $dateTo   = '';
-                        $dateFrom = '';
+                        $dateFrom = \is_null($start = $specialPrice->getActiveFromDate()) ? '' : $start->getTimestamp();
                     }
 
                     if (\wc_prices_include_tax()) {

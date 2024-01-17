@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Order;
 
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\CustomerOrderItem as CustomerOrderItemModel;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -14,23 +10,26 @@ use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Order;
+use WC_Order_Item_Product;
+use WC_Order_Item_Shipping;
 
 class CustomerOrderItemController extends AbstractBaseController
 {
     public const PRICE_DECIMALS = 4;
 
     /** @var array $taxRateCache Map tax rate id to tax rate */
-    protected static $taxRateCache = [];
+    protected static array $taxRateCache = [];
     /** @var array $taxClassRateCache Map tax class to tax rate */
-    protected static $taxClassRateCache = [];
+    protected static array $taxClassRateCache = [];
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \WC_Data_Exception
      */
-    public function pull(\WC_Order $order): array
+    public function pull(WC_Order $order): array
     {
         $customerOrderItems = [];
 
@@ -51,10 +50,10 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $wcOrder
+     * @param WC_Order $wcOrder
      * @return float|null
      */
-    protected function getSingleVatRate(\WC_Order $wcOrder): ?float
+    protected function getSingleVatRate(WC_Order $wcOrder): ?float
     {
         $singleVatRate = null;
         $taxItems      = $wcOrder->get_items('tax');
@@ -77,16 +76,16 @@ class CustomerOrderItemController extends AbstractBaseController
     /**
      * Add the positions for products. Not that complicated.
      *
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param $customerOrderItems
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullProductOrderItems(\WC_Order $order, &$customerOrderItems): void
+    public function pullProductOrderItems(WC_Order $order, &$customerOrderItems): void
     {
         $singleVatRate = $this->getSingleVatRate($order);
 
-        /** @var \WC_Order_Item_Product $item */
+        /** @var WC_Order_Item_Product $item */
         foreach ($order->get_items() as $item) {
             $orderItem = (new CustomerOrderItemModel())
                 ->setId(new Identity($item->get_id()))
@@ -139,9 +138,12 @@ class CustomerOrderItemController extends AbstractBaseController
 
             $useWcTaxes = false;
             if (!empty($taxes) && isset($taxes['subtotal']) && \is_array($taxes['subtotal'])) {
-                $useWcTaxes  = true;
-                $taxesTotal  = \array_sum($taxes['subtotal']);
-                $taxesTotal /= $item->get_quantity();
+                $useWcTaxes = true;
+                $taxesTotal = \array_sum($taxes['subtotal']);
+
+                if (!\is_null($item->get_quantity())) {
+                    $taxesTotal /= $item->get_quantity();
+                }
 
                 $priceNet   = (float)$order->get_item_subtotal($item, false, false);
                 $priceGross = (float)($priceNet + $taxesTotal);
@@ -172,12 +174,12 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param $customerOrderItems
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullShippingOrderItems(\WC_Order $order, &$customerOrderItems): void
+    public function pullShippingOrderItems(WC_Order $order, &$customerOrderItems): void
     {
         $this->accurateItemTaxCalculation(
             $order,
@@ -192,15 +194,14 @@ class CustomerOrderItemController extends AbstractBaseController
     /**
      * Create an order item with the basic non price relevant information.
      *
-     * @param \WC_Order_Item_Shipping $shippingItem
-     * @param \WC_Order $order
+     * @param WC_Order_Item_Shipping $shippingItem
+     * @param WC_Order $order
      * @param $taxRateId
      * @return CustomerOrderItemModel
-     * @throws \InvalidArgumentException
      */
     private function getShippingOrderItem(
-        \WC_Order_Item_Shipping $shippingItem,
-        \WC_Order $order,
+        WC_Order_Item_Shipping $shippingItem,
+        WC_Order $order,
         $taxRateId = null
     ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
@@ -211,12 +212,12 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param $customerOrderItems
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function pullFreePositions(\WC_Order $order, &$customerOrderItems): void
+    public function pullFreePositions(WC_Order $order, &$customerOrderItems): void
     {
         $this->accurateItemTaxCalculation(
             $order,
@@ -232,14 +233,13 @@ class CustomerOrderItemController extends AbstractBaseController
      * Create an order item with the basic non price relevant information.
      *
      * @param \WC_Order_Item_Fee $feeItem
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param $taxRateId
      * @return CustomerOrderItemModel
-     * @throws \InvalidArgumentException
      */
     private function getSurchargeOrderItem(
         \WC_Order_Item_Fee $feeItem,
-        \WC_Order $order,
+        WC_Order $order,
         $taxRateId = null
     ): CustomerOrderItemModel {
         return (new CustomerOrderItemModel())
@@ -254,14 +254,14 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param $type
      * @param $customerOrderItems
      * @param callable $getItem
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    private function accurateItemTaxCalculation(\WC_Order $order, $type, &$customerOrderItems, callable $getItem): void
+    private function accurateItemTaxCalculation(WC_Order $order, $type, &$customerOrderItems, callable $getItem): void
     {
         $highestVatRateFallback = 0.;
         if ($type === CustomerOrderItemModel::TYPE_SHIPPING) {
@@ -279,7 +279,7 @@ class CustomerOrderItemController extends AbstractBaseController
         }, \ARRAY_FILTER_USE_KEY);
         $totalProductItemsWithoutZero = \array_sum(\array_values($productTotalByVatWithoutZero));
 
-        /** @var \WC_Order_Item_Shipping $shippingItem */
+        /** @var WC_Order_Item_Shipping $shippingItem */
         foreach ($order->get_items($type) as $shippingItem) {
             $taxes    = $shippingItem->get_taxes();
             $total    = (float)$shippingItem->get_total();
@@ -357,12 +357,11 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @param array $customerOrderItems
      * @return void
-     * @throws \InvalidArgumentException
      */
-    public function pullDiscountOrderItems(\WC_Order $order, array &$customerOrderItems): void
+    public function pullDiscountOrderItems(WC_Order $order, array &$customerOrderItems): void
     {
         $orderItemsVatRates = [];
         $highestVatRate     = 0;
