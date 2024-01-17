@@ -194,11 +194,11 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     public function getEndpointVersion(): string
     {
-        $parentFolderPath = \dirname(__FILE__) . '/../build-config.yaml';
+        $configFile = \dirname(__FILE__) . '/../build-config.yaml';
         $endpointVersion  = '';
 
-        if (\file_exists($parentFolderPath)) {
-            $fileData        = \yaml_parse_file($parentFolderPath);
+        if (\file_exists($configFile)) {
+            $fileData        = \yaml_parse_file($configFile);
             $endpointVersion = $fileData['version'];
         }
 
