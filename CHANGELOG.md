@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2527 - pass rank math data as string
 
 ## 1.42.0 _2024_01_16_
 - CO-2433 - null safe on get quantity
