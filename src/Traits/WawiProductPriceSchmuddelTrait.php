@@ -44,7 +44,7 @@ trait WawiProductPriceSchmuddelTrait
                 $defaultPrices = $pValue;
 
                 foreach ($pValue->getItems() as $ikey => $item) {
-                    if ($item->getQuantity() === 0.0) {
+                    if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
                             $defaultPriceNet = \round($item->getNetPrice() * (1 + $vat / 100), $pd);
                         } else {
@@ -70,7 +70,7 @@ trait WawiProductPriceSchmuddelTrait
             }
 
             foreach ($productPrice->getItems() as $iKey => $iValue) {
-                if ($iValue->getQuantity() === 0.0) {
+                if ($iValue->getQuantity() === 0) {
                     $hasRegularPrice = true;
                 }
             }

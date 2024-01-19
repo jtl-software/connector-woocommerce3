@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2528 - update operand type
 
 ## 1.42.0 _2024_01_16_
 - CO-2433 - null safe on get quantity

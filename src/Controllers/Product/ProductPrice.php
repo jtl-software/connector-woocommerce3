@@ -514,7 +514,7 @@ class ProductPrice extends AbstractBaseController
     {
         $regularPrice = $this->getRegularPrice($item, $vat);
 
-        if ($item->getQuantity() === 0.0) {
+        if ($item->getQuantity() === 0) {
             $salePrice    = \get_post_meta($productId, '_sale_price', true);
             $decimalCount = \strlen(\explode('.', $regularPrice)[1]);
 
