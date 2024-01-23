@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Traits;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -13,16 +8,17 @@ use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
 use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 trait WawiProductPriceSchmuddelTrait
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function fixProductPriceForCustomerGroups(ProductModel $product, \WC_Product $wcProduct): void
+    private function fixProductPriceForCustomerGroups(ProductModel $product, WC_Product $wcProduct): void
     {
         $pd              = \wc_get_price_decimals();
         $pushedPrices    = $product->getPrices();
@@ -48,7 +44,7 @@ trait WawiProductPriceSchmuddelTrait
                 $defaultPrices = $pValue;
 
                 foreach ($pValue->getItems() as $ikey => $item) {
-                    if ($item->getQuantity() === 0.0) {
+                    if ($item->getQuantity() === 0) {
                         if (\wc_prices_include_tax()) {
                             $defaultPriceNet = \round($item->getNetPrice() * (1 + $vat / 100), $pd);
                         } else {
@@ -74,7 +70,7 @@ trait WawiProductPriceSchmuddelTrait
             }
 
             foreach ($productPrice->getItems() as $iKey => $iValue) {
-                if ($iValue->getQuantity() === 0.0) {
+                if ($iValue->getQuantity() === 0) {
                     $hasRegularPrice = true;
                 }
             }

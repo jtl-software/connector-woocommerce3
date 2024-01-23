@@ -14,7 +14,6 @@ class ShippingMethodController
 {
     /**
      * @return array
-     * @throws \InvalidArgumentException
      */
     public function pull(): array
     {

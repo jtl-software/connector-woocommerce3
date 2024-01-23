@@ -1,18 +1,18 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\Identity;
+use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
+use WC_Product_Attribute;
 
 class ProductAttrController extends AbstractBaseController
 {
@@ -44,6 +44,8 @@ class ProductAttrController extends AbstractBaseController
      * @param $pushedAttributes
      * @param $attributesFilteredVariationsAndSpecifics
      * @param ProductModel $product
+     * @throws TranslatableAttributeException
+     * @throws \Exception
      */
     public function pushData(
         $productId,
@@ -65,9 +67,6 @@ class ProductAttrController extends AbstractBaseController
         $altDeliveryNote        = false;
         $suppressShippingNotice = false;
         $variationPreselect     = [];
-
-        //GERMANIZED PRO
-        $food = false;
 
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
@@ -97,14 +96,6 @@ class ProductAttrController extends AbstractBaseController
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18n->getValue());
-                        }
-                    }
-
-                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
-                        if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_IS_FOOD) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
-                            $this->addOrUpdateMetaField($productId, '_is_food', $value);
-                            $food = true;
                         }
                     }
 
@@ -268,10 +259,6 @@ class ProductAttrController extends AbstractBaseController
             );
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO) && !$food) {
-            $this->addOrUpdateMetaField($productId, '_is_food', 'no');
-        }
-
         if (!$payable) {
             $wcProduct = \wc_get_product($productId);
             $wcProduct->set_status('publish');
@@ -342,6 +329,7 @@ class ProductAttrController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return (new ProductAttrModel())
+            ->setId(new Identity($product->get_id() . '_' . \wc_sanitize_taxonomy_name($attribute->get_name())))
             ->setIsCustomProperty($isTax)
             ->addI18n($i18n);
     }
@@ -351,6 +339,7 @@ class ProductAttrController extends AbstractBaseController
      * @param ProductAttrI18nModel $i18n
      * @param array $attributes
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes): void
     {
@@ -372,6 +361,7 @@ class ProductAttrController extends AbstractBaseController
      * @param array $data
      * @param array $attributes
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function createOrUpdateExistingAttribute(ProductAttrI18nModel $i18n, array $data, array &$attributes): void
     {

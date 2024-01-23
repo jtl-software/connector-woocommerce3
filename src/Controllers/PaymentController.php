@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;
@@ -33,6 +28,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     /**
      * @param QueryFilter $query
      * @return array|AbstractModel[]
+     * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -123,7 +119,9 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
+     * @throws InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

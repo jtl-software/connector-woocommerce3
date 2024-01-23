@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\Currency as CurrencyModel;
@@ -19,7 +14,6 @@ class CurrencyController
 
     /**
      * @return CurrencyModel
-     * @throws \InvalidArgumentException
      */
     public function pull(): CurrencyModel
     {

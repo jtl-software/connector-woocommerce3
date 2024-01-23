@@ -26,7 +26,7 @@ class Bootstrap implements PluginInterface
      * @param EventDispatcher $dispatcher
      * @return void
      */
-    public function registerListener(ConfigInterface $config, Container $container, EventDispatcher $dispatcher)
+    public function registerListener(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
     {
         if (
             SupportedPlugins::isActive(self::EXTRA_PRODUCT_OPTIONS)

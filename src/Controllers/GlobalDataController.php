@@ -1,18 +1,13 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\GlobalData as GlobalDataModel;
 use Jtl\Connector\Core\Model\QueryFilter;
-use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CurrencyController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Controllers\GlobalData\LanguageController;
@@ -24,6 +19,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\TaxRateController;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use Psr\Log\InvalidArgumentException;
 
 class GlobalDataController extends AbstractBaseController implements PullInterface, PushInterface
 {
@@ -44,7 +40,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 
         $hasDefaultCustomerGroup = false;
         foreach ((new CustomerGroupController($this->db, $this->util))->pull() as $group) {
-            /** @var $group \jtl\Connector\Core\Model\CustomerGroup */
+            /** @var $group CustomerGroupModel */
             if ($group->getIsDefault() === true) {
                 $hasDefaultCustomerGroup = true;
             }
@@ -81,6 +77,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
         ) {
             $globalData
                 ->setMeasurementUnits(...(new MeasurementUnitController($this->db, $this->util))->pullGermanizedData());
+            \update_option('woocommerce_gzd_shipments_auto_order_completed_shipped_enable', 'yes', true);
         }
 
         if (
@@ -143,6 +140,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
     /**
      * @param GlobalDataModel $model
      * @return GlobalDataModel
+     * @throws InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {

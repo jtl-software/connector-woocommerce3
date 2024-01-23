@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
@@ -13,15 +8,15 @@ use JtlWooCommerceConnector\Controllers\CustomerOrderController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Order;
 
 class CustomerOrderBillingAddressController extends CustomerOrderAddressController
 {
     /**
-     * @param \WC_Order $order
+     * @param WC_Order $order
      * @return CustomerOrderBillingAddressModel
-     * @throws \InvalidArgumentException
      */
-    public function pull(\WC_Order $order): CustomerOrderBillingAddressModel
+    public function pull(WC_Order $order): CustomerOrderBillingAddressModel
     {
         $address = (new CustomerOrderBillingAddressModel())
             ->setId(new Identity(CustomerOrderController::BILLING_ID_PREFIX . $order->get_id()))

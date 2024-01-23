@@ -18,6 +18,7 @@ trait CustomerTrait
 {
     /**
      * @param $limit
+     * @param $logger
      * @return string
      */
     public static function customerNotLinked($limit, $logger): string
@@ -117,6 +118,7 @@ trait CustomerTrait
 
     /**
      * @param $limit
+     * @param $logger
      * @return string
      */
     public static function guestNotLinked($limit, $logger): string
@@ -162,6 +164,7 @@ trait CustomerTrait
     }
 
     /**
+     * @param $logger
      * @return string
      */
     private static function getCustomerPullCondition($logger): string

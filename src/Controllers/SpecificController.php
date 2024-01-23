@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2018 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -36,9 +31,9 @@ class SpecificController extends AbstractBaseController implements
     private static $idCache = [];
 
     /**
-     * @param $limit
+     * @param QueryFilter $query
      * @return array
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {

@@ -3,8 +3,8 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.41.2
- * Requires PHP: 7.4
+ * Version: 1.42.1
+ * Requires PHP: 8.0
  * WC tested up to: 8.2
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
@@ -50,6 +50,12 @@ try {
 } catch (\Exception $e) {
 }
 
+
+add_action('before_woocommerce_init', function () {
+    if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
 add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
 

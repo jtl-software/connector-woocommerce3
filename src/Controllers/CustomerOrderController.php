@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
@@ -51,6 +46,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param QueryFilter $query
      * @return array<int|CustomerOrderController>
      * @throws InvalidArgumentException
+     * @throws \WC_Data_Exception
      */
     public function pull(QueryFilter $query): array
     {
@@ -157,7 +153,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param \WC_Order $order
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
@@ -216,7 +211,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @return void
      * @throws EnvironmentIsBrokenException
-     * @throws InvalidArgumentException
      * @throws \TypeError
      */
     protected function setGermanizedPaymentInfo(CustomerOrderModel &$customerOrder): void
@@ -248,7 +242,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @param array $dhlPreferredDeliveryOptions
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setPreferredDeliveryOptions(
         CustomerOrderModel &$customerOrder,
@@ -360,7 +353,6 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     /**
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws InvalidArgumentException
      */
     protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
     {
@@ -482,7 +474,9 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {
