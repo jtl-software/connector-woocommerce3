@@ -41,17 +41,16 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
      */
     public function pushData(ProductModel $product): void
     {
-        $productId = $product->getId()->getEndpoint();
-        $wawiAcfFields = [];
-        $acfFieldsPostName = [];
+        $productId         = $product->getId()->getEndpoint();
+        $wawiAcfFields     = [];
 
-        foreach ($product->getAttributes() as $attribute){
+        foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
                 if (
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && \str_starts_with($i18n->getName(), 'wc_acf_')
                 ) {
-                    $meta_key = \str_replace('wc_acf_', '', $i18n->getName());
+                    $meta_key   = \str_replace('wc_acf_', '', $i18n->getName());
                     $meta_value = $i18n->getValue();
 
                     $wawiAcfFields[] = $meta_key;
@@ -146,11 +145,14 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
         );
 
         $existingAcfFields = $this->db->queryList($query);
-        $removedAcfFields  = array_diff($existingAcfFields, $wawiAcfFields);
+        $removedAcfFields  = \array_diff($existingAcfFields, $wawiAcfFields);
 
         if ($removedAcfFields) {
-            $removedAcfFieldsUnderscore = array_map(function($value) { return '_' . $value;}, $removedAcfFields);
-            $removedAcfFields           = array_merge($removedAcfFields, $removedAcfFieldsUnderscore);
+            $removedAcfFieldsUnderscore = \array_map(function ($value) {
+                return '_' . $value;
+                }, $removedAcfFields);
+
+            $removedAcfFields = \array_merge($removedAcfFields, $removedAcfFieldsUnderscore);
 
             $query = \sprintf(
                 "
