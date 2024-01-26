@@ -43,6 +43,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     {
         $productId = $product->getId()->getEndpoint();
         $wawiAcfFields = [];
+        $acfFieldsPostName = [];
 
         foreach ($product->getAttributes() as $attribute){
             foreach ($attribute->getI18ns() as $i18n) {
@@ -56,6 +57,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                     $wawiAcfFields[] = $meta_key;
 
                     $acfFieldPostName = $this->getAcfFieldPostName($meta_key);
+
 
                     if ($acfFieldPostName === null) {
                         continue;
@@ -154,10 +156,23 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                 "
                 DELETE FROM {$wpdb->postmeta}
                 WHERE post_id = '%s'
-                AND meta_key IN ('%s')",
+                AND meta_key IN (",
                 $productId,
-                implode(", ", $removedAcfFields)
             );
+
+            $firstIteration = true;
+
+            foreach ($removedAcfFields as $field) {
+                $query = $firstIteration == true
+                    ? $query . '"' . $field . '"'
+                    : $query . ' ,"' . $field . '"';
+
+                $firstIteration = false;
+            }
+
+            $query = $query . ')';
+
+            $this->db->query($query);
         }
     }
 }
