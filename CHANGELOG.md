@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2440 - support advanced custom fields plugin for products
 
 ## 1.42.1 _2024_01_19_
 - CO-2528 - update operand type
