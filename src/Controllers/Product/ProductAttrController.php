@@ -281,6 +281,8 @@ class ProductAttrController extends AbstractBaseController
             }
         }
 
+        $customProperties = [];
+
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             if (
@@ -295,10 +297,14 @@ class ProductAttrController extends AbstractBaseController
                     continue;
                 }
 
+                $customProperties[] = $attribute;
+
                 $this->saveAttribute($attribute, $i18n, $attributesFilteredVariationsAndSpecifics);
                 break;
             }
         }
+
+        $this->deleteRemovedCustomProperties($productId, $customProperties);
 
         return $attributesFilteredVariationsAndSpecifics;
     }
@@ -403,6 +409,20 @@ class ProductAttrController extends AbstractBaseController
             'is_variation' => 0,
             'is_taxonomy' => 0,
         ];
+    }
+
+    private function deleteRemovedCustomProperties($productId)
+    {
+        global $wpdb;
+
+        $query = sprintf(
+            "
+            SELECT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE post_id = %d
+            AND meta_key = '_product_attributes'",
+        $productId
+        );
     }
 
     /**
