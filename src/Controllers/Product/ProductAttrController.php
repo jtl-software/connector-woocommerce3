@@ -281,7 +281,7 @@ class ProductAttrController extends AbstractBaseController
             }
         }
 
-        $customProperties = [];
+        $sentCustomProperties = [];
 
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
@@ -297,14 +297,14 @@ class ProductAttrController extends AbstractBaseController
                     continue;
                 }
 
-                $customProperties[] = $attribute;
+                $sentCustomProperties[] = $attribute->getName();
 
                 $this->saveAttribute($attribute, $i18n, $attributesFilteredVariationsAndSpecifics);
                 break;
             }
         }
 
-        $this->deleteRemovedCustomProperties($productId, $customProperties);
+        $this->deleteRemovedCustomProperties($productId, $sentCustomProperties);
 
         return $attributesFilteredVariationsAndSpecifics;
     }
@@ -411,7 +411,7 @@ class ProductAttrController extends AbstractBaseController
         ];
     }
 
-    private function deleteRemovedCustomProperties($productId)
+    private function deleteRemovedCustomProperties($productId, $sentCustomProperties): void
     {
         global $wpdb;
 
@@ -423,6 +423,26 @@ class ProductAttrController extends AbstractBaseController
             AND meta_key = '_product_attributes'",
         $productId
         );
+
+        $existingProperties = $this->db->query($query);
+
+        $existingProperties = unserialize($existingProperties[0]['meta_value']);
+
+        $existingPropertyNames = [];
+
+        foreach($existingProperties as $property) {
+            $existingPropertyNames[] = $property['name'];
+        }
+
+        $missingProperties = array_diff($existingPropertyNames, $sentCustomProperties);
+
+        foreach ($missingProperties as $missingKey) {
+            unset($existingProperties[strtolower($missingKey)]);
+        }
+
+        $existingProperties = serialize($existingProperties);
+
+        update_post_meta($productId, '_product_attributes', $existingProperties);
     }
 
     /**
