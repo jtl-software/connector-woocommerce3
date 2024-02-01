@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2523 - get build version from config
+- CO-2394 - delete removed custom attributes
 
 ## 1.42.1 _2024-01-19_
 - CO-2528 - update operand type
