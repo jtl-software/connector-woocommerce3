@@ -415,32 +415,31 @@ class ProductAttrController extends AbstractBaseController
     {
         global $wpdb;
 
-        $query = sprintf(
+        $query = \sprintf(
             "
             SELECT meta_value
             FROM {$wpdb->postmeta}
             WHERE post_id = %d
             AND meta_key = '_product_attributes'",
-        $productId
+            $productId
         );
 
         $existingProperties    = $this->db->query($query);
-        $existingProperties    = unserialize($existingProperties[0]['meta_value']);
+        $existingProperties    = \unserialize($existingProperties[0]['meta_value']);
         $existingPropertyNames = [];
 
-        foreach($existingProperties as $property) {
+        foreach ($existingProperties as $property) {
             $existingPropertyNames[] = $property['name'];
         }
 
-        $missingProperties = array_diff($existingPropertyNames, $sentCustomProperties);
+        $missingProperties = \array_diff($existingPropertyNames, $sentCustomProperties);
 
         if ($missingProperties) {
             foreach ($missingProperties as $missingKey) {
-                unset($existingProperties[strtolower($missingKey)]);
+                unset($existingProperties[\strtolower($missingKey)]);
             }
 
-            #$existingProperties = serialize($existingProperties);
-            update_post_meta($productId, '_product_attributes', $existingProperties);
+            \update_post_meta($productId, '_product_attributes', $existingProperties);
         }
     }
 
