@@ -20,7 +20,6 @@ use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 use Jtl\Connector\Core\Event\BoolEvent;
 use Jtl\Connector\Core\Event\RpcEvent;
 use Jtl\Connector\Core\Logger\LoggerService;
-use Jtl\Connector\Core\Rpc\RequestPacket;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
@@ -38,6 +37,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Noodlehaus\ConfigInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\Yaml\Exception\ParseException;
 
 class Connector implements ConnectorInterface, UseChecksumInterface, HandleRequestInterface
 {
@@ -193,9 +193,12 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return 'JtlWooCommerceConnector\Controllers';
     }
 
+    /**
+     * @throws ParseException
+     */
     public function getEndpointVersion(): string
     {
-        return '2.0.0';
+        return Config::getBuildVersion();
     }
 
     public function getPlatformVersion(): string
