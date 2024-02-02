@@ -50,13 +50,11 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && \str_starts_with($i18n->getName(), 'wc_acf_')
                 ) {
-                    $meta_key   = \str_replace('wc_acf_', '', $i18n->getName());
-                    $meta_value = $i18n->getValue();
-
+                    $meta_key        = \str_replace('wc_acf_', '', $i18n->getName());
+                    $meta_value      = $i18n->getValue();
                     $wawiAcfFields[] = $meta_key;
 
                     $acfFieldPostName = $this->getAcfFieldPostName($meta_key);
-
 
                     if ($acfFieldPostName === null) {
                         continue;
