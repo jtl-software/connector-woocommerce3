@@ -165,7 +165,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
             foreach ($removedAcfFields as $field) {
                 $query = $firstIteration
                     ? $query . '"' . $field . '"'
-                    : $query . ' ,"' . $field . '"';
+                    : $query . ', "' . $field . '"';
 
                 $firstIteration = false;
             }
