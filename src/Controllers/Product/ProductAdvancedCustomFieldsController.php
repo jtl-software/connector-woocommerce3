@@ -77,8 +77,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
 
         $query = \sprintf(
             "
-			SELECT post_excerpt
-			FROM {$wpdb->posts}
+            SELECT post_excerpt
+            FROM {$wpdb->posts}
 			WHERE `post_type` = '%s'
 			AND `post_status` = '%s'",
             'acf-field',
@@ -165,7 +165,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
             $firstIteration = true;
 
             foreach ($removedAcfFields as $field) {
-                $query = $firstIteration == true
+                $query = $firstIteration
                     ? $query . '"' . $field . '"'
                     : $query . ' ,"' . $field . '"';
 

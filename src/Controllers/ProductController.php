@@ -200,7 +200,7 @@ class ProductController extends AbstractBaseController implements
                 }
             }
 
-            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOME_FIELDS)) {
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {
                 (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pullData($productModel, $product);
             }
 
@@ -326,7 +326,7 @@ class ProductController extends AbstractBaseController implements
             (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOME_FIELDS)) {
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {
             (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pushData($model);
         }
 
