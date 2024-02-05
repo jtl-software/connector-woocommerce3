@@ -76,7 +76,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
 
             foreach ($wcProduct->get_meta_data() as $metaData) {
-                $metaKey = $metaData->get_data()['key'];
+                $metaKey   = $metaData->get_data()['key'];
                 $metaValue = $metaData->get_data()['value'];
 
                 if (\in_array($metaKey , $foodMetaKey) && !empty($metaValue)) {
@@ -87,7 +87,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                         'wc_gzd_pro' . $metaKey
                     );
                 } elseif ($metaKey == '_allergen_ids' && !empty($metaValue)) {
-                    $allergens = array();
+                    $allergens = [];
 
                     foreach ($metaValue as $allergenId) {
                         $allergens[] = $this->getNutrientTermData($allergenId, 'getSlug');
@@ -201,8 +201,8 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     {
         $id          = $product->getId()->getEndpoint();
         $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
-        $allergens   = array();
-        $nutrients   = array();
+        $allergens   = [];
+        $nutrients   = [];
 
         foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
@@ -233,9 +233,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                         $metaKey = str_replace('ref_', '',  $metaKey);
                         $termId = $this->getNutrientTermData($metaKey, 'getTermId');
                         if (!array_key_exists($termId, $nutrients)) {
-                            $nutrients[$termId] = array(
+                            $nutrients[$termId] = [
                                 'value' => '',
-                            );
+                            ];
                         }
                         $nutrients[$termId]['ref_value'] = $i18n->getValue();
                     } else {
@@ -312,7 +312,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $tableName = $this->db->getWpDb()->prefix . 'terms';
 
         $selectColumn = $flag == 'getSlug' ? 'slug' : 'term_id';
-        $whereColumn = $selectColumn == 'slug' ? 'term_id' : 'slug';
+        $whereColumn  = $selectColumn == 'slug' ? 'term_id' : 'slug';
 
         return $this->db->queryOne(
             sprintf('SELECT %s FROM %s WHERE %s = \'%s\'', $selectColumn, $tableName, $whereColumn, $nutrientData)
