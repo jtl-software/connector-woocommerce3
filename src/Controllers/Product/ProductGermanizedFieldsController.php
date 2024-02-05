@@ -79,8 +79,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 $metaKey   = $metaData->get_data()['key'];
                 $metaValue = $metaData->get_data()['value'];
 
-                if (\in_array($metaKey , $foodMetaKey) && !empty($metaValue)) {
-
+                if (\in_array($metaKey, $foodMetaKey) && !empty($metaValue)) {
                     $this->setProductAttribute(
                         $product,
                         $metaValue,
@@ -95,7 +94,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
                     $this->setProductAttribute(
                         $product,
-                        implode(',', $allergens),
+                        \implode(',', $allergens),
                         'wc_gzd_pro_allergens'
                     );
                 } elseif ($metaKey == '_nutrient_ids' && !empty($metaValue)) {
@@ -145,7 +144,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
         }
-
     }
 
     /**
@@ -220,26 +218,26 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     \update_post_meta($id, $metaKey, $metaValue);
                 } elseif (
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
-                    && str_contains($i18n->getName(), 'wc_gzd_pro')
+                    && \str_contains($i18n->getName(), 'wc_gzd_pro')
                 ) {
                     $metaKey = \str_replace('wc_gzd_pro_', '', $i18n->getName());
 
                     if ($metaKey == 'allergens') {
-                        foreach (explode(',', $i18n->getValue()) as $allergen) {
-                            $termId = $this->getNutrientTermData($allergen, 'getTermId');
+                        foreach (\explode(',', $i18n->getValue()) as $allergen) {
+                            $termId      = $this->getNutrientTermData($allergen, 'getTermId');
                             $allergens[] = $termId;
                         }
-                    } elseif (str_contains($metaKey, 'ref')) {
-                        $metaKey = str_replace('ref_', '',  $metaKey);
-                        $termId = $this->getNutrientTermData($metaKey, 'getTermId');
-                        if (!array_key_exists($termId, $nutrients)) {
+                    } elseif (\str_contains($metaKey, 'ref')) {
+                        $metaKey = \str_replace('ref_', '', $metaKey);
+                        $termId  = $this->getNutrientTermData($metaKey, 'getTermId');
+                        if (!\array_key_exists($termId, $nutrients)) {
                             $nutrients[$termId] = [
                                 'value' => '',
                             ];
                         }
                         $nutrients[$termId]['ref_value'] = $i18n->getValue();
                     } else {
-                        $termId = $this->getNutrientTermData($metaKey, 'getTermId');
+                        $termId                      = $this->getNutrientTermData($metaKey, 'getTermId');
                         $nutrients[$termId]['value'] = $i18n->getValue();
                     }
                 }
@@ -305,7 +303,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      */
     private function getNutrientTermData($nutrientData, $flag): string
     {
-        if (!in_array($flag, ['getSlug', 'getTermId'])) {
+        if (!\in_array($flag, ['getSlug', 'getTermId'])) {
             throw new InvalidArgumentException('Invalid nutrient flag argument');
         }
 
@@ -315,7 +313,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $whereColumn  = $selectColumn == 'slug' ? 'term_id' : 'slug';
 
         return $this->db->queryOne(
-            sprintf('SELECT %s FROM %s WHERE %s = \'%s\'', $selectColumn, $tableName, $whereColumn, $nutrientData)
+            \sprintf('SELECT %s FROM %s WHERE %s = \'%s\'', $selectColumn, $tableName, $whereColumn, $nutrientData)
         );
     }
 }
