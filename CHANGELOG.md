@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2523 - get build version from config
+- CO-2527 - pass rank math data as string
 - CO-2460 - implement compatibility with germanized pro food
 
 ## 1.42.1 _2024-01-19_
