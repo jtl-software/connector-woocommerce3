@@ -5,6 +5,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 - CO-2523 - get build version from config
 - CO-2527 - pass rank math data as string
+- CO-2514 - prevent duplicate product images
 
 ## 1.42.1 _2024-01-19_
 - CO-2528 - update operand type
