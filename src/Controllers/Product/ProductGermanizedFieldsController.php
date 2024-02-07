@@ -85,7 +85,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                         $metaValue,
                         'wc_gzd_pro' . $metaKey
                     );
-                } elseif ($metaKey == '_allergen_ids' && !empty($metaValue)) {
+                } elseif ($metaKey === '_allergen_ids' && !empty($metaValue)) {
                     $allergens = [];
 
                     foreach ($metaValue as $allergenId) {
@@ -97,7 +97,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                         \implode(',', $allergens),
                         'wc_gzd_pro_allergens'
                     );
-                } elseif ($metaKey == '_nutrient_ids' && !empty($metaValue)) {
+                } elseif ($metaKey === '_nutrient_ids' && !empty($metaValue)) {
                     foreach ($metaData->get_data()['value'] as $nutrientId => $values) {
                         $nutrientSlug = $this->getNutrientTermData($nutrientId, 'getSlug');
 
@@ -222,7 +222,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 ) {
                     $metaKey = \str_replace('wc_gzd_pro_', '', $i18n->getName());
 
-                    if ($metaKey == 'allergens') {
+                    if ($metaKey === 'allergens') {
                         foreach (\explode(',', $i18n->getValue()) as $allergen) {
                             $termId      = $this->getNutrientTermData($allergen, 'getTermId');
                             $allergens[] = $termId;
