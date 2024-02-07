@@ -35,7 +35,7 @@ class SupportedPlugins
             = 'Additional Variation Images Gallery for WooCommerce',
         PLUGIN_RANK_MATH_SEO                                       = 'Rank Math SEO',
         PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE               = 'Checkout Field Editor for WooCommerce',
-        PLUGIN_ADVANCED_CUSTOM_FIELDS                             = 'Advanced Custom Fields',
+        PLUGIN_ADVANCED_CUSTOM_FIELDS                              = 'Advanced Custom Fields',
 
         //Incompatible
         PLUGIN_ANTISPAM_BEE              = 'Antispam Bee',

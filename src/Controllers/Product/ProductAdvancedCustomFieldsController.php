@@ -41,8 +41,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
      */
     public function pushData(ProductModel $product): void
     {
-        $productId         = $product->getId()->getEndpoint();
-        $wawiAcfFields     = [];
+        $productId     = $product->getId()->getEndpoint();
+        $wawiAcfFields = [];
 
         foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
@@ -148,7 +148,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
         if ($removedAcfFields) {
             $removedAcfFieldsUnderscore = \array_map(function ($value) {
                 return '_' . $value;
-                }, $removedAcfFields);
+            }, $removedAcfFields);
 
             $removedAcfFields = \array_merge($removedAcfFields, $removedAcfFieldsUnderscore);
 
