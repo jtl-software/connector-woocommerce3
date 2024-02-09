@@ -55,6 +55,14 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 
                 foreach ($trackingList->getCodes() as $trackingCode) {
                     $trackingInfoItem['tracking_number'] = $trackingCode;
+
+                    foreach ($trackingList->getTrackingURLs() as $trackingURL) {
+                        if (\str_contains($trackingURL, $trackingCode)) {
+                            $trackingInfoItem['custom_tracking_link'] = $trackingURL;
+                            break;
+                        }
+                    }
+
                     $shipmentTrackingActions->add_tracking_item($order->get_id(), $trackingInfoItem);
                 }
             }
