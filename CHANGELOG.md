@@ -3,8 +3,11 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config
 - CO-2527 - pass rank math data as string
+- CO-2536 - fix hpos payment
 
 ## 1.42.1 _2024-01-19_
 - CO-2528 - update operand type
