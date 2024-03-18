@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2497 - support net product weight
 
 ## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config

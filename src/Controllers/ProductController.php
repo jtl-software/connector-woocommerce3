@@ -98,6 +98,7 @@ class ProductController extends AbstractBaseController implements
                 ->setHeight((double)$product->get_height())
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
+                #->setProductWeight((double)$product->weight())
                 ->setShippingWeight((double)$product->get_weight())
                 ->setConsiderStock(\is_bool($ms = $product->managing_stock()) ? $ms : $ms == 'yes')
                 ->setPermitNegativeStock(
@@ -503,6 +504,7 @@ class ProductController extends AbstractBaseController implements
         $wcProduct->set_length($product->getLength());
         $wcProduct->set_width($product->getWidth());
         $wcProduct->set_weight($product->getShippingWeight());
+        #$wcProduct->set_weight($product->getProductWeight());
 
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
