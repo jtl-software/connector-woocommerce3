@@ -4,6 +4,9 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Integrations\IntegrationsManager;
+use JtlWooCommerceConnector\Integrations\Plugins\PluginsManager;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\LoggerAwareInterface;
@@ -24,11 +27,25 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     protected LoggerInterface $logger;
 
     /**
+     * @var PluginsManager
+     */
+    protected $pluginsManager;
+
+    /**
+     * @var Wpml
+     */
+    protected $wpml;
+
+    /**
      * BaseController constructor.
      */
     public function __construct(Db $db, Util $util)
     {
         parent::__construct($db, $util);
+
+        $integrationsManager  = new IntegrationsManager($this->db);
+        $this->pluginsManager = $integrationsManager->getPluginsManager();
+        $this->wpml           = $this->pluginsManager->get(Wpml::class);
 
         $reflect              = new ReflectionClass($this);
         $shortName            = $reflect->getShortName();
@@ -43,6 +60,14 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
+    }
+
+    /**
+     * @return PluginsManager
+     */
+    protected function getPluginsManager(): PluginsManager
+    {
+        return $this->pluginsManager;
     }
 
     public function statistic(QueryFilter $query): int
