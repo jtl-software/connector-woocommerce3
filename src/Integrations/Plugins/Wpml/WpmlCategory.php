@@ -3,8 +3,8 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Model\Category;
-use jtl\Connector\Model\Identity;
+use jtl\Connector\Core\Model\Category;
+use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;

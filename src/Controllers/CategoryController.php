@@ -11,7 +11,6 @@ use Jtl\Connector\Core\Model\Category as CategoryModel;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\QueryFilter;
-use jtl\Connector\Core\Utilities\Language;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -98,7 +97,8 @@ class CategoryController extends AbstractBaseController implements
 
             if ($this->wpml->canBeUsed()) {
                 $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
-                $categoryTranslations     = $wpmlTaxonomyTranslations->getTranslations($categoryDataSet['trid'], 'tax_product_cat');
+                $categoryTranslations     = $wpmlTaxonomyTranslations
+                    ->getTranslations($categoryDataSet['trid'], 'tax_product_cat');
 
                 foreach ($categoryTranslations as $languageCode => $translation) {
                     $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
@@ -152,7 +152,7 @@ class CategoryController extends AbstractBaseController implements
 
         foreach ($model->getI18ns() as $i18n) {
             if ($this->wpml->canBeUsed()) {
-                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) { //TODO:Language unklar
                     $meta = $i18n;
                     break;
                 }
@@ -259,10 +259,18 @@ class CategoryController extends AbstractBaseController implements
             $this->util->updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
 
-        $model->getId()->setEndpoint($result['term_id']);
-        self::$idCache[$model->getId()->getHost()] = $result['term_id'];
+        if (!empty($result)) {
+            $model->getId()->setEndpoint($result['term_id']);
+            self::$idCache[$model->getId()->getHost()] = $result['term_id'];
 
-        (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
+            (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
+
+            if ($this->wpml->canBeUsed()) {
+            $this->wpml
+                ->getComponent(WpmlCategory::class)
+                ->setCategoryTranslations($model, $result, $parentCategoryId);
+            }
+        }
 
         return $model;
     }
