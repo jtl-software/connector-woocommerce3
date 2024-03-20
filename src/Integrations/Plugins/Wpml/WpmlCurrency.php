@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Model\Currency;
-use jtl\Connector\Model\Identity;
+use jtl\Connector\Core\Model\Currency as CurrencyModel;
+use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 
 /**
@@ -22,7 +22,7 @@ class WpmlCurrency extends AbstractComponent
     }
 
     /**
-     * @return Currency[]
+     * @return CurrencyModel[]
      */
     public function getCurrencies(): array
     {
@@ -33,7 +33,7 @@ class WpmlCurrency extends AbstractComponent
         $jtlCurrencies = [];
 
         foreach ($currencies as $currencyIso => $currency) {
-            $jtlCurrencies[] = (new Currency())
+            $jtlCurrencies[] = (new CurrencyModel())
                 ->setId(new Identity(strtolower($currencyIso)))
                 ->setName($currencyIso)
                 ->setDelimiterCent($currency['decimal_sep'])
@@ -49,10 +49,10 @@ class WpmlCurrency extends AbstractComponent
     }
 
     /**
-     * @param Currency ...$jtlCurrencies
+     * @param CurrencyModel ...$jtlCurrencies
      * @return array
      */
-    public function setCurrencies(Currency ...$jtlCurrencies): array
+    public function setCurrencies(CurrencyModel ...$jtlCurrencies): array
     {
         $wcml = $this->plugin->getWcml();
         $wcml->get_multi_currency()->enable();

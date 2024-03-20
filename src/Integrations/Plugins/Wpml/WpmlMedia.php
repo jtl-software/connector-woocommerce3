@@ -3,9 +3,9 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\Model\Image;
-use jtl\Connector\Model\ImageI18n;
-use JtlWooCommerceConnector\Controllers\Image as ImageCtrl;
+use jtl\Connector\Core\Model\AbstractImage;
+use jtl\Connector\Core\Model\ImageI18n;
+use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -21,10 +21,10 @@ class WpmlMedia extends AbstractComponent
 
     /**
      * @param int $mediaId
-     * @param Image $jtlImage
+     * @param AbstractImage $jtlImage
      * @return mixed
      */
-    public function getTranslations(int $mediaId, Image $jtlImage)
+    public function getTranslations(int $mediaId, AbstractImage $jtlImage)
     {
         $translations = $this->getAttachmentTranslations($mediaId);
 
@@ -36,7 +36,6 @@ class WpmlMedia extends AbstractComponent
 
             $jtlImage->addI18n((new ImageI18n())
                 ->setId($jtlImage->getId())
-                ->setImageId($jtlImage->getForeignKey())
                 ->setAltText((string)substr($altText !== false ? $altText : '', 0, 254))
                 ->setLanguageISO($wawiIsoCode)
             );
