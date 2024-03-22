@@ -55,7 +55,7 @@ trait PaymentTrait
             %s
             %s",
                 $select,
-                'wp_wc_orders',
+                $wpdb->prefix . 'wc_orders',
                 $jclp,
                 $jclo,
                 $includeCompletedOrders ? "p.status = 'wc-completed' OR " : '',
