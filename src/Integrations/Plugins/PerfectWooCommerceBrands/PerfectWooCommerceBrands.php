@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands;
 
-use jtl\Connector\Model\Manufacturer;
-use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
+use Jtl\Connector\Core\Model\Manufacturer;
+use jtl\Connector\Core\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
@@ -42,7 +42,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         int $termId
     ): ManufacturerI18nModel {
         $i18n = (new ManufacturerI18nModel())
-            ->setManufacturerId($manufacturer->getId())
             ->setLanguageISO($languageIso)
             ->setDescription($description);
 
@@ -60,7 +59,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         } elseif($rankMathSeo->canBeUsed()){
             $seoData = $rankMathSeo->findManufacturerSeoData($termId);
             if (!empty($seoData)) {
-                Util::setI18nRankMathSeo($i18n, $seoData);
+                $this->util->setI18nRankMathSeo($i18n, $seoData);
             }
         }
 

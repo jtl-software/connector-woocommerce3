@@ -13,6 +13,7 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\Product2Category;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
@@ -27,6 +28,9 @@ use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPriceController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
@@ -52,16 +56,28 @@ class ProductController extends AbstractBaseController implements
 
     private static array $idCache = [];
 
+    protected function getProductsIds(int $limit)
+    {
+        if ($this->wpml->canBeUsed()) {
+            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts($limit);
+        } else {
+            $ids = $this->db->queryList(SqlHelper::productPull($limit));
+        }
+
+        return $ids;
+    }
+
     /**
      * @param QueryFilter $query
      * @return array
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function pull(QueryFilter $query): array
     {
         $products = [];
 
-        $ids = $this->db->queryList(SqlHelper::productPull($query->getLimit()));
+        $ids = $this->getProductsIds($query->getLimit());
 
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
@@ -147,6 +163,10 @@ class ProductController extends AbstractBaseController implements
                 ->pullData($product, $productModel);
             $prices        = (new ProductPrice($this->db, $this->util))
                 ->pullData($product, $productModel);
+
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($wcProduct, $jtlProduct);
+            }
 
             $productModel
                 ->addI18n((new ProductI18nController($this->db, $this->util))->pullData($product, $productModel))
@@ -234,9 +254,16 @@ class ProductController extends AbstractBaseController implements
         }
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $tmpI18n = $i18n;
-                break;
+            if ($this->wpml->canBeUsed()) {
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {//TODO:gibts nicht mehr
+                    $defaultI18n = $i18n;
+                    break;
+                }
+            } else {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $tmpI18n = $i18n;
+                    break;
+                }
             }
         }
 
@@ -295,7 +322,16 @@ class ProductController extends AbstractBaseController implements
 
         $model->getId()->setEndpoint($newPostId);
 
+        $wcProduct = \wc_get_product($newPostId);
         $this->onProductInserted($model, $tmpI18n);
+
+        if ($this->wpml->canBeUsed()) {
+            $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
+                $newPostId,
+                $masterProductId,
+                $model
+            );
+        }
 
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
@@ -339,15 +375,24 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param ProductModel $model
      * @return ProductModel
+     * @throws Exception
      */
     public function delete(AbstractModel $model): AbstractModel
     {
         $productId = (int)$model->getId()->getEndpoint();
 
-        \wp_delete_post($productId, true);
-        \wc_delete_product_transients($productId);
+        $wcProduct = wc_get_product($productId);
 
-        unset(self::$idCache[$model->getId()->getHost()]);
+        if ($wcProduct instanceof \WC_Product) {
+            \wp_delete_post($productId, true);
+            \wc_delete_product_transients($productId);
+
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml->getComponent(WpmlProduct::class)->deleteTranslations($wcProduct);
+            }
+
+            unset(self::$idCache[$model->getId()->getHost()]);
+        }
 
         return $model;
     }
@@ -356,10 +401,16 @@ class ProductController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return int
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
     public function statistic(QueryFilter $query): int
     {
-        return \count($this->db->queryList(SqlHelper::productPull()));
+        if ($this->wpml->canBeUsed()) {
+            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts();
+        } else {
+            $ids = $this->db->queryList(SqlHelper::productPull());
+        }
+        return count($ids);
     }
 
     /**
@@ -385,11 +436,13 @@ class ProductController extends AbstractBaseController implements
 
         (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct);
 
-
         if ($productType !== ProductController::TYPE_CHILD) {
             $this->updateProduct($product);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
+
+        //TODO: code from wpml
+        #(new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
 
         //variations
         if ($productType === ProductController::TYPE_CHILD) {
