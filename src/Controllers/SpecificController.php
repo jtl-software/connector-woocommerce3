@@ -13,6 +13,10 @@ use Jtl\Connector\Core\Model\Specific as SpecificModel;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue as SpecificValueModel;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -34,6 +38,7 @@ class SpecificController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return array
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pull(QueryFilter $query): array
     {
@@ -53,13 +58,22 @@ class SpecificController extends AbstractBaseController implements
                     ->setName($specificDataSet['attribute_label'])
             );
 
-            // SpecificValues
-            $specificValueData = $this->db->query(
-                SqlHelper::specificValuePull(\sprintf(
-                    'pa_%s',
-                    $specificDataSet['attribute_name']
-                ))
-            );
+            $specificName = sprintf('pa_%s', $specificDataSet['attribute_name']);
+
+            if ($this->wpml->canBeUsed() && $this->wpml->getComponent(WpmlSpecific::class)->isTranslatable($specificName)) {
+                $this->wpml
+                    ->getComponent(WpmlSpecific::class)
+                    ->getTranslations($specific, $specificDataSet['attribute_label']);
+
+                $specificValueData = $this->wpml
+                    ->getComponent(WpmlSpecific::class)
+                    ->getValues($specificName);
+            } else {
+                // SpecificValues
+                $specificValueData = $this->db->query(
+                    SqlHelper::specificValuePull($specificName)
+                );
+            }
 
             foreach ($specificValueData as $specificValueDataSet) {
                 $specificValue = (new SpecificValueModel())
@@ -68,6 +82,13 @@ class SpecificController extends AbstractBaseController implements
                 $specificValue->addI18n((new SpecificValueI18nModel())
                     ->setLanguageISO($this->util->getWooCommerceLanguage())
                     ->setValue($specificValueDataSet['name']));
+
+                if ($this->wpml->canBeUsed()) {
+                    $this->wpml
+                        ->getComponent(WpmlSpecificValue::class)
+                        ->getTranslations($specificValue, (int)$specificValueDataSet['term_taxonomy_id'],
+                            $specificValueDataSet['taxonomy']);
+                }
 
                 $specific->addValue($specificValue);
             }
@@ -91,16 +112,23 @@ class SpecificController extends AbstractBaseController implements
         $defaultAvailable = false;
 
         foreach ($model->getI18ns() as $i18n) {
-            $languageSet = $this->util->isWooCommerceLanguage($i18n->getLanguageISO());
+
+            if ($this->wpml->canBeUsed()) {
+                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {//TODO: existiert nicht
+                    $meta = $i18n;#$defaultSpecificTranslation
+                    break;
+                }
+            } else {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $meta = $i18n;#$defaultSpecificTranslation
+                    break;
+                }
+            }
 
             if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                 $defaultAvailable = true;
             }
 
-            if ($languageSet) {
-                $meta = $i18n;
-                break;
-            }
         }
 
         //Fallback 'ger' if incorrect language code was given
@@ -116,17 +144,17 @@ class SpecificController extends AbstractBaseController implements
             $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
 
             //STOP here if already exists
-            $exId  = Util::getAttributeTaxonomyIdByName($attrName);
-            $endId = (int)$model->getId()->getEndpoint();
+            $existingTaxonomyId  = Util::getAttributeTaxonomyIdByName($attrName);
+            $endpointId = (int)$model->getId()->getEndpoint();
 
-            if ($exId !== 0) {
-                if ($exId !== $endId) {
-                    $attrId = $exId;
+            if ($existingTaxonomyId !== 0) {
+                if ($existingTaxonomyId !== $endpointId) {
+                    $attrId = $existingTaxonomyId;
                 } else {
-                    $attrId = $endId;
+                    $attrId = $endpointId;
                 }
             } else {
-                $attrId = $endId;
+                $attrId = $endpointId;
             }
 
             $endpoint = [
@@ -167,22 +195,36 @@ class SpecificController extends AbstractBaseController implements
             //Register taxonomy for current request
             \register_taxonomy($taxonomy, null);
 
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml
+                    ->getComponent(WpmlSpecific::class)
+                    ->setTranslations($model, $meta);
+            }
+
             foreach ($model->getValues() as $key => $value) {
                 $metaValue             = null;
                 $defaultValueAvailable = false;
 
+                $value->getSpecificId()->setEndpoint($model->getId()->getEndpoint());
+
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-                    $languageValueSet = $this->util->isWooCommerceLanguage($i18n->getLanguageISO());
+
+                    if ($this->wpml->canBeUsed()) {
+                        if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
+                            $metaValue = $i18n;
+                        }
+                    } else {
+                        if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                            $metaValue = $i18n;
+                            break;
+                        }
+                    }
 
                     if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                         $defaultValueAvailable = true;
                     }
 
-                    if ($languageValueSet) {
-                        $metaValue = $i18n;
-                        break;
-                    }
                 }
 
                 //Fallback 'ger' if incorrect language code was given
@@ -239,7 +281,16 @@ class SpecificController extends AbstractBaseController implements
 
                     $termId = $newTerm['term_id'];
                 } elseif (\is_null($exValId) && $endValId !== 0) {
+                    $wpml = $this->getPluginsManager()->get(Wpml::class);
+                    if ($wpml->canBeUsed()) {
+                        $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                    }
+
                     $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
+
+                    if ($wpml->canBeUsed()) {
+                        $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                    }
                 } else {
                     $termId = $exValId;
                 }
@@ -335,9 +386,16 @@ class SpecificController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function statistic(QueryFilter $query): int
     {
-        return $this->db->queryOne(SqlHelper::specificStats());
+        if ($this->wpml->canBeUsed()) {
+            $total = $this->wpml->getComponent(WpmlSpecific::class)->getStats();
+        } else {
+            $total = $this->db->queryOne(SqlHelper::specificStats());
+        }
+
+        return $total;
     }
 }

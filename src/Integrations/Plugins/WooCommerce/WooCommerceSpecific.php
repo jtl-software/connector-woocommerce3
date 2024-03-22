@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Model\Specific;
-use jtl\Connector\Model\SpecificI18n;
+use jtl\Connector\Core\Model\Specific;
+use jtl\Connector\Core\Model\SpecificI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use JtlWooCommerceConnector\Utilities\Util;
