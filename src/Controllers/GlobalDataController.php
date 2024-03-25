@@ -18,7 +18,6 @@ use JtlWooCommerceConnector\Controllers\GlobalData\ProductTypeController;
 use JtlWooCommerceConnector\Controllers\GlobalData\ShippingClassController;
 use JtlWooCommerceConnector\Controllers\GlobalData\ShippingMethodController;
 use JtlWooCommerceConnector\Controllers\GlobalData\TaxRateController;
-use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Psr\Log\InvalidArgumentException;
@@ -33,7 +32,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
     {
         $globalData = (new GlobalDataModel())
             ->setCurrencies(...(new CurrencyController($this->db, $this->util))->pull())
-            ->setLanguages((new LanguageController())->pull())
+            ->setLanguages(...(new LanguageController($this->db, $this->util))->pull())
             ->setProductTypes(...(new ProductTypeController())->pull())
             ->setShippingClasses(...(new ShippingClassController($this->db, $this->util))->pull())
             ->setShippingMethods(...(new ShippingMethodController())->pull())

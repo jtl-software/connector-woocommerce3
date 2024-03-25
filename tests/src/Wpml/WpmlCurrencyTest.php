@@ -87,7 +87,7 @@ class WpmlCurrencyTest extends TestCase
         ]);
 
         $jtlCurrencies = [
-            (new Currency())->setId(new Identity(strtolower('PLN')))
+            (new Currency())->setId(new Identity(\strtolower('PLN')))
                 ->setName('PLN')
                 ->setDelimiterCent(',')
                 ->setDelimiterThousand('.')
@@ -96,7 +96,7 @@ class WpmlCurrencyTest extends TestCase
                 ->setNameHtml('PLN')
                 ->setHasCurrencySignBeforeValue(false)
                 ->setIsDefault(false),
-            (new Currency())->setId(new Identity(strtolower('EUR')))
+            (new Currency())->setId(new Identity(\strtolower('EUR')))
                 ->setName('EUR')
                 ->setDelimiterCent(',')
                 ->setDelimiterThousand('.')

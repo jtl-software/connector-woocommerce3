@@ -31,8 +31,9 @@ class ProductPriceController extends ProductPrice implements PushInterface
             $wcProducts[] = $wcProduct;
 
             if ($this->wpml->canBeUsed()) {
-                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
-                $wcProducts = array_merge($wcProducts, $wcProductTranslations);
+                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)
+                    ->getWooCommerceProductTranslations($wcProduct);
+                $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
             }
 
             foreach ($wcProducts as $wcProduct) {

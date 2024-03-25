@@ -25,12 +25,12 @@ class ProductStockLevelController extends AbstractBaseController implements Push
         }
 
         if ('yes' === \get_option('woocommerce_manage_stock')) {
-
             $wcProducts[] = $wcProduct;
 
             if ($this->wpml->canBeUsed()) {
-                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)->getWooCommerceProductTranslations($wcProduct);
-                $wcProducts = array_merge($wcProducts, $wcProductTranslations);
+                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)
+                    ->getWooCommerceProductTranslations($wcProduct);
+                $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
             }
 
             foreach ($wcProducts as $wcProduct) {

@@ -47,6 +47,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @return array<int|CustomerOrderController>
      * @throws InvalidArgumentException
      * @throws \WC_Data_Exception
+     * @throws \Exception
      */
     public function pull(QueryFilter $query): array
     {

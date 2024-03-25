@@ -17,12 +17,12 @@ class WpmlStringTranslation extends AbstractComponent
      */
     public function translate(string $sourceName, string $targetName, string $wawiIsoLanguage)
     {
-        $context = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
+        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;//TODO
         $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
 
-        $stringId = icl_get_string_id($sourceName, $context);
+        $stringId = \icl_get_string_id($sourceName, $context);//TODO
         if ($stringId !== 0) {
-            icl_add_string_translation($stringId, $languageCode, html_entity_decode($targetName), 10);
+            \icl_add_string_translation($stringId, $languageCode, \html_entity_decode($targetName), 10);//TODO
         }
     }
 
@@ -34,17 +34,30 @@ class WpmlStringTranslation extends AbstractComponent
     public function registerString(string $taxonomy, string $name, string $wawiIsoLanguage)
     {
         $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
-        $context = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
+        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;//TODO
 
-        icl_register_string($context, sprintf("URL %s tax slug", $taxonomy), $taxonomy, false,
-            $languageCode);
+        \icl_register_string(
+            $context,
+            \sprintf("URL %s tax slug", $taxonomy),
+            $taxonomy,
+            false, //TODO
+            $languageCode
+        );
         $nameSingular = $name;
-        icl_register_string($context,
-            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_SINGULAR . $nameSingular, $nameSingular,
-            false, $languageCode);
+        \icl_register_string(
+            $context, //TODO
+            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_SINGULAR . $nameSingular,
+            $nameSingular,
+            false,
+            $languageCode
+        );
         $nameGeneral = 'Produkt ' . $name;
-        icl_register_string($context,
-            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_GENERAL . $nameGeneral, $nameGeneral, false,
-            $languageCode);
+        \icl_register_string(
+            $context, //TODO
+            \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_GENERAL . $nameGeneral,
+            $nameGeneral,
+            false,
+            $languageCode
+        );
     }
 }

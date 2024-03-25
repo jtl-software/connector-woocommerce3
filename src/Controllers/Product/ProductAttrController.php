@@ -3,7 +3,6 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
-use InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
@@ -11,8 +10,6 @@ use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use WC_Product;
-use WC_Product_Attribute;
 
 class ProductAttrController extends AbstractBaseController
 {

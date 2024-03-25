@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Core\Exception\LanguageException;//TODO
 use jtl\Connector\Core\Model\Category;
 use jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WpmlCategory
@@ -45,7 +46,7 @@ class WpmlCategory extends AbstractComponent
             }
 
             $categoryTerm = $this->findCategoryTranslation((int)$trid, $languageCode);
-            $categoryId = null;
+            $categoryId   = null;
             if (isset($categoryTerm['term_id'])) {
                 $categoryId = (int)$categoryTerm['term_id'];
             }
@@ -85,7 +86,7 @@ class WpmlCategory extends AbstractComponent
      * @param string $languageCode
      * @return array
      */
-    protected function findCategoryTranslation(int $trid, string $languageCode)
+    protected function findCategoryTranslation(int $trid, string $languageCode): array
     {
         $categoryTranslation = $this
             ->getCurrentPlugin()
@@ -95,7 +96,7 @@ class WpmlCategory extends AbstractComponent
         $translation = [];
         if (isset($categoryTranslation[$languageCode])) {
             $translationData = $categoryTranslation[$languageCode];
-            $translation = $this->getCurrentPlugin()
+            $translation     = $this->getCurrentPlugin()
                 ->getComponent(WpmlTermTranslation::class)
                 ->getTranslatedTerm($translationData->term_id, 'product_cat');
         }
@@ -105,6 +106,7 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param int $limit
      * @return array
+     * @throws InvalidArgumentException
      */
     public function getCategories(int $limit): array
     {
@@ -112,25 +114,25 @@ class WpmlCategory extends AbstractComponent
 
         $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
 
-        $sql = sprintf("SELECT 
-                tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*        
-                FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
-                    LEFT JOIN 
-                `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
-                    LEFT JOIN
-                `%sjtl_connector_category_level` cl ON tt.term_taxonomy_id = cl.category_id
-                    LEFT JOIN
-                `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
-                    LEFT JOIN
-                `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
-            WHERE
-                tt.taxonomy = 'product_cat'
-                    AND wpmlt.element_type = 'tax_product_cat'
-                    AND wpmlt.source_language_code IS NULL
-                    AND l.host_id IS NULL
-                    AND wpmlt.language_code = '%s'
-            ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
-            LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $this->getCurrentPlugin()->getDefaultLanguage(), $limit);
+        $sql = \sprintf("SELECT 
+            tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*        
+            FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
+                LEFT JOIN 
+            `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
+                LEFT JOIN
+            `%sjtl_connector_category_level` cl ON tt.term_taxonomy_id = cl.category_id
+                LEFT JOIN
+            `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
+                LEFT JOIN
+            `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
+        WHERE
+            tt.taxonomy = 'product_cat'
+                AND wpmlt.element_type = 'tax_product_cat'
+                AND wpmlt.source_language_code IS NULL
+                AND l.host_id IS NULL
+                AND wpmlt.language_code = '%s'
+        ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
+        LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $this->getCurrentPlugin()->getDefaultLanguage(), $limit);
 
 
         return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
@@ -143,7 +145,7 @@ class WpmlCategory extends AbstractComponent
     {
         $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
 
-        $sql = sprintf("SELECT 
+        $sql = \sprintf("SELECT 
                 COUNT(tt.term_id)        
                 FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
                     LEFT JOIN 
@@ -169,27 +171,30 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param array|null $parentIds
      * @param int $level
+     * @throws InvalidArgumentException
      */
-    protected function fillCategoryLevelTable(array $parentIds = null, int $level = 0)
+    protected function fillCategoryLevelTable(array $parentIds = null, int $level = 0): void
     {
         $where = ' AND tt.parent = 0';
+        $db    = $this->getPluginsManager()->getDatabase();
 
         if ($parentIds === null) {
-            Db::getInstance()->query(sprintf(
+            $db->query(\sprintf(
                 'TRUNCATE TABLE `%s%s`',
                 $this->getCurrentPlugin()->getWpDb()->prefix,
                 CategoryUtil::LEVEL_TABLE
             ));
         } else {
-            $where = 'AND tt.parent IN (' . implode(',', $parentIds) . ')';
+            $where = 'AND tt.parent IN (' . \implode(',', $parentIds) . ')';
         }
 
         $parentIds = [];
 
         list($table, $column) = CategoryUtil::getTermMetaData();
 
-        $categories = Db::getInstance()->query(
-            sprintf("
+        $categories = $db->query(
+            \sprintf(
+                "
             SELECT tt.term_taxonomy_id, tt.term_id, tt.parent, IF(tm.meta_key IS NULL, 0, tm.meta_value) as sort
             FROM `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt
             LEFT JOIN `{$this->getCurrentPlugin()->getWpDb()->terms}` t ON tt.term_id = t.term_id
@@ -200,27 +205,28 @@ class WpmlCategory extends AbstractComponent
               AND wpmlt.source_language_code IS NULL
               AND wpmlt.language_code = '%s'
             ORDER BY tt.parent ASC, sort ASC, t.name ASC",
-                $this->getCurrentPlugin()->getWpDb()->prefix, CategoryUtil::TERM_TAXONOMY,
+                $this->getCurrentPlugin()->getWpDb()->prefix,
+                CategoryUtil::TERM_TAXONOMY,
                 $this->getCurrentPlugin()->getDefaultLanguage()
             )
         );
 
         if (!empty($categories)) {
-            $sort = 0;
+            $sort    = 0;
             $parents = [];
 
             foreach ($categories as $category) {
-                $categoryId = (int)$category['term_id'];
+                $categoryId       = (int)$category['term_id'];
                 $parentCategoryId = (int)$category['parent'];
 
-                if (!in_array($parentCategoryId, $parents)) {
-                    $sort = 0;
+                if (!\in_array($parentCategoryId, $parents)) {
+                    $sort      = 0;
                     $parents[] = $parentCategoryId;
                 }
 
                 $parentIds[] = $categoryId;
 
-                Db::getInstance()->query(SqlHelper::categoryTreeAddIgnore($categoryId, $level, $sort++));
+                $db->query(SqlHelper::categoryTreeAddIgnore($categoryId, $level, $sort++));
             }
 
             $this->fillCategoryLevelTable($parentIds, $level + 1);

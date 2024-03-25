@@ -2,9 +2,10 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\YoastSeo;
 
-use jtl\Connector\Core\Model\Model;
-use jtl\Connector\Model\CategoryI18n;
-use jtl\Connector\Model\ManufacturerI18n;
+use jtl\Connector\Core\Definition\Model;
+use Jtl\Connector\Core\Model\AbstractI18n;
+use jtl\Connector\Core\Model\CategoryI18n;
+use jtl\Connector\Core\Model\ManufacturerI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
@@ -33,7 +34,7 @@ class YoastSeo extends AbstractPlugin
      * @param Model $i18nModel
      * @param string $type
      */
-    protected function updateWpSeoTaxonomyMeta(int $taxonomyId, Model $i18nModel, string $type): void
+    protected function updateWpSeoTaxonomyMeta(int $taxonomyId, AbstractI18n $i18nModel, string $type): void
     {
         $taxonomySeo = $this->getSeoTaxonomyMeta();
 
@@ -48,25 +49,33 @@ class YoastSeo extends AbstractPlugin
 
         foreach ($taxonomySeo[$type] as $catKey => $seoData) {
             if ($catKey === (int)$taxonomyId) {
-                $exists = true;
-                $taxonomySeo[$type][$catKey]['wpseo_desc'] = $i18nModel->getMetaDescription();
+                $exists                                       = true;
+                $taxonomySeo[$type][$catKey]['wpseo_desc']    = $i18nModel->getMetaDescription();
                 $taxonomySeo[$type][$catKey]['wpseo_focuskw'] = $i18nModel->getMetaKeywords();
-                $taxonomySeo[$type][$catKey]['wpseo_title'] = strcmp($i18nModel->getTitleTag(),
-                    '') === 0 && method_exists($i18nModel,
-                    'getName') ? $i18nModel->getName() : $i18nModel->getTitleTag();
+                $taxonomySeo[$type][$catKey]['wpseo_title']   = \strcmp(
+                    $i18nModel->getTitleTag(),
+                    ''
+                ) === 0 && \method_exists(
+                    $i18nModel,
+                    'getName'
+                ) ? $i18nModel->getName() : $i18nModel->getTitleTag();
             }
         }
         if ($exists === false) {
             $taxonomySeo[$type][(int)$taxonomyId] = [
                 'wpseo_desc' => $i18nModel->getMetaDescription(),
                 'wpseo_focuskw' => $i18nModel->getMetaKeywords(),
-                'wpseo_title' => strcmp($i18nModel->getTitleTag(),
-                    '') === 0 && method_exists($i18nModel,
-                    'getName') ? $i18nModel->getName() : $i18nModel->getTitleTag(),
+                'wpseo_title' => \strcmp(
+                    $i18nModel->getTitleTag(),
+                    ''
+                ) === 0 && \method_exists(
+                    $i18nModel,
+                    'getName'
+                ) ? $i18nModel->getName() : $i18nModel->getTitleTag(),
             ];
         }
 
-        update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
+        \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
     }
 
     /**
@@ -74,7 +83,7 @@ class YoastSeo extends AbstractPlugin
      * @param int $termId
      * @param string $type
      */
-    public function setSeoData(Model $i18n, int $termId, string $type)
+    public function setSeoData(AbstractI18n $i18n, int $termId, string $type)
     {
         $seoData = $this->findSeoTranslationData($termId, $type);
         if (!empty($seoData)) {
@@ -91,10 +100,10 @@ class YoastSeo extends AbstractPlugin
      */
     protected function findSeoTranslationData(int $termId, string $type): array
     {
-        $seoData = [];
+        $seoData     = [];
         $taxonomySeo = $this->getSeoTaxonomyMeta();
 
-        if (isset($taxonomySeo[$type]) && is_array($taxonomySeo[$type])) {
+        if (isset($taxonomySeo[$type]) && \is_array($taxonomySeo[$type])) {
             foreach ($taxonomySeo[$type] as $elementId => $wpSeoData) {
                 if ($elementId === $termId) {
                     $seoData = $wpSeoData;
@@ -150,17 +159,17 @@ class YoastSeo extends AbstractPlugin
         $productId = $product->get_id();
 
         $values = [
-            'titleTag' => get_post_meta($productId, '_yoast_wpseo_title'),
-            'metaDesc' => get_post_meta($productId, '_yoast_wpseo_metadesc'),
-            'keywords' => get_post_meta($productId, '_yoast_wpseo_focuskw'),
+            'titleTag' => \get_post_meta($productId, '_yoast_wpseo_title'),
+            'metaDesc' => \get_post_meta($productId, '_yoast_wpseo_metadesc'),
+            'keywords' => \get_post_meta($productId, '_yoast_wpseo_focuskw'),
             'permlink' => $product->get_slug()
         ];
 
         foreach ($values as $key => $value) {
-            if (strcmp($key, 'permalink') === 0) {
+            if (\strcmp($key, 'permalink') === 0) {
                 continue;
             }
-            if (is_array($value) && count($value) > 0) {
+            if (\is_array($value) && \count($value) > 0) {
                 $values[$key] = $value[0];
             }
         }
@@ -174,7 +183,7 @@ class YoastSeo extends AbstractPlugin
     protected function getSeoTaxonomyMeta()
     {
         if (!isset($this->wpSeoTaxonomyMeta)) {
-            $this->wpSeoTaxonomyMeta = get_option('wpseo_taxonomy_meta', []);
+            $this->wpSeoTaxonomyMeta = \get_option('wpseo_taxonomy_meta', []);
         }
         return $this->wpSeoTaxonomyMeta;
     }

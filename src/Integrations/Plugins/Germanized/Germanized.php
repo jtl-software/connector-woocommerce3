@@ -23,7 +23,7 @@ class Germanized extends AbstractPlugin
      */
     public function hasUnitProduct(\WC_Product $wcProduct): bool
     {
-        return (bool)\JtlWooCommerceConnector\Utilities\Germanized::getInstance()->hasUnitProduct($wcProduct);
+        return (new \JtlWooCommerceConnector\Utilities\Germanized())->hasUnitProduct($wcProduct);
     }
 
     /**
@@ -32,6 +32,6 @@ class Germanized extends AbstractPlugin
      */
     public function getUnit(\WC_Product $wcProduct)
     {
-        return \JtlWooCommerceConnector\Utilities\Germanized::getInstance()->getUnit($wcProduct);
+        return (new \JtlWooCommerceConnector\Utilities\Germanized())->getUnit($wcProduct);
     }
 }

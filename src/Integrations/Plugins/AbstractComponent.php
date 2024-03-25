@@ -44,6 +44,6 @@ abstract class AbstractComponent implements ComponentInterface
      */
     public function getName(): string
     {
-        return get_class($this);
+        return \get_class($this);
     }
 }

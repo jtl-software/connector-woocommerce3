@@ -38,6 +38,7 @@ abstract class AbstractBaseController extends AbstractController implements Logg
 
     /**
      * BaseController constructor.
+     * @throws \Exception
      */
     public function __construct(Db $db, Util $util)
     {

@@ -26,15 +26,15 @@ class WpmlCurrency extends AbstractComponent
      */
     public function getCurrencies(): array
     {
-        $wcml = $this->plugin->getWcml();
+        $wcml       = $this->plugin->getWcml();
         $currencies = $wcml->get_multi_currency()->get_currencies(true);
 
         $defaultCurrencyIso = $wcml->get_multi_currency()->get_default_currency();
-        $jtlCurrencies = [];
+        $jtlCurrencies      = [];
 
         foreach ($currencies as $currencyIso => $currency) {
             $jtlCurrencies[] = (new CurrencyModel())
-                ->setId(new Identity(strtolower($currencyIso)))
+                ->setId(new Identity(\strtolower($currencyIso)))
                 ->setName($currencyIso)
                 ->setDelimiterCent($currency['decimal_sep'])
                 ->setDelimiterThousand($currency['thousand_sep'])
@@ -58,7 +58,7 @@ class WpmlCurrency extends AbstractComponent
         $wcml->get_multi_currency()->enable();
 
         $activeLanguages = $this->plugin->getActiveLanguages();
-        $languages = [];
+        $languages       = [];
         foreach ($activeLanguages as $activeLanguage) {
             $languages[$activeLanguage['code']] = 1;
         }

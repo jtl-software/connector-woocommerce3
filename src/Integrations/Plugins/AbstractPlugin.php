@@ -50,8 +50,8 @@ abstract class AbstractPlugin implements PluginInterface
      */
     public function getComponent(string $name): ComponentInterface
     {
-        if($this->hasComponent($name) === false){
-            throw new \Exception(sprintf("Cannot find component %s in plugin %s", $name, $this->getName()));
+        if ($this->hasComponent($name) === false) {
+            throw new \Exception(\sprintf("Cannot find component %s in plugin %s", $name, $this->getName()));
         }
 
         return $this->components[$name];
@@ -87,6 +87,6 @@ abstract class AbstractPlugin implements PluginInterface
      */
     public function getName(): string
     {
-        return get_class($this);
+        return \get_class($this);
     }
 }

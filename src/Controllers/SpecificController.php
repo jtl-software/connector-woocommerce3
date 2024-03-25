@@ -58,9 +58,12 @@ class SpecificController extends AbstractBaseController implements
                     ->setName($specificDataSet['attribute_label'])
             );
 
-            $specificName = sprintf('pa_%s', $specificDataSet['attribute_name']);
+            $specificName = \sprintf('pa_%s', $specificDataSet['attribute_name']);
 
-            if ($this->wpml->canBeUsed() && $this->wpml->getComponent(WpmlSpecific::class)->isTranslatable($specificName)) {
+            if (
+                $this->wpml->canBeUsed()
+                && $this->wpml->getComponent(WpmlSpecific::class)->isTranslatable($specificName)
+            ) {
                 $this->wpml
                     ->getComponent(WpmlSpecific::class)
                     ->getTranslations($specific, $specificDataSet['attribute_label']);
@@ -86,8 +89,11 @@ class SpecificController extends AbstractBaseController implements
                 if ($this->wpml->canBeUsed()) {
                     $this->wpml
                         ->getComponent(WpmlSpecificValue::class)
-                        ->getTranslations($specificValue, (int)$specificValueDataSet['term_taxonomy_id'],
-                            $specificValueDataSet['taxonomy']);
+                        ->getTranslations(
+                            $specificValue,
+                            (int)$specificValueDataSet['term_taxonomy_id'],
+                            $specificValueDataSet['taxonomy']
+                        );
                 }
 
                 $specific->addValue($specificValue);
@@ -103,6 +109,7 @@ class SpecificController extends AbstractBaseController implements
      * @param SpecificModel $model
      * @return SpecificModel
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
@@ -112,9 +119,8 @@ class SpecificController extends AbstractBaseController implements
         $defaultAvailable = false;
 
         foreach ($model->getI18ns() as $i18n) {
-
-            if ($this->wpml->canBeUsed()) {
-                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {//TODO: existiert nicht
+            if ($this->wpml->canBeUsed()) {//TODO: existiert nicht
+                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
                     $meta = $i18n;#$defaultSpecificTranslation
                     break;
                 }
@@ -128,7 +134,6 @@ class SpecificController extends AbstractBaseController implements
             if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                 $defaultAvailable = true;
             }
-
         }
 
         //Fallback 'ger' if incorrect language code was given
@@ -144,8 +149,8 @@ class SpecificController extends AbstractBaseController implements
             $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
 
             //STOP here if already exists
-            $existingTaxonomyId  = Util::getAttributeTaxonomyIdByName($attrName);
-            $endpointId = (int)$model->getId()->getEndpoint();
+            $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
+            $endpointId         = (int)$model->getId()->getEndpoint();
 
             if ($existingTaxonomyId !== 0) {
                 if ($existingTaxonomyId !== $endpointId) {
@@ -209,8 +214,7 @@ class SpecificController extends AbstractBaseController implements
 
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-
-                    if ($this->wpml->canBeUsed()) {
+                    if ($this->wpml->canBeUsed()) {//TODO: language existiert nicht
                         if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
                             $metaValue = $i18n;
                         }
@@ -224,7 +228,6 @@ class SpecificController extends AbstractBaseController implements
                     if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                         $defaultValueAvailable = true;
                     }
-
                 }
 
                 //Fallback 'ger' if incorrect language code was given

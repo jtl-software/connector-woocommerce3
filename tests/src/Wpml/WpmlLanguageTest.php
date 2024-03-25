@@ -22,7 +22,8 @@ class WpmlLanguageTest extends TestCase
     {
         $util = \Mockery::mock("alias:" . Util::class);
         $util->shouldReceive('getInstance->mapLanguageIso')->andReturn(
-            'eng', 'ger'
+            'eng',
+            'ger'
         );
 
         $wpmlPluginMock = \Mockery::mock(Wpml::class);

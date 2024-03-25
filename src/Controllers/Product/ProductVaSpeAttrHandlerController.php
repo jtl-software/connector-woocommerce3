@@ -3,8 +3,10 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
@@ -59,6 +61,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     private array $values = [];
 
+    /**
+     * @throws \Exception
+     */
     public function __construct(Db $db, Util $util)
     {
         if (! \defined('WC_DELIMITER')) {
@@ -74,6 +79,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      *
      * @return array[]
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
     {
@@ -763,7 +769,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = []): array
     {
         $filteredAttributes = [];
-        /** @var \jtl\Connector\Core\Model\ProductVariation $variation */
+        /** @var ProductVariation $variation */
         $jtlVariations = [];
         foreach ($variations as $variation) {
             foreach ($variation->getI18ns() as $productVariationI18n) {
@@ -812,8 +818,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     /**
      * @param                  $curAttributes
      * @param ProductAttrModel ...$jtlAttributes
-     *
      * @return array
+     * @throws TranslatableAttributeException
      */
     private function getVariationAttributes($curAttributes, ProductAttrModel ...$jtlAttributes): array
     {

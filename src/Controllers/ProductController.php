@@ -13,7 +13,6 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
-use Jtl\Connector\Core\Model\Product2Category;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
@@ -28,8 +27,6 @@ use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPriceController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
-use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
-use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
@@ -56,6 +53,10 @@ class ProductController extends AbstractBaseController implements
 
     private static array $idCache = [];
 
+    /**
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
+     */
     protected function getProductsIds(int $limit)
     {
         if ($this->wpml->canBeUsed()) {
@@ -254,8 +255,8 @@ class ProductController extends AbstractBaseController implements
         }
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {
-                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {//TODO:gibts nicht mehr
+            if ($this->wpml->canBeUsed()) {//TODO:gibts nicht mehr
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
                     $defaultI18n = $i18n;
                     break;
                 }
@@ -381,7 +382,7 @@ class ProductController extends AbstractBaseController implements
     {
         $productId = (int)$model->getId()->getEndpoint();
 
-        $wcProduct = wc_get_product($productId);
+        $wcProduct = \wc_get_product($productId);
 
         if ($wcProduct instanceof \WC_Product) {
             \wp_delete_post($productId, true);
@@ -410,7 +411,7 @@ class ProductController extends AbstractBaseController implements
         } else {
             $ids = $this->db->queryList(SqlHelper::productPull());
         }
-        return count($ids);
+        return \count($ids);
     }
 
     /**
@@ -441,7 +442,7 @@ class ProductController extends AbstractBaseController implements
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
-        //TODO: code from wpml
+        //TODO: code from wpml, delete if tests succeed
         #(new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
 
         //variations
@@ -646,6 +647,7 @@ class ProductController extends AbstractBaseController implements
      * @param string $productType
      * @return void
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     private function updateProductRelations(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {

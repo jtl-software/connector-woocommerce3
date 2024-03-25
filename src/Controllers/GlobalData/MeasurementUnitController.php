@@ -45,6 +45,7 @@ class MeasurementUnitController extends AbstractBaseController
     /**
      * @return array
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function pullGermanMarketData(): array
     {

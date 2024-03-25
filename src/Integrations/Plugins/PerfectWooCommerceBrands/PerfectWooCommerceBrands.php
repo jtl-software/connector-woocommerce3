@@ -7,11 +7,11 @@ use jtl\Connector\Core\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO: checken
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use JtlWooCommerceConnector\Utilities\Util;
-use \WP_Error;
+use Psr\Log\InvalidArgumentException;
+use WP_Error;
 
 /**
  * Class PerfectWooCommerceBrands
@@ -52,11 +52,11 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         if ($yoastSeo->canBeUsed()) {
             $seoData = $yoastSeo->findManufacturerSeoData($termId);
             if (!empty($seoData)) {
-                $i18n->setMetaDescription(isset($seoData['wpseo_desc']) ? $seoData['wpseo_desc'] : '')
-                    ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $manufacturer->getName())
-                    ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $manufacturer->getName());
+                $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
+                    ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $manufacturer->getName())
+                    ->setTitleTag($seoData['wpseo_title'] ?? $manufacturer->getName());
             }
-        } elseif($rankMathSeo->canBeUsed()){
+        } elseif ($rankMathSeo->canBeUsed()) {
             $seoData = $rankMathSeo->findManufacturerSeoData($termId);
             if (!empty($seoData)) {
                 $this->util->setI18nRankMathSeo($i18n, $seoData);
@@ -73,40 +73,42 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @return array|false|WP_Error|\WP_Term
      * @throws \Exception
      */
-    public function saveManufacturer(Manufacturer $jtlManufacturer, ManufacturerI18nModel $manufacturerI18n)
-    {
+    public function saveManufacturer(
+        Manufacturer $jtlManufacturer,
+        ManufacturerI18nModel $manufacturerI18n
+    ): \WP_Term|array|WP_Error|bool {
         $manufacturerTerm = $this->getManufacturerBySlug($jtlManufacturer->getName());
 
-        remove_filter('pre_term_description', 'wp_filter_kses');
+        \remove_filter('pre_term_description', 'wp_filter_kses');
 
         if ($manufacturerTerm === false) {
             /** @var \WP_Term $newManufacturerTerm */
 
-            $slug = $this->sanitizeSlug($jtlManufacturer->getName());
+            $slug                = $this->sanitizeSlug($jtlManufacturer->getName());
             $newManufacturerTerm = $this->createManufacturer($slug, $jtlManufacturer->getName(), $manufacturerI18n);
 
             if ($newManufacturerTerm instanceof WP_Error) {
                 $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
-                WpErrorLogger::getInstance()->logError($error);
+                WpErrorLogger::getInstance()->logError($error);//TODO:checken
                 WpErrorLogger::getInstance()->logError($newManufacturerTerm);
             }
             $manufacturerTerm = $newManufacturerTerm;
 
             if (!$manufacturerTerm instanceof \WP_Term) {
-                if (array_key_exists('term_id', $manufacturerTerm)) {
-                    $manufacturerTerm = get_term_by('id', $manufacturerTerm['term_id'], 'pwb-brand');
+                if (\array_key_exists('term_id', $manufacturerTerm)) {
+                    $manufacturerTerm = \get_term_by('id', $manufacturerTerm['term_id'], 'pwb-brand');
                 }
             }
         } else {
             $this->updateManufacturer((int) $manufacturerTerm->term_id, $jtlManufacturer->getName(), $manufacturerI18n);
         }
 
-        add_filter('pre_term_description', 'wp_filter_kses');
+        \add_filter('pre_term_description', 'wp_filter_kses');
 
         if ($manufacturerTerm instanceof \WP_Term) {
             $jtlManufacturer->getId()->setEndpoint($manufacturerTerm->term_id);
             foreach ($jtlManufacturer->getI18ns() as $i18n) {
-                $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);
+                $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);//TODO: checken
             }
 
             /** @var RankMathSeo $rankMathSeo */
@@ -128,28 +130,28 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @param string $languageSuffix
      * @return string
      */
-    public function sanitizeSlug(string $manufacturerName, string $languageSuffix = '')
+    public function sanitizeSlug(string $manufacturerName, string $languageSuffix = ''): string
     {
-        $manufacturerName = substr(trim($manufacturerName), 0, 27);
+        $manufacturerName = \substr(\trim($manufacturerName), 0, 27);
 
         if (!empty($languageSuffix)) {
-            if (mb_strlen($manufacturerName) > 24) {
-                $manufacturerName = substr($manufacturerName, 0, 24);
+            if (\mb_strlen($manufacturerName) > 24) {
+                $manufacturerName = \substr($manufacturerName, 0, 24);
             }
 
             $manufacturerName .= '-' . $languageSuffix;
         }
 
-        return wc_sanitize_taxonomy_name($manufacturerName);
+        return \wc_sanitize_taxonomy_name($manufacturerName);
     }
 
     /**
      * @param string $manufacturerName
      * @return array|false|\WP_Term
      */
-    public function getManufacturerBySlug(string $manufacturerName)
+    public function getManufacturerBySlug(string $manufacturerName): \WP_Term|bool|array
     {
-        return get_term_by('slug', $manufacturerName, 'pwb-brand');
+        return \get_term_by('slug', $manufacturerName, 'pwb-brand');
     }
 
     /**
@@ -158,8 +160,11 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @param ManufacturerI18nModel $manufacturerI18n
      * @return array|int[]|WP_Error
      */
-    public function createManufacturer(string $slug, string $manufacturerName, ManufacturerI18nModel $manufacturerI18n)
-    {
+    public function createManufacturer(
+        string $slug,
+        string $manufacturerName,
+        ManufacturerI18nModel $manufacturerI18n
+    ): array|WP_Error {
         return \wp_insert_term(
             $manufacturerName,
             'pwb-brand',
@@ -176,11 +181,14 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @param ManufacturerI18nModel $manufacturerI18n
      * @return array|WP_Error
      */
-    public function updateManufacturer(int $termId, string $manufacturerName, ManufacturerI18nModel $manufacturerI18n)
-    {
-        return wp_update_term($termId, 'pwb-brand', [
+    public function updateManufacturer(
+        int $termId,
+        string $manufacturerName,
+        ManufacturerI18nModel $manufacturerI18
+    ): WP_Error|array {
+        return \wp_update_term($termId, 'pwb-brand', [
             'name' => $manufacturerName,
-            'description' => $manufacturerI18n->getDescription(),
+            'description' => $manufacturerI18->getDescription(),
         ]);
     }
 
@@ -196,6 +204,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @return int
+     * @throws InvalidArgumentException
      */
     public function getStats(): int
     {

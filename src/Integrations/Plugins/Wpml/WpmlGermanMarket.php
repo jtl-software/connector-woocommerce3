@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\MeasurementUnitI18n;
+use jtl\Connector\Core\Model\Identity;
+use jtl\Connector\Core\Model\MeasurementUnitI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 
 /**
@@ -34,7 +34,6 @@ class WpmlGermanMarket extends AbstractComponent
 
             if (!empty($translated)) {
                 $measurementUnitTranslations[] = (new MeasurementUnitI18n())
-                    ->setMeasurementUnitId(new Identity($termTaxonomyId))
                     ->setName($translated['description'])
                     ->setLanguageISO(
                         $this->getCurrentPlugin()->convertLanguageToWawi($languageCode)

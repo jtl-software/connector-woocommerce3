@@ -2,13 +2,13 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Model\Product;
-use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Core\Model\Product;
+use jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:checken
 use DateTime;
 use JtlWooCommerceConnector\Utilities\Config;
 
@@ -26,9 +26,15 @@ class WooCommerceProduct extends AbstractComponent
      * @return int|null
      * @throws \Exception
      */
-    public function saveProduct(int $wcProductId, string $masterProductId, Product $product, ProductI18nModel $defaultI18n): ?int
-    {
-        $creationDate = is_null($product->getAvailableFrom()) ? $product->getCreationDate() : $product->getAvailableFrom();
+    public function saveProduct(
+        int $wcProductId,
+        string $masterProductId,
+        Product $product,
+        ProductI18nModel $defaultI18n
+    ): ?int {
+        $creationDate = \is_null($product->getAvailableFrom())
+            ? $product->getCreationDate()
+            : $product->getAvailableFrom();
 
         if (!$creationDate instanceof DateTime) {
             $creationDate = new DateTime();
@@ -45,7 +51,9 @@ class WooCommerceProduct extends AbstractComponent
             'post_content' => $defaultI18n->getDescription(),
             'post_excerpt' => $defaultI18n->getShortDescription(),
             'post_date' => $this->getCreationDate($creationDate),
-            'post_status' => is_null($product->getAvailableFrom()) ? ($product->getIsActive() ? 'publish' : 'draft') : 'future',
+            'post_status' => \is_null($product->getAvailableFrom())
+                ? ($product->getIsActive() ? 'publish' : 'draft')
+                : 'future',
         ];
 
         if ($endpoint['ID'] !== 0) {
@@ -54,15 +62,15 @@ class WooCommerceProduct extends AbstractComponent
         }
 
         // Post filtering
-        remove_filter('content_save_pre', 'wp_filter_post_kses');
-        remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+        \remove_filter('content_save_pre', 'wp_filter_post_kses');
+        \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
         $newPostId = \wp_insert_post($endpoint, true);
         // Post filtering
-        add_filter('content_save_pre', 'wp_filter_post_kses');
-        add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+        \add_filter('content_save_pre', 'wp_filter_post_kses');
+        \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
         if ($newPostId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($newPostId);
+            WpErrorLogger::getInstance()->logError($newPostId);//TODO:checken
             return null;
         }
 
@@ -74,16 +82,19 @@ class WooCommerceProduct extends AbstractComponent
      * @param DateTime $creationDate
      * @param bool $gmt
      * @return string|null
+     * @throws \Exception
      */
-    private function getCreationDate(DateTime $creationDate, $gmt = false)
+    private function getCreationDate(DateTime $creationDate, $gmt = false): ?string
     {
-        if (is_null($creationDate)) {
+        if (\is_null($creationDate)) {
             return null;
         }
 
         if ($gmt) {
             $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(date_interval_create_from_date_string($shopTimeZone->getOffset($creationDate) / 3600 . ' hours'));
+            $creationDate->sub(\date_interval_create_from_date_string(
+                $shopTimeZone->getOffset($creationDate) / 3600 . ' hours')
+            );
         }
 
         return $creationDate->format('Y-m-d H:i:s');
@@ -99,11 +110,10 @@ class WooCommerceProduct extends AbstractComponent
     public function getI18ns(\WC_Product $wcProduct, Product $jtlProduct, string $languageIso): ProductI18nModel
     {
         $i18n = (new ProductI18nModel())
-            ->setProductId($jtlProduct->getId())
             ->setLanguageISO($languageIso)
             ->setName($this->name($wcProduct))
-            ->setDescription(html_entity_decode($wcProduct->get_description()))
-            ->setShortDescription(html_entity_decode($wcProduct->get_short_description()))
+            ->setDescription(\html_entity_decode($wcProduct->get_description()))
+            ->setShortDescription(\html_entity_decode($wcProduct->get_short_description()))
             ->setUrlPath($wcProduct->get_slug());
 
         $germanized = $this->getPluginsManager()->get(Germanized::class);
@@ -117,11 +127,11 @@ class WooCommerceProduct extends AbstractComponent
         $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $tmpMeta = $yoastSeo->findProductSeoData($wcProduct);
-            if (!empty($tmpMeta) && count($tmpMeta) > 0) {
-                $i18n->setMetaDescription(is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
-                    ->setMetaKeywords(is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
-                    ->setTitleTag(is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
-                    ->setUrlPath(is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
+            if (!empty($tmpMeta) && \count($tmpMeta) > 0) {
+                $i18n->setMetaDescription(\is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
+                    ->setMetaKeywords(\is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
+                    ->setTitleTag(\is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
+                    ->setUrlPath(\is_array($tmpMeta['permlink']) ? '' : $tmpMeta['permlink']);
             }
         } elseif ($rankMathSeo->canBeUsed()) {
             $rankMathSeo->setProductSeoData($wcProduct, $i18n);
@@ -137,22 +147,22 @@ class WooCommerceProduct extends AbstractComponent
      */
     private function name(\WC_Product $product): string
     {
-        $name = html_entity_decode($product->get_name());
+        $name = \html_entity_decode($product->get_name());
         if ($product instanceof \WC_Product_Variation) {
             switch (\get_option(Config::OPTIONS_VARIATION_NAME_FORMAT, '')) {
                 case 'space':
                     $name = $product->get_name() . ' ' . \wc_get_formatted_variation($product, true);
                     break;
                 case 'brackets':
-                    $name = sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
+                    $name = \sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
                     break;
                 case 'space_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    $name = $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
+                    $name   = $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
                     break;
                 case 'brackets_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    $name = sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
+                    $name   = \sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
                     break;
             }
         }

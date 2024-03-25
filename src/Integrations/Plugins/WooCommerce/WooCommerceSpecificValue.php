@@ -2,12 +2,12 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Model\SpecificValue;
-use jtl\Connector\Model\SpecificValueI18n;
+use jtl\Connector\Core\Model\SpecificValue;
+use jtl\Connector\Core\Model\SpecificValueI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
+use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:checken
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
@@ -24,10 +24,15 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @return SpecificValue|null
      * @throws \Exception
      */
-    public function save(string $taxonomy, SpecificValue $specificValue, SpecificValueI18n $specificValueI18n, $slug = null): ?int {
+    public function save(
+        string $taxonomy,
+        SpecificValue $specificValue,
+        SpecificValueI18n $specificValueI18n,
+        $slug = null
+    ): ?int {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
-            'slug' => $slug ?? wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
+            'slug' => $slug ?? \wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
         ];
 
         $exValId = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(
@@ -37,7 +42,7 @@ class WooCommerceSpecificValue extends AbstractComponent
             )
         );
 
-        if (count($exValId) >= 1) {
+        if (\count($exValId) >= 1) {
             if (isset($exValId[0]['term_id'])) {
                 $exValId = $exValId[0]['term_id'];
             } else {
@@ -49,19 +54,19 @@ class WooCommerceSpecificValue extends AbstractComponent
 
         $endValId = (int)$specificValue->getId()->getEndpoint();
 
-        if (is_null($exValId) && $endValId === 0) {
+        if (\is_null($exValId) && $endValId === 0) {
             $newTerm = \wp_insert_term(
                 $endpointValue['name'],
                 $taxonomy
             );
 
             if ($newTerm instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($newTerm);
+                WpErrorLogger::getInstance()->logError($newTerm);//TODO:checken
                 return null;
             }
 
             $termId = $newTerm['term_id'];
-        } elseif (is_null($exValId) && $endValId !== 0) {
+        } elseif (\is_null($exValId) && $endValId !== 0) {
             $wpml = $this->getPluginsManager()->get(Wpml::class);
             if ($wpml->canBeUsed()) {
                 $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
@@ -77,11 +82,11 @@ class WooCommerceSpecificValue extends AbstractComponent
         }
 
         if ($termId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($termId);
+            WpErrorLogger::getInstance()->logError($termId);//TODO:checken
             return null;
         }
 
-        if (is_array($termId)) {
+        if (\is_array($termId)) {
             $termId = $termId['term_id'];
         }
 

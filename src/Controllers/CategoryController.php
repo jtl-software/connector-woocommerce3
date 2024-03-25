@@ -112,9 +112,9 @@ class CategoryController extends AbstractBaseController implements
                                 $category,
                                 $this->wpml->convertLanguageToWawi($translation->language_code),
                                 [
-                                    'name' => html_entity_decode($translation->name),
+                                    'name' => \html_entity_decode($translation->name),
                                     'slug' => $term['slug'],
-                                    'description' => html_entity_decode($term['description']),
+                                    'description' => \html_entity_decode($term['description']),
                                     'category_id' => $term['term_id']
                                 ]
                             );
@@ -151,8 +151,8 @@ class CategoryController extends AbstractBaseController implements
         $categoryId = (int)$model->getId()->getEndpoint();
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {
-                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) { //TODO:Language unklar
+            if ($this->wpml->canBeUsed()) {//TODO:Language unklar
+                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
                     $meta = $i18n;
                     break;
                 }
@@ -266,7 +266,7 @@ class CategoryController extends AbstractBaseController implements
             (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
 
             if ($this->wpml->canBeUsed()) {
-            $this->wpml
+                $this->wpml
                 ->getComponent(WpmlCategory::class)
                 ->setCategoryTranslations($model, $result, $parentCategoryId);
             }

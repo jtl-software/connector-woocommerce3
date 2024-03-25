@@ -67,7 +67,8 @@ class WpmlTermTranslationTest extends TestCase
     {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
 
-        $wpmlTermTranslationComponent = \Mockery::mock(WpmlTermTranslation::class)->makePartial()->shouldAllowMockingProtectedMethods();
+        $wpmlTermTranslationComponent = \Mockery::mock(WpmlTermTranslation::class)
+            ->makePartial()->shouldAllowMockingProtectedMethods();
         $wpmlTermTranslationComponent->shouldReceive('disableGetTermAdjustId')->andReturn(true);
         $wpmlTermTranslationComponent->shouldReceive('enableGetTermAdjustId')->andReturn(true);
         $wpmlTermTranslationComponent->shouldReceive('getTermById')->andReturn($getTermByIdReturnValue);

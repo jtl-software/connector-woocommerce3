@@ -70,7 +70,7 @@ class ImageController extends AbstractBaseController implements
         $images        = $this->productImagePull($limit);
         $productImages = $this->addNextImages($images, IdentityType::PRODUCT_IMAGE, $limit);
 
-        $images = $this->categoryImagePullByQuery($this->getCategoryImagePullQuery($limit));
+        $images         = $this->categoryImagePullByQuery($this->getCategoryImagePullQuery($limit));
         $categoryImages = $this->addNextImages($images, IdentityType::CATEGORY_IMAGE, $limit);
 
         $combinedArray = \array_merge($productImages, $categoryImages);
@@ -131,8 +131,7 @@ class ImageController extends AbstractBaseController implements
                 ->addI18n((new ImageI18n())
                     ->setId(new Identity($image['id']))
                     ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
-                    ->setLanguageISO($language)
-                );
+                    ->setLanguageISO($language));
 
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $this->wpml
@@ -415,16 +414,16 @@ class ImageController extends AbstractBaseController implements
         $imageCount += \count($this->db->query(SqlHelper::imageVariationCombinationPull()));
 
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-            $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull());
+            $imageCount += \count($this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull());
         } else {
-            $imageCount += count($this->db->query(SqlHelper::imageCategoryPull()));
+            $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()));
         }
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-                $imageCount += count($this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull());
+                $imageCount += \count($this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull());
             } else {
-                $imageCount += count($this->database->query(SqlHelper::imageManufacturerPull()));
+                $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
             }
         }
 
@@ -576,7 +575,6 @@ class ImageController extends AbstractBaseController implements
             if ($this->wpml->canWpmlMediaBeUsed()) {
                 $this->wpml->getComponent(WpmlMedia::class)->saveAttachmentTranslations($post, $image->getI18ns());
             }
-
         }
 
         return $post;

@@ -2,13 +2,13 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Utilities\Language;
+use jtl\Connector\Core\Utilities\Language;//TODO
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Logger\WpmlLogger;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use woocommerce_wpml;
-use SitePress;
+use RankMath\Helpers\Sitepress;
 use wpdb;
 
 /**
@@ -27,8 +27,8 @@ class Wpml extends AbstractPlugin
      */
     public function isMultiCurrencyEnabled(): bool
     {
-        if (wcml_is_multi_currency_on() === false) {
-            WpmlLogger::getInstance()->writeLog("WPML multi-currency is not enabled.");
+        if (\wcml_is_multi_currency_on() === false) {
+            WpmlLogger::getInstance()->writeLog("WPML multi-currency is not enabled.");//TODO
             return false;
         }
         return true;
@@ -39,7 +39,7 @@ class Wpml extends AbstractPlugin
      */
     public function getActiveLanguages(): array
     {
-        return $this->getSitepress()->get_active_languages();
+        return $this->getSitepress()->get_active_languages();//TODO
     }
 
     /**
@@ -47,13 +47,13 @@ class Wpml extends AbstractPlugin
      */
     public function getDefaultLanguage(): string
     {
-        return wpml_get_default_language();
+        return \wpml_get_default_language();
     }
 
     /**
      * @param string $wawiLanguageIso
      * @return bool
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
     public function isDefaultLanguage(string $wawiLanguageIso): bool
     {
@@ -67,11 +67,13 @@ class Wpml extends AbstractPlugin
      */
     public function convertLanguageToWawi(string $wpmlLanguageCode): string
     {
-        $wpmlLanguageCode = substr($wpmlLanguageCode, 0, 2);
-        $language = Language::convert($wpmlLanguageCode);
-        if (is_null($language)) {
-            WpmlLogger::getInstance()->writeLog(sprintf("Cannot find corresponding language code %s",
-                $wpmlLanguageCode));
+        $wpmlLanguageCode = \substr($wpmlLanguageCode, 0, 2);
+        $language         = Language::convert($wpmlLanguageCode);//TODO
+        if (\is_null($language)) {
+            WpmlLogger::getInstance()->writeLog(\sprintf(
+                "Cannot find corresponding language code %s", //TODO
+                $wpmlLanguageCode
+            ));
             $language = '';
         }
         return $language;
@@ -80,20 +82,21 @@ class Wpml extends AbstractPlugin
     /**
      * @param string $wawiLanguageCode
      * @return false|int|mixed|string|null
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
     public function convertLanguageToWpml(string $wawiLanguageCode): string
     {
-        $language = Language::convert(null, $wawiLanguageCode);
+        $language = Language::convert(null, $wawiLanguageCode);//TODO
         return $language ?? '';
     }
 
     /**
      * @return bool
      */
-    public function canWpmlMediaBeUsed(): bool
+    public function canWpmlMediaBeUsed(): bool//TODO
     {
-        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA) && (new \WPML_Media_Dependencies())->check();
+        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA)
+            && (new \WPML_Media_Dependencies())->check();
     }
 
     /**
@@ -103,16 +106,15 @@ class Wpml extends AbstractPlugin
     {
         $canUse = $this->isWpmlEnabled();
         if ($canUse === true) {
-
             $isSetupCompleted = $this->isSetupCompleted();
             if ($isSetupCompleted === false) {
-                WpmlLogger::getInstance()->writeLog("WPML setup is not completed cannot use WPML.");
+                WpmlLogger::getInstance()->writeLog("WPML setup is not completed cannot use WPML.");//TODO
             }
             $canUse &= $isSetupCompleted;
 
             $isWooCommerceSetupCompleted = !empty($this->getWcml()->get_setting('set_up_wizard_run'));
             if ($isWooCommerceSetupCompleted === false) {
-                WpmlLogger::getInstance()->writeLog("WCML setup is not completed cannot use WCML.");
+                WpmlLogger::getInstance()->writeLog("WCML setup is not completed cannot use WCML.");//TODO
             }
             $canUse &= $isWooCommerceSetupCompleted;
         }
@@ -152,7 +154,7 @@ class Wpml extends AbstractPlugin
      * @param string $elementType
      * @return int
      */
-    public function getElementTrid(int $termId, string $elementType): int
+    public function getElementTrid(int $termId, string $elementType): int//TODO
     {
         $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
 
@@ -173,9 +175,9 @@ class Wpml extends AbstractPlugin
     /**
      * @return bool
      */
-    protected function isSetupCompleted(): bool
+    protected function isSetupCompleted(): bool//TODO
     {
-        return (bool)wpml_get_setting_filter(false, 'setup_complete');
+        return (bool)\wpml_get_setting_filter(false, 'setup_complete');
     }
 
     /**

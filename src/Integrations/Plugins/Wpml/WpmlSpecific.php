@@ -18,15 +18,14 @@ class WpmlSpecific extends AbstractComponent
     public function getStats(): int
     {
         $wpdb = $this->getCurrentPlugin()->getWpDb();
-        $wat = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
+        $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
         $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
 
-        $sql = sprintf("
+        $sql = \sprintf("
             SELECT COUNT(at.attribute_id)
             FROM {$wat} at
             LEFT JOIN {$jcls} l ON at.attribute_id = l.endpoint_id
-            WHERE l.host_id IS NULL;"
-        );
+            WHERE l.host_id IS NULL;");
 
         return (int)$this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryOne($sql);
     }
@@ -35,18 +34,17 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param string $name
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
     public function getTranslations(Specific $specific, string $name)
     {
         $languages = $this->getCurrentPlugin()->getActiveLanguages();
 
         foreach ($languages as $languageCode => $language) {
-            $translatedName = apply_filters('wpml_translate_single_string', $name, 'WordPress', $name, $languageCode);
+            $translatedName = \apply_filters('wpml_translate_single_string', $name, 'WordPress', $name, $languageCode);
             if ($translatedName !== $name) {
                 $specific->addI18n(
-                    (new SpecificI18nModel)
-                        ->setSpecificId($specific->getId())
+                    (new SpecificI18nModel())
                         ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($languageCode))
                         ->setName($translatedName)
                 );
@@ -57,7 +55,7 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param SpecificI18nModel $defaultTranslation
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
     public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation)
     {
@@ -67,17 +65,22 @@ class WpmlSpecific extends AbstractComponent
                 continue;
             }
 
-            $translatedName = apply_filters('wpml_translate_single_string', $defaultTranslation->getName(), 'WordPress', $specificI18n->getName(), $languageCode);
+            $translatedName = \apply_filters(
+                'wpml_translate_single_string',
+                $defaultTranslation->getName(),
+                'WordPress',
+                $specificI18n->getName(),
+                $languageCode
+            );
 
             if ($translatedName !== $specificI18n->getName()) {
-                icl_register_string(
+                \icl_register_string(//TODO
                     'WordPress',
-                    sprintf('taxonomy singular name: %s', $defaultTranslation->getName()),
+                    \sprintf('taxonomy singular name: %s', $defaultTranslation->getName()),
                     $specificI18n->getName(),
                     false,
                     $languageCode
                 );
-
             }
         }
     }
@@ -88,11 +91,11 @@ class WpmlSpecific extends AbstractComponent
      */
     public function getValues(string $specificName)
     {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
-        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
-        $iclt = $wpdb->prefix . 'icl_translations';
+        $wpdb         = $this->getCurrentPlugin()->getWpDb();
+        $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $iclt         = $wpdb->prefix . 'icl_translations';
         $languageCode = $this->getCurrentPlugin()->getDefaultLanguage();
-        $elementType = 'tax_' . $specificName;
+        $elementType  = 'tax_' . $specificName;
 
         return $this->getPluginsManager()->getDatabase()->query(
             "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
@@ -105,7 +108,8 @@ class WpmlSpecific extends AbstractComponent
                 AND wpmlt.element_type = '{$elementType}'
                 AND wpmlt.source_language_code IS NULL
                 AND wpmlt.language_code = '{$languageCode}'
-                ORDER BY tt.parent ASC;");
+                ORDER BY tt.parent ASC;"
+        );
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -6,7 +7,7 @@
 
 namespace JtlWooCommerceConnector\Logger;
 
-use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Logger\Logger; //TODO:checken
 use WooCommerce\WooCommerce\Logging\Logger\WooCommerceLogger;
 
 /**

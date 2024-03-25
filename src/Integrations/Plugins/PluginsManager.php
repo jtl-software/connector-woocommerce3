@@ -110,7 +110,7 @@ class PluginsManager
     public function get(string $name): PluginInterface
     {
         if (!isset($this->pluginsList[$name])) {
-            throw new \Exception(sprintf("Plugin %s not found in PluginsManager", $name));
+            throw new \Exception(\sprintf("Plugin %s not found in PluginsManager", $name));
         }
 
         return $this->pluginsList[$name];

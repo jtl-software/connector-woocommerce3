@@ -75,7 +75,6 @@ class ManufacturerController extends AbstractBaseController implements
                         ->getTranslations((int)$manufacturerDataSet['trid'], 'tax_pwb-brand');
 
                     foreach ($manufacturerTranslations as $languageCode => $translation) {
-
                         $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
                             (int)$translation->term_id,
                             'pwb-brand'
@@ -92,7 +91,6 @@ class ManufacturerController extends AbstractBaseController implements
                             $manufacturer->addI18n($i18n);
                         }
                     }
-
                 }
 
                 $manufacturers[] = $manufacturer;
@@ -110,8 +108,7 @@ class ManufacturerController extends AbstractBaseController implements
         string $languageIso,
         string $description,
         string $termId
-    ): \Jtl\Connector\Core\Model\AbstractI18n|ManufacturerI18nModel
-    {
+    ): \Jtl\Connector\Core\Model\AbstractI18n|ManufacturerI18nModel {
         $i18n = (new ManufacturerI18nModel())
             ->setLanguageISO($languageIso)
             ->setDescription($description);
@@ -151,6 +148,7 @@ class ManufacturerController extends AbstractBaseController implements
      * @param ManufacturerModel $model
      * @return ManufacturerModel
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
@@ -159,7 +157,7 @@ class ManufacturerController extends AbstractBaseController implements
 
             foreach ($model->getI18ns() as $i18n) {
                 if ($this->wpml->canBeUsed()) {
-                    if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+                    if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {//TODO
                         $meta = $i18n;
                         break;
                     }
@@ -277,6 +275,7 @@ class ManufacturerController extends AbstractBaseController implements
     /**
      * @param AbstractModel $model
      * @return AbstractModel
+     * @throws \Exception
      */
     public function delete(AbstractModel $model): AbstractModel
     {
@@ -301,6 +300,7 @@ class ManufacturerController extends AbstractBaseController implements
 
     /**
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function statistic(QueryFilter $query): int
     {
@@ -311,7 +311,6 @@ class ManufacturerController extends AbstractBaseController implements
             } else {
                 $total = $this->db->queryOne(SqlHelper::manufacturerStats());
             }
-
         }
         return $total;
     }
