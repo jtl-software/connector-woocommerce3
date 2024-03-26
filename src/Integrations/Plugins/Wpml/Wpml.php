@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Utilities\Language;//TODO
+use Jtl\Connector\Core\Utilities\Language;//TODO
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;

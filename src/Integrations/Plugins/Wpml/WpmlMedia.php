@@ -2,9 +2,9 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Linker\IdentityLinker;
-use jtl\Connector\Core\Model\AbstractImage;
-use jtl\Connector\Core\Model\ImageI18n;
+use Jtl\Connector\Core\Linker\IdentityLinker;
+use Jtl\Connector\Core\Model\AbstractImage;
+use Jtl\Connector\Core\Model\ImageI18n;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;

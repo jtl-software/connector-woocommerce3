@@ -2,9 +2,9 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Exception\LanguageException;//TODO
-use jtl\Connector\Core\Model\Category;
-use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Exception\LanguageException;//TODO
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;

@@ -2,9 +2,9 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Exception\LanguageException;//TODO
-use jtl\Connector\Core\Model\Product;
-use jtl\Connector\Core\Model\ProductI18n;
+use Jtl\Connector\Core\Exception\LanguageException;//TODO
+use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\ProductI18n;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;

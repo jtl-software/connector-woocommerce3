@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Core\Model\Product;
-use jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;

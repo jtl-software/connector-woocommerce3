@@ -2,11 +2,11 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Model\Product;
-use jtl\Connector\Core\Model\ProductVariation;
-use jtl\Connector\Core\Model\ProductVariationI18n;
-use jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
-use jtl\Connector\Core\Model\ProductVariationValue;
+use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\ProductVariation;
+use Jtl\Connector\Core\Model\ProductVariationI18n;
+use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
+use Jtl\Connector\Core\Model\ProductVariationValue;
 use jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Util;

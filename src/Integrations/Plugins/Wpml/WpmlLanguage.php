@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\Language;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Language;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Util;
 

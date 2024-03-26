@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
-use jtl\Connector\Core\Model\Currency;
-use jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Currency;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Tests\TestCase;

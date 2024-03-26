@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\YoastSeo;
 
-use jtl\Connector\Core\Definition\Model;
+use Jtl\Connector\Core\Definition\Model;
 use Jtl\Connector\Core\Model\AbstractI18n;
 use jtl\Connector\Core\Model\CategoryI18n;
 use jtl\Connector\Core\Model\ManufacturerI18n;

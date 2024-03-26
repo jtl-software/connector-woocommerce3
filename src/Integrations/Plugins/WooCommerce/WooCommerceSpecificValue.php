@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Core\Model\SpecificValue;
-use jtl\Connector\Core\Model\SpecificValueI18n;
+use Jtl\Connector\Core\Model\SpecificValue;
+use Jtl\Connector\Core\Model\SpecificValueI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;

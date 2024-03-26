@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Model\Manufacturer;
+use Jtl\Connector\Core\Model\Manufacturer;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;

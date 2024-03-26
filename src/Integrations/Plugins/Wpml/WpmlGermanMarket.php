@@ -2,8 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Model\Identity;
-use jtl\Connector\Core\Model\MeasurementUnitI18n;
+use Jtl\Connector\Core\Model\MeasurementUnitI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 
 /**

@@ -2,8 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use jtl\Connector\Core\Model\Specific;
-use jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
+use Jtl\Connector\Core\Model\Specific;
+use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 
 /**
