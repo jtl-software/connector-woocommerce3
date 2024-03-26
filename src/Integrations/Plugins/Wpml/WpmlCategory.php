@@ -115,7 +115,7 @@ class WpmlCategory extends AbstractComponent
         $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
 
         $sql = \sprintf("SELECT 
-            tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*        
+            tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*
             FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
                 LEFT JOIN 
             `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id

@@ -93,8 +93,8 @@ class WooCommerceProduct extends AbstractComponent
         if ($gmt) {
             $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
             $creationDate->sub(\date_interval_create_from_date_string(
-                $shopTimeZone->getOffset($creationDate) / 3600 . ' hours')
-            );
+                $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
+            ));
         }
 
         return $creationDate->format('Y-m-d H:i:s');
