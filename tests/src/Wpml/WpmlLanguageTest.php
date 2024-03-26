@@ -21,7 +21,7 @@ class WpmlLanguageTest extends TestCase
     public function testGetLanguages()
     {
         $util = \Mockery::mock("alias:" . Util::class);
-        $util->shouldReceive('getInstance->mapLanguageIso')->andReturn(
+        $util->shouldReceive('mapLanguageIso')->andReturn(
             'eng',
             'ger'
         );
