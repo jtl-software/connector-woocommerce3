@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Logger;
 
-use jtl\Connector\Core\Logger\Logger; //TODO:checken
+use Psr\Log\LogLevel;
 use WooCommerce\WooCommerce\Logging\Logger\WooCommerceLogger;
 
 /**
@@ -13,7 +13,7 @@ class WpmlLogger extends WooCommerceLogger
 {
     protected function getLevel()
     {
-        return Logger::WARNING;
+        return LogLevel::WARNING;
     }
 
     protected function getFilename()
