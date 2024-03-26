@@ -23,14 +23,13 @@ class WpmlLanguage extends AbstractComponent
 
         $defaultLanguage = $this->plugin->getDefaultLanguage();
         $activeLanguages = $this->plugin->getActiveLanguages();
-        $db              = $this->getPluginsManager()->getDatabase();
 
         foreach ($activeLanguages as $activeLanguage) {
             $jtlLanguages[] = (new Language())
-                ->setId(new Identity((new Util($db))->mapLanguageIso($activeLanguage['default_locale'])))
+                ->setId(new Identity(Util::mapLanguageIso($activeLanguage['default_locale'])))
                 ->setNameGerman($activeLanguage['display_name'])
                 ->setNameEnglish($activeLanguage['english_name'])
-                ->setLanguageISO((new Util($db))->mapLanguageIso($activeLanguage['default_locale']))
+                ->setLanguageISO(Util::mapLanguageIso($activeLanguage['default_locale']))
                 ->setIsDefault($defaultLanguage === $activeLanguage['code']);
         }
 
