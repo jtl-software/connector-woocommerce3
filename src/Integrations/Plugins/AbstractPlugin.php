@@ -2,6 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
+use Psr\Log\LoggerInterface;
+
 /**
  * Class AbstractPlugin
  * @package JtlWooCommerceConnector\Integrations\Plugins
@@ -12,6 +14,11 @@ abstract class AbstractPlugin implements PluginInterface
      * @var ComponentInterface[]
      */
     protected $components = [];
+
+    /**
+     * @var LoggerInterface
+     */
+    protected LoggerInterface $logger;
 
     /**
      * @var PluginsManager
@@ -64,6 +71,15 @@ abstract class AbstractPlugin implements PluginInterface
     public function hasComponent(string $name): bool
     {
         return isset($this->components[$name]);
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
     }
 
     /**
