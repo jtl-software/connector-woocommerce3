@@ -2,14 +2,14 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use Jtl\Connector\Core\Utilities\Language;//TODO
+use Jtl\Connector\Core\Model\Language;//TODO
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use SitePress;
 use woocommerce_wpml;
-use RankMath\Helpers\Sitepress;
 use wpdb;
 
 /**
