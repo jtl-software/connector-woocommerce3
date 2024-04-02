@@ -3,6 +3,7 @@
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
+use Jtl\Connector\Core\Utilities\Validator\Validate;
 use JtlWooCommerceConnector\Connector;
 
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
@@ -28,7 +29,8 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
                 \session_abort();
             }
 
-            $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
+            $features = Validate::string($application->getConfig()->get(ConfigSchema::FEATURES_PATH));
+
             if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
             }

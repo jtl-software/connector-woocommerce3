@@ -7,6 +7,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Category;
 use Jtl\Connector\Core\Model\Category as CategoryModel;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\Identity;
@@ -23,20 +24,24 @@ class CategoryController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
+    /**
+     * @var array<int, string|int>
+     */
     private static array $idCache = [];
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return array<Category>
      * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
         $categories = [];
 
-        $categoryUtil = new CategoryUtil($this->db, $this->util);
+        $categoryUtil = new CategoryUtil($this->db);
         $categoryUtil->fillCategoryLevelTable();
         $categoryData = $this->db->query(SqlHelper::categoryPull($query->getLimit()));
+        $categoryData = $categoryData === null ? [] : $categoryData;
 
         foreach ($categoryData as $categoryDataSet) {
             $category = (new CategoryModel())
@@ -197,9 +202,9 @@ class CategoryController extends AbstractBaseController implements
             \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
         } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
             $updateRankMathSeoData = [
-                'rank_math_title' => $i18n->getTitleTag(),
-                'rank_math_description' => $i18n->getMetaDescription(),
-                'rank_math_focus_keyword' => $i18n->getMetaKeywords()
+                'rank_math_title' => $meta->getTitleTag(),
+                'rank_math_description' => $meta->getMetaDescription(),
+                'rank_math_focus_keyword' => $meta->getMetaKeywords()
             ];
             $this->util->updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
@@ -245,6 +250,6 @@ class CategoryController extends AbstractBaseController implements
      */
     public function statistic(QueryFilter $query): int
     {
-        return $this->db->queryOne(SqlHelper::categoryStats());
+        return (int)$this->db->queryOne(SqlHelper::categoryStats());
     }
 }
