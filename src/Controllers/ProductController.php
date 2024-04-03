@@ -459,7 +459,7 @@ class ProductController extends AbstractBaseController implements
      * @return void
      * @throws TranslatableAttributeException
      */
-    private function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
+    public function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
         $productId            = $wcProduct->get_id();
         $customProductTypeSet = false;
@@ -667,7 +667,7 @@ class ProductController extends AbstractBaseController implements
      * @return void
      * @throws Exception
      */
-    private function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
+    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
     {
         $productId = (int)$product->getId()->getEndpoint();
 

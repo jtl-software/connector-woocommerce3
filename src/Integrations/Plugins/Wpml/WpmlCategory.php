@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use Jtl\Connector\Core\Exception\LanguageException;//TODO
+use Exception;
 use Jtl\Connector\Core\Model\Category;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -11,7 +11,6 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
-use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
 
@@ -28,8 +27,7 @@ class WpmlCategory extends AbstractComponent
      * @param Category $jtlCategory
      * @param array $wooCommerceMainCategory
      * @param Identity $parentCategoryId
-     * @throws LanguageException
-     * @throws \Exception
+     * @throws Exception
      */
     public function setCategoryTranslations(
         Category $jtlCategory,
@@ -140,6 +138,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @return int
+     * @throws InvalidArgumentException
      */
     public function getStats(): int
     {

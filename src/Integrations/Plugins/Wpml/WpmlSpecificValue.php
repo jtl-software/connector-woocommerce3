@@ -18,9 +18,8 @@ class WpmlSpecificValue extends AbstractComponent
      * @param SpecificValue $specificValue
      * @param int $mainSpecificValueId
      * @param string $elementType
-     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
-    public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType)
+    public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType): void
     {
         $trid         = $this->getCurrentPlugin()
             ->getElementTrid($mainSpecificValueId, 'tax_' . $elementType);
@@ -40,7 +39,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @param int $mainSpecificValueId
      * @throws \Exception
      */
-    public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId)
+    public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void
     {
         $type = 'tax_' . $taxonomy;
         $trid = $this->getCurrentPlugin()->getElementTrid($mainSpecificValueId, $type);
@@ -83,7 +82,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @param string $languageCode
      * @return array
      */
-    public function findSpecificValueTranslation(int $trid, string $taxonomy, string $languageCode)
+    public function findSpecificValueTranslation(int $trid, string $taxonomy, string $languageCode): array
     {
         $specificTranslations = $this
             ->getCurrentPlugin()

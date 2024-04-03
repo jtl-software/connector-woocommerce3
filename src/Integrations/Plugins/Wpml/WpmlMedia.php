@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Linker\IdentityLinker;
 use Jtl\Connector\Core\Model\AbstractImage;
 use Jtl\Connector\Core\Model\ImageI18n;
@@ -104,7 +105,7 @@ class WpmlMedia extends AbstractComponent
             AND wpmlt.language_code = '%s'        
             GROUP BY p.ID, pm.meta_value",
             Id::SEPARATOR,
-            IdentityLinker::TYPE_PRODUCT, //TODO
+            IdentityType::PRODUCT,
             ImageCtrl::PRODUCT_THUMBNAIL,
             $this->getCurrentPlugin()->getDefaultLanguage()
         );
@@ -150,7 +151,7 @@ class WpmlMedia extends AbstractComponent
             Id::CATEGORY_PREFIX,
             CategoryUtil::TERM_TAXONOMY,
             ImageCtrl::CATEGORY_THUMBNAIL,
-            IdentityLinker::TYPE_CATEGORY, //TODO
+            IdentityType::CATEGORY,
             $limit
         );
     }
@@ -165,7 +166,7 @@ class WpmlMedia extends AbstractComponent
             Id::MANUFACTURER_PREFIX,
             'pwb-brand',
             ImageCtrl::MANUFACTURER_KEY,
-            IdentityLinker::TYPE_MANUFACTURER, //TODO
+            IdentityType::MANUFACTURER,
             $limit
         );
     }
@@ -182,7 +183,7 @@ class WpmlMedia extends AbstractComponent
         string $prefix = Id::MANUFACTURER_PREFIX,
         string $taxonomy = 'pwb-brand',
         string $metaKey = ImageCtrl::MANUFACTURER_KEY,
-        $identityType = IdentityLinker::TYPE_MANUFACTURER,//TODO
+        int $identityType = IdentityType::MANUFACTURER,
         int $limit = null
     ): string {
         $wpdb = $this->getCurrentPlugin()->getWpDb();

@@ -3,6 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlStringTranslation
@@ -14,15 +15,16 @@ class WpmlStringTranslation extends AbstractComponent
      * @param string $sourceName
      * @param string $targetName
      * @param string $wawiIsoLanguage
+     * @throws InjectionException
      */
     public function translate(string $sourceName, string $targetName, string $wawiIsoLanguage)
     {
-        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;//TODO
+        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
         $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
 
-        $stringId = \icl_get_string_id($sourceName, $context);//TODO
+        $stringId = \icl_get_string_id($sourceName, $context);
         if ($stringId !== 0) {
-            \icl_add_string_translation($stringId, $languageCode, \html_entity_decode($targetName), 10);//TODO
+            \icl_add_string_translation($stringId, $languageCode, \html_entity_decode($targetName), 10);
         }
     }
 
@@ -30,22 +32,23 @@ class WpmlStringTranslation extends AbstractComponent
      * @param $taxonomy
      * @param $name
      * @param $wawiIsoLanguage
+     * @throws InjectionException
      */
     public function registerString(string $taxonomy, string $name, string $wawiIsoLanguage)
     {
         $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
-        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;//TODO
+        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
 
         \icl_register_string(
             $context,
             \sprintf("URL %s tax slug", $taxonomy),
             $taxonomy,
-            false, //TODO
+            false,
             $languageCode
         );
         $nameSingular = $name;
         \icl_register_string(
-            $context, //TODO
+            $context,
             \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_SINGULAR . $nameSingular,
             $nameSingular,
             false,
@@ -53,7 +56,7 @@ class WpmlStringTranslation extends AbstractComponent
         );
         $nameGeneral = 'Produkt ' . $name;
         \icl_register_string(
-            $context, //TODO
+            $context,
             \WPML_ST_Taxonomy_Strings::LEGACY_NAME_PREFIX_GENERAL . $nameGeneral,
             $nameGeneral,
             false,

@@ -7,10 +7,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;
 use Psr\Log\InvalidArgumentException;
-
-//TODO
 
 /**
  * Class WpmlPerfectWooCommerceBrands
@@ -95,7 +92,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             }
 
             if ($result instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($result);//TODO
+                $this->logger->error($result);
             } else {
                 if (isset($result['term_id'])) {
                     $translatedManufacturerId = (int)$result['term_id'];

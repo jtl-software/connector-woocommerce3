@@ -2,7 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use Jtl\Connector\Core\Exception\LanguageException;//TODO
+use Exception;
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
@@ -11,6 +12,8 @@ use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerControlle
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
+use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product_Variation;
 
 /**
  * Class WpmlProduct
@@ -26,7 +29,7 @@ class WpmlProduct extends AbstractComponent
      * @param int $wcBaseTranslationProductId
      * @param string $masterProductId
      * @param Product $jtlProduct
-     * @throws \Exception
+     * @throws Exception
      */
     public function setProductTranslations(
         int $wcBaseTranslationProductId,
@@ -52,7 +55,6 @@ class WpmlProduct extends AbstractComponent
                 }
 
                 $languageCode = $wpmlPlugin->convertLanguageToWpml($productI18n->getLanguageISO());
-
                 $this->saveTranslation(
                     $translationInfo,
                     $masterProductTranslations,
@@ -140,7 +142,8 @@ class WpmlProduct extends AbstractComponent
      * @param $productI18n
      * @param $masterProductId
      * @param $trid
-     * @throws LanguageException//TODO
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     protected function saveTranslation(
         $translationInfo,
@@ -150,9 +153,11 @@ class WpmlProduct extends AbstractComponent
         $productI18n,
         $masterProductId,
         $trid
-    ) {
+    ): void {
+        $db                = $this->getPluginsManager()->getDatabase();
+        $util              = new Util($db);
         $wpmlPlugin        = $this->getCurrentPlugin();
-        $productController = (new \JtlWooCommerceConnector\Controllers\ProductController());//TODO
+        $productController = (new \JtlWooCommerceConnector\Controllers\ProductController($db, $util));//TODO check
         $type              = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
 
         $wcProductId     = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;
@@ -180,13 +185,13 @@ class WpmlProduct extends AbstractComponent
             $wcProduct->set_parent_id($masterProductId);
             $wcProduct->save();
 
-            $productStockLevel = new ProductStockLevelController();//TODO
+            $productStockLevel = new ProductStockLevelController($db, $util);
 
             switch ($type) {
                 case self::POST_TYPE_VARIATION:
                     \remove_filter('content_save_pre', 'wp_filter_post_kses');
                     \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-                    $productController->updateVariationCombinationChild($wcProduct, $jtlProduct, $productI18n);//TODO
+                    $productController->updateVariationCombinationChild($jtlProduct, $wcProduct, $productI18n);
                     \add_filter('content_save_pre', 'wp_filter_post_kses');
                     \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
@@ -194,17 +199,17 @@ class WpmlProduct extends AbstractComponent
                         ->getComponent(WpmlProductVariation::class)
                         ->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
 
-                    $productStockLevel->pushDataChild($wcProduct, $jtlProduct);//TODO
+                    $productStockLevel->pushDataChild($jtlProduct);//TODO check
                     break;
                 case self::POST_TYPE:
-                    (new ProductVaSpeAttrHandlerController())->pushDataNew($jtlProduct, $wcProduct, $productI18n);
-                    $productStockLevel->pushDataParent($wcProduct, $jtlProduct);//TODO
+                    (new ProductVaSpeAttrHandlerController($db, $util))->pushDataNew($jtlProduct, $wcProduct, $productI18n);
+                    $productStockLevel->pushDataParent($jtlProduct);//TODO check
                     break;
             }
 
-            $productController->updateProductType($jtlProduct, $wcProduct);//TODO
+            $productController->updateProductType($jtlProduct, $wcProduct);
 
-            (new ProductMetaSeoController())->pushData($wcProductId, $productI18n);//TODO
+            (new ProductMetaSeoController($db, $util))->pushData($wcProductId, $productI18n);
 
             $wpmlPlugin->getSitepress()->set_element_language_details(
                 $wcProductId,
@@ -218,6 +223,7 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param int|null $limit
      * @return array
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function getProducts(int $limit = null): array
     {
@@ -263,9 +269,9 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param \WC_Product $wcProduct
      * @param Product $jtlProduct
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct)
+    public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct): void
     {
         $wcProductTranslations = $this->getProductTranslationInfo((int)$wcProduct->get_id());
 
@@ -291,7 +297,7 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param \WC_Product $wcProduct
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getWooCommerceProductTranslations(\WC_Product $wcProduct): array
     {
@@ -330,12 +336,12 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product_Variation $wcProduct
      * @param string $slug
      * @return string|null
      */
     public function getWooCommerceProductTranslatedAttributeValueBySlug(
-        \WC_Product_Variation $wcProduct,
+        WC_Product_Variation $wcProduct,
         string $slug
     ): ?string {
         $translatedAttribute = null;
@@ -355,9 +361,9 @@ class WpmlProduct extends AbstractComponent
      * @param int $productId
      * @param string $elementType
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getProductTranslationInfo(int $productId, $elementType = self::POST_TYPE): array
+    public function getProductTranslationInfo(int $productId, string $elementType = self::POST_TYPE): array
     {
         return $this
             ->getCurrentPlugin()
@@ -371,7 +377,7 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param \WC_Product $wcProduct
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function deleteTranslations(\WC_Product $wcProduct): bool
     {
@@ -387,7 +393,7 @@ class WpmlProduct extends AbstractComponent
             \wc_delete_product_transients($translationInfo->element_id);
 
             $wpml->getSitepress()->delete_element_translation($translationInfo->trid, $elementType, $wpmlLanguageCode);
-        }//TODO
+        }
         return true;
     }
 }

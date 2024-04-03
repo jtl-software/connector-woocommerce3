@@ -18,6 +18,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use WP_Error;
 
@@ -83,7 +84,7 @@ class ManufacturerController extends AbstractBaseController implements
                         if (isset($term['term_id'])) {
                             $i18n = $this->createManufacturerI18n(
                                 $manufacturer,
-                                Language::convert($translation->language_code), //TODO: existiert nicht mehr
+                                Util::mapLanguageIso($translation->language_code), //TODO check
                                 $term['description'],
                                 (int)$term['term_id']
                             );
@@ -156,8 +157,8 @@ class ManufacturerController extends AbstractBaseController implements
             $meta = (new ManufacturerI18nModel());
 
             foreach ($model->getI18ns() as $i18n) {
-                if ($this->wpml->canBeUsed()) {
-                    if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {//TODO
+                if ($this->wpml->canBeUsed()) {//TODO check, zeile unten
+                    if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageISO())) {
                         $meta = $i18n;
                         break;
                     }

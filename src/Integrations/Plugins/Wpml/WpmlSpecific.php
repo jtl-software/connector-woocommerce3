@@ -5,6 +5,8 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use Psr\Log\InvalidArgumentException;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlSpecific
@@ -34,9 +36,8 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param string $name
-     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
      */
-    public function getTranslations(Specific $specific, string $name)
+    public function getTranslations(Specific $specific, string $name): void
     {
         $languages = $this->getCurrentPlugin()->getActiveLanguages();
 
@@ -55,9 +56,9 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param SpecificI18nModel $defaultTranslation
-     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
+     * @throws InjectionException
      */
-    public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation)
+    public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation): void
     {
         foreach ($specific->getI18ns() as $specificI18n) {
             $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificI18n->getLanguageISO());
@@ -74,7 +75,7 @@ class WpmlSpecific extends AbstractComponent
             );
 
             if ($translatedName !== $specificI18n->getName()) {
-                \icl_register_string(//TODO
+                \icl_register_string(
                     'WordPress',
                     \sprintf('taxonomy singular name: %s', $defaultTranslation->getName()),
                     $specificI18n->getName(),
@@ -88,8 +89,9 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param string $specificName
      * @return array|null
+     * @throws InvalidArgumentException
      */
-    public function getValues(string $specificName)
+    public function getValues(string $specificName): ?array
     {
         $wpdb         = $this->getCurrentPlugin()->getWpDb();
         $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';

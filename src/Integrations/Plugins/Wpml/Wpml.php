@@ -2,10 +2,11 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use Jtl\Connector\Core\Model\Language;//TODO
+use Exception;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
 use SitePress;
@@ -41,7 +42,7 @@ class Wpml extends AbstractPlugin
      */
     public function getActiveLanguages(): array
     {
-        return $this->getSitepress()->get_active_languages();//TODO
+        return $this->getSitepress()->get_active_languages();
     }
 
     /**
@@ -55,7 +56,7 @@ class Wpml extends AbstractPlugin
     /**
      * @param string $wawiLanguageIso
      * @return bool
-     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
+     * @throws Exception
      */
     public function isDefaultLanguage(string $wawiLanguageIso): bool
     {
@@ -65,12 +66,13 @@ class Wpml extends AbstractPlugin
     /**
      * @param string $wpmlLanguageCode
      * @return string
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws Exception
      */
     public function convertLanguageToWawi(string $wpmlLanguageCode): string
     {
         $wpmlLanguageCode = \substr($wpmlLanguageCode, 0, 2);
-        $language         = Language::convert($wpmlLanguageCode);
+        $language         = Util::mapLanguageIso($wpmlLanguageCode);
+        #$language         = Language::convert($wpmlLanguageCode);
         if (\is_null($language)) {
             $this->logger->warning(
                 \sprintf("Cannot find corresponding language code %s", $wpmlLanguageCode)
@@ -82,19 +84,19 @@ class Wpml extends AbstractPlugin
 
     /**
      * @param string $wawiLanguageCode
-     * @return false|int|mixed|string|null
-     * @throws \jtl\Connector\Core\Exception\LanguageException//TODO
+     * @return string
+     * @throws Exception
      */
     public function convertLanguageToWpml(string $wawiLanguageCode): string
     {
-        $language = Language::convert(null, $wawiLanguageCode);//TODO
+        $language = Util::mapLanguageIso($wawiLanguageCode);
         return $language ?? '';
     }
 
     /**
      * @return bool
      */
-    public function canWpmlMediaBeUsed(): bool//TODO
+    public function canWpmlMediaBeUsed(): bool//TODO check
     {
         return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WPML_MEDIA)
             && (new \WPML_Media_Dependencies())->check();
@@ -156,7 +158,7 @@ class Wpml extends AbstractPlugin
      * @param string $elementType
      * @return int
      */
-    public function getElementTrid(int $termId, string $elementType): int//TODO
+    public function getElementTrid(int $termId, string $elementType): int
     {
         $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
 
@@ -177,7 +179,7 @@ class Wpml extends AbstractPlugin
     /**
      * @return bool
      */
-    protected function isSetupCompleted(): bool//TODO
+    protected function isSetupCompleted(): bool
     {
         return (bool)\wpml_get_setting_filter(false, 'setup_complete');
     }

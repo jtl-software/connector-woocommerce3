@@ -20,6 +20,7 @@ use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 
 class CategoryController extends AbstractBaseController implements
@@ -151,8 +152,8 @@ class CategoryController extends AbstractBaseController implements
         $categoryId = (int)$model->getId()->getEndpoint();
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO:Language unklar
-                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
+            if ($this->wpml->canBeUsed()) {//TODO check
+                if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
                     $meta = $i18n;
                     break;
                 }
