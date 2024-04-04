@@ -7,7 +7,7 @@ use jtl\Connector\Core\Model\ManufacturerI18n as ManufacturerI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO: checken
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Psr\Log\InvalidArgumentException;
@@ -89,8 +89,8 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
             if ($newManufacturerTerm instanceof WP_Error) {
                 $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
-                WpErrorLogger::getInstance()->logError($error);//TODO:checken
-                WpErrorLogger::getInstance()->logError($newManufacturerTerm);
+                $this->logger->error(ErrorFormatter::formatError($error));
+                $this->logger->error(ErrorFormatter::formatError($newManufacturerTerm));
             }
             $manufacturerTerm = $newManufacturerTerm;
 
@@ -108,7 +108,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         if ($manufacturerTerm instanceof \WP_Term) {
             $jtlManufacturer->getId()->setEndpoint($manufacturerTerm->term_id);
             foreach ($jtlManufacturer->getI18ns() as $i18n) {
-                $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);//TODO: checken
+                $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);
             }
 
             /** @var RankMathSeo $rankMathSeo */

@@ -33,6 +33,7 @@ use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;
 use WC_Data_Exception;
@@ -166,7 +167,7 @@ class ProductController extends AbstractBaseController implements
                 ->pullData($product, $productModel);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($wcProduct, $jtlProduct);
+                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($product, $productModel);
             }
 
             $productModel
@@ -255,9 +256,9 @@ class ProductController extends AbstractBaseController implements
         }
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO:gibts nicht mehr
-                if ($this->wpml->getDefaultLanguage() === Language::convert(null, $i18n->getLanguageISO())) {
-                    $defaultI18n = $i18n;
+            if ($this->wpml->canBeUsed()) {//TODO check
+                if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
+                    $tmpI18n = $i18n;
                     break;
                 }
             } else {

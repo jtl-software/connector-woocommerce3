@@ -8,8 +8,8 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:checken
 use DateTime;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Config;
 
 /**
@@ -70,7 +70,7 @@ class WooCommerceProduct extends AbstractComponent
         \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
         if ($newPostId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($newPostId);//TODO:checken
+            $this->logger->error(ErrorFormatter::formatError($newPostId));
             return null;
         }
 

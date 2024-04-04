@@ -11,7 +11,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:chekcen
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
@@ -114,7 +114,7 @@ class WooCommerceCategory extends AbstractComponent
         \add_filter('pre_term_description', 'wp_filter_kses');
 
         if ($result instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($result);//TODO:checken
+            $this->logger->error(ErrorFormatter::formatError($result));
             return [];
         }
 

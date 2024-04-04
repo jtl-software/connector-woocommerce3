@@ -7,7 +7,7 @@ use Jtl\Connector\Core\Model\SpecificValueI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:checken
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
@@ -61,7 +61,7 @@ class WooCommerceSpecificValue extends AbstractComponent
             );
 
             if ($newTerm instanceof \WP_Error) {
-                WpErrorLogger::getInstance()->logError($newTerm);//TODO:checken
+                $this->logger->error(ErrorFormatter::formatError($newTerm));
                 return null;
             }
 
@@ -82,7 +82,7 @@ class WooCommerceSpecificValue extends AbstractComponent
         }
 
         if ($termId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($termId);//TODO:checken
+            $this->logger->error(ErrorFormatter::formatError($termId));
             return null;
         }
 

@@ -144,7 +144,6 @@ class ManufacturerController extends AbstractBaseController implements
         return $i18n;
     }
 
-
     /**
      * @param ManufacturerModel $model
      * @return ManufacturerModel

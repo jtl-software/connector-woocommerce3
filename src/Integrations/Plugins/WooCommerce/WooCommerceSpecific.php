@@ -5,7 +5,7 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\SpecificI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
-use JtlWooCommerceConnector\Logger\WpErrorLogger;//TODO:checken
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
@@ -52,7 +52,7 @@ class WooCommerceSpecific extends AbstractComponent
         }
 
         if ($attributeId instanceof \WP_Error) {
-            WpErrorLogger::getInstance()->logError($attributeId);//TODO:Checken
+            $this->logger->error(ErrorFormatter::formatError($attributeId));
             return null;
         }
 

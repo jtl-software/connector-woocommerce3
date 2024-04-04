@@ -119,8 +119,8 @@ class SpecificController extends AbstractBaseController implements
         $defaultAvailable = false;
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO: existiert nicht
-                if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
+            if ($this->wpml->canBeUsed()) {//TODO check
+                if (Util::mapLanguageIso($i18n->getLanguageIso()) === $this->wpml->getDefaultLanguage()) {
                     $meta = $i18n;#$defaultSpecificTranslation
                     break;
                 }
@@ -214,8 +214,8 @@ class SpecificController extends AbstractBaseController implements
 
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-                    if ($this->wpml->canBeUsed()) {//TODO: language existiert nicht
-                        if (Language::convert(null, $i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
+                    if ($this->wpml->canBeUsed()) {//TODO check
+                        if (Util::mapLanguageIso($i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
                             $metaValue = $i18n;
                         }
                     } else {
