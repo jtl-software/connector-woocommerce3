@@ -157,7 +157,7 @@ class WpmlProduct extends AbstractComponent
         $db                = $this->getPluginsManager()->getDatabase();
         $util              = new Util($db);
         $wpmlPlugin        = $this->getCurrentPlugin();
-        $productController = (new \JtlWooCommerceConnector\Controllers\ProductController($db, $util));//TODO check
+        $productController = (new \JtlWooCommerceConnector\Controllers\ProductController($db, $util));
         $type              = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
 
         $wcProductId     = isset($translationInfo[$languageCode]) ? $translationInfo[$languageCode]->element_id : 0;

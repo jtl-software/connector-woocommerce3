@@ -156,7 +156,7 @@ class ManufacturerController extends AbstractBaseController implements
             $meta = (new ManufacturerI18nModel());
 
             foreach ($model->getI18ns() as $i18n) {
-                if ($this->wpml->canBeUsed()) {//TODO check, zeile unten
+                if ($this->wpml->canBeUsed()) {
                     if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageISO())) {
                         $meta = $i18n;
                         break;

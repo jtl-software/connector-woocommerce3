@@ -256,7 +256,7 @@ class ProductController extends AbstractBaseController implements
         }
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO check
+            if ($this->wpml->canBeUsed()) {
                 if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
                     $tmpI18n = $i18n;
                     break;
