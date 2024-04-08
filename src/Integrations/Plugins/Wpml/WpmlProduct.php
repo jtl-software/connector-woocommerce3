@@ -6,6 +6,8 @@ use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n;
+use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
+use JtlWooCommerceConnector\Controllers\Product\ProductManufacturerController;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
@@ -199,18 +201,24 @@ class WpmlProduct extends AbstractComponent
                         ->getComponent(WpmlProductVariation::class)
                         ->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
 
-                    $productStockLevel->pushDataChild($jtlProduct);//TODO check
+                    $productStockLevel->pushDataChild($jtlProduct);
                     break;
                 case self::POST_TYPE:
                     (new ProductVaSpeAttrHandlerController($db, $util))
                         ->pushDataNew($jtlProduct, $wcProduct);
-                    $productStockLevel->pushDataParent($jtlProduct);//TODO check
+                    $productStockLevel->pushDataParent($jtlProduct);
                     break;
             }
 
             $productController->updateProductType($jtlProduct, $wcProduct);
 
             (new ProductMetaSeoController($db, $util))->pushData($wcProductId, $productI18n);
+
+            (new ProductDeliveryTimeController($db, $util))->pushData($jtlProduct, $wcProduct);
+
+            $jtlProduct->getId()->setEndpoint($wcProductId);
+
+            (new ProductManufacturerController($db, $util))->pushData($jtlProduct);
 
             $wpmlPlugin->getSitepress()->set_element_language_details(
                 $wcProductId,
