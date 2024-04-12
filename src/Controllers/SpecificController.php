@@ -121,12 +121,12 @@ class SpecificController extends AbstractBaseController implements
         foreach ($model->getI18ns() as $i18n) {
             if ($this->wpml->canBeUsed()) {//TODO check
                 if (Util::mapLanguageIso($i18n->getLanguageIso()) === $this->wpml->getDefaultLanguage()) {
-                    $meta = $i18n;#$defaultSpecificTranslation
+                    $meta = $i18n;
                     break;
                 }
             } else {
                 if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    $meta = $i18n;#$defaultSpecificTranslation
+                    $meta = $i18n;
                     break;
                 }
             }
@@ -214,7 +214,7 @@ class SpecificController extends AbstractBaseController implements
 
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
-                    if ($this->wpml->canBeUsed()) {//TODO check
+                    if ($this->wpml->canBeUsed()) {
                         if (Util::mapLanguageIso($i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
                             $metaValue = $i18n;
                         }

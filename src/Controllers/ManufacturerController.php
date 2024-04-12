@@ -84,7 +84,7 @@ class ManufacturerController extends AbstractBaseController implements
                         if (isset($term['term_id'])) {
                             $i18n = $this->createManufacturerI18n(
                                 $manufacturer,
-                                Util::mapLanguageIso($translation->language_code), //TODO check
+                                Util::mapLanguageIso($translation->language_code),
                                 $term['description'],
                                 (int)$term['term_id']
                             );

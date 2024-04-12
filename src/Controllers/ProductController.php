@@ -443,9 +443,6 @@ class ProductController extends AbstractBaseController implements
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
-        //TODO: code from wpml, delete if tests succeed
-        #(new ProductVaSpeAttrHandler)->pushDataNew($jtlProduct, $wcProduct, $jtlProductDefaultI18n);
-
         //variations
         if ($productType === ProductController::TYPE_CHILD) {
             $this->updateVariationCombinationChild($product, $wcProduct, $meta);

@@ -152,7 +152,7 @@ class CategoryController extends AbstractBaseController implements
         $categoryId = (int)$model->getId()->getEndpoint();
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO check
+            if ($this->wpml->canBeUsed()) {
                 if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
                     $meta = $i18n;
                     break;
