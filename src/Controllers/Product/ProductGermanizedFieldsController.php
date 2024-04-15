@@ -6,6 +6,7 @@ use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -266,6 +267,10 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param $product ProductModel
+     * @param $value
+     * @param $wawiAttributeKey
+     * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
      */
@@ -276,7 +281,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             ->setValue($value)
             ->setLanguageIso($this->util->getWooCommerceLanguage());
 
-        $attribute = (new TranslatableAttribute())
+        $attribute = (new ProductAttribute())
             ->setId(new Identity($product->getId()->getEndpoint() . '_' . $wawiAttributeKey))
             ->setI18ns($i18n);
 
