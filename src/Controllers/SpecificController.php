@@ -119,7 +119,7 @@ class SpecificController extends AbstractBaseController implements
         $defaultAvailable = false;
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {//TODO check
+            if ($this->wpml->canBeUsed()) {
                 if (Util::mapLanguageIso($i18n->getLanguageIso()) === $this->wpml->getDefaultLanguage()) {
                     $meta = $i18n;
                     break;
