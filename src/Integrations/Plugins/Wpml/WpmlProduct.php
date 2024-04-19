@@ -151,7 +151,7 @@ class WpmlProduct extends AbstractComponent
         $translationInfo,
         $masterProductTranslations,
         $languageCode,
-        $jtlProduct,
+        Product $jtlProduct,
         $productI18n,
         $masterProductId,
         $trid
@@ -205,7 +205,7 @@ class WpmlProduct extends AbstractComponent
                     break;
                 case self::POST_TYPE:
                     (new ProductVaSpeAttrHandlerController($db, $util))
-                        ->pushDataNew($jtlProduct, $wcProduct);
+                        ->pushDataNew($jtlProduct, $wcProduct, $productI18n);
                     $productStockLevel->pushDataParent($jtlProduct);
                     break;
             }
@@ -214,11 +214,15 @@ class WpmlProduct extends AbstractComponent
 
             (new ProductMetaSeoController($db, $util))->pushData($wcProductId, $productI18n);
 
-            (new ProductDeliveryTimeController($db, $util))->pushData($jtlProduct, $wcProduct);
+            #(new ProductDeliveryTimeController($db, $util))->pushData($jtlProduct, $wcProduct);
 
+            //Add Manufacturer info to translated jtlProduct
+            $jtlProductId = $jtlProduct->getId()->getEndpoint();
             $jtlProduct->getId()->setEndpoint($wcProductId);
 
             (new ProductManufacturerController($db, $util))->pushData($jtlProduct);
+            //revert back to original not translated jtlProduct id
+            $jtlProduct->getId()->setEndpoint($jtlProductId);
 
             $wpmlPlugin->getSitepress()->set_element_language_details(
                 $wcProductId,

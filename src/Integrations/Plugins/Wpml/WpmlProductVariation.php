@@ -83,6 +83,7 @@ class WpmlProductVariation extends AbstractComponent
      * @param $pushedVariations
      * @param $languageCode
      * @return array
+     * @throws \InvalidArgumentException
      */
     public function setChildTranslation(\WC_Product $wcProduct, $pushedVariations, $languageCode)
     {
@@ -101,7 +102,8 @@ class WpmlProductVariation extends AbstractComponent
                                 continue;
                             }
 
-                            $metaKey                = Util::createVariantTaxonomyName($variationI18n->getName());
+                            $metaKey = (new Util($this->getPluginsManager()->getDatabase()))
+                                ->createVariantTaxonomyName($variationI18n->getName());
                             $updatedAttributeKeys[] = $metaKey;
                             \update_post_meta(
                                 $wcProduct->get_id(),

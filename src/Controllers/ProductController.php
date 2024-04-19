@@ -273,6 +273,12 @@ class ProductController extends AbstractBaseController implements
             return $model;
         }
 
+        $wcProductId       = (int)$model->getId()->getEndpoint();
+        $existingProductId = \wc_get_product_id_by_sku($model->getSku());
+        if ($existingProductId !== 0) {
+            $wcProductId = $existingProductId;
+        }
+
         $creationDate = \is_null($model->getAvailableFrom())
             ? $model->getCreationDate()
             : $model->getAvailableFrom();
@@ -285,7 +291,7 @@ class ProductController extends AbstractBaseController implements
 
         /** @var ProductI18nModel $tmpI18n */
         $endpoint = [
-            'ID' => (int)$model->getId()->getEndpoint(),
+            'ID' => $wcProductId,
             'post_type' => $isMasterProduct ? 'product' : 'product_variation',
             'post_title' => $tmpI18n->getName(),
             'post_name' => $tmpI18n->getUrlPath(),
@@ -300,14 +306,8 @@ class ProductController extends AbstractBaseController implements
         if ($endpoint['ID'] !== 0) {
             // Needs to be set for existing products otherwise commenting is disabled
             $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
-        } else {
-            // Update existing products by SKU
-            $productId = \wc_get_product_id_by_sku($model->getSku());
-
-            if ($productId !== 0) {
-                $endpoint['ID'] = $productId;
-            }
         }
+
         // Post filtering
         \remove_filter('content_save_pre', 'wp_filter_post_kses');
         \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
@@ -318,7 +318,10 @@ class ProductController extends AbstractBaseController implements
 
         if ($newPostId instanceof \WP_Error) {
             $this->logger->error(ErrorFormatter::formatError($newPostId));
+            return $model;
+        }
 
+        if (\is_null($newPostId)) {
             return $model;
         }
 
@@ -436,10 +439,10 @@ class ProductController extends AbstractBaseController implements
 
         $this->updateProductRelations($product, $wcProduct, $productType);
 
-        (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct);
+        (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct, $meta);
 
         if ($productType !== ProductController::TYPE_CHILD) {
-            $this->updateProduct($product);
+            $this->updateProduct($product, $wcProduct);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
@@ -667,7 +670,7 @@ class ProductController extends AbstractBaseController implements
      */
     public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
         $productTitle         = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
         $variation_post_title = \sprintf(\__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
@@ -684,12 +687,13 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
+     * @param WC_Product $wcProduct
      * @return void
      * @throws Exception
      */
-    private function updateProduct(ProductModel $product): void
+    private function updateProduct(ProductModel $product, $wcProduct): void
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
         \update_post_meta($productId, '_visibility', 'visible');
 
