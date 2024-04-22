@@ -436,7 +436,7 @@ class ProductAttrController extends AbstractBaseController
 
         if ($missingProperties) {
             foreach ($missingProperties as $missingKey) {
-                unset($existingProperties[\strtolower($missingKey)]);
+                unset($existingProperties[\str_replace(' ', '-', \strtolower($missingKey))]);
             }
 
             \update_post_meta($productId, '_product_attributes', $existingProperties);
