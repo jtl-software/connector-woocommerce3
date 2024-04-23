@@ -3,7 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- CO-2514 - prevent duplicate product images
+- CO-2514 - prevent duplicate product images 
+- CO-2394 - delete removed custom attributes
 
 ## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config
