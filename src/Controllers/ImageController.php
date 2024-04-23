@@ -799,6 +799,7 @@ class ImageController extends AbstractBaseController implements
         } else {
             if ($this->isCoverImage($image)) {
                 \delete_post_thumbnail($productId);
+                $this->db->query(SqlHelper::imageDeleteLinks($productId));
             } else {
                 if (
                     SupportedPlugins::isActive(
