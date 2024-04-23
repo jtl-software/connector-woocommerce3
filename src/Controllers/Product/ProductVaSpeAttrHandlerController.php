@@ -46,6 +46,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         GZD_IS_SERVICE = 'wc_gzd_is_service',
         GZD_MIN_AGE    = 'wc_minimum_age',
 
+        //GERMANIZED PRO
+        GZD_IS_FOOD = 'wc_gzd_is_food',
+
         //MISC
         JTL_CURRENT_PRODUCT_SPECIFICS = 'jtl_current_specifics',
         VALUE_TRUE                    = 'true',
