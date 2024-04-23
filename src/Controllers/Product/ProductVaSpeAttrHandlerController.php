@@ -685,6 +685,11 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
             $this->mergeAttributes($newWcProductAttributes, $productAttributes);
 
+            //Get updated WC Product after deleting removed custom attributes
+            $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+            //Get updated attributes
+            $wcProductAttributes = $wcProduct->get_attributes();
+
             // handleSpecifics
             $productSpecifics = ( new ProductSpecificController($this->db, $this->util) )->pushData(
                 $productId,
