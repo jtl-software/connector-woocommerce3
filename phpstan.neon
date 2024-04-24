@@ -1,0 +1,5 @@
+parameters:
+    excludePaths:
+        analyse:
+            - '*/vendor/*'
+            - '*/tests/*'
