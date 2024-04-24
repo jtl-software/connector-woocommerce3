@@ -281,6 +281,8 @@ class ProductAttrController extends AbstractBaseController
             }
         }
 
+        $sentCustomProperties = [];
+
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             if (
@@ -295,10 +297,14 @@ class ProductAttrController extends AbstractBaseController
                     continue;
                 }
 
+                $sentCustomProperties[] = $attribute->getName();
+
                 $this->saveAttribute($attribute, $i18n, $attributesFilteredVariationsAndSpecifics);
                 break;
             }
         }
+
+        $this->deleteRemovedCustomProperties($productId, $sentCustomProperties);
 
         return $attributesFilteredVariationsAndSpecifics;
     }
@@ -403,6 +409,38 @@ class ProductAttrController extends AbstractBaseController
             'is_variation' => 0,
             'is_taxonomy' => 0,
         ];
+    }
+
+    private function deleteRemovedCustomProperties($productId, $sentCustomProperties): void
+    {
+        global $wpdb;
+
+        $query = \sprintf(
+            "
+            SELECT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE post_id = %d
+            AND meta_key = '_product_attributes'",
+            $productId
+        );
+
+        $existingProperties    = $this->db->query($query);
+        $existingProperties    = \unserialize($existingProperties[0]['meta_value']);
+        $existingPropertyNames = [];
+
+        foreach ($existingProperties as $property) {
+            $existingPropertyNames[] = $property['name'];
+        }
+
+        $missingProperties = \array_diff($existingPropertyNames, $sentCustomProperties);
+
+        if ($missingProperties) {
+            foreach ($missingProperties as $missingKey) {
+                unset($existingProperties[\str_replace(' ', '-', \strtolower($missingKey))]);
+            }
+
+            \update_post_meta($productId, '_product_attributes', $existingProperties);
+        }
     }
 
     /**
