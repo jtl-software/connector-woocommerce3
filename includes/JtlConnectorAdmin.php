@@ -199,12 +199,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param $oldName
-     * @param $newName
+     * @param string $oldName
+     * @param string $newName
      *
      * @return void
      */
-    private static function renameTable($oldName, $newName): void
+    private static function renameTable(string $oldName, string $newName): void
     {
         global $wpdb;
 
@@ -251,12 +251,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param $prefix
+     * @param string $prefix
      *
      * @return void
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function activate_checksum($prefix): void
+    private static function activate_checksum(string $prefix): void
     {
         global $wpdb;
 
@@ -393,12 +393,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // </editor-fold>
 
     /**
-     * @param $prefix
-     * @param $db
+     * @param string $prefix
+     * @param Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function add_constraints_for_multi_linking_tables($prefix, $db): void
+    private static function add_constraints_for_multi_linking_tables(string $prefix, Db $db): void
     {
         global $wpdb;
 
