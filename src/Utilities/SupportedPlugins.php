@@ -109,13 +109,9 @@ class SupportedPlugins
     }
 
     /**
-     * Returns all supported active and validated plugins
-     *
-     * @param bool $asString
-     *
-     * @return array|string
+     * @return array<int, array<string, string|bool>>
      */
-    public static function getSupported(bool $asString = false): array|string
+    public static function getSupported(): array
     {
         $plArray = self::getInstalledAndActivated();
         $plugins = [];
@@ -127,11 +123,7 @@ class SupportedPlugins
             }
         }
 
-        if ($asString) {
-            return \implode(', ', $tmp);
-        } else {
-            return $plugins;
-        }
+        return $plugins;
     }
 
     /**

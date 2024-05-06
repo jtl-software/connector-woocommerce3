@@ -152,9 +152,10 @@ class Config
 
     /**
      * @param string $name
-     * @param null $defaultValue
+     * @param mixed|null $defaultValue
+     * @return false|mixed|null
      */
-    public static function get(string $name, $defaultValue = null)
+    public static function get(string $name, mixed $defaultValue = null)
     {
         return \get_option($name, $defaultValue);
     }
