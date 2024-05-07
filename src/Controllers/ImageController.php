@@ -21,6 +21,7 @@ use Jtl\Connector\Core\Model\ProductImage;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -121,7 +122,7 @@ class ImageController extends AbstractBaseController implements
             $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl((string)isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
+                ->setRemoteUrl((string) isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
                 ->setSort((int)$image['sort'])
                 ->setFilename((string)\wc_get_filename_from_url($image['guid']));
 
@@ -414,14 +415,16 @@ class ImageController extends AbstractBaseController implements
         $imageCount += \count($this->db->query(SqlHelper::imageVariationCombinationPull()));
 
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-            $imageCount += \count($this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull());
+            $imageCategoryQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull();
+            $imageCount        += \count($this->db->query($imageCategoryQuery));
         } else {
             $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()));
         }
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-                $imageCount += \count($this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull());
+                $imageManufacturerQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull();
+                $imageCount += \count($this->db->query($imageManufacturerQuery));
             } else {
                 $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
             }
@@ -700,6 +703,20 @@ class ImageController extends AbstractBaseController implements
                 $this->logger->error(ErrorFormatter::formatError($result));
 
                 return null;
+            }
+
+            if ($this->wpml->canBeUsed()) {
+                $wpmlProductIds = $this->db->queryList(SqlHelper::getWpmlProductIds($wcProduct->get_sku()));
+                $wpmlProductIds = \array_diff($wpmlProductIds, [$productId]);
+
+                foreach ($wpmlProductIds as $wpmlProductId) {
+                    $wpmlResult = \set_post_thumbnail($wpmlProductId, $attachmentId);
+                    if ($wpmlResult instanceof \WP_Error) {
+                        $this->logger->error(ErrorFormatter::formatError($wpmlResult));
+
+                        return null;
+                    }
+                }
             }
         } else {
             if (
