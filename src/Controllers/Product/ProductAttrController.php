@@ -9,6 +9,7 @@ use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 class ProductAttrController extends AbstractBaseController
@@ -65,11 +66,16 @@ class ProductAttrController extends AbstractBaseController
         $suppressShippingNotice = false;
         $variationPreselect     = [];
 
+        #$wpmlProductIds = $this->db->query(SqlHelper::getWpmlProductIds($product->getSku()));
+        #$wpmlProductIds = \array_diff($wpmlProductIds, [$productId]);
+
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
                 if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    continue;
+                    if (!\in_array($i18n->getLanguageIso(), \array_keys($this->wpml->getActiveLanguages()))) {
+                        continue;
+                    }
                 }
 
                 $attrName = \strtolower(\trim($i18n->getName()));
