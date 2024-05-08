@@ -424,7 +424,7 @@ class ImageController extends AbstractBaseController implements
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $imageManufacturerQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull();
-                $imageCount += \count($this->db->query($imageManufacturerQuery));
+                $imageCount            += \count($this->db->query($imageManufacturerQuery));
             } else {
                 $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
             }

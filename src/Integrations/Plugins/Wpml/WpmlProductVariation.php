@@ -102,7 +102,7 @@ class WpmlProductVariation extends AbstractComponent
                                 continue;
                             }
 
-                            $metaKey = (new Util($this->getPluginsManager()->getDatabase()))
+                            $metaKey                = (new Util($this->getPluginsManager()->getDatabase()))
                                 ->createVariantTaxonomyName($variationI18n->getName());
                             $updatedAttributeKeys[] = $metaKey;
                             \update_post_meta(

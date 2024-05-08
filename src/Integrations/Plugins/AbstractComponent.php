@@ -14,7 +14,7 @@ abstract class AbstractComponent implements ComponentInterface
      * @var LoggerInterface
      */
     protected LoggerInterface $logger;
-    
+
     /**
      * @var PluginInterface
      */
