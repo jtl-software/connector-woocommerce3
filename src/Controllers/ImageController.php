@@ -706,7 +706,7 @@ class ImageController extends AbstractBaseController implements
             }
 
             if ($this->wpml->canBeUsed()) {
-                $wpmlProductIds = $this->db->queryList(SqlHelper::getWpmlProductIds($wcProduct->get_sku()));
+                $wpmlProductIds = $this->db->queryList(SqlHelper::getWpmlProductIds((int) $wcProduct->get_sku()));
                 $wpmlProductIds = \array_diff($wpmlProductIds, [$productId]);
 
                 foreach ($wpmlProductIds as $wpmlProductId) {

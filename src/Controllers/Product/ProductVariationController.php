@@ -356,7 +356,7 @@ class ProductVariationController extends AbstractBaseController
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if (!$this->skipNotDefaultLanguage($variationI18n->getLanguageISO())) {
+                    if ($this->skipNotDefaultLanguage($variationI18n->getLanguageISO())) {
                         continue;
                     }
 

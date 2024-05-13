@@ -93,7 +93,7 @@ class WpmlProductVariation extends AbstractComponent
             foreach ($pushedVariations as $variation) {
                 foreach ($variation->getValues() as $variationValue) {
                     foreach ($variation->getI18ns() as $variationI18n) {
-                        if ($this->getCurrentPlugin()->isDefaultLanguage($variationI18n->getLanguageISO()) === false) {
+                        if ($this->getCurrentPlugin()->isDefaultLanguage($variationI18n->getLanguageISO())) {
                             continue;
                         }
 
