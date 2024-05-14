@@ -9,10 +9,7 @@ use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
-use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
-use WC_Product;
-use WC_Product_Attribute;
 
 class ProductAttrController extends AbstractBaseController
 {
