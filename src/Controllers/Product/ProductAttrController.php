@@ -72,7 +72,9 @@ class ProductAttrController extends AbstractBaseController
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
                 if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    continue;
+                    if (!\in_array($i18n->getLanguageIso(), \array_keys($this->wpml->getActiveLanguages()))) {
+                        continue;
+                    }
                 }
 
                 $attrName = \strtolower(\trim($i18n->getName()));

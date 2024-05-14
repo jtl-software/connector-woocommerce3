@@ -521,6 +521,19 @@ class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
+    public function createVariantTaxonomyName($name): string
+    {
+        return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
+            \substr(
+                \trim(
+                    $name
+                ),
+                0,
+                27
+            )
+        );
+    }
+
 
     /**
      * @param string      $attributeName

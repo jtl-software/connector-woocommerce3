@@ -24,6 +24,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param ProductModel $model
      * @return array
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
     {
@@ -145,6 +146,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param string $productType
      * @return void
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pushData(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {
