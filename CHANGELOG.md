@@ -7,6 +7,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2394 - delete removed custom attributes
 - CO-2460 - implement compatibility with germanized pro food 
 - CO-2582 - merge wpml with wc connector
+- CO-2440 - support advanced custom fields plugin for products
 
 ## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config
