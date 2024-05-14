@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.0 _2024-05-14_
 - CO-2514 - prevent duplicate product images 
 - CO-2394 - delete removed custom attributes
 - CO-2460 - implement compatibility with germanized pro food 
