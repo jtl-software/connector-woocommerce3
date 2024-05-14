@@ -47,6 +47,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @return array<int|CustomerOrderController>
      * @throws InvalidArgumentException
      * @throws \WC_Data_Exception
+     * @throws \Exception
      */
     public function pull(QueryFilter $query): array
     {
@@ -86,6 +87,10 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                 ->setShippingAddress(
                     (new CustomerOrderShippingAddressController($this->db, $this->util))->pull($order)
                 );
+
+            if ($this->wpml->canBeUsed() && !empty($wpmlLanguage = $order->get_meta('wpml_language'))) {
+                $customerOrder->setLanguageISO($this->wpml->convertLanguageToWawi($wpmlLanguage));
+            }
 
             if ($order->is_paid()) {
                 $customerOrder->setPaymentDate($order->get_date_paid());

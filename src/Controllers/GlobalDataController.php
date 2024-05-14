@@ -2,12 +2,14 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Exception;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\GlobalData as GlobalDataModel;
 use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Controllers\GlobalData\CrossSellingGroups;
 use JtlWooCommerceConnector\Controllers\GlobalData\CurrencyController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Controllers\GlobalData\LanguageController;
@@ -16,7 +18,6 @@ use JtlWooCommerceConnector\Controllers\GlobalData\ProductTypeController;
 use JtlWooCommerceConnector\Controllers\GlobalData\ShippingClassController;
 use JtlWooCommerceConnector\Controllers\GlobalData\ShippingMethodController;
 use JtlWooCommerceConnector\Controllers\GlobalData\TaxRateController;
-use JtlWooCommerceConnector\Models\CrossSellingGroup;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use Psr\Log\InvalidArgumentException;
@@ -25,17 +26,17 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 {
     /**
      * @return array<GlobalDataModel>
-     * @throws \Exception
+     * @throws Exception
      */
     public function pull(QueryFilter $query): array
     {
         $globalData = (new GlobalDataModel())
-            ->addCurrency((new CurrencyController())->pull())
-            ->addLanguage((new LanguageController())->pull())
+            ->setCurrencies(...(new CurrencyController($this->db, $this->util))->pull())
+            ->setLanguages(...(new LanguageController($this->db, $this->util))->pull())
             ->setProductTypes(...(new ProductTypeController())->pull())
             ->setShippingClasses(...(new ShippingClassController($this->db, $this->util))->pull())
             ->setShippingMethods(...(new ShippingMethodController())->pull())
-            ->setCrossSellingGroups(...CrossSellingGroup::all($this->util))
+            ->setCrossSellingGroups(...(new CrossSellingGroups($this->db, $this->util))->pull())
             ->setTaxRates(...(new TaxRateController($this->db, $this->util))->pull());
 
         $hasDefaultCustomerGroup = false;
@@ -48,14 +49,14 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
         }
 
         if ($hasDefaultCustomerGroup === false) {
-            throw new \Exception(\__(
+            throw new Exception(\__(
                 "The default customer is not set. Please update the B2B-Market default customer group "
                 . "in the JTL-Connector settings in the Wordpress admin panel.",
                 \JTLWCC_TEXT_DOMAIN
             ));
         }
 
-        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
+        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) { //TODO:was ist hiermit?
             //Wawi überträgt Netto
             //   \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer
@@ -141,10 +142,11 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
      * @param GlobalDataModel $model
      * @return GlobalDataModel
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
-        (new CurrencyController())->push($model->getCurrencies());
+        (new CurrencyController($this->db, $this->util))->push($model->getCurrencies());
         (new ShippingClassController($this->db, $this->util))->push($model->getShippingClasses());
 
         return $model;

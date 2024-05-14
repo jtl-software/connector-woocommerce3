@@ -521,6 +521,19 @@ class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
+    public function createVariantTaxonomyName($name): string
+    {
+        return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
+            \substr(
+                \trim(
+                    $name
+                ),
+                0,
+                27
+            )
+        );
+    }
+
 
     /**
      * @param string      $attributeName
@@ -579,13 +592,13 @@ class Util extends WordpressUtils
         foreach ($rankMathSeoData as $termMeta) {
             switch ($termMeta['meta_key']) {
                 case 'rank_math_title':
-                    $i18n->setTitleTag($termMeta['rank_math_title']);
+                    $i18n->setTitleTag((string) $termMeta['rank_math_title']);
                     break;
                 case 'rank_math_description':
-                    $i18n->setMetaDescription($termMeta['rank_math_description']);
+                    $i18n->setMetaDescription((string) $termMeta['rank_math_description']);
                     break;
                 case 'rank_math_focus_keyword':
-                    $i18n->setMetaKeywords($termMeta['rank_math_focus_keyword']);
+                    $i18n->setMetaKeywords((string) $termMeta['rank_math_focus_keyword']);
                     break;
             }
         }
