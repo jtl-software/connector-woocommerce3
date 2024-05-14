@@ -11,6 +11,8 @@ use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use WC_Product;
+use WC_Product_Attribute;
 
 class ProductAttrController extends AbstractBaseController
 {
@@ -66,8 +68,8 @@ class ProductAttrController extends AbstractBaseController
         $suppressShippingNotice = false;
         $variationPreselect     = [];
 
-        #$wpmlProductIds = $this->db->query(SqlHelper::getWpmlProductIds($product->getSku()));
-        #$wpmlProductIds = \array_diff($wpmlProductIds, [$productId]);
+        //GERMANIZED PRO
+        $food = false;
 
         /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
@@ -99,6 +101,14 @@ class ProductAttrController extends AbstractBaseController
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18n->getValue());
+                        }
+                    }
+
+                    if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
+                        if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_IS_FOOD) {
+                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $this->addOrUpdateMetaField($productId, '_is_food', $value);
+                            $food = true;
                         }
                     }
 
@@ -262,6 +272,10 @@ class ProductAttrController extends AbstractBaseController
             );
         }
 
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO) && !$food) {
+            $this->addOrUpdateMetaField($productId, '_is_food', 'no');
+        }
+
         if (!$payable) {
             $wcProduct = \wc_get_product($productId);
             $wcProduct->set_status('publish');
@@ -284,6 +298,8 @@ class ProductAttrController extends AbstractBaseController
             }
         }
 
+        $sentCustomProperties = [];
+
         /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             if (
@@ -298,10 +314,14 @@ class ProductAttrController extends AbstractBaseController
                     continue;
                 }
 
+                $sentCustomProperties[] = $attribute->getName();
+
                 $this->saveAttribute($attribute, $i18n, $attributesFilteredVariationsAndSpecifics);
                 break;
             }
         }
+
+        $this->deleteRemovedCustomProperties($productId, $sentCustomProperties);
 
         return $attributesFilteredVariationsAndSpecifics;
     }
@@ -406,6 +426,38 @@ class ProductAttrController extends AbstractBaseController
             'is_variation' => 0,
             'is_taxonomy' => 0,
         ];
+    }
+
+    private function deleteRemovedCustomProperties($productId, $sentCustomProperties): void
+    {
+        global $wpdb;
+
+        $query = \sprintf(
+            "
+            SELECT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE post_id = %d
+            AND meta_key = '_product_attributes'",
+            $productId
+        );
+
+        $existingProperties    = $this->db->query($query);
+        $existingProperties    = \unserialize($existingProperties[0]['meta_value']);
+        $existingPropertyNames = [];
+
+        foreach ($existingProperties as $property) {
+            $existingPropertyNames[] = $property['name'];
+        }
+
+        $missingProperties = \array_diff($existingPropertyNames, $sentCustomProperties);
+
+        if ($missingProperties) {
+            foreach ($missingProperties as $missingKey) {
+                unset($existingProperties[\str_replace(' ', '-', \strtolower($missingKey))]);
+            }
+
+            \update_post_meta($productId, '_product_attributes', $existingProperties);
+        }
     }
 
     /**

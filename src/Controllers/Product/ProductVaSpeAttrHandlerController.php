@@ -50,6 +50,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         GZD_IS_SERVICE = 'wc_gzd_is_service',
         GZD_MIN_AGE    = 'wc_minimum_age',
 
+        //GERMANIZED PRO
+        GZD_IS_FOOD = 'wc_gzd_is_food',
+
         //MISC
         JTL_CURRENT_PRODUCT_SPECIFICS = 'jtl_current_specifics',
         VALUE_TRUE                    = 'true',
@@ -695,6 +698,11 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             );
 
             $this->mergeAttributes($newWcProductAttributes, $productAttributes);
+
+            //Get updated WC Product after deleting removed custom attributes
+            $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+            //Get updated attributes
+            $wcProductAttributes = $wcProduct->get_attributes();
 
             // handleSpecifics
             $productSpecifics = ( new ProductSpecificController($this->db, $this->util) )->pushData(
