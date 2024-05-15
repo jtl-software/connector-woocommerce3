@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.1 _2024-05-15_
 - CO-2603 - add missing import and initialize logger
 
 ## 2.0.0 _2024-05-14_
