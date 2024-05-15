@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use SitePress;
 use woocommerce_wpml;
 use wpdb;

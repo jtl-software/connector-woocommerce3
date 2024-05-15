@@ -56,7 +56,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
             ));
         }
 
-        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) { //TODO:was ist hiermit?
+        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
             //   \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer

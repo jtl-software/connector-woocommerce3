@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2603 - add missing import and initialize logger
 
 ## 2.0.0 _2024-05-14_
 - CO-2514 - prevent duplicate product images 
