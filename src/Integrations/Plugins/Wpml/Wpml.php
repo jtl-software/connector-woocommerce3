@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use SitePress;
 use woocommerce_wpml;
 use wpdb;
@@ -30,7 +31,7 @@ class Wpml extends AbstractPlugin
      */
     public function isMultiCurrencyEnabled(): bool
     {
-        if (\wcml_is_multi_currency_on() === false) {
+        if (\wcml_is_multi_currency_on() === true) {
             $this->logger->log(LogLevel::INFO, "WPML multi-currency is not enabled.");
             return false;
         }

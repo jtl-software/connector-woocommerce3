@@ -21,6 +21,15 @@ abstract class AbstractComponent implements ComponentInterface
     protected $plugin;
 
     /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
+    /**
      * @param PluginInterface $plugin
      * @return $this
      */
