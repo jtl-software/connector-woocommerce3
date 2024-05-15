@@ -6,6 +6,7 @@ use JtlWooCommerceConnector\Integrations\IntegrationsManager;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -13,7 +14,7 @@ use Psr\Log\NullLogger;
  * Class AbstractPlugin
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
-abstract class AbstractPlugin implements PluginInterface
+abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
 {
     /**
      * @var ComponentInterface[]

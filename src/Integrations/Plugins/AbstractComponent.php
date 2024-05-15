@@ -2,13 +2,14 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Class AbstractComponent
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface, LoggerAwareInterface
 {
     /**
      * @var LoggerInterface

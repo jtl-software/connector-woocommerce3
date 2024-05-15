@@ -31,7 +31,7 @@ class Wpml extends AbstractPlugin
      */
     public function isMultiCurrencyEnabled(): bool
     {
-        if (\wcml_is_multi_currency_on() === true) {
+        if (\wcml_is_multi_currency_on() === false) {
             $this->logger->log(LogLevel::INFO, "WPML multi-currency is not enabled.");
             return false;
         }
