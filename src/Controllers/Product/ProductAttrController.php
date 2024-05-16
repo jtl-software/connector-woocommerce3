@@ -438,12 +438,15 @@ class ProductAttrController extends AbstractBaseController
             $productId
         );
 
-        $existingProperties    = $this->db->query($query);
-        $existingProperties    = \unserialize($existingProperties[0]['meta_value']);
         $existingPropertyNames = [];
+        $existingProperties    = $this->db->query($query);
 
-        foreach ($existingProperties as $property) {
-            $existingPropertyNames[] = $property['name'];
+        if ($existingProperties) {
+            $existingProperties = \unserialize($existingProperties[0]['meta_value']);
+
+            foreach ($existingProperties as $property) {
+                $existingPropertyNames[] = $property['name'];
+            }
         }
 
         $missingProperties = \array_diff($existingPropertyNames, $sentCustomProperties);

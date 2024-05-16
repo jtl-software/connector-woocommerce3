@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2606 - fix error message undefined array key
 
 ## 2.0.1 _2024-05-15_
 - CO-2603 - add missing import and initialize logger
