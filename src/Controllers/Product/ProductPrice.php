@@ -517,9 +517,11 @@ class ProductPrice extends AbstractBaseController
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
 
-            $decimalCount = $regularPrice == 0.00
+            $decimal = \explode('.', $regularPrice);
+
+            $decimalCount = \count($decimal) < 2
                 ? 2
-                : \strlen(\explode('.', $regularPrice)[1]);
+                : \strlen($decimal[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(
