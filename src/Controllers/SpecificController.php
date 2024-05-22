@@ -210,8 +210,6 @@ class SpecificController extends AbstractBaseController implements
                 $metaValue             = null;
                 $defaultValueAvailable = false;
 
-                $value->getSpecificId()->setEndpoint($model->getId()->getEndpoint());
-
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
                     if ($this->wpml->canBeUsed()) {
