@@ -377,25 +377,24 @@ class ProductVariationController extends AbstractBaseController
                             );
                         $updatedAttributeKeys[] = $metaKey;
 
+                        $term = \get_term_by(
+                            'name',
+                            $i18n->getName(),
+                            \str_replace('attribute_', '', $metaKey)
+                        );
+
+                        $slug = $term !== false ? $term->slug : \wc_sanitize_taxonomy_name($i18n->getName());
+
                         \update_post_meta(
                             $productId,
                             $metaKey,
-                            \wc_sanitize_taxonomy_name($i18n->getName())
+                            $slug
                         );
                     }
                     break;
                 }
             }
         }
-
-        /*  $attributesToDelete = $this->database->queryList( SqlHelper::productVariationObsoletes(
-            $product->getId()->getEndpoint(),
-            $updatedAttributeKeys
-        ) );
-
-        foreach ( $attributesToDelete as $key ) {
-            \delete_post_meta( $product->getId()->getEndpoint(), $key );
-        }*/
 
         return $updatedAttributeKeys;
     }
