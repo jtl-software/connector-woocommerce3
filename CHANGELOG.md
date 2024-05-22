@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.2 _2024-05-22_
 - CO-2613 - remove call to specific value method
 
 ## 2.0.1 _2024-05-15_
