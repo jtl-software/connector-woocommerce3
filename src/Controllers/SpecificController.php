@@ -207,14 +207,8 @@ class SpecificController extends AbstractBaseController implements
             }
 
             foreach ($model->getValues() as $key => $value) {
-                #if (! $value instanceof SpecificValueModel) {
-                #    continue;
-                #}
-
                 $metaValue             = null;
                 $defaultValueAvailable = false;
-
-                #$value->getSpecificId()->setEndpoint($model->getId()->getEndpoint());
 
                 //Get i18n
                 foreach ($value->getI18ns() as $i18n) {
