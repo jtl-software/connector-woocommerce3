@@ -17,6 +17,7 @@ use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
 use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
+use JtlWooCommerceConnector\Controllers\Product\ProductAdvancedCustomFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
 use JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController;
@@ -27,11 +28,13 @@ use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
 use JtlWooCommerceConnector\Controllers\Product\ProductSpecialPriceController;
 use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerController;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Traits\WawiProductPriceSchmuddelTrait;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;
 use WC_Data_Exception;
@@ -53,15 +56,31 @@ class ProductController extends AbstractBaseController implements
     private static array $idCache = [];
 
     /**
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
+     */
+    protected function getProductsIds(int $limit)
+    {
+        if ($this->wpml->canBeUsed()) {
+            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts($limit);
+        } else {
+            $ids = $this->db->queryList(SqlHelper::productPull($limit));
+        }
+
+        return $ids;
+    }
+
+    /**
      * @param QueryFilter $query
      * @return array
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function pull(QueryFilter $query): array
     {
         $products = [];
 
-        $ids = $this->db->queryList(SqlHelper::productPull($query->getLimit()));
+        $ids = $this->getProductsIds($query->getLimit());
 
         foreach ($ids as $id) {
             $product = \wc_get_product($id);
@@ -148,6 +167,10 @@ class ProductController extends AbstractBaseController implements
             $prices        = (new ProductPrice($this->db, $this->util))
                 ->pullData($product, $productModel);
 
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($product, $productModel);
+            }
+
             $productModel
                 ->addI18n((new ProductI18nController($this->db, $this->util))->pullData($product, $productModel))
                 ->setPrices(...$prices)
@@ -199,6 +222,10 @@ class ProductController extends AbstractBaseController implements
                 }
             }
 
+            if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {
+                (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pullData($productModel, $product);
+            }
+
             $products[] = $productModel;
         }
 
@@ -234,14 +261,27 @@ class ProductController extends AbstractBaseController implements
         }
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $tmpI18n = $i18n;
-                break;
+            if ($this->wpml->canBeUsed()) {
+                if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
+                    $tmpI18n = $i18n;
+                    break;
+                }
+            } else {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $tmpI18n = $i18n;
+                    break;
+                }
             }
         }
 
         if (\is_null($tmpI18n)) {
             return $model;
+        }
+
+        $wcProductId       = (int)$model->getId()->getEndpoint();
+        $existingProductId = \wc_get_product_id_by_sku($model->getSku());
+        if ($existingProductId !== 0) {
+            $wcProductId = $existingProductId;
         }
 
         $creationDate = \is_null($model->getAvailableFrom())
@@ -256,7 +296,7 @@ class ProductController extends AbstractBaseController implements
 
         /** @var ProductI18nModel $tmpI18n */
         $endpoint = [
-            'ID' => (int)$model->getId()->getEndpoint(),
+            'ID' => $wcProductId,
             'post_type' => $isMasterProduct ? 'product' : 'product_variation',
             'post_title' => $tmpI18n->getName(),
             'post_name' => $tmpI18n->getUrlPath(),
@@ -271,14 +311,8 @@ class ProductController extends AbstractBaseController implements
         if ($endpoint['ID'] !== 0) {
             // Needs to be set for existing products otherwise commenting is disabled
             $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
-        } else {
-            // Update existing products by SKU
-            $productId = \wc_get_product_id_by_sku($model->getSku());
-
-            if ($productId !== 0) {
-                $endpoint['ID'] = $productId;
-            }
         }
+
         // Post filtering
         \remove_filter('content_save_pre', 'wp_filter_post_kses');
         \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
@@ -289,13 +323,25 @@ class ProductController extends AbstractBaseController implements
 
         if ($newPostId instanceof \WP_Error) {
             $this->logger->error(ErrorFormatter::formatError($newPostId));
+            return $model;
+        }
 
+        if (\is_null($newPostId)) {
             return $model;
         }
 
         $model->getId()->setEndpoint($newPostId);
 
+        $wcProduct = \wc_get_product($newPostId);
         $this->onProductInserted($model, $tmpI18n);
+
+        if ($this->wpml->canBeUsed()) {
+            $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
+                $newPostId,
+                $masterProductId,
+                $model
+            );
+        }
 
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
@@ -321,6 +367,10 @@ class ProductController extends AbstractBaseController implements
             (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
         }
 
+        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {
+            (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pushData($model);
+        }
+
         \remove_filter('content_save_pre', 'wp_filter_post_kses');
         \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
@@ -339,15 +389,24 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param ProductModel $model
      * @return ProductModel
+     * @throws Exception
      */
     public function delete(AbstractModel $model): AbstractModel
     {
         $productId = (int)$model->getId()->getEndpoint();
 
-        \wp_delete_post($productId, true);
-        \wc_delete_product_transients($productId);
+        $wcProduct = \wc_get_product($productId);
 
-        unset(self::$idCache[$model->getId()->getHost()]);
+        if ($wcProduct instanceof \WC_Product) {
+            \wp_delete_post($productId, true);
+            \wc_delete_product_transients($productId);
+
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml->getComponent(WpmlProduct::class)->deleteTranslations($wcProduct);
+            }
+
+            unset(self::$idCache[$model->getId()->getHost()]);
+        }
 
         return $model;
     }
@@ -356,10 +415,16 @@ class ProductController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return int
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
     public function statistic(QueryFilter $query): int
     {
-        return \count($this->db->queryList(SqlHelper::productPull()));
+        if ($this->wpml->canBeUsed()) {
+            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts();
+        } else {
+            $ids = $this->db->queryList(SqlHelper::productPull());
+        }
+        return \count($ids);
     }
 
     /**
@@ -383,11 +448,10 @@ class ProductController extends AbstractBaseController implements
 
         $this->updateProductRelations($product, $wcProduct, $productType);
 
-        (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct);
-
+        (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct, $meta);
 
         if ($productType !== ProductController::TYPE_CHILD) {
-            $this->updateProduct($product);
+            $this->updateProduct($product, $wcProduct);
             \wc_delete_product_transients($product->getId()->getEndpoint());
         }
 
@@ -405,7 +469,7 @@ class ProductController extends AbstractBaseController implements
      * @return void
      * @throws TranslatableAttributeException
      */
-    private function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
+    public function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
         $productId            = $wcProduct->get_id();
         $customProductTypeSet = false;
@@ -593,6 +657,7 @@ class ProductController extends AbstractBaseController implements
      * @param string $productType
      * @return void
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     private function updateProductRelations(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {
@@ -612,9 +677,9 @@ class ProductController extends AbstractBaseController implements
      * @return void
      * @throws Exception
      */
-    private function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
+    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
         $productTitle         = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
         $variation_post_title = \sprintf(\__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
@@ -631,12 +696,13 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
+     * @param WC_Product $wcProduct
      * @return void
      * @throws Exception
      */
-    private function updateProduct(ProductModel $product): void
+    private function updateProduct(ProductModel $product, $wcProduct): void
     {
-        $productId = (int)$product->getId()->getEndpoint();
+        $productId = (int)$wcProduct->get_id();
 
         \update_post_meta($productId, '_visibility', 'visible');
 

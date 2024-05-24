@@ -8,6 +8,7 @@ use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Product;
 use JtlWooCommerceConnector\Controllers\Product\ProductPrice;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 
 class ProductPriceController extends ProductPrice implements PushInterface
 {
@@ -27,19 +28,29 @@ class ProductPriceController extends ProductPrice implements PushInterface
                 $vat = $this->util->getTaxRateByTaxClass($wcProduct->get_tax_class());
             }
 
-            $this->savePrices(
-                $wcProduct,
-                $vat,
-                $this->getJtlProductType($wcProduct),
-                ...$model->getPrices()
-            );
+            $wcProducts[] = $wcProduct;
 
-            // Update the max and min prices for the parent product
-            if ($wcProduct->is_type('variation')) {
-                \WC_Product_Variable::sync($wcProduct->get_id());
+            if ($this->wpml->canBeUsed()) {
+                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)
+                    ->getWooCommerceProductTranslations($wcProduct);
+                $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
             }
 
-            \wc_delete_product_transients($wcProduct->get_id());
+            foreach ($wcProducts as $wcProduct) {
+                $this->savePrices(
+                    $wcProduct,
+                    $vat,
+                    $this->getJtlProductType($wcProduct),
+                    ...$model->getPrices()
+                );
+
+                // Update the max and min prices for the parent product
+                if ($wcProduct->is_type('variation')) {
+                    \WC_Product_Variable::sync($wcProduct->get_id());
+                }
+
+                \wc_delete_product_transients($wcProduct->get_id());
+            }
         }
 
         return $model;

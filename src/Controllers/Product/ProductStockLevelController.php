@@ -3,7 +3,6 @@
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
-use InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -42,7 +41,7 @@ class ProductStockLevelController extends AbstractBaseController
 
         \update_post_meta($variationId, '_manage_stock', $product->getConsiderStock() ? 'yes' : 'no');
 
-        $stockLevel = $product->getStockLevel();
+        $stockLevel = !\is_null($product->getStockLevel()) ? $product->getStockLevel() : 0;
 
         \wc_update_product_stock_status($variationId, $this->util->getStockStatus(
             $stockLevel,
@@ -77,10 +76,7 @@ class ProductStockLevelController extends AbstractBaseController
             return;
         }
 
-        $stockLevel = 0;
-        if (!\is_null($product->getStockLevel())) {
-            $stockLevel = $product->getStockLevel();
-        }
+        $stockLevel = !\is_null($product->getStockLevel()) ? $product->getStockLevel() : 0;
 
         $stockStatus = $this->util->getStockStatus(
             $stockLevel,

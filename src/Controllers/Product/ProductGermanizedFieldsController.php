@@ -7,7 +7,6 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductAttribute;
-use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
@@ -27,6 +26,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param WC_Product $wcProduct
      * @return void
      * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {

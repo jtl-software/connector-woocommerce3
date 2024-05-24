@@ -2002,6 +2002,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.42.0':
             case '1.42.1':
             case '1.42.2':
+            case '2.0.0':
+            case '2.0.1':
+            case '2.0.2':
             default:
                 self::activate_linking();
         }
