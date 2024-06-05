@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use InvalidArgumentException;
+use Exception;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -17,6 +17,7 @@ class ProductI18nController extends AbstractBaseController
      * @param WC_Product $product
      * @param ProductModel $model
      * @return ProductI18nModel
+     * @throws Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): ProductI18nModel
     {

@@ -65,4 +65,20 @@ trait ProductTrait
             \implode("','", $updatedAttributeKeys)
         );
     }
+
+    /**
+     * @param int $productSku
+     * @return string
+     */
+    public static function getWpmlProductIds(int $productSku): string
+    {
+        global $wpdb;
+
+        return \sprintf(
+            "SELECT post_id
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = '_sku' AND meta_value = '%s'",
+            $productSku
+        );
+    }
 }

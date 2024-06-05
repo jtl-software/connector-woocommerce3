@@ -12,10 +12,16 @@ use Jtl\Connector\Core\Model\Category as CategoryModel;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\QueryFilter;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 
 class CategoryController extends AbstractBaseController implements
@@ -33,15 +39,22 @@ class CategoryController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return array<Category>
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pull(QueryFilter $query): array
     {
         $categories = [];
 
-        $categoryUtil = new CategoryUtil($this->db);
-        $categoryUtil->fillCategoryLevelTable();
-        $categoryData = $this->db->query(SqlHelper::categoryPull($query->getLimit()));
-        $categoryData = $categoryData === null ? [] : $categoryData;
+        if ($this->wpml->canBeUsed()) {
+            $categoryData = $this->wpml
+                ->getComponent(WpmlCategory::class)
+                ->getCategories($query->getLimit());
+        } else {
+            $categoryUtil = new CategoryUtil($this->db, $this->util);
+            $categoryUtil->fillCategoryLevelTable();
+            $categoryData = $this->db->query(SqlHelper::categoryPull($query->getLimit()));
+            $categoryData = $categoryData === null ? [] : $categoryData;
+        }
 
         foreach ($categoryData as $categoryDataSet) {
             $category = (new CategoryModel())
@@ -52,6 +65,10 @@ class CategoryController extends AbstractBaseController implements
             if (!empty($categoryDataSet['parent'])) {
                 $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
             }
+
+            $wooCommerceCategoryComponent = $this->getPluginsManager()
+                ->get(WooCommerce::class)
+                ->getComponent(WooCommerceCategory::class);
 
             $i18n = (new CategoryI18n())
                 ->setLanguageISO($this->util->getWooCommerceLanguage())
@@ -84,7 +101,34 @@ class CategoryController extends AbstractBaseController implements
                 }
             }
 
-            $categories[] = $category->addI18n($i18n);
+            if ($this->wpml->canBeUsed()) {
+                $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
+                $categoryTranslations     = $wpmlTaxonomyTranslations
+                    ->getTranslations($categoryDataSet['trid'], 'tax_product_cat');
+
+                foreach ($categoryTranslations as $languageCode => $translation) {
+                    $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
+                        (int)$translation->term_id,
+                        'product_cat'
+                    );
+
+                    if (isset($term['term_id'])) {
+                        $i18n = $wooCommerceCategoryComponent
+                            ->createCategoryI18n(
+                                $category,
+                                $this->wpml->convertLanguageToWawi($translation->language_code),
+                                [
+                                    'name' => \html_entity_decode($translation->name),
+                                    'slug' => $term['slug'],
+                                    'description' => \html_entity_decode($term['description']),
+                                    'category_id' => $term['term_id']
+                                ]
+                            );
+                        $category->addI18n($i18n);
+                    }
+                }
+            }
+            $categories[] = $category;
         }
 
         return $categories;
@@ -113,9 +157,16 @@ class CategoryController extends AbstractBaseController implements
         $categoryId = (int)$model->getId()->getEndpoint();
 
         foreach ($model->getI18ns() as $i18n) {
-            if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                $meta = $i18n;
-                break;
+            if ($this->wpml->canBeUsed()) {
+                if ($this->wpml->getDefaultLanguage() === Util::mapLanguageIso($i18n->getLanguageIso())) {
+                    $meta = $i18n;
+                    break;
+                }
+            } else {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                    $meta = $i18n;
+                    break;
+                }
             }
         }
 
@@ -123,19 +174,15 @@ class CategoryController extends AbstractBaseController implements
             return $model;
         }
 
+        $urlPath = $meta->getUrlPath();
+
         $categoryData = [
             'description' => $meta->getDescription(),
             'parent'      => $parentCategoryId->getEndpoint(),
             'name'        => $meta->getName(),
             'taxonomy'    => \wc_sanitize_taxonomy_name(CategoryUtil::TERM_TAXONOMY),
+            'slug'        => !empty($urlPath) ? $urlPath : \strtolower($meta->getName())
         ];
-
-        $urlPath = $meta->getUrlPath();
-
-        $categoryData['slug'] = \strtolower($meta->getName());
-        if (!empty($urlPath)) {
-            $categoryData['slug'] = $urlPath;
-        }
 
         \remove_filter('pre_term_description', 'wp_filter_kses');
 
@@ -151,7 +198,16 @@ class CategoryController extends AbstractBaseController implements
                 $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
             }
 
+            $wpml = $this->getPluginsManager()->get(Wpml::class);
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+            }
+
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
+
+            if ($wpml->canBeUsed()) {
+                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+            }
         }
 
         \add_filter('pre_term_description', 'wp_filter_kses');
@@ -209,10 +265,18 @@ class CategoryController extends AbstractBaseController implements
             $this->util->updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
 
-        $model->getId()->setEndpoint($result['term_id']);
-        self::$idCache[$model->getId()->getHost()] = $result['term_id'];
+        if (!empty($result)) {
+            $model->getId()->setEndpoint($result['term_id']);
+            self::$idCache[$model->getId()->getHost()] = $result['term_id'];
 
-        (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
+            (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
+
+            if ($this->wpml->canBeUsed()) {
+                $this->wpml
+                ->getComponent(WpmlCategory::class)
+                ->setCategoryTranslations($model, $result, $parentCategoryId);
+            }
+        }
 
         return $model;
     }
@@ -247,9 +311,16 @@ class CategoryController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function statistic(QueryFilter $query): int
     {
-        return (int)$this->db->queryOne(SqlHelper::categoryStats());
+        if ($this->wpml->canBeUsed()) {
+            $count = (int)$this->wpml->getComponent(WpmlCategory::class)->getStats();
+        } else {
+            $count = (int)$this->db->queryOne(SqlHelper::categoryStats());
+        }
+
+        return $count;
     }
 }

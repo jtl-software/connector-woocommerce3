@@ -3,8 +3,20 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2591 - cast taxRates to float
+
+## 2.0.2 _2024-05-22_
+- CO-2613 - remove call to specific value method
+
+## 2.0.1 _2024-05-15_
+- CO-2603 - add missing import and initialize logger
+
+## 2.0.0 _2024-05-14_
 - CO-2514 - prevent duplicate product images 
 - CO-2394 - delete removed custom attributes
+- CO-2460 - implement compatibility with germanized pro food 
+- CO-2582 - merge wpml with wc connector
+- CO-2440 - support advanced custom fields plugin for products
 
 ## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config

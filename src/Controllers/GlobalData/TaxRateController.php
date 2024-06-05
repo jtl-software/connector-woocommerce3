@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use InvalidArgumentException;
@@ -27,7 +22,11 @@ class TaxRateController extends AbstractController
         $result = $this->db->query(SqlHelper::taxRatePull());
 
         foreach ($result as $row) {
-            $taxRate = (float)\round($row['tax_rate'], 4);
+            if (\is_numeric($row['tax_rate']) && \is_string($row['tax_rate'])) {
+                // sql might return a string, so we need to cast it to float
+                $row['tax_rate'] = (float)$row['tax_rate'];
+            }
+            $taxRate = \round($row['tax_rate'], 4);
 
             if (\in_array($taxRate, $uniqueRates)) {
                 continue;
