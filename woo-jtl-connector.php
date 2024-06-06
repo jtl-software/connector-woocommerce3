@@ -92,7 +92,7 @@ if (jtlwcc_rewriting_disabled()) {
     }
 }
 
-function woo_jtl_connector_settings_javascript()
+function woo_jtl_connector_settings_javascript(): void
 {
     ?>
     <script type="text/javascript">
@@ -149,7 +149,7 @@ function woo_jtl_connector_settings_javascript()
     <?php
 }
 
-function downloadJTLLogs()
+function downloadJTLLogs(): void
 {
     $logDir   = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
@@ -205,7 +205,7 @@ function downloadJTLLogs()
     //self::display_page();
 }
 
-function clearJTLLogs()
+function clearJTLLogs(): void
 {
     $logDir   = CONNECTOR_DIR . '/logs';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
@@ -219,6 +219,7 @@ function clearJTLLogs()
         RecursiveIteratorIterator::LEAVES_ONLY
     );
 
+    /** @var SplFileInfo[] $files */
     foreach ($files as $name => $file) {
         if ($file->getFilename() === '.gitkeep') {
             continue;
@@ -252,6 +253,7 @@ function clearConnectorCache(): void
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
+        /** @var SplFileInfo[] $files */
         foreach ($files as $name => $file) {
             if ($file->getFilename() === '.gitkeep') {
                 continue;
@@ -274,7 +276,7 @@ function clearConnectorCache(): void
 /**
  * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
  */
-function jtlwcc_load_internationalization()
+function jtlwcc_load_internationalization(): void
 {
     load_plugin_textdomain(JTLWCC_TEXT_DOMAIN, false, basename(dirname(__FILE__)) . '/languages');
 }
@@ -282,7 +284,7 @@ function jtlwcc_load_internationalization()
 /**
  * Check the status of WC, connector and the WC version.
  */
-function jtlwcc_validate_plugins()
+function jtlwcc_validate_plugins(): void
 {
     if (jtlwcc_woocommerce_deactivated() && jtlwcc_connector_activated()) {
         add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
@@ -295,7 +297,7 @@ function jtlwcc_validate_plugins()
 /**
  * Deactivate the connector.
  */
-function jtlwcc_deactivate_plugin()
+function jtlwcc_deactivate_plugin(): void
 {
     deactivate_plugins(__FILE__);
 }
@@ -316,7 +318,7 @@ function jtlwcc_woocommerce_deactivated()
 /**
  * Redirect action
  */
-function woo_jtl_connector_menu_link()
+function woo_jtl_connector_menu_link(): void
 {
     $link = 'admin.php?page=wc-settings&tab=woo-jtl-connector';
     wp_redirect($link, 301);
@@ -345,20 +347,20 @@ function jtlwcc_get_woocommerce_version()
 {
     $plugin = get_plugin_data(WP_PLUGIN_DIR . '/' . JTLWCC_WOOCOMMERCE_PLUGIN_FILE);
 
-    return isset($plugin['Version']) ? $plugin['Version'] : '0';
+    return $plugin['Version'];
 }
 
 /**
  * Without rewriting a URL like jtlconnector cannot be used.
  */
-function jtlwcc_rewriting_disabled()
+function jtlwcc_rewriting_disabled(): bool
 {
     $permalink_structure = \get_option('permalink_structure');
 
     return empty($permalink_structure);
 }
 
-function jtlwcc_woocommerce_not_activated()
+function jtlwcc_woocommerce_not_activated(): void
 {
     jtlwcc_show_wordpress_error(
         __('Activate WooCommerce in order to use the JTL-Connector.', JTLWCC_TEXT_DOMAIN),
@@ -366,12 +368,12 @@ function jtlwcc_woocommerce_not_activated()
     );
 }
 
-function jtlwcc_wrong_woocommerce_version()
+function jtlwcc_wrong_woocommerce_version(): void
 {
     jtlwcc_show_wordpress_error(__('At least WooCommerce 3.0 has to be installed.', JTLWCC_TEXT_DOMAIN));
 }
 
-function jtlwcc_rewriting_not_activated()
+function jtlwcc_rewriting_not_activated(): void
 {
     jtlwcc_show_wordpress_error(__(
         'Rewriting is disabled. Please select another permalink setting.',
@@ -379,7 +381,7 @@ function jtlwcc_rewriting_not_activated()
     ));
 }
 
-function jtlwcc_show_wordpress_error($message, $show_install_link = false)
+function jtlwcc_show_wordpress_error(string $message, bool $show_install_link = false): void
 {
     $link = $show_install_link
         ? '<a class="" href="' .
