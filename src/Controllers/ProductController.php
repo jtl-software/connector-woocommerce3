@@ -702,7 +702,7 @@ class ProductController extends AbstractBaseController implements
      */
     private function updateProduct(ProductModel $product, $wcProduct): void
     {
-        $productId = (int)$wcProduct->get_id();
+        $productId = $wcProduct->get_id();
 
         \update_post_meta($productId, '_visibility', 'visible');
 

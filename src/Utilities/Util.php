@@ -23,7 +23,7 @@ class Util extends WordpressUtils
     public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
     public const TO_SYNC_MOD   = 100;
 
-    private $locale;
+    private string $locale;
 
     /**
      * @throws InvalidArgumentException
@@ -41,24 +41,24 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $language
+     * @param string $language
      *
      * @return bool
      */
-    public function isWooCommerceLanguage($language): bool
+    public function isWooCommerceLanguage(string $language): bool
     {
         return $language === $this->getWooCommerceLanguage();
     }
 
     /**
-     * @param                $taxClass
+     * @param string $taxClass
      * @param \WC_Order|null $order
      *
      * @return float
      */
-    public function getTaxRateByTaxClass($taxClass, \WC_Order $order = null): float
+    public function getTaxRateByTaxClass(string $taxClass, \WC_Order $order = null): float
     {
-        $countryIso = \explode(":", \get_option('woocommerce_default_country'));
+        $countryIso = \explode(":", \get_option('woocommerce_default_country'));//TODO: check
         $countryIso = $countryIso[0];
 
         if (! \is_null($order)) {
@@ -86,9 +86,9 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array $bulkPrices
+     * @param array<int, array<string, string>> $bulkPrices
      *
-     * @return array
+     * @return array<int, array<string, string>>
      */
     public static function setBulkPricesQuantityTo(array $bulkPrices): array
     {
@@ -98,7 +98,7 @@ class Util extends WordpressUtils
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
             if (isset($bulkPrices[ $i + 1 ])) {
-                $bulkPrice['bulk_price_to'] = $bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
+                $bulkPrice['bulk_price_to'] = $bulkPrices[ $i + 1 ]['bulk_price_from'] - 1; //TODO: value ist doch str!?
             } else {
                 $bulkPrice['bulk_price_to'] = '';
             }
@@ -111,13 +111,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param      $stockLevel
-     * @param      $backorders
+     * @param float|int $stockLevel
+     * @param bool $backorders
      * @param bool $managesStock
      *
      * @return string
      */
-    public function getStockStatus($stockLevel, $backorders, bool $managesStock = false): string
+    public function getStockStatus(float|int $stockLevel, bool $backorders, bool $managesStock = false): string
     {
         $stockStatus = $stockLevel > 0;
 
@@ -129,13 +129,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $price
-     * @param $pd
-     * @return mixed|string
+     * @param string $price
+     * @param int $pd
+     * @return int|string
      */
-    public static function getNetPriceCutted($price, $pd): mixed
+    public static function getNetPriceCutted(string $price, int $pd): mixed
     {
-        $position = \strrpos((string) $price, '.');
+        $position = \strrpos($price, '.');
 
         if ($position > 0) {
             $cut   = \substr($price, 0, $position + 1 + $pd);
@@ -146,13 +146,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param          $id
-     * @param array    $vatPluginsPriority
+     * @param int $id
+     * @param array<string, string> $vatPluginsPriority
      * @param callable $getMetaFieldValueFunction
      *
      * @return string
      */
-    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction): string
+    public static function findVatId(int $id, array $vatPluginsPriority, callable $getMetaFieldValueFunction): string
     {
         $uid = '';
         foreach ($vatPluginsPriority as $metaKey => $pluginName) {
@@ -191,11 +191,11 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $orderId
+     * @param int $orderId
      *
      * @return string
      */
-    public static function getVatIdFromOrder($orderId): string
+    public static function getVatIdFromOrder(int $orderId): string
     {
         $vatIdPlugins = [
             'billing_vat'      => SupportedPlugins::PLUGIN_GERMAN_MARKET,
@@ -210,12 +210,12 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $group
+     * @param string $group
      *
      * @return bool
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function isValidCustomerGroup($group): bool
+    public function isValidCustomerGroup(string $group): bool
     {
         $result = empty($group) || $group === CustomerGroupController::DEFAULT_GROUP;
 
@@ -225,6 +225,7 @@ class Util extends WordpressUtils
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroups = $this->db->query(SqlHelper::customerGroupPull());
+            $customerGroups = $customerGroups ?? [];
             foreach ($customerGroups as $cKey => $customerGroup) {
                 if (isset($customerGroup['ID']) && $customerGroup['ID'] === $group) {
                     $result = true;
@@ -236,11 +237,11 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $productId
+     * @param int $productId
      */
-    public function addMasterProductToSync($productId): void
+    public function addMasterProductToSync(int $productId): void
     {
-        $masterProductsToSyncCount = (int) \get_option(self::TO_SYNC_COUNT, 0);
+        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0); //TODO:check
         $page                      = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
         $masterProductsToSync      = \get_option(self::TO_SYNC . '_' . $page, []);
         $masterProductsToSync[]    = $productId;
@@ -253,7 +254,7 @@ class Util extends WordpressUtils
      */
     public function syncMasterProducts(): void
     {
-        $masterProductsToSyncCount = (int) \get_option(self::TO_SYNC_COUNT, 0);
+        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0);
 
         if ($masterProductsToSyncCount > 0) {
             $page = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
@@ -284,6 +285,7 @@ class Util extends WordpressUtils
 
         while (! empty($result)) {
             $result = $this->db->query(SqlHelper::categoryProductsCount($offset, $limit));
+            $result = $result ?? [];
 
             foreach ($result as $category) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
@@ -310,6 +312,7 @@ class Util extends WordpressUtils
 
         while (! empty($result)) {
             $result = $this->db->query(SqlHelper::productTagsCount($offset, $limit));
+            $result = $result ?? [];
 
             foreach ($result as $tag) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
@@ -323,12 +326,12 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $locale
+     * @param string $locale
      *
      * @return string
      * @throws \Exception
      */
-    public static function mapLanguageIso($locale): string
+    public static function mapLanguageIso(string $locale): string
     {
         if (\substr_count($locale, '_') == 2) {
             $locale = \substr(

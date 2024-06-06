@@ -239,7 +239,7 @@ class ProductPrice extends AbstractBaseController
                     '1.0.3'
                 )
             ) {
-                if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
+                if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                     $groupedProductPrices[CustomerGroupController::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
                         ->setProductId($price->getProductId())
