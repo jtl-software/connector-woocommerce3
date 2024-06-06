@@ -103,7 +103,7 @@ class SupportedPlugins
     /**
      * Returns all active and validated plugins
      *
-     * @return array
+     * @return array<int, array<string, string|bool>>
      */
     public static function getInstalledAndActivated(): array
     {
@@ -112,7 +112,7 @@ class SupportedPlugins
 
         foreach ($plugins as $key => $plugin) {
             if (is_plugin_active($key)) { //phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions
-                $activePlugins[] = $plugins[$key];
+                $activePlugins[] = $plugin;
             }
         }
 
@@ -128,7 +128,7 @@ class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (\in_array($plugin['Name'], self::SUPPORTED_PLUGINS)) {
+            if (\is_string($plugin['Name']) && \in_array($plugin['Name'], self::SUPPORTED_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }
@@ -143,7 +143,7 @@ class SupportedPlugins
      * @param bool $asString
      * @param bool $all
      * @param bool $asArray
-     * @return array|string
+     * @return array<int, array<string, bool|string>>|array<int, string>|string
      */
     public static function getNotSupportedButActive(
         bool $asString = false,
@@ -154,7 +154,7 @@ class SupportedPlugins
         $plugins = [];
         $tmp     = [];
         foreach ($plArray as $plugin) {
-            if (\in_array($plugin['Name'], self::INCOMPATIBLE_PLUGINS)) {
+            if (\is_string($plugin['Name']) && \in_array($plugin['Name'], self::INCOMPATIBLE_PLUGINS)) {
                 $plugins[] = $plugin;
                 $tmp[]     = $plugin['Name'];
             }
@@ -188,7 +188,7 @@ class SupportedPlugins
         $active  = false;
 
         foreach ($plArray as $plugin) {
-            if (\strcmp($pluginName, $plugin['Name']) === 0) {
+            if (\is_string($plugin['Name']) && \strcmp($pluginName, $plugin['Name']) === 0) {
                 $active = true;
             }
         }
@@ -204,7 +204,8 @@ class SupportedPlugins
      */
     public static function comparePluginVersion(string $pluginName, string $operator, string $version): bool
     {
-        return self::isActive($pluginName) && \version_compare(self::getVersionOf($pluginName), $version, $operator);
+        return self::isActive($pluginName)
+            && \version_compare((string)self::getVersionOf($pluginName), $version, $operator);
     }
 
     /**
@@ -238,8 +239,8 @@ class SupportedPlugins
 
         $version = null;
         foreach ($plArray as $plugin) {
-            if (\strcmp($pluginName, $plugin['Name']) === 0) {
-                $version = $plugin['Version'];
+            if (\is_string($plugin['Name']) && \strcmp($pluginName, $plugin['Name']) === 0) {
+                $version = (string)$plugin['Version'];
                 break;
             }
         }
