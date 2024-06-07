@@ -6,6 +6,9 @@ use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractI18n;
+use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\ManufacturerI18n;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
 use JtlWooCommerceConnector\Controllers\CustomerOrderController;
@@ -333,11 +336,15 @@ class Util extends WordpressUtils
      */
     public static function mapLanguageIso(string $locale): string
     {
+        $strPos = (\strpos($locale, '_', 4) !== false)
+            ? \strpos($locale, '_', 4)
+            : null;
+
         if (\substr_count($locale, '_') == 2) {
             $locale = \substr(
                 $locale,
                 0,
-                \strpos($locale, '_', 4)
+                $strPos
             );
         }
 
@@ -377,15 +384,16 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $name
+     * @param string $name
      *
      * @return int
      */
-    public static function getAttributeTaxonomyIdByName($name): int
+    public static function getAttributeTaxonomyIdByName(string $name): int
     {
         $name       = \str_replace('pa_', '', $name);
         $taxonomies = \wp_list_pluck(\wc_get_attribute_taxonomies(), 'attribute_id', 'attribute_name');
 
+        /** @param $name string */
         return isset($taxonomies[ $name ]) ? (int) $taxonomies[ $name ] : 0;
     }
 
@@ -398,16 +406,16 @@ class Util extends WordpressUtils
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
             \is_callable([ 'BM_Helper', 'delete_b2b_transients' ])
         ) {
-            \BM_Helper::delete_b2b_transients();
+            \BM_Helper::delete_b2b_transients(); //TODO: check
         }
     }
 
     /**
-     * @param $str
+     * @param string $str
      *
      * @return string
      */
-    public static function removeSpecialchars($str): string
+    public static function removeSpecialchars(string $str): string
     {
         return \strtr($str, [
             "Ä" => "AE",
@@ -466,7 +474,7 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public static function getOrderStatusesToImport(): array
     {
@@ -476,7 +484,7 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public static function getManualPaymentTypes(): array
     {
@@ -524,7 +532,7 @@ class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
-    public function createVariantTaxonomyName($name): string
+    public function createVariantTaxonomyName(string $name): string
     {
         return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
             \substr(
@@ -567,7 +575,7 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array $dataSet
+     * @param array<string, string> $dataSet
      * @param int   $termId
      */
     public function updateTermMeta(array $dataSet, int $termId): void
@@ -585,12 +593,12 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param AbstractI18n $i18n
-     * @param array     $rankMathSeoData
+     * @param CategoryI18n|ManufacturerI18n $i18n
+     * @param array<int, array<string, string>> $rankMathSeoData
      *
      * @return void
      */
-    public function setI18nRankMathSeo(AbstractI18n $i18n, array $rankMathSeoData): void
+    public function setI18nRankMathSeo(ManufacturerI18n|CategoryI18n $i18n, array $rankMathSeoData): void
     {
         foreach ($rankMathSeoData as $termMeta) {
             switch ($termMeta['meta_key']) {
@@ -607,6 +615,9 @@ class Util extends WordpressUtils
         }
     }
 
+    /**
+     * @return bool|array<string, array<string, string>>
+     */
     public function getStates(): bool|array
     {
         return \WC()->countries->get_states();

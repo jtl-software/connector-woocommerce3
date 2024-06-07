@@ -14,10 +14,10 @@ use Jtl\Connector\Core\Model\TaxRate;
 trait TaxesTrait
 {
     /**
-     * @param $rate
+     * @param float $rate
      * @return string
      */
-    public static function taxClassByRate($rate): string
+    public static function taxClassByRate(float $rate): string
     {
         global $wpdb;
         $wtr = $wpdb->prefix . 'woocommerce_tax_rates';
