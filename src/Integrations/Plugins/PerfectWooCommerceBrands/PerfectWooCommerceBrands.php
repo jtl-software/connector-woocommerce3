@@ -63,7 +63,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
             }
         }
 
-
         return $i18n;
     }
 

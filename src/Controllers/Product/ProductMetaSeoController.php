@@ -28,7 +28,10 @@ class ProductMetaSeoController extends AbstractBaseController
                 '_yoast_wpseo_metadesc',
                 '_yoast_wpseo_focuskw'
             );
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        } elseif (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
+        ) {
             $this->setSeoValues(
                 $newPostId,
                 $tmpMeta,
@@ -57,7 +60,10 @@ class ProductMetaSeoController extends AbstractBaseController
                 '_yoast_wpseo_metadesc',
                 '_yoast_wpseo_focuskw'
             );
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        } elseif (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
+        ) {
             $values = $this->getSeoValues(
                 $wcProduct,
                 'rank_math_title',

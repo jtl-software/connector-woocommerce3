@@ -4,6 +4,7 @@ use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
 use JtlWooCommerceConnector\Connector;
+use Psr\Log\LogLevel;
 
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
@@ -26,6 +27,11 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             // abort existing session
             if (\session_status() === PHP_SESSION_ACTIVE) {
                 \session_abort();
+            }
+
+            if ($config->get(ConfigSchema::DEBUG) === true) {
+                $application->getConfig()->set(ConfigSchema::LOG_LEVEL, LogLevel::DEBUG);
+                $application->getLoggerService()->setLogLevel(LogLevel::DEBUG);
             }
 
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
