@@ -39,6 +39,7 @@ class SupportedPlugins
         PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
             = 'Additional Variation Images Gallery for WooCommerce',
         PLUGIN_RANK_MATH_SEO                                       = 'Rank Math SEO',
+        PLUGIN_RANK_MATH_SEO_AI                                    = 'Rank Math SEO with AI Best SEO Tools',
         PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE               = 'Checkout Field Editor for WooCommerce',
         PLUGIN_ADVANCED_CUSTOM_FIELDS                              = 'Advanced Custom Fields',
 
@@ -84,6 +85,7 @@ class SupportedPlugins
         self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM,
         self::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE,
         self::PLUGIN_RANK_MATH_SEO,
+        self::PLUGIN_RANK_MATH_SEO_AI,
         self::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE,
         self::PLUGIN_ADVANCED_CUSTOM_FIELDS,
     ];

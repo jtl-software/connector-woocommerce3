@@ -41,6 +41,7 @@ class ProductI18nController extends AbstractBaseController
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             $tmpMeta = (new ProductMetaSeoController($this->db, $this->util))->pullData($product, $model);
             if (\is_array($tmpMeta)) {

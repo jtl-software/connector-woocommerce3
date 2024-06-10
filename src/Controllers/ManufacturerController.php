@@ -131,7 +131,10 @@ class ManufacturerController extends AbstractBaseController implements
                     }
                 }
             }
-        } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+        } elseif (
+            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
+        ) {
             $sql                 = SqlHelper::pullRankMathSeoTermData(
                 (int)$manufacturer->getId()->getEndpoint()
             );
@@ -249,7 +252,10 @@ class ManufacturerController extends AbstractBaseController implements
                         }
 
                         \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
-                    } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)) {
+                    } elseif (
+                        SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+                        || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
+                    ) {
                         $updateRankMathSeoData = [
                             'rank_math_title' => $i18n->getTitleTag(),
                             'rank_math_description' => $i18n->getMetaDescription(),
