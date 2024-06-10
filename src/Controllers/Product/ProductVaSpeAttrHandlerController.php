@@ -959,10 +959,6 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value));
 
         if (\count($val) === 0) {
-            $val = $this->db->query(SqlHelper::getSpecificValueIdBySlug($slug, $value));
-        }
-
-        if (\count($val) === 0) {
             $result = ( new Identity() );
         } else {
             $result = isset($val[0]['endpoint_id'])

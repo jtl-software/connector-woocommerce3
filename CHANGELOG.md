@@ -7,6 +7,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2612 - add updated plugin name for rank math
 - CO-2607 - update log level according to config
 - CO-2606 - fix error message undefined array key
+- CO-2608 - consider variants with similar values
 
 ## 2.0.2 _2024-05-22_
 - CO-2613 - remove call to specific value method
