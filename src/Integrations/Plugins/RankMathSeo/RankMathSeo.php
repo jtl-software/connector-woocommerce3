@@ -23,7 +23,8 @@ class RankMathSeo extends AbstractPlugin
      */
     public function canBeUsed(): bool
     {
-        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO);
+        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI);
     }
 
     /**

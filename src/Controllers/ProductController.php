@@ -363,6 +363,7 @@ class ProductController extends AbstractBaseController implements
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
         }

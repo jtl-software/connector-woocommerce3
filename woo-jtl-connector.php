@@ -151,7 +151,7 @@ function woo_jtl_connector_settings_javascript(): void
 
 function downloadJTLLogs(): void
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/var/log';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
     $url      = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
 
@@ -207,7 +207,7 @@ function downloadJTLLogs(): void
 
 function clearJTLLogs(): void
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/var/log';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
 
     if (file_exists($zip_file)) {

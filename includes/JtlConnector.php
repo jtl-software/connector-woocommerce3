@@ -5,6 +5,7 @@ use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
 use Jtl\Connector\Core\Utilities\Validator\Validate;
 use JtlWooCommerceConnector\Connector;
+use Psr\Log\LogLevel;
 
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
@@ -29,8 +30,12 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
                 \session_abort();
             }
 
-            $features = Validate::string($application->getConfig()->get(ConfigSchema::FEATURES_PATH));
+            if ($config->get(ConfigSchema::DEBUG) === true) {
+                $application->getConfig()->set(ConfigSchema::LOG_LEVEL, LogLevel::DEBUG);
+                $application->getLoggerService()->setLogLevel(LogLevel::DEBUG);
+            }
 
+            $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
             if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
             }
