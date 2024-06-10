@@ -73,10 +73,10 @@ trait ManufacturerTrait
     }
 
     /**
-     * @param $limit
+     * @param int $limit
      * @return string
      */
-    public static function manufacturerPull($limit): string
+    public static function manufacturerPull(int $limit): string
     {
         global $wpdb;
         $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';

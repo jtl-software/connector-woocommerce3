@@ -77,7 +77,7 @@ class Category
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
             }
         } else {
-            $query      = SqlHelper::categoryTreePreOrder($parent['category_id'], $parent['level'] + 1);
+            $query      = SqlHelper::categoryTreePreOrder((int)$parent['category_id'], $parent['level'] + 1);
             $categories = $this->db->query($query);
             foreach ((array)$categories as $category) {
                 \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
@@ -101,9 +101,9 @@ class Category
         $id = $category->getId()->getEndpoint();
 
         if ($isNew) {
-            $categoryTreeQuery = SqlHelper::categoryTreeAdd($id, $category->getLevel(), $category->getSort());
+            $categoryTreeQuery = SqlHelper::categoryTreeAdd((int)$id, $category->getLevel(), $category->getSort());
         } else {
-            $categoryTreeQuery = SqlHelper::categoryTreeUpdate($id, $category->getLevel(), $category->getSort());
+            $categoryTreeQuery = SqlHelper::categoryTreeUpdate((int)$id, $category->getLevel(), $category->getSort());
         }
 
         $this->db->query($categoryTreeQuery);

@@ -7,10 +7,10 @@ use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 trait CategoryTrait
 {
     /**
-     * @param $where
+     * @param string $where
      * @return string
      */
-    public static function categoryTreeGet($where): string
+    public static function categoryTreeGet(string $where): string
     {
         global $wpdb;
 
@@ -29,12 +29,12 @@ trait CategoryTrait
     }
 
     /**
-     * @param $categoryId
-     * @param $level
-     * @param $sort
+     * @param int $categoryId
+     * @param int $level
+     * @param int $sort
      * @return string
      */
-    public static function categoryTreeAddIgnore($categoryId, $level, $sort): string
+    public static function categoryTreeAddIgnore(int $categoryId, int $level, int $sort): string
     {
         global $wpdb;
 
@@ -46,12 +46,12 @@ trait CategoryTrait
     }
 
     /**
-     * @param $categoryId
-     * @param $level
-     * @param $sort
+     * @param int $categoryId
+     * @param int $level
+     * @param int $sort
      * @return string
      */
-    public static function categoryTreeAdd($categoryId, $level, $sort): string
+    public static function categoryTreeAdd(int $categoryId, int $level, int $sort): string
     {
         global $wpdb;
 
@@ -63,12 +63,12 @@ trait CategoryTrait
     }
 
     /**
-     * @param $categoryId
-     * @param $level
-     * @param $sort
+     * @param int $categoryId
+     * @param int $level
+     * @param int $sort
      * @return string
      */
-    public static function categoryTreeUpdate($categoryId, $level, $sort): string
+    public static function categoryTreeUpdate(int $categoryId, int $level, int $sort): string
     {
         global $wpdb;
 
@@ -103,7 +103,7 @@ trait CategoryTrait
      * @param $level
      * @return string
      */
-    public static function categoryTreePreOrder($categoryId, $level): string
+    public static function categoryTreePreOrder(int $categoryId, int $level): string
     {
         global $wpdb;
 
@@ -124,7 +124,7 @@ trait CategoryTrait
      * @param $limit
      * @return string
      */
-    public static function categoryPull($limit): string
+    public static function categoryPull(int $limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_category';

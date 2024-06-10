@@ -16,10 +16,10 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 trait CrossSellingTrait
 {
     /**
-     * @param null $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function crossSellingPull($limit = null): string
+    public static function crossSellingPull(?int $limit = null): string
     {
         global $wpdb;
         $jclc       = $wpdb->prefix . 'jtl_connector_link_crossselling';

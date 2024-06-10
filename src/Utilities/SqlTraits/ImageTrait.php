@@ -17,10 +17,10 @@ use JtlWooCommerceConnector\Utilities\Id;
 trait ImageTrait
 {
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function imageCategoryPull($limit = null): string
+    public static function imageCategoryPull(int $limit = null): string
     {
         global $wpdb;
 
@@ -55,10 +55,10 @@ trait ImageTrait
     }
 
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function imageManufacturerPull($limit = null): string
+    public static function imageManufacturerPull(int $limit = null): string
     {
         global $wpdb;
 
@@ -156,10 +156,10 @@ trait ImageTrait
     }
 
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function imageVariationCombinationPull($limit = null): string
+    public static function imageVariationCombinationPull(int $limit = null): string
     {
         global $wpdb;
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';
@@ -190,11 +190,11 @@ trait ImageTrait
     }
 
     /**
-     * @param $attachementId
-     * @param $metaKey
+     * @param int $attachementId
+     * @param string $metaKey
      * @return string
      */
-    public static function countTermMetaImages($attachementId, $metaKey): string
+    public static function countTermMetaImages(int $attachementId, string $metaKey): string
     {
         global $wpdb;
         return \sprintf(
@@ -205,7 +205,11 @@ trait ImageTrait
         );
     }
 
-    public static function countRelatedProducts($attachementId): string
+    /**
+     * @param int $attachementId
+     * @return string
+     */
+    public static function countRelatedProducts(int $attachementId): string
     {
         global $wpdb;
 
@@ -222,7 +226,7 @@ trait ImageTrait
         );
     }
 
-    public static function imageDeleteLinks($productId): string
+    public static function imageDeleteLinks(int $productId): string
     {
         global $wpdb;
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';

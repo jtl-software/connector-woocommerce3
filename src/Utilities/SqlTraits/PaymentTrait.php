@@ -17,15 +17,17 @@ use function Symfony\Component\String\s;
 trait PaymentTrait
 {
     /**
-     * @param @deprecated $includeCompletedOrders
-     * @param null $limit
+     * @param bool $includeCompletedOrders
+     * @param int|null $limit
      * @return string
      */
-    public static function paymentCompletedPull($includeCompletedOrders, $limit = null): string
+    public static function paymentCompletedPull(bool $includeCompletedOrders, ?int $limit = null): string
     {
         global $wpdb;
-        $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
-        $jclo        = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
+        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+
+        /** @var string $since */
         $since       = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $hposEnabled = \get_option('woocommerce_custom_orders_table_enabled') === 'yes';
 

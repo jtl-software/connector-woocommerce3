@@ -18,7 +18,7 @@ trait CustomerOrderTrait
      * @param $limit
      * @return string
      */
-    public static function customerOrderPull($limit): string
+    public static function customerOrderPull(int $limit): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
@@ -33,7 +33,9 @@ trait CustomerOrderTrait
 
         $status = Util::getOrderStatusesToImport();
 
+        /** @var string $since */
         $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
+        /** @var int $delay */
         $delay = Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN, 0);
 
         $hposEnabled = \get_option('woocommerce_custom_orders_table_enabled') === 'yes';

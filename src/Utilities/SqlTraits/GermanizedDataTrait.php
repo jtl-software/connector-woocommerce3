@@ -26,10 +26,10 @@ trait GermanizedDataTrait
     }
 
     /**
-     * @param $status
+     * @param string $status
      * @return string
      */
-    public static function deliveryStatusByText($status): string
+    public static function deliveryStatusByText(string $status): string
     {
         global $wpdb;
 
