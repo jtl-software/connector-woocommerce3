@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.3 _2024-06-11_
 - CO-2591 - cast taxRates to float
 - CO-2612 - add updated plugin name for rank math
 - CO-2607 - update log level according to config
