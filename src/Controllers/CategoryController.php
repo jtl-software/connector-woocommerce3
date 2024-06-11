@@ -46,11 +46,12 @@ class CategoryController extends AbstractBaseController implements
         $categories = [];
 
         if ($this->wpml->canBeUsed()) {
-            $categoryData = $this->wpml
-                ->getComponent(WpmlCategory::class)
-                ->getCategories($query->getLimit());
+            $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+
+            /** @var WpmlCategory $wpmlCategory */
+            $categoryData = $wpmlCategory->getCategories($query->getLimit());
         } else {
-            $categoryUtil = new CategoryUtil($this->db, $this->util);
+            $categoryUtil = new CategoryUtil($this->db);
             $categoryUtil->fillCategoryLevelTable();
             $categoryData = $this->db->query(SqlHelper::categoryPull($query->getLimit()));
             $categoryData = $categoryData === null ? [] : $categoryData;
@@ -106,7 +107,9 @@ class CategoryController extends AbstractBaseController implements
 
             if ($this->wpml->canBeUsed()) {
                 $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
-                $categoryTranslations     = $wpmlTaxonomyTranslations
+
+                /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
+                $categoryTranslations = $wpmlTaxonomyTranslations
                     ->getTranslations($categoryDataSet['trid'], 'tax_product_cat');
 
                 foreach ($categoryTranslations as $languageCode => $translation) {
@@ -116,6 +119,7 @@ class CategoryController extends AbstractBaseController implements
                     );
 
                     if (isset($term['term_id'])) {
+                        /** @var WooCommerceCategory $wooCommerceCategoryComponent */
                         $i18n = $wooCommerceCategoryComponent
                             ->createCategoryI18n(
                                 $category,
@@ -203,13 +207,19 @@ class CategoryController extends AbstractBaseController implements
 
             $wpml = $this->getPluginsManager()->get(Wpml::class);
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
+                /** @var WpmlTermTranslation $wpmlTermTranslation */
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
+                /** @var WpmlTermTranslation $wpmlTermTranslation */
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         }
 

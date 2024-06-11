@@ -9,7 +9,7 @@ namespace JtlWooCommerceConnector\Utilities;
 class Germanized
 {
     /**
-     * @var array Index used in database mapped to translated salutation.
+     * @var array<int, string> Index used in database mapped to translated salutation.
      */
     private array $salutations;
 

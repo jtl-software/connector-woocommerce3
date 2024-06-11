@@ -39,10 +39,10 @@ trait CustomerTrait
     }
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @return string
      */
-    private static function customerNotLinkedNoCondition(int $limit): string
+    private static function customerNotLinkedNoCondition(?int $limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -79,11 +79,12 @@ trait CustomerTrait
     }
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    private static function customerNotLinkedCondition(int $limit, LoggerInterface|NullLogger $logger): string
+    private static function customerNotLinkedCondition(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -122,11 +123,12 @@ trait CustomerTrait
     }
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    public static function guestNotLinked(int $limit, LoggerInterface|NullLogger $logger): string
+    public static function guestNotLinked(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';

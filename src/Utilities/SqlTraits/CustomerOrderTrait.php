@@ -15,10 +15,10 @@ use JtlWooCommerceConnector\Utilities\Util;
 trait CustomerOrderTrait
 {
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function customerOrderPull(int $limit): string
+    public static function customerOrderPull(?int $limit): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
