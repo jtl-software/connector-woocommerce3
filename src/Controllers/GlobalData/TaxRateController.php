@@ -11,15 +11,15 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 class TaxRateController extends AbstractController
 {
     /**
-     * @return array
+     * @return array<int, TaxRateModel>
      * @throws InvalidArgumentException
      */
     public function pull(): array
     {
-        $return      = [];
+        $taxRates    = [];
         $uniqueRates = [];
 
-        $result = $this->db->query(SqlHelper::taxRatePull());
+        $result = $this->db->query(SqlHelper::taxRatePull()) ?? [];
 
         foreach ($result as $row) {
             if (\is_numeric($row['tax_rate']) && \is_string($row['tax_rate'])) {
@@ -33,11 +33,11 @@ class TaxRateController extends AbstractController
             }
             $uniqueRates[] = $taxRate;
 
-            $return[] = (new TaxRateModel())
+            $taxRates[] = (new TaxRateModel())
                 ->setId(new Identity($row['tax_rate_id']))
                 ->setRate($taxRate);
         }
 
-        return $return;
+        return $taxRates;
     }
 }

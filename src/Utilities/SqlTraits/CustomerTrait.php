@@ -20,11 +20,12 @@ use Psr\Log\NullLogger;
 trait CustomerTrait
 {
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    public static function customerNotLinked(int $limit, LoggerInterface|NullLogger $logger): string
+    public static function customerNotLinked(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         if (
             Config::get(

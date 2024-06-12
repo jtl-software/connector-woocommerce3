@@ -269,9 +269,9 @@ class ManufacturerController extends AbstractBaseController implements
             }
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml
-                    ->getComponent(WpmlPerfectWooCommerceBrands::class)
-                    ->saveTranslations($model);
+                /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                $wpmlPerfectWcBrands->saveTranslations($model);
             }
         }
 
@@ -279,7 +279,7 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
+     * @param Manufacturer $model
      * @return AbstractModel
      * @throws \Exception
      */
@@ -292,9 +292,9 @@ class ManufacturerController extends AbstractBaseController implements
                 unset(self::$idCache[$model->getId()->getHost()]);
 
                 if ($this->wpml->canBeUsed()) {
-                    $this->wpml
-                        ->getComponent(WpmlPerfectWooCommerceBrands::class)
-                        ->deleteTranslations($manufacturerId);
+                    /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                    $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                    $wpmlPerfectWcBrands->deleteTranslations($manufacturerId);
                 }
 
                 \wp_delete_term($manufacturerId, 'pwb-brand');
@@ -313,11 +313,13 @@ class ManufacturerController extends AbstractBaseController implements
         $total = 0;
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             if ($this->wpml->canBeUsed()) {
-                $total = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class)->getStats();
+                /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                $total               = $wpmlPerfectWcBrands->getStats();
             } else {
                 $total = $this->db->queryOne(SqlHelper::manufacturerStats());
             }
         }
-        return $total;
+        return $total ? (int)$total : 0;
     }
 }

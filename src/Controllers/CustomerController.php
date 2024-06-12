@@ -6,6 +6,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Customer;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\Customer as CustomerModel;
 use Jtl\Connector\Core\Model\Identity;
@@ -34,12 +35,11 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param $limit
-     * @return array
-     * @throws \InvalidArgumentException
-     * @throws \Exception
+     * @param int $limit
+     * @return array<int, Customer>
+     * @throws InvalidArgumentException
      */
-    public function pullCustomers($limit): array
+    public function pullCustomers(int $limit): array
     {
         $customers = [];
 
@@ -105,12 +105,11 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param $limit
-     * @return array
-     * @throws \InvalidArgumentException
-     * @throws \Exception
+     * @param int $limit
+     * @return array<int, Customer>
+     * @throws InvalidArgumentException
      */
-    private function pullGuests($limit): array
+    private function pullGuests(int $limit): array
     {
         $customers = [];
 
@@ -201,10 +200,10 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param $customerGroupId
+     * @param string $customerGroupId
      * @return \WP_Role|null
      */
-    protected function getWpCustomerRole($customerGroupId): ?\WP_Role
+    protected function getWpCustomerRole(string $customerGroupId): ?\WP_Role
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroups = \get_posts(['post_type' => 'customer_groups', 'numberposts' => -1]);
@@ -270,7 +269,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
             $groups                 = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
                 if ($defaultCustomerGroupId === $id) {
-                    $customerGroupIdentity->setEndpoint($id);
+                    $customerGroupIdentity->setEndpoint((string)$id);
                     break;
                 }
             }

@@ -45,6 +45,9 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_IMAGE     = 'category';
     public const MANUFACTURER_IMAGE = 'manufacturer';
 
+    /**
+     * @var array<int, string|array<int, string>>
+     */
     private array $alreadyLinked = [];
 
     protected PrimaryKeyMapperInterface $primaryKeyMapper;
@@ -87,13 +90,12 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $images
-     * @param $type
-     * @param $limit
-     * @return array
-     * @throws InvalidArgumentException
-     * @throws Exception
+     * @param int $type
+     * @param int $limit
+     * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
+     * @throws \Psr\Log\InvalidArgumentException
      */
-    private function addNextImages($images, $type, &$limit): array
+    private function addNextImages($images, int $type, int $limit): array
     {
         $return = [];
 
@@ -149,12 +151,12 @@ class ImageController extends AbstractBaseController implements
     /**
      * Loop the products to get their images and validate and map them.
      *
-     * @param null $limit The limit.
+     * @param int $limit The limit.
      *
      * @return array The image entities.
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function productImagePull($limit = null): array
+    private function productImagePull(int $limit = null): array
     {
         $imageCount  = 0;
         $attachments = [];
@@ -264,11 +266,11 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $attachmentIds
-     * @param $productId
+     * @param int $productId
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function fetchProductAttachments($attachmentIds, $productId): array
+    private function fetchProductAttachments($attachmentIds, int $productId): array
     {
         $sort        = 0;
         $attachments = [];

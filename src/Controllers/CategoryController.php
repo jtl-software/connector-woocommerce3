@@ -309,7 +309,7 @@ class CategoryController extends AbstractBaseController implements
         if (!empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
 
-            $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
+            $result = \wp_delete_term((int)$categoryId, CategoryUtil::TERM_TAXONOMY);
 
             if ($result instanceof \WP_Error) {
                 $this->logger->error(ErrorFormatter::formatError($result));
@@ -332,7 +332,10 @@ class CategoryController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         if ($this->wpml->canBeUsed()) {
-            $count = (int)$this->wpml->getComponent(WpmlCategory::class)->getStats();
+            $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+
+            /** @var WpmlCategory $wpmlCategory */
+            $count = (int)$wpmlCategory->getStats();
         } else {
             $count = (int)$this->db->queryOne(SqlHelper::categoryStats());
         }

@@ -13,7 +13,7 @@ class ShippingClassController extends AbstractBaseController
     public const TERM_TAXONOMY = 'product_shipping_class';
 
     /**
-     * @return array
+     * @return array<int, ShippingClassModel>
      */
     public function pull(): array
     {
@@ -29,8 +29,8 @@ class ShippingClassController extends AbstractBaseController
     }
 
     /**
-     * @param array $shippingClasses
-     * @return array
+     * @param ShippingClassModel[] $shippingClasses
+     * @return ShippingClassModel[]
      * @throws InvalidArgumentException
      */
     public function push(array $shippingClasses): array

@@ -47,10 +47,10 @@ class Germanized
     }
 
     /**
-     * @param $code
-     * @return mixed|string
+     * @param string $code
+     * @return string
      */
-    public function parseUnit($code)
+    public function parseUnit(string $code): string
     {
         return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
     }

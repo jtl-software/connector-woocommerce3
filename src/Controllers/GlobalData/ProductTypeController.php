@@ -8,7 +8,7 @@ use Jtl\Connector\Core\Model\ProductType as ProductTypeModel;
 class ProductTypeController
 {
     /**
-     * @return array
+     * @return array<int, ProductTypeModel>
      */
     public function pull(): array
     {

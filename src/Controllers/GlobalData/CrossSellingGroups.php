@@ -2,9 +2,10 @@
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\CrossSellingGroupI18n;
+use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
@@ -13,7 +14,8 @@ use JtlWooCommerceConnector\Models\CrossSellingGroup;
 class CrossSellingGroups extends AbstractBaseController
 {
     /**
-     * @return array
+     * @return CrossSellingGroup[]
+     * @throws InvalidArgumentException
      */
     public function pull(): array
     {

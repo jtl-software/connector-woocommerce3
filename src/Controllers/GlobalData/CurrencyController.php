@@ -24,6 +24,7 @@ class CurrencyController extends AbstractBaseController
     {
         $currencies = [];
 
+        /** @var WpmlCurrency $wpmlCurrency */
         $wpmlCurrency = $this->getPluginsManager()
             ->get(Wpml::class)
             ->getComponent(WpmlCurrency::class);
@@ -36,8 +37,16 @@ class CurrencyController extends AbstractBaseController
             $currencies[] = (new CurrencyModel())
                 ->setId(new Identity(\strtolower($iso)))
                 ->setName($iso)
-                ->setDelimiterCent(\get_option(self::THOUSAND_DELIMITER, ''))
-                ->setDelimiterThousand(\get_option(self::CENT_DELIMITER, ''))
+                ->setDelimiterCent(
+                    \is_string($centDelimiter = \get_option(self::THOUSAND_DELIMITER, ''))
+                        ? $centDelimiter
+                        : ''
+                )
+                ->setDelimiterThousand(
+                    \is_string($thousandDelimiter = \get_option(self::CENT_DELIMITER, ''))
+                    ? $thousandDelimiter
+                    : ''
+                )
                 ->setIso($iso)
                 ->setNameHtml(\get_woocommerce_currency_symbol())
                 ->setHasCurrencySignBeforeValue(\get_option(self::SIGN_POSITION, '') === 'left')
@@ -48,13 +57,12 @@ class CurrencyController extends AbstractBaseController
     }
 
     /**
-     * @param array $currencies
-     * @return array
+     * @param CurrencyModel[] $currencies
+     * @return CurrencyModel[]
      * @throws Exception
      */
     public function push(array $currencies): array
     {
-        /** @var CurrencyModel $currency */
         foreach ($currencies as $currency) {
             if (!$currency->getIsDefault()) {
                 continue;
@@ -75,7 +83,9 @@ class CurrencyController extends AbstractBaseController
         $wpml = $this->getPluginsManager()->get(Wpml::class);
 
         if ($wpml->canBeUsed()) {
-            $wpml->getComponent(WpmlCurrency::class)->setCurrencies(...$currencies);
+            /** @var WpmlCurrency $wpmlCurrency */
+            $wpmlCurrency = $wpml->getComponent(WpmlCurrency::class);
+            $wpmlCurrency->setCurrencies(...$currencies);
         }
 
         return $currencies;

@@ -20,7 +20,7 @@ class CustomerGroupController extends AbstractBaseController
     protected Util $util;
 
     /**
-     * @return array
+     * @return array<int, CustomerGroupModel>
      * @throws \InvalidArgumentException
      */
     public function pull(): array
@@ -32,8 +32,7 @@ class CustomerGroupController extends AbstractBaseController
 
         if (
             !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            || (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-            && \version_compare($version, '1.0.3', '<='))
+            || \version_compare($version, '1.0.3', '<=')
         ) {
             //Default
             $defaultGroup = (new CustomerGroupModel())
@@ -51,7 +50,7 @@ class CustomerGroupController extends AbstractBaseController
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $sql    = SqlHelper::customerGroupPull();
-            $result = $this->db->query($sql);
+            $result = $this->db->query($sql) ?? [];
 
             if (\count($result) > 0) {
                 foreach ($result as $group) {
@@ -91,10 +90,10 @@ class CustomerGroupController extends AbstractBaseController
     }
 
     /**
-     * @param $customerId
+     * @param string $customerId
      * @return false|string
      */
-    public function getSlugById($customerId): bool|string
+    public function getSlugById(string $customerId): bool|string
     {
         $group = \get_post((int)$customerId);
         if ($group instanceof \WP_Post) {

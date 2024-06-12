@@ -67,7 +67,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $totalSum = $total - $totalTax;
 
             $customerOrder = (new CustomerOrderModel())
-                ->setId(new Identity($order->get_id()))
+                ->setId(new Identity((string)$order->get_id()))
                 ->setCreationDate($order->get_date_created())
                 ->setCurrencyIso($order->get_currency())
                 ->setNote($order->get_customer_note())
@@ -359,16 +359,16 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @return void
      */
-    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
+    protected function setGermanMarketPaymentInfo(CustomerOrderModel $customerOrder): void
     {
         $orderId = $customerOrder->getId()->getEndpoint();
 
         if ($customerOrder->getPaymentModuleCode() === PaymentType::DIRECT_DEBIT) {
             $instance      = new \WGM_Gateway_Sepa_Direct_Debit();
             $gmSettings    = $instance->settings;
-            $bic           = \get_post_meta($orderId, '_german_market_sepa_bic', true);
-            $iban          = \get_post_meta($orderId, '_german_market_sepa_iban', true);
-            $accountHolder = \get_post_meta($orderId, '_german_market_sepa_holder', true);
+            $bic           = \get_post_meta((int)$orderId, '_german_market_sepa_bic', true);
+            $iban          = \get_post_meta((int)$orderId, '_german_market_sepa_iban', true);
+            $accountHolder = \get_post_meta((int)$orderId, '_german_market_sepa_holder', true);
             $settingsKeys  = [
                 '[creditor_information]',
                 '[creditor_identifier]',
@@ -417,7 +417,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                         $value = \array_key_exists('bic', $gmSettings) ? $gmSettings['bic'] : '';
                         break;
                     case '[mandate_id]':
-                        $value = \get_post_meta($orderId, '_german_market_sepa_mandate_reference', true);
+                        $value = \get_post_meta((int)$orderId, '_german_market_sepa_mandate_reference', true);
                         break;
                     case '[street]':
                         $value = $customerOrder->getBillingAddress()->getStreet();
