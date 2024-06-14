@@ -747,6 +747,8 @@ class ImageController extends AbstractBaseController implements
             }
         }
 
+        $attachmentId = $attachmentId ?? 0;
+
         return Id::linkProductImage($attachmentId, $productId);
     }
 
@@ -763,7 +765,7 @@ class ImageController extends AbstractBaseController implements
             return null;
         }
 
-        $attachmentId = $this->saveImage($image);
+        $attachmentId = $this->saveImage($image) ?? 0;
         \update_term_meta($categoryId, self::CATEGORY_THUMBNAIL, $attachmentId);
 
         return Id::linkCategoryImage($attachmentId);
@@ -782,7 +784,7 @@ class ImageController extends AbstractBaseController implements
             return null;
         }
 
-        $attachmentId = $this->saveImage($image);
+        $attachmentId = $this->saveImage($image) ?? 0;
         \update_term_meta($termId, self::MANUFACTURER_KEY, $attachmentId);
 
         return Id::linkManufacturerImage($attachmentId);

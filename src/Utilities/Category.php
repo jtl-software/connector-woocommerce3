@@ -19,9 +19,12 @@ class Category
     }
 
     /**
+     * @param int[]|null $parentIds
+     * @param int $level
+     * @return void
      * @throws InvalidArgumentException
      */
-    public function fillCategoryLevelTable(array $parentIds = null, $level = 0): void
+    public function fillCategoryLevelTable(?array $parentIds = null, int $level = 0): void
     {
         global $wpdb;
         $where = ' AND tt.parent = 0';
@@ -63,12 +66,12 @@ class Category
     }
 
     /**
-     * @param array|null $parent
-     * @param $count
+     * @param array<string, int|string>|null $parent
+     * @param int $count
      * @return void
      * @throws InvalidArgumentException
      */
-    public function saveCategoryLevelsAsPreOrder(array $parent = null, &$count = 0): void
+    public function saveCategoryLevelsAsPreOrder(array $parent = [], int &$count = 0): void
     {
         if ($count === 0) {
             $categories = $this->db->query(SqlHelper::categoryTreePreOrderRoot());
@@ -92,11 +95,11 @@ class Category
 
     /**
      * @param CategoryModel $category
-     * @param $isNew
+     * @param bool $isNew
      * @return void
      * @throws InvalidArgumentException
      */
-    public function updateCategoryTree(CategoryModel $category, $isNew): void
+    public function updateCategoryTree(CategoryModel $category, bool $isNew): void
     {
         $id = $category->getId()->getEndpoint();
 

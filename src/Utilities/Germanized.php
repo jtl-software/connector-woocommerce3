@@ -13,6 +13,9 @@ class Germanized
      */
     private array $salutations;
 
+    /**
+     * @var array<string, string>
+     */
     private static array $units = [
         'l'  => 'L',
         'ml' => 'mL',
@@ -39,11 +42,12 @@ class Germanized
     }
 
     /**
-     * @param $index
+     * @param string $index
+     * @return string
      */
-    public function parseIndexToSalutation($index)
+    public function parseIndexToSalutation(string $index): string
     {
-        return isset($this->salutations[(int)$index]) ? $this->salutations[$index] : '';
+        return $this->salutations[(int)$index] ?? '';
     }
 
     /**
@@ -58,10 +62,10 @@ class Germanized
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
+     * @param \WC_Product $wcProduct
      * @return bool
      */
-    public function hasUnitProduct($wcProduct): bool
+    public function hasUnitProduct(\WC_Product $wcProduct): bool
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
@@ -72,10 +76,10 @@ class Germanized
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
+     * @param \WC_Product $wcProduct
      * @return mixed|null
      */
-    public function getUnit($wcProduct): mixed
+    public function getUnit(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
@@ -86,10 +90,10 @@ class Germanized
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
+     * @param \WC_Product $wcProduct
      * @return mixed|null
      */
-    public function getUnitProduct($wcProduct): mixed
+    public function getUnitProduct(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
@@ -100,10 +104,10 @@ class Germanized
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
+     * @param \WC_Product $wcProduct
      * @return mixed|null
      */
-    public function getUnitBase($wcProduct): mixed
+    public function getUnitBase(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
@@ -112,10 +116,10 @@ class Germanized
     }
 
     /**
-     * @param $versionToCompare
+     * @param string $versionToCompare
      * @return bool
      */
-    public function pluginVersionIsGreaterOrEqual($versionToCompare): bool
+    public function pluginVersionIsGreaterOrEqual(string $versionToCompare): bool
     {
         $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED);
         if (\is_null($currentVersion)) {
@@ -123,6 +127,8 @@ class Germanized
                 SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2
             );
         }
+
+        $currentVersion = $currentVersion ?? '';
 
         if (\version_compare($currentVersion, $versionToCompare, '>=')) {
             return true;

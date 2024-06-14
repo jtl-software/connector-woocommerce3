@@ -122,7 +122,7 @@ class Config
      * @param $value
      * @return bool
      */
-    public static function set(string $name, $value): bool
+    public static function set(string $name, mixed $value): bool
     {
         $allowedKeys                                    = self::JTLWCC_CONFIG;
         $allowedKeys[Config::OPTIONS_INSTALLED_VERSION] = 'string';
@@ -175,7 +175,9 @@ class Config
      */
     public static function getBuildVersion(): string
     {
-        return (string)\trim(Yaml::parseFile(\JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
+        /** array<string, string> $buildConfig */
+        $buildConfig = Yaml::parseFile(\JTLWCC_CONNECTOR_DIR . '/build-config.yaml');
+        return \trim($buildConfig['version']);
     }
 
     /**
@@ -187,7 +189,12 @@ class Config
         return self::writeCoreConfigFile(self::OPTIONS_DEVELOPER_LOGGING, $value);
     }
 
-    public static function writeCoreConfigFile(string $key, $value): bool
+    /**
+     * @param string $key
+     * @param bool $value
+     * @return bool
+     */
+    public static function writeCoreConfigFile(string $key, bool $value): bool
     {
         $file = \CONNECTOR_DIR . '/config/config.json';
 
@@ -195,7 +202,7 @@ class Config
         if (!\file_exists($file)) {
             \file_put_contents($file, \json_encode($config));
         } else {
-            $config = \json_decode(\file_get_contents($file));
+            $config      = \json_decode((string)\file_get_contents($file));
             if (!$config instanceof \stdClass) {
                 $config = new \stdClass();
             }

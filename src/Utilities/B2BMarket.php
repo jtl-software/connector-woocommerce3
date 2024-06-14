@@ -19,7 +19,7 @@ class B2BMarket extends WordpressUtils
     }
 
     /**
-     * @param array     $customerGroupIds
+     * @param array<int, string>     $customerGroupIds
      * @param string    $metaKey
      * @param AbstractModel ...$models
      *
@@ -42,36 +42,39 @@ class B2BMarket extends WordpressUtils
             );
 
             foreach ($customerGroupIds as $customerGroupId) {
-                $postMeta     = \get_post_meta($customerGroupId, $metaKey)[0];
-                $currentItems = ! empty($postMeta) ? \explode(',', $postMeta) : [];
+                /** @var string[] $postMeta */
+                $postMeta      = \get_post_meta((int)$customerGroupId, $metaKey);
+                $postMetaValue = $postMeta[0];
+                $currentItems  = ! empty($postMetaValue) ? \explode(',', $postMetaValue) : [];
 
                 if (\in_array($customerGroupId, $newCustomerGroupBlacklist, true)) {
                     $currentItems[] = $modelId;
-                    \update_post_meta($customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
+                    \update_post_meta((int)$customerGroupId, $metaKey, \implode(',', \array_unique($currentItems)));
                 } elseif (( $key = \array_search($modelId, $currentItems, true) ) !== false) {
                     unset($currentItems[ $key ]);
-                    \update_post_meta($customerGroupId, $metaKey, \implode(',', $currentItems));
+                    \update_post_meta((int)$customerGroupId, $metaKey, \implode(',', $currentItems));
                 }
 
-                if (empty(\get_post_meta($customerGroupId, $metaKey)[0])) {
-                    \delete_post_meta($customerGroupId, $metaKey);
+                if (empty($postMetaValue)) {
+                    \delete_post_meta((int)$customerGroupId, $metaKey);
                 }
             }
         }
     }
 
     /**
-     * @param string    $controller
+     * @param string $controller
      * @param AbstractModel ...$entities
      *
      * @return void
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
     {
         $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pull();
         $customerGroupsIds = \array_values(
-            \array_map(static function (\jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
+            \array_map(static function (\Jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
                 if ($customerGroup->getId() === null) {
                     return '';
                 }

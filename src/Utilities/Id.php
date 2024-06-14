@@ -13,7 +13,7 @@ class Id
     public const MANUFACTURER_PREFIX = 'm';
 
     /**
-     * @param array $endpointIds
+     * @param array<int, int|string> $endpointIds
      * @return string
      */
     public static function link(array $endpointIds): string
@@ -22,29 +22,29 @@ class Id
     }
 
     /**
-     * @param $endpointId
-     * @return array
+     * @param string $endpointId
+     * @return string[]
      */
-    public static function unlink($endpointId): array
+    public static function unlink(string $endpointId): array
     {
         return \explode(self::SEPARATOR, $endpointId);
     }
 
     /**
-     * @param $imageId
-     * @param $productId
+     * @param int $imageId
+     * @param int|string $productId
      * @return string
      */
-    public static function linkProductImage($imageId, $productId): string
+    public static function linkProductImage(int $imageId, int|string $productId): string
     {
         return self::link([self::PRODUCT_PREFIX, $imageId, $productId]);
     }
 
     /**
-     * @param $endpointId
+     * @param string<int, int|string> $endpointId
      * @return array|null
      */
-    public static function unlinkImage($endpointId): ?array
+    public static function unlinkImage(string $endpointId): ?array
     {
         list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
 
@@ -64,19 +64,19 @@ class Id
     }
 
     /**
-     * @param $attachmentId
+     * @param int $attachmentId
      * @return string
      */
-    public static function linkCategoryImage($attachmentId): string
+    public static function linkCategoryImage(int $attachmentId): string
     {
         return self::link([self::CATEGORY_PREFIX, $attachmentId]);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @return mixed|string
      */
-    public static function unlinkCategoryImage($endpoint): mixed
+    public static function unlinkCategoryImage(string $endpoint): mixed
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -86,19 +86,19 @@ class Id
     }
 
     /**
-     * @param $attachmentId
+     * @param int $attachmentId
      * @return string
      */
-    public static function linkManufacturerImage($attachmentId): string
+    public static function linkManufacturerImage(int $attachmentId): string
     {
         return self::link([self::MANUFACTURER_PREFIX, $attachmentId]);
     }
 
     /**
-     * @param $endpoint
+     * @param string $endpoint
      * @return mixed|string
      */
-    public static function unlinkManufacturerImage($endpoint): mixed
+    public static function unlinkManufacturerImage(string $endpoint): mixed
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -108,10 +108,10 @@ class Id
     }
 
     /**
-     * @param $endpointId
+     * @param string $endpointId
      * @return array
      */
-    public static function unlinkCustomer($endpointId): array
+    public static function unlinkCustomer(string $endpointId): array
     {
         return [$endpointId, (int)(\str_contains($endpointId, self::SEPARATOR))];
     }
