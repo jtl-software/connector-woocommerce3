@@ -2,10 +2,11 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Core\Model\Category;
-use jtl\Connector\Core\Model\CategoryI18n;
-use jtl\Connector\Core\Model\CategoryI18n as CategoryI18nModel;
-use jtl\Connector\Core\Model\Identity;
+use Exception;
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\CategoryI18n as CategoryI18nModel;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -25,9 +26,9 @@ class WooCommerceCategory extends AbstractComponent
     /**
      * @param Category $category
      * @param string $languageIso
-     * @param array $data
+     * @param array<string, string> $data
      * @return CategoryI18nModel
-     * @throws \Exception
+     * @throws Exception
      */
     public function createCategoryI18n(Category $category, string $languageIso, array $data): CategoryI18n
     {
@@ -63,10 +64,10 @@ class WooCommerceCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array
+     * @return array|null
      * @throws InvalidArgumentException
      */
-    public function getCategories(int $limit): array
+    public function getCategories(int $limit): ?array
     {
         (new \JtlWooCommerceConnector\Utilities\Category($this->getPluginsManager()->getDatabase()))
             ->fillCategoryLevelTable();
@@ -78,7 +79,7 @@ class WooCommerceCategory extends AbstractComponent
      * @param Identity $parentCategoryId
      * @param int|null $categoryId
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function saveWooCommerceCategory(
         CategoryI18n $categoryI18n,

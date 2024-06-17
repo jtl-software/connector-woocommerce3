@@ -6,7 +6,6 @@ use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n;
-use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
 use JtlWooCommerceConnector\Controllers\Product\ProductManufacturerController;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController;

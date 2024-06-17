@@ -20,13 +20,13 @@ interface PluginInterface
 
     /**
      * @param ComponentInterface $component
-     * @return mixed
+     * @return self
      */
     public function addComponent(ComponentInterface $component): self;
 
     /**
      * @param ComponentInterface ...$components
-     * @return mixed
+     * @return self
      */
     public function addComponents(ComponentInterface ...$components): self;
 

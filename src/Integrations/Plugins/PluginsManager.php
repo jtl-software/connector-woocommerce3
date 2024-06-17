@@ -34,7 +34,7 @@ use JtlWooCommerceConnector\Utilities\Db;
 class PluginsManager
 {
     /**
-     * @var array
+     * @var array<string, PluginInterface>
      */
     protected $pluginsList = [];
 

@@ -124,7 +124,7 @@ class ImageController extends AbstractBaseController implements
             $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl((string) isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
+                ->setRemoteUrl( isset($imgSrc[0]) ? (string)$imgSrc[0] : (string)$image['guid'])
                 ->setSort((int)$image['sort'])
                 ->setFilename((string)\wc_get_filename_from_url($image['guid']));
 

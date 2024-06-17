@@ -20,9 +20,9 @@ class GermanMarket extends AbstractPlugin
     }
 
     /**
-     *
+     * @return void
      */
-    public function setAutoOptions()
+    public function setAutoOptions(): void
     {
         //LIEFERZEITEN
         \update_option('woocommerce_global_lieferzeit', '-1', true);

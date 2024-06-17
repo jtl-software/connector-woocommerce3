@@ -58,10 +58,19 @@ class Util extends WordpressUtils
      * @param \WC_Order|null $order
      *
      * @return float
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function getTaxRateByTaxClass(string $taxClass, \WC_Order $order = null): float
     {
-        $countryIso = \explode(":", \get_option('woocommerce_default_country'));//TODO: check
+        $wcDefaultCountry = \get_option('woocommerce_default_country');
+
+        if (!\is_string($wcDefaultCountry)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected wcDefaultCountry to be a string but got " . \gettype($wcDefaultCountry) . " instead."
+            );
+        }
+
+        $countryIso = \explode(":", $wcDefaultCountry);
         $countryIso = $countryIso[0];
 
         if (! \is_null($order)) {
@@ -101,7 +110,7 @@ class Util extends WordpressUtils
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
             if (isset($bulkPrices[ $i + 1 ])) {
-                $bulkPrice['bulk_price_to'] = $bulkPrices[ $i + 1 ]['bulk_price_from'] - 1; //TODO: value ist doch str!?
+                $bulkPrice['bulk_price_to'] = (int)$bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
             } else {
                 $bulkPrice['bulk_price_to'] = '';
             }
@@ -175,11 +184,11 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $customerId
+     * @param int $customerId
      *
      * @return string
      */
-    public static function getVatIdFromCustomer($customerId): string
+    public static function getVatIdFromCustomer(int $customerId): string
     {
         $vatIdPlugins = [
             'b2b_uid'          => SupportedPlugins::PLUGIN_B2B_MARKET,
@@ -241,19 +250,38 @@ class Util extends WordpressUtils
 
     /**
      * @param int $productId
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function addMasterProductToSync(int $productId): void
     {
-        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0); //TODO:check
-        $page                      = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
-        $masterProductsToSync      = \get_option(self::TO_SYNC . '_' . $page, []);
-        $masterProductsToSync[]    = $productId;
+        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0);
+
+        if (!\is_int($masterProductsToSyncCount)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected masterProductsToSyncCount to be an integer but got " .
+                \gettype($masterProductsToSyncCount) . " instead."
+            );
+        }
+
+        $page                 = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
+        $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
+
+        if (!\is_array($masterProductsToSync)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected masterProductsToSync to be an array but got " .
+                \gettype($masterProductsToSync) . " instead."
+            );
+        }
+
+        $masterProductsToSync[] = $productId;
 
         \update_option(self::TO_SYNC . '_' . $page, \array_unique($masterProductsToSync));
     }
 
     /**
      *
+     * @throws \http\Exception\InvalidArgumentException
+     * @throws \Exception
      */
     public function syncMasterProducts(): void
     {
@@ -265,9 +293,16 @@ class Util extends WordpressUtils
             for ($i = 1; $i <= $page; $i++) {
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
 
+                if (!\is_array($masterProductsToSync)) {
+                    throw new \http\Exception\InvalidArgumentException(
+                        "Expected masterProductsToSync to be an array but got " .
+                        \gettype($masterProductsToSync) . " instead."
+                    );
+                }
+
                 if (! empty($masterProductsToSync)) {
                     foreach ($masterProductsToSync as $productId) {
-                        \WC_Product_Variable::sync($productId);
+                        \WC_Product_Variable::sync((int)$productId);
                     }
 
                     \delete_option(self::TO_SYNC . '_' . $page);
@@ -406,7 +441,7 @@ class Util extends WordpressUtils
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
             \is_callable([ 'BM_Helper', 'delete_b2b_transients' ])
         ) {
-            \BM_Helper::delete_b2b_transients(); //TODO: check
+            \BM_Helper::delete_b2b_transients();
         }
     }
 
@@ -475,12 +510,22 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function getOrderStatusesToImport(): array
     {
         $defaultStatuses = Config::JTLWCC_CONFIG_DEFAULTS[ Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT ];
 
-        return Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+        $orderImportStatuses = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+
+        if (!\is_array($orderImportStatuses)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected orderImportStatuses to be an array but got "
+                . \gettype($orderImportStatuses) . " instead."
+            );
+        }
+
+        return $orderImportStatuses;
     }
 
     /**
@@ -490,7 +535,16 @@ class Util extends WordpressUtils
     {
         $defaultManualPayments = Config::JTLWCC_CONFIG_DEFAULTS[ Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES ];
 
-        return Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+        $manualPaymentTypes = Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+
+        if (!\is_array($manualPaymentTypes)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected manualPaymentTypes to be an array but got "
+                . \gettype($manualPaymentTypes) . " instead."
+            );
+        }
+
+        return $manualPaymentTypes;
     }
 
 

@@ -2,10 +2,6 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
-use JtlWooCommerceConnector\Integrations\IntegrationsManager;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
-use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
