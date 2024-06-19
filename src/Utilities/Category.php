@@ -66,29 +66,30 @@ class Category
     }
 
     /**
-     * @param array<string, int|string>|null $parent
+     * @param int[]|string[] $parent
      * @param int $count
      * @return void
      * @throws InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function saveCategoryLevelsAsPreOrder(array $parent = [], int &$count = 0): void
     {
         if ($count === 0) {
             $categories = $this->db->query(SqlHelper::categoryTreePreOrderRoot());
             foreach ((array)$categories as $category) {
-                \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
+                \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
             }
         } else {
-            $query      = SqlHelper::categoryTreePreOrder((int)$parent['category_id'], $parent['level'] + 1);
+            $query      = SqlHelper::categoryTreePreOrder((int)$parent['category_id'], (int)$parent['level'] + 1);
             $categories = $this->db->query($query);
             foreach ((array)$categories as $category) {
-                \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
+                \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
             }
         }
         foreach ((array) $categories as $category) {
-            \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
+            \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
             self::saveCategoryLevelsAsPreOrder($category, $count);
         }
     }

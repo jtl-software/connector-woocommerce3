@@ -71,7 +71,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
         } elseif ($type === IdentityType::CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $hostId                     = $this->db->queryOne(
-                SqlHelper::primaryKeyMappingHostCustomer($endpointId, $isGuest),
+                SqlHelper::primaryKeyMappingHostCustomer((string)$endpointId, (int)$isGuest),
                 false
             );
         } elseif ($type === IdentityType::CUSTOMER_GROUP) {
@@ -88,17 +88,16 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
 
         $this->logger->debug(\sprintf('Read: endpoint (%s), type (%s) - host (%s)', $endpointId, $type, $hostId));
 
-        return $hostId !== false ? (int)$hostId : null;
+        return (int)$hostId;
     }
 
     /**
-     * @param $hostId
-     * @param $type
-     * @param $relationType
+     * @param int $type
+     * @param int $hostId
      * @return string|null
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getEndpointId($type, $hostId, $relationType = null): ?string
+    public function getEndpointId(int $type, int $hostId): ?string
     {
         $clause    = '';
         $tableName = self::getTableName($type);
@@ -155,13 +154,13 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
         if (\in_array($type, self::getImageIdentityTypes(), true)) {
             list($endpointId, $imageType) = Id::unlinkImage($endpointId);
             $id                           = $this->db->query(
-                SqlHelper::primaryKeyMappingSaveImage($endpointId, $hostId, $imageType),
+                SqlHelper::primaryKeyMappingSaveImage((string)$endpointId, $hostId, (int)$imageType),
                 false
             );
         } elseif ($type === IdentityType::CUSTOMER) {
             list($endpointId, $isGuest) = Id::unlinkCustomer($endpointId);
             $id                         = $this->db->query(
-                SqlHelper::primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest),
+                SqlHelper::primaryKeyMappingSaveCustomer((string)$endpointId, $hostId, (int)$isGuest),
                 false
             );
         } elseif (\in_array($type, [IdentityType::CUSTOMER_GROUP, IdentityType::TAX_CLASS])) {
@@ -240,10 +239,10 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param $type
+     * @param int $type
      * @return string|null
      */
-    public static function getTableName($type): ?string
+    public static function getTableName(int $type): ?string
     {
         global $wpdb;
 
@@ -295,6 +294,9 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
         return null;
     }
 
+    /**
+     * @return int[]
+     */
     public function getImageIdentityTypes(): array
     {
         return [

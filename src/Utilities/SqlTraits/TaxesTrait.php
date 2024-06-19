@@ -60,10 +60,10 @@ trait TaxesTrait
     }
 
     /**
-     * @param $taxRateId
+     * @param int|string $taxRateId
      * @return string
      */
-    public static function taxRateById($taxRateId): string
+    public static function taxRateById(int|string $taxRateId): string
     {
         global $wpdb;
         $wtr = $wpdb->prefix . 'woocommerce_tax_rates';

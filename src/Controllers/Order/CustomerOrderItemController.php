@@ -157,7 +157,9 @@ class CustomerOrderItemController extends AbstractBaseController
 
             if ($vat == 0.0 && $priceNet == 0.0 && $priceGross == 0.0) {
                 $taxRateId = \array_key_first($taxes['total']);
-                $vat       = (float)$this->db->queryOne(SqlHelper::taxRateById($taxRateId));
+                $vat       = !\is_null($taxRateId)
+                    ? (float)$this->db->queryOne(SqlHelper::taxRateById($taxRateId))
+                    : 0.0;
             }
 
             if ($useWcTaxes === false) {

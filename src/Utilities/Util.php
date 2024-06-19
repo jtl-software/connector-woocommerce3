@@ -5,8 +5,6 @@ namespace JtlWooCommerceConnector\Utilities;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
-use Jtl\Connector\Core\Model\AbstractI18n;
-use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\ManufacturerI18n;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
@@ -327,12 +325,12 @@ class Util extends WordpressUtils
 
             foreach ($result as $category) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
-                    $category['term_taxonomy_id'],
-                    $category['count']
+                    (int)$category['term_taxonomy_id'],
+                    (int)$category['count']
                 ));
                 $this->db->query(SqlHelper::categoryMetaCountUpdate(
-                    $category['term_id'],
-                    $category['count']
+                    (int)$category['term_id'],
+                    (int)$category['count']
                 ));
             }
 
@@ -354,8 +352,8 @@ class Util extends WordpressUtils
 
             foreach ($result as $tag) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
-                    $tag['term_taxonomy_id'],
-                    $tag['count']
+                    (int)$tag['term_taxonomy_id'],
+                    (int)$tag['count']
                 ));
             }
 
@@ -679,10 +677,11 @@ class Util extends WordpressUtils
 
     /**
      * @param \WC_Product_Attribute $wcProductAttribute
-     * @param TranslatableAttribute      ...$jtlAttributes
+     * @param TranslatableAttribute ...$jtlAttributes
      *
      * @return string
      * @throws TranslatableAttributeException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function findAttributeValue(
         \WC_Product_Attribute $wcProductAttribute,
@@ -699,6 +698,12 @@ class Util extends WordpressUtils
                     break 2;
                 }
             }
+        }
+
+        if (!\is_string($value)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected value to be a string but got " . \gettype($value) . " instead."
+            );
         }
 
         return $value;

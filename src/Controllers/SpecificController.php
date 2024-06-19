@@ -338,7 +338,7 @@ class SpecificController extends AbstractBaseController implements
             foreach ($specificValueData as $specificValue) {
                 $terms[] = $specificValue['slug'];
 
-                $this->db->query(SqlHelper::removeSpecificValueLinking($specificValue['term_id']));
+                $this->db->query(SqlHelper::removeSpecificValueLinking((int)$specificValue['term_id']));
             }
 
             $products = new WP_Query([

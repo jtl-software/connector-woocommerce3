@@ -3,6 +3,7 @@
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\PluginInterface;
 
 /**
  * Class WpmlTermTranslation
@@ -18,12 +19,15 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function getTranslations(int $trid, string $elementType, bool $withoutDefaultTranslation = true): array
     {
-        $translations = $this->getCurrentPlugin()->getSitepress()->get_element_translations($trid, $elementType);
+        /** @var Wpml $currentPlugin */
+        $currentPlugin = $this->getCurrentPlugin();
+        $translations  = $currentPlugin->getSitepress()->get_element_translations($trid, $elementType);
+
         if (
             $withoutDefaultTranslation === true
-            && isset($translations[$this->getCurrentPlugin()->getDefaultLanguage()])
+            && isset($translations[$currentPlugin->getDefaultLanguage()])
         ) {
-            unset($translations[$this->getCurrentPlugin()->getDefaultLanguage()]);
+            unset($translations[$currentPlugin->getDefaultLanguage()]);
         }
         return \is_array($translations) ? $translations : [];
     }
@@ -47,7 +51,7 @@ class WpmlTermTranslation extends AbstractComponent
      * @param string $taxonomy
      * @return array|false|\WP_Term
      */
-    protected function getTermById(int $translatedTermId, string $taxonomy)
+    protected function getTermById(int $translatedTermId, string $taxonomy): \WP_Term|bool|array
     {
         return \get_term_by('id', $translatedTermId, $taxonomy);
     }
@@ -57,9 +61,12 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function disableGetTermAdjustId(): bool
     {
-        return \remove_filter('get_terms_args', [$this->getCurrentPlugin()->getSitepress(), 'get_terms_args_filter']) &&
-            \remove_filter('get_term', [$this->getCurrentPlugin()->getSitepress(), 'get_term_adjust_id'], 1) &&
-            \remove_filter('terms_clauses', [$this->getCurrentPlugin()->getSitepress(), 'terms_clauses']);
+        /** @var Wpml $currentPlugin */
+        $currentPlugin = $this->getCurrentPlugin();
+
+        return \remove_filter('get_terms_args', [$currentPlugin->getSitepress(), 'get_terms_args_filter']) &&
+            \remove_filter('get_term', [$currentPlugin->getSitepress(), 'get_term_adjust_id'], 1) &&
+            \remove_filter('terms_clauses', [$currentPlugin->getSitepress(), 'terms_clauses']);
     }
 
     /**
@@ -67,8 +74,11 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function enableGetTermAdjustId(): bool
     {
-        return \add_filter('terms_clauses', [$this->getCurrentPlugin()->getSitepress(), 'terms_clauses'], 10, 4) &&
-            \add_filter('get_term', [$this->getCurrentPlugin()->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
-            \add_filter('get_terms_args', [$this->getCurrentPlugin()->getSitepress(), 'get_terms_args_filter'], 10, 2);
+        /** @var Wpml $currentPlugin */
+        $currentPlugin = $this->getCurrentPlugin();
+
+        return \add_filter('terms_clauses', [$currentPlugin->getSitepress(), 'terms_clauses'], 10, 4) &&
+            \add_filter('get_term', [$currentPlugin->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
+            \add_filter('get_terms_args', [$currentPlugin->getSitepress(), 'get_terms_args_filter'], 10, 2);
     }
 }

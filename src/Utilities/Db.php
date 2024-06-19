@@ -45,7 +45,7 @@ class Db implements LoggerAwareInterface
      * @param string $query SQL query.
      * @param bool $shouldLog Query should be written to log files.
      *
-     * @return array|null Database query results
+     * @return array<int, array>|null Database query results
      * @throws InvalidArgumentException
      */
     public function query(string $query, bool $shouldLog = true): ?array
@@ -85,7 +85,7 @@ class Db implements LoggerAwareInterface
      * @param string $query SQL query.
      * @param bool $shouldLog Query should be written to log files.
      *
-     * @return array The array of values
+     * @return array<int, int|string> The array of values
      * @throws InvalidArgumentException
      */
     public function queryList(string $query, bool $shouldLog = true): array
@@ -98,6 +98,7 @@ class Db implements LoggerAwareInterface
             $this->logger->debug($query);
         }
 
+        /** @var array<int, array<int, int|string>> $result */
         $result = $wpdb->get_results($query, \ARRAY_N);
 
         if (!empty($result)) {
@@ -121,12 +122,12 @@ class Db implements LoggerAwareInterface
 
 
     /**
-     * @param $table
-     * @param $constraint
+     * @param string $table
+     * @param string $constraint
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function checkIfFKExists($table, $constraint): bool
+    public function checkIfFKExists(string $table, string $constraint): bool
     {
         $sql  = "
                SELECT COUNT(*)

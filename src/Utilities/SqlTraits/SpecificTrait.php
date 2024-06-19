@@ -149,10 +149,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $id
+     * @param int $id
      * @return string
      */
-    public static function removeSpecificValueLinking($id): string
+    public static function removeSpecificValueLinking(int $id): string
     {
         global $wpdb;
 

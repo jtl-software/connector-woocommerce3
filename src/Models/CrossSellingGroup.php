@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Models;
 
+use Jtl\Connector\Core\Model\CrossSelling;
 use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -16,7 +17,7 @@ class CrossSellingGroup
     public const TYPE_UP_SELL    = "2";
 
     /**
-     * @var array
+     * @var array<int, array<string, string>>
      */
     protected static array $groups = [
         [
@@ -32,7 +33,8 @@ class CrossSellingGroup
     ];
 
     /**
-     * @return array
+     * @param Util $util
+     * @return array<int, CrossSelling[]>
      */
     public static function all(Util $util): array
     {
@@ -45,11 +47,13 @@ class CrossSellingGroup
 
     /**
      * @param $name
-     * @param $util
+     * @param Util $util
      * @return false|\Jtl\Connector\Core\Model\CrossSellingGroup
      */
-    public static function getByWooCommerceName($name, $util)
-    {
+    public static function getByWooCommerceName(
+        string $name,
+        Util $util
+    ): bool|\Jtl\Connector\Core\Model\CrossSellingGroup {
         $key = self::findKeyByColumn('woo_commerce_name', $name);
 
         if ($key === false) {
@@ -62,7 +66,7 @@ class CrossSellingGroup
     }
 
     /**
-     * @param array $groupData
+     * @param array<string, string> $groupData
      * @param Util $util
      * @return \Jtl\Connector\Core\Model\CrossSellingGroup
      */
@@ -81,11 +85,11 @@ class CrossSellingGroup
     }
 
     /**
-     * @param $columnName
-     * @param $value
+     * @param string $columnName
+     * @param string $value
      * @return false|int|string
      */
-    protected static function findKeyByColumn($columnName, $value): bool|int|string
+    protected static function findKeyByColumn(string $columnName, string $value): bool|int|string
     {
         return \array_search($value, \array_column(self::$groups, $columnName));
     }

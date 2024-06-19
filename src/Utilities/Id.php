@@ -41,8 +41,8 @@ class Id
     }
 
     /**
-     * @param string<int, int|string> $endpointId
-     * @return array|null
+     * @param string $endpointId
+     * @return array<int, int|string>|null
      */
     public static function unlinkImage(string $endpointId): ?array
     {
@@ -109,7 +109,7 @@ class Id
 
     /**
      * @param string $endpointId
-     * @return array
+     * @return array<int, int|string>
      */
     public static function unlinkCustomer(string $endpointId): array
     {

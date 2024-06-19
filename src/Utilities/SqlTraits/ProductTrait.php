@@ -50,10 +50,10 @@ trait ProductTrait
 
     /**
      * @param int $id
-     * @param $updatedAttributeKeys
+     * @param string[] $updatedAttributeKeys
      * @return string
      */
-    public static function productVariationObsoletes(int $id, $updatedAttributeKeys): string
+    public static function productVariationObsoletes(int $id, array $updatedAttributeKeys): string
     {
         global $wpdb;
 

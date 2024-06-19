@@ -6,6 +6,7 @@ use Jtl\Connector\Core\Definition\Model;
 use Jtl\Connector\Core\Model\AbstractI18n;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\ManufacturerI18n;
+use Jtl\Connector\Core\Model\ProductI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
@@ -31,11 +32,14 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param int $taxonomyId
-     * @param Model $i18nModel
+     * @param CategoryI18n|ManufacturerI18n $i18nModel
      * @param string $type
      */
-    protected function updateWpSeoTaxonomyMeta(int $taxonomyId, AbstractI18n $i18nModel, string $type): void
-    {
+    protected function updateWpSeoTaxonomyMeta(
+        int $taxonomyId,
+        CategoryI18n|ManufacturerI18n $i18nModel,
+        string $type
+    ): void {
         $taxonomySeo = $this->getSeoTaxonomyMeta();
 
         if ($taxonomySeo === false) {
@@ -79,17 +83,17 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param Model $i18n
+     * @param ProductI18n|CategoryI18n|ManufacturerI18n $i18n
      * @param int $termId
      * @param string $type
      */
-    public function setSeoData(AbstractI18n $i18n, int $termId, string $type)
+    public function setSeoData(ProductI18n|CategoryI18n|ManufacturerI18n $i18n, int $termId, string $type): void
     {
         $seoData = $this->findSeoTranslationData($termId, $type);
         if (!empty($seoData)) {
-            $i18n->setMetaDescription(isset($seoData['wpseo_desc']) ? $seoData['wpseo_desc'] : '')
-                ->setMetaKeywords(isset($seoData['wpseo_focuskw']) ? $seoData['wpseo_focuskw'] : $i18n->getName())
-                ->setTitleTag(isset($seoData['wpseo_title']) ? $seoData['wpseo_title'] : $i18n->getName());
+            $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
+                ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $i18n->getName())
+                ->setTitleTag($seoData['wpseo_title'] ?? $i18n->getName());
         }
     }
 

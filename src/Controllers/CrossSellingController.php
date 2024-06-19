@@ -44,7 +44,7 @@ class CrossSellingController extends AbstractBaseController implements
             $type            = $row['meta_key'];
             $relatedProducts = \unserialize($row['meta_value']);
 
-            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type, $this->util);
+            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName((string)$type, $this->util);
 
             if (!empty($relatedProducts)) {
                 if (!isset($crossSelling[$row['post_id']])) {
