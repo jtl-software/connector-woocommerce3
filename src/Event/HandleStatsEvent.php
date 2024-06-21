@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Event;
 
+use Jtl\Connector\Core\Model\Statistic;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleStatsEvent extends Event
@@ -9,14 +10,17 @@ class HandleStatsEvent extends Event
     public const EVENT_NAME = 'connector.handle.stats';
 
     protected $result;
-    protected $controller;
+    protected string $controller;
 
     public function __construct($controller)
     {
         $this->controller = $controller;
     }
 
-    public function getController()
+    /**
+     * @return string
+     */
+    public function getController(): string
     {
         return $this->controller;
     }

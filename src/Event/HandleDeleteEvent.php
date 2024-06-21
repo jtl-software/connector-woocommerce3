@@ -9,7 +9,7 @@ class HandleDeleteEvent extends Event
     public const EVENT_NAME = 'connector.handle.delete';
 
     protected $result;
-    protected $controller;
+    protected string $controller;
     protected $entities;
 
     public function __construct($controller, $entities)
@@ -18,7 +18,10 @@ class HandleDeleteEvent extends Event
         $this->entities   = $entities;
     }
 
-    public function getController()
+    /**
+     * @return string
+     */
+    public function getController(): string
     {
         return $this->controller;
     }

@@ -6,9 +6,11 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\QueryFilter;
+use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\Specific as SpecificModel;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue as SpecificValueModel;
@@ -32,11 +34,14 @@ class SpecificController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    private static $idCache = [];
+    /**
+     * @var int[]
+     */
+    private static array $idCache = [];
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return array<int, AbstractIdentity|Specific>
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -44,7 +49,7 @@ class SpecificController extends AbstractBaseController implements
     {
         $specifics = [];
 
-        $specificData = $this->db->query(SqlHelper::specificPull($query->getLimit()));
+        $specificData = $this->db->query(SqlHelper::specificPull($query->getLimit())) ?? [[]];
 
         foreach ($specificData as $specificDataSet) {
             $specific = (new SpecificModel())
@@ -60,22 +65,21 @@ class SpecificController extends AbstractBaseController implements
 
             $specificName = \sprintf('pa_%s', $specificDataSet['attribute_name']);
 
+            /** @var WpmlSpecific $wpmlSpecific */
+            $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
+
             if (
                 $this->wpml->canBeUsed()
-                && $this->wpml->getComponent(WpmlSpecific::class)->isTranslatable($specificName)
+                && $wpmlSpecific->isTranslatable($specificName)
             ) {
-                $this->wpml
-                    ->getComponent(WpmlSpecific::class)
-                    ->getTranslations($specific, $specificDataSet['attribute_label']);
+                $wpmlSpecific->getTranslations($specific, $specificDataSet['attribute_label']);
 
-                $specificValueData = $this->wpml
-                    ->getComponent(WpmlSpecific::class)
-                    ->getValues($specificName);
+                $specificValueData = $wpmlSpecific->getValues($specificName) ?? [];
             } else {
                 // SpecificValues
                 $specificValueData = $this->db->query(
                     SqlHelper::specificValuePull($specificName)
-                );
+                ) ?? [];
             }
 
             foreach ($specificValueData as $specificValueDataSet) {
@@ -87,13 +91,14 @@ class SpecificController extends AbstractBaseController implements
                     ->setValue($specificValueDataSet['name']));
 
                 if ($this->wpml->canBeUsed()) {
-                    $this->wpml
-                        ->getComponent(WpmlSpecificValue::class)
-                        ->getTranslations(
-                            $specificValue,
-                            (int)$specificValueDataSet['term_taxonomy_id'],
-                            $specificValueDataSet['taxonomy']
-                        );
+                    /** @var WpmlSpecificValue $wpmlSpecificValue */
+                    $wpmlSpecificValue = $this->wpml->getComponent(WpmlSpecificValue::class);
+
+                    $wpmlSpecificValue->getTranslations(
+                        $specificValue,
+                        (int)$specificValueDataSet['term_taxonomy_id'],
+                        $specificValueDataSet['taxonomy']
+                    );
                 }
 
                 $specific->addValue($specificValue);
@@ -190,7 +195,7 @@ class SpecificController extends AbstractBaseController implements
                 return $model;
             }
 
-            $model->getId()->setEndpoint($attributeId);
+            $model->getId()->setEndpoint((string)$attributeId);
 
             //Get taxonomy
             $taxonomy = $attrName ?
@@ -198,12 +203,13 @@ class SpecificController extends AbstractBaseController implements
                 : '';
 
             //Register taxonomy for current request
-            \register_taxonomy($taxonomy, null);
+            \register_taxonomy($taxonomy, []);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml
-                    ->getComponent(WpmlSpecific::class)
-                    ->setTranslations($model, $meta);
+                /** @var WpmlSpecific $wpmlSpecific */
+                $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
+
+                $wpmlSpecific->setTranslations($model, $meta);
             }
 
             foreach ($model->getValues() as $key => $value) {
@@ -229,7 +235,7 @@ class SpecificController extends AbstractBaseController implements
                 }
 
                 //Fallback 'ger' if incorrect language code was given
-                if ($meta === null && $defaultValueAvailable) {
+                if ($defaultValueAvailable) {
                     foreach ($value->getI18ns() as $i18n) {
                         if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
                             $metaValue = $i18n;
@@ -249,11 +255,8 @@ class SpecificController extends AbstractBaseController implements
                 ];
 
                 $exValId = $this->db->query(
-                    SqlHelper::getSpecificValueId(
-                        $taxonomy,
-                        $endpointValue['name']
-                    )
-                );
+                    SqlHelper::getSpecificValueId($taxonomy, $endpointValue['name'])
+                ) ?? [];
 
                 if (\count($exValId) >= 1) {
                     if (isset($exValId[0]['term_id'])) {
@@ -283,14 +286,18 @@ class SpecificController extends AbstractBaseController implements
                     $termId = $newTerm['term_id'];
                 } elseif (\is_null($exValId) && $endValId !== 0) {
                     $wpml = $this->getPluginsManager()->get(Wpml::class);
+
+                    /** @var WpmlTermTranslation $wpmlTermTranslation */
+                    $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
                     if ($wpml->canBeUsed()) {
-                        $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                        $wpmlTermTranslation->disableGetTermAdjustId();
                     }
 
                     $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
                     if ($wpml->canBeUsed()) {
-                        $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                        $wpmlTermTranslation->enableGetTermAdjustId();
                     }
                 } else {
                     $termId = $exValId;
@@ -327,12 +334,10 @@ class SpecificController extends AbstractBaseController implements
 
             $this->db->query(SqlHelper::removeSpecificLinking($specificId));
             $taxonomy = \wc_attribute_taxonomy_name_by_id($specificId);
-            /** @var WC_Product_Attribute $specific */
-            //$specific = wc_get_attribute($specificId);
 
             $specificValueData = $this->db->query(
                 SqlHelper::forceSpecificValuePull($taxonomy)
-            );
+            ) ?? [];
 
             $terms = [];
             foreach ($specificValueData as $specificValue) {
@@ -361,7 +366,7 @@ class SpecificController extends AbstractBaseController implements
             /** @var WP_Post $post */
             foreach ($posts as $post) {
                 $wcProduct        = \wc_get_product($post->ID);
-                $productSpecifics = $wcProduct->get_attributes();
+                $productSpecifics = $wcProduct instanceof \WC_Product ? $wcProduct->get_attributes() : [];
 
                 /** @var WC_Product_Attribute $productSpecific */
                 foreach ($productSpecifics as $productSpecific) {
@@ -392,11 +397,13 @@ class SpecificController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         if ($this->wpml->canBeUsed()) {
-            $total = $this->wpml->getComponent(WpmlSpecific::class)->getStats();
+            /** @var WpmlSpecific $wpmlSpecific */
+            $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
+            $total        = $wpmlSpecific->getStats();
         } else {
-            $total = $this->db->queryOne(SqlHelper::specificStats());
+            $total = $this->db->queryOne(SqlHelper::specificStats()) ?? 0;
         }
 
-        return $total;
+        return (int)$total;
     }
 }

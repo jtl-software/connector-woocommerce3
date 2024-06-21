@@ -10,6 +10,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -53,16 +54,24 @@ class ProductController extends AbstractBaseController implements
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
 
+    /**
+     * @var int[]
+     */
     private static array $idCache = [];
 
     /**
+     * @param int $limit
+     * @return int[]|string[]
      * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
      */
-    protected function getProductsIds(int $limit)
+    protected function getProductsIds(int $limit): array
     {
         if ($this->wpml->canBeUsed()) {
-            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts($limit);
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+
+            $ids = $wpmlProduct->getProducts($limit);
         } else {
             $ids = $this->db->queryList(SqlHelper::productPull($limit));
         }
@@ -72,7 +81,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return AbstractIdentity[]|ProductModel[]
      * @throws InvalidArgumentException
      * @throws Exception
      */
@@ -93,7 +102,7 @@ class ProductController extends AbstractBaseController implements
             $modDate      = $product->get_date_modified();
             $status       = $product->get_status('view');
             $productModel = (new ProductModel())
-                ->setId(new Identity($product->get_id()))
+                ->setId(new Identity((string)$product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
                 ->setIsActive(
                     !\in_array($status, [
@@ -118,11 +127,9 @@ class ProductController extends AbstractBaseController implements
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock(\is_bool($ms = $product->managing_stock()) ? $ms : $ms == 'yes')
-                ->setPermitNegativeStock(
-                    \is_bool($pns = $product->backorders_allowed()) ? $pns : $pns == 'yes'
-                )
-                ->setShippingClassId(new Identity($product->get_shipping_class_id()));
+                ->setConsiderStock($product->managing_stock())
+                ->setPermitNegativeStock($product->backorders_allowed())
+                ->setShippingClassId(new Identity((string)$product->get_shipping_class_id()));
 
             //EAN / GTIN / MPN
             if ($this->util->useGtinAsEanEnabled()) {

@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Exception;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Product;
@@ -12,8 +13,8 @@ class ProductStockLevelController extends AbstractBaseController implements Push
 {
     /**
      * @param Product $model
-     * @return ProductStockLevelModel
-     * @throws \Exception
+     * @return Product
+     * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
@@ -28,7 +29,10 @@ class ProductStockLevelController extends AbstractBaseController implements Push
             $wcProducts[] = $wcProduct;
 
             if ($this->wpml->canBeUsed()) {
-                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+
+                $wcProductTranslations = $wpmlProduct
                     ->getWooCommerceProductTranslations($wcProduct);
                 $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
             }
@@ -44,7 +48,7 @@ class ProductStockLevelController extends AbstractBaseController implements Push
                     $wcProduct->set_stock_status($stockStatus);
                 }
 
-                \wc_update_product_stock($productId, \wc_stock_amount($stockLevel));
+                \wc_update_product_stock((int)$productId, (int)\wc_stock_amount($stockLevel));
 
                 if ($wcProduct->is_type('variation')) {
                     \WC_Product_Variable::sync_stock_status($wcProduct->get_id());
