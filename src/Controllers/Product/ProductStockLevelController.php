@@ -22,7 +22,7 @@ class ProductStockLevelController extends AbstractBaseController
         $stockLevel = $product->get_stock_quantity();
 
         return (new StockLevelModel())
-            ->setProductId(new Identity($product->get_id()))
+            ->setProductId(new Identity((string)$product->get_id()))
             ->setStockLevel((double)\is_null($stockLevel) ? 0 : $stockLevel);
     }
 
@@ -43,7 +43,7 @@ class ProductStockLevelController extends AbstractBaseController
 
         $stockLevel = !\is_null($product->getStockLevel()) ? $product->getStockLevel() : 0;
 
-        \wc_update_product_stock_status($variationId, $this->util->getStockStatus(
+        \wc_update_product_stock_status((int)$variationId, $this->util->getStockStatus(
             $stockLevel,
             $product->getPermitNegativeStock(),
             $product->getConsiderStock()
@@ -51,14 +51,14 @@ class ProductStockLevelController extends AbstractBaseController
 
         if ($product->getConsiderStock()) {
             \update_post_meta(
-                $product->getId()->getEndpoint(),
+                (int)$product->getId()->getEndpoint(),
                 '_backorders',
                 $this->getBackorderValue($product)
             );
-            \wc_update_product_stock($variationId, \wc_stock_amount($product->getStockLevel()));
+            \wc_update_product_stock((int)$variationId, (int)\wc_stock_amount($product->getStockLevel()));
         } else {
-            \delete_post_meta($variationId, '_backorders');
-            \delete_post_meta($variationId, '_stock');
+            \delete_post_meta((int)$variationId, '_backorders');
+            \delete_post_meta((int)$variationId, '_stock');
         }
     }
 
@@ -86,26 +86,26 @@ class ProductStockLevelController extends AbstractBaseController
 
         if ('yes' == \get_option('woocommerce_manage_stock')) {
             \update_post_meta(
-                $product->getId()->getEndpoint(),
+                (int)$product->getId()->getEndpoint(),
                 '_backorders',
                 $this->getBackorderValue($product)
             );
 
             if ($product->getConsiderStock()) {
-                \update_post_meta($productId, '_manage_stock', 'yes');
+                \update_post_meta((int)$productId, '_manage_stock', 'yes');
                 if (!$wcProduct->is_type('variable')) {
-                    \wc_update_product_stock_status($productId, $stockStatus);
+                    \wc_update_product_stock_status((int)$productId, $stockStatus);
                 }
 
-                \wc_update_product_stock($productId, \wc_stock_amount($stockLevel));
+                \wc_update_product_stock((int)$productId, \wc_stock_amount($stockLevel));
             } else {
-                \update_post_meta($productId, '_manage_stock', 'no');
-                \update_post_meta($productId, '_stock', '');
+                \update_post_meta((int)$productId, '_manage_stock', 'no');
+                \update_post_meta((int)$productId, '_stock', '');
 
-                \wc_update_product_stock_status($productId, $stockStatus);
+                \wc_update_product_stock_status((int)$productId, $stockStatus);
             }
         } elseif (!$wcProduct->is_type('variable')) {
-            \wc_update_product_stock_status($productId, $stockStatus);
+            \wc_update_product_stock_status((int)$productId, $stockStatus);
         }
     }
 

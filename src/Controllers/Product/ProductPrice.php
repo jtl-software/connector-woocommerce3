@@ -33,8 +33,8 @@ class ProductPrice extends AbstractBaseController
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $prices[] = (new ProductPriceModel())
-                ->setId(new Identity($product->get_id()))
-                ->setProductId(new Identity($product->get_id()))
+                ->setId(new Identity((string)$product->get_id()))
+                ->setProductId(new Identity((string)$product->get_id()))
                 ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
                 ->addItem((new ProductPriceItemModel())
                     ->setQuantity(1)
@@ -50,8 +50,8 @@ class ProductPrice extends AbstractBaseController
                 )
             ) {
                 $prices[] = (new ProductPriceModel())
-                    ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
+                    ->setProductId(new Identity((string)$product->get_id()))
                     ->setCustomerGroupId(new Identity(""))
                     ->addItem((new ProductPriceItemModel())
                         ->setQuantity(1)
@@ -96,8 +96,8 @@ class ProductPrice extends AbstractBaseController
                 }
 
                 $prices[] = (new ProductPriceModel())
-                    ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
+                    ->setProductId(new Identity((string)$product->get_id()))
                     ->setCustomerGroupId($customerGroup->getId())
                     ->setItems(...$items);
             }
@@ -334,7 +334,11 @@ class ProductPrice extends AbstractBaseController
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             ) {
                 $customerGroup = \get_post($customerGroupId);
-                $bulkPrices    = [];
+                if (!$customerGroup instanceof \WP_Post) {
+                    throw new \http\Exception\InvalidArgumentException("Customer group not found");
+                }
+
+                $bulkPrices = [];
 
                 foreach ($productPrice->getItems() as $item) {
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
@@ -517,7 +521,7 @@ class ProductPrice extends AbstractBaseController
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
 
-            $decimal = \explode('.', $regularPrice);
+            $decimal = \explode('.', (string)$regularPrice);
 
             $decimalCount = \count($decimal) < 2
                 ? 2

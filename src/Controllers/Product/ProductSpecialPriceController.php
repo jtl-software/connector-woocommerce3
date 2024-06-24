@@ -22,7 +22,7 @@ class ProductSpecialPriceController extends AbstractBaseController
     /**
      * @param WC_Product $product
      * @param ProductModel $model
-     * @return array
+     * @return ProductSpecialPriceModel[]
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -36,7 +36,7 @@ class ProductSpecialPriceController extends AbstractBaseController
 
             if (!empty($salePrice)) {
                 $specialPrices[] = (new ProductSpecialPriceModel())
-                    ->setId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
                     ->setIsActive($product->is_on_sale())
                     ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
@@ -109,7 +109,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                 }
 
                 $specialPrices[] = (new ProductSpecialPriceModel())
-                    ->setId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
                     ->setIsActive($product->is_on_sale())
                     ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
@@ -122,11 +122,12 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param $priceNet
+     * @param string $priceNet
      * @param WC_Product $product
      * @return float
+     * @throws \http\Exception\InvalidArgumentException
      */
-    protected function getPriceNet($priceNet, WC_Product $product): float
+    protected function getPriceNet(string $priceNet, WC_Product $product): float
     {
         $taxRate = $this->util->getTaxRateByTaxClass($product->get_tax_class());
         $pd      = $this->util->getPriceDecimals();
@@ -228,52 +229,57 @@ class ProductSpecialPriceController extends AbstractBaseController
                         $regularPriceKey       = '_regular_price';
 
                         \update_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceMetaKey,
                             \wc_format_decimal($salePrice, $pd),
-                            \get_post_meta($productId, $salePriceMetaKey, true)
+                            \get_post_meta((int)$productId, $salePriceMetaKey, true)
                         );
 
                         \update_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceDatesToKey,
                             $dateTo,
-                            \get_post_meta($productId, $salePriceDatesToKey, true)
+                            \get_post_meta((int)$productId, $salePriceDatesToKey, true)
                         );
 
                         \update_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceDatesFromKey,
                             $dateFrom,
-                            \get_post_meta($productId, $salePriceDatesFromKey, true)
+                            \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
                         );
 
                         if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
                             \update_post_meta(
-                                $productId,
+                                (int)$productId,
                                 $priceMetaKey,
                                 \wc_format_decimal($salePrice, $pd),
-                                \get_post_meta($productId, $priceMetaKey, true)
+                                \get_post_meta((int)$productId, $priceMetaKey, true)
                             );
                         } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
                             \update_post_meta(
-                                $productId,
+                                (int)$productId,
                                 $priceMetaKey,
                                 \wc_format_decimal($salePrice, $pd),
-                                \get_post_meta($productId, $priceMetaKey, true)
+                                \get_post_meta((int)$productId, $priceMetaKey, true)
                             );
                         } else {
-                            $regularPrice = (float)\get_post_meta($productId, $regularPriceKey, true);
+                            $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceKey, true);
                             \update_post_meta(
-                                $productId,
+                                (int)$productId,
                                 $priceMetaKey,
                                 \wc_format_decimal($regularPrice, $pd),
-                                \get_post_meta($productId, $priceMetaKey, true)
+                                \get_post_meta((int)$productId, $priceMetaKey, true)
                             );
                         }
                     } elseif (\is_int((int)$endpoint)) {
                         if ($productType !== ProductController::TYPE_PARENT) {
-                            $customerGroup       = \get_post($endpoint);
+                            $customerGroup = \get_post((int)$endpoint);
+
+                            if (!$customerGroup instanceof \WP_Post) {
+                                throw new \http\Exception\InvalidArgumentException("Customer group not found");
+                            }
+
                             $priceMetaKey        = \sprintf(
                                 'bm_%s_price',
                                 $customerGroup->post_name
@@ -285,10 +291,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
                             $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
                             \update_post_meta(
-                                $productId,
+                                (int)$productId,
                                 $metaKeyForCustomerGroupPriceType,
                                 'fix',
-                                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                                \get_post_meta((int)$productId, $metaKeyForCustomerGroupPriceType, true)
                             );
 
                             if ($productType === ProductController::TYPE_CHILD) {
@@ -334,10 +340,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
                             if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
                                 \update_post_meta(
-                                    $productId,
+                                    (int)$productId,
                                     $priceMetaKey,
                                     \wc_format_decimal($salePrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
+                                    \get_post_meta((int)$productId, $priceMetaKey, true)
                                 );
 
                                 if (
@@ -348,33 +354,33 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 ) {
                                     //Update price on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPpriceMetaKey,
                                         \wc_format_decimal($salePrice, $pd),
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPpriceMetaKey,
                                             true
                                         )
                                     );
                                     //Update price type on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPpriceTypeMetaKey,
                                         'fix',
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPpriceTypeMetaKey,
                                             true
                                         )
                                     );
                                     //Update sale_price on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPsalePriceMetaKey,
                                         \wc_format_decimal($salePrice, $pd),
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPsalePriceMetaKey,
                                             true
                                         )
@@ -383,11 +389,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     if (isset($salePriceMetaKey)) {
                                         //Update sale_price on product
                                         \update_post_meta(
-                                            $productId,
+                                            (int)$productId,
                                             $salePriceMetaKey,
                                             \wc_format_decimal($salePrice, $pd),
                                             \get_post_meta(
-                                                $productId,
+                                                (int)$productId,
                                                 $salePriceMetaKey,
                                                 true
                                             )
@@ -396,10 +402,10 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 }
                             } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
                                 \update_post_meta(
-                                    $productId,
+                                    (int)$productId,
                                     $priceMetaKey,
                                     \wc_format_decimal($salePrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
+                                    \get_post_meta((int)$productId, $priceMetaKey, true)
                                 );
 
                                 if (
@@ -412,55 +418,55 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 ) {
                                     //Update price on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPpriceMetaKey,
                                         \wc_format_decimal($salePrice, $pd),
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPpriceMetaKey,
                                             true
                                         )
                                     );
                                     //Update price type on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPpriceTypeMetaKey,
                                         'fix',
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPpriceTypeMetaKey,
                                             true
                                         )
                                     );
                                     //Update sale_price on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPsalePriceMetaKey,
                                         \wc_format_decimal($salePrice, $pd),
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPsalePriceMetaKey,
                                             true
                                         )
                                     );
                                     //Update sale_price_date_to on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPsalePriceDatesToKey,
                                         $dateTo,
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPsalePriceDatesToKey,
                                             true
                                         )
                                     );
                                     //Update sale_price_date_from on parent
                                     \update_post_meta(
-                                        $masterProductId->getEndpoint(),
+                                        (int)$masterProductId->getEndpoint(),
                                         $COPsalePriceDatesFromKey,
                                         $dateFrom,
                                         \get_post_meta(
-                                            $masterProductId->getEndpoint(),
+                                            (int)$masterProductId->getEndpoint(),
                                             $COPsalePriceDatesFromKey,
                                             true
                                         )
@@ -473,33 +479,33 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     ) {
                                         //Update sale_price on product
                                         \update_post_meta(
-                                            $productId,
+                                            (int)$productId,
                                             $salePriceMetaKey,
                                             \wc_format_decimal($salePrice, $pd),
                                             \get_post_meta(
-                                                $productId,
+                                                (int)$productId,
                                                 $salePriceMetaKey,
                                                 true
                                             )
                                         );
                                         //Update sale_price_date_to on product
                                         \update_post_meta(
-                                            $productId,
+                                            (int)$productId,
                                             $salePriceDatesToKey,
                                             $dateTo,
                                             \get_post_meta(
-                                                $productId,
+                                                (int)$productId,
                                                 $salePriceDatesToKey,
                                                 true
                                             )
                                         );
                                         //Update sale_price_date_from on product
                                         \update_post_meta(
-                                            $productId,
+                                            (int)$productId,
                                             $salePriceDatesFromKey,
                                             $dateFrom,
                                             \get_post_meta(
-                                                $productId,
+                                                (int)$productId,
                                                 $salePriceDatesFromKey,
                                                 true
                                             )
@@ -509,10 +515,10 @@ class ProductSpecialPriceController extends AbstractBaseController
                             } else {
                                 $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
                                 \update_post_meta(
-                                    $productId,
+                                    (int)$productId,
                                     $priceMetaKey,
                                     \wc_format_decimal($regularPrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
+                                    \get_post_meta((int)$productId, $priceMetaKey, true)
                                 );
                             }
                         }
@@ -545,7 +551,7 @@ class ProductSpecialPriceController extends AbstractBaseController
             /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $groupKey => $customerGroup) {
                 $customerGroupId = $customerGroup->getId()->getEndpoint();
-                $post            = \get_post($customerGroupId);
+                $post            = \get_post((int)$customerGroupId);
                 if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
                     //$post = \get_post($customerGroupId);
                     $priceMetaKey        = \sprintf(
@@ -559,10 +565,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
                     $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
                     \update_post_meta(
-                        $productId,
+                        (int)$productId,
                         $metaKeyForCustomerGroupPriceType,
                         'fix',
-                        \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                        \get_post_meta((int)$productId, $metaKeyForCustomerGroupPriceType, true)
                     );
 
                     if ($productType === ProductController::TYPE_CHILD) {
@@ -593,19 +599,19 @@ class ProductSpecialPriceController extends AbstractBaseController
                         );
 
                         \delete_post_meta(
-                            $masterProductId->getEndpoint(),
+                            (int)$masterProductId->getEndpoint(),
                             $COPsalePriceMetaKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceMetaKey, true)
+                            \get_post_meta((int)$masterProductId->getEndpoint(), $COPsalePriceMetaKey, true)
                         );
                         \delete_post_meta(
-                            $masterProductId->getEndpoint(),
+                            (int)$masterProductId->getEndpoint(),
                             $COPsalePriceDatesToKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesToKey, true)
+                            \get_post_meta((int)$masterProductId->getEndpoint(), $COPsalePriceDatesToKey, true)
                         );
                         \delete_post_meta(
-                            $masterProductId->getEndpoint(),
+                            (int)$masterProductId->getEndpoint(),
                             $COPsalePriceDatesFromKey,
-                            \get_post_meta($masterProductId->getEndpoint(), $COPsalePriceDatesFromKey, true)
+                            \get_post_meta((int)$masterProductId->getEndpoint(), $COPsalePriceDatesFromKey, true)
                         );
                     } else {
                         $salePriceMetaKey      = \sprintf(
@@ -621,19 +627,19 @@ class ProductSpecialPriceController extends AbstractBaseController
                             $post->post_name
                         );
                         \delete_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceMetaKey,
-                            \get_post_meta($productId, $salePriceMetaKey, true)
+                            \get_post_meta((int)$productId, $salePriceMetaKey, true)
                         );
                         \delete_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceDatesToKey,
-                            \get_post_meta($productId, $salePriceDatesToKey, true)
+                            \get_post_meta((int)$productId, $salePriceDatesToKey, true)
                         );
                         \delete_post_meta(
-                            $productId,
+                            (int)$productId,
                             $salePriceDatesFromKey,
-                            \get_post_meta($productId, $salePriceDatesFromKey, true)
+                            \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
                         );
                     }
 
@@ -647,32 +653,32 @@ class ProductSpecialPriceController extends AbstractBaseController
                     $regularPrice          = (float)\get_post_meta($productId, $regularPriceKey, true);
 
                     \update_post_meta(
-                        $productId,
+                        (int)$productId,
                         $salePriceMetaKey,
                         '',
-                        \get_post_meta($productId, $salePriceMetaKey, true)
+                        \get_post_meta((int)$productId, $salePriceMetaKey, true)
                     );
                     \update_post_meta(
-                        $productId,
+                        (int)$productId,
                         $salePriceDatesToKey,
                         '',
-                        \get_post_meta($productId, $salePriceDatesToKey, true)
+                        \get_post_meta((int)$productId, $salePriceDatesToKey, true)
                     );
                     \update_post_meta(
-                        $productId,
+                        (int)$productId,
                         $salePriceDatesFromKey,
                         '',
-                        \get_post_meta($productId, $salePriceDatesFromKey, true)
+                        \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
                     );
                 } else {
                     continue;
                 }
 
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $priceMetaKey,
                     \wc_format_decimal($regularPrice, $pd),
-                    \get_post_meta($productId, $priceMetaKey, true)
+                    \get_post_meta((int)$productId, $priceMetaKey, true)
                 );
 
                 if (
@@ -681,16 +687,16 @@ class ProductSpecialPriceController extends AbstractBaseController
                     && isset($COPpriceMetaKey)
                 ) {
                     \update_post_meta(
-                        $masterProductId->getEndpoint(),
+                        (int)$masterProductId->getEndpoint(),
                         $COPpriceMetaKey,
                         \wc_format_decimal($regularPrice, $pd),
-                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceMetaKey, true)
+                        \get_post_meta((int)$masterProductId->getEndpoint(), $COPpriceMetaKey, true)
                     );
                     \update_post_meta(
-                        $masterProductId->getEndpoint(),
+                        (int)$masterProductId->getEndpoint(),
                         $COPpriceTypeMetaKey,
                         'fix',
-                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceTypeMetaKey, true)
+                        \get_post_meta((int)$masterProductId->getEndpoint(), $COPpriceTypeMetaKey, true)
                     );
                 }
             }

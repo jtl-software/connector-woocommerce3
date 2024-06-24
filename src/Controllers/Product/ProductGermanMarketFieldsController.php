@@ -235,7 +235,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $ppuType = $this->identifyGermanMarketMetaGroup($basePriceUnitCode);
 
             $basePrice    = null;
-            $currentPrice = \get_post_meta($productId, '_price', true);
+            $currentPrice = \get_post_meta((int)$productId, '_price', true);
             $baseUnit     = null;
 
             switch ($ppuType) {
@@ -311,25 +311,25 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
                 $usedCustomPPU                     = $metaKeys['usedCustomPPUKey'];
 
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitCodeKey,
                     $baseUnit,
                     $metaData[$unitCodeKey]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitMultiplikatorKey,
                     $basePriceQuantity,
                     $metaData[$unitMultiplikatorKey]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitRegularAutoPPUProductQuantity,
                     $measurementQuantity,
                     $metaData[$unitRegularAutoPPUProductQuantity]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $usedCustomPPU,
                     1,
                     $metaData[$usedCustomPPU]
@@ -353,25 +353,25 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $metaKeys
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularUnitKey'],
             '',
             $metaData[$metaKeys['unitRegularUnitKey']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularMultiplikatorKey'],
             '',
             $metaData[$metaKeys['unitRegularMultiplikatorKey']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularAutoPPUProductQuantity'],
             '',
             $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['usedCustomPPUKey'],
             0,
             $metaData[$metaKeys['usedCustomPPUKey']]
