@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2643 - update image identities once
 
 ## 2.0.3 _2024-06-11_
 - CO-2591 - cast taxRates to float
