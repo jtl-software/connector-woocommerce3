@@ -16,11 +16,15 @@ class WpmlStringTranslation extends AbstractComponent
      * @param string $targetName
      * @param string $wawiIsoLanguage
      * @throws InjectionException
+     * @throws \Exception
      */
-    public function translate(string $sourceName, string $targetName, string $wawiIsoLanguage)
+    public function translate(string $sourceName, string $targetName, string $wawiIsoLanguage): void
     {
-        $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
-        $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
+        $context = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
+
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $languageCode = $wpmlPlugin->convertLanguageToWpml($wawiIsoLanguage);
 
         $stringId = \icl_get_string_id($sourceName, $context);
         if ($stringId !== 0) {
@@ -29,14 +33,17 @@ class WpmlStringTranslation extends AbstractComponent
     }
 
     /**
-     * @param $taxonomy
-     * @param $name
-     * @param $wawiIsoLanguage
+     * @param string $taxonomy
+     * @param string $name
+     * @param string $wawiIsoLanguage
      * @throws InjectionException
+     * @throws \Exception
      */
-    public function registerString(string $taxonomy, string $name, string $wawiIsoLanguage)
+    public function registerString(string $taxonomy, string $name, string $wawiIsoLanguage): void
     {
-        $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($wawiIsoLanguage);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $languageCode = $wpmlPlugin->convertLanguageToWpml($wawiIsoLanguage);
         $context      = \WPML_ST_Taxonomy_Strings::LEGACY_STRING_DOMAIN;
 
         \icl_register_string(

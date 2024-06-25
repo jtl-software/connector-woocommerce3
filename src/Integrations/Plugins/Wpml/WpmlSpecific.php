@@ -2,6 +2,7 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Exception;
 use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -16,10 +17,14 @@ class WpmlSpecific extends AbstractComponent
 {
     /**
      * @return int
+     * @throws InvalidArgumentException
      */
     public function getStats(): int
     {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        $wpdb = $wpmlPlugin->getWpDb();
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
         $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
 
@@ -36,17 +41,20 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param string $name
+     * @throws Exception
      */
     public function getTranslations(Specific $specific, string $name): void
     {
-        $languages = $this->getCurrentPlugin()->getActiveLanguages();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $languages  = $wpmlPlugin->getActiveLanguages();
 
         foreach ($languages as $languageCode => $language) {
             $translatedName = \apply_filters('wpml_translate_single_string', $name, 'WordPress', $name, $languageCode);
             if ($translatedName !== $name) {
                 $specific->addI18n(
                     (new SpecificI18nModel())
-                        ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($languageCode))
+                        ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($languageCode))
                         ->setName($translatedName)
                 );
             }
@@ -57,12 +65,16 @@ class WpmlSpecific extends AbstractComponent
      * @param Specific $specific
      * @param SpecificI18nModel $defaultTranslation
      * @throws InjectionException
+     * @throws Exception
      */
     public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation): void
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
         foreach ($specific->getI18ns() as $specificI18n) {
-            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificI18n->getLanguageISO());
-            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($specificI18n->getLanguageISO());
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
             }
 
@@ -93,10 +105,12 @@ class WpmlSpecific extends AbstractComponent
      */
     public function getValues(string $specificName): ?array
     {
-        $wpdb         = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $wpdb         = $wpmlPlugin->getWpDb();
         $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';
         $iclt         = $wpdb->prefix . 'icl_translations';
-        $languageCode = $this->getCurrentPlugin()->getDefaultLanguage();
+        $languageCode = $wpmlPlugin->getDefaultLanguage();
         $elementType  = 'tax_' . $specificName;
 
         return $this->getPluginsManager()->getDatabase()->query(
@@ -120,7 +134,9 @@ class WpmlSpecific extends AbstractComponent
      */
     public function isTranslatable(string $specificName): bool
     {
-        $attributes = $this->getCurrentPlugin()->getWcml()->get_setting('attributes_settings');
-        return (isset($attributes[$specificName]) && (int)$attributes[$specificName] === 1) ? true : false;
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $attributes = $wpmlPlugin->getWcml()->get_setting('attributes_settings');
+        return isset($attributes[$specificName]) && (int)$attributes[$specificName] === 1;
     }
 }

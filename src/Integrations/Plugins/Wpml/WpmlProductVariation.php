@@ -2,6 +2,8 @@
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Exception;
+use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
@@ -9,6 +11,7 @@ use Jtl\Connector\Core\Model\ProductVariationValue;
 use Jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 /**
  * Class WpmlProductVariation
@@ -17,20 +20,25 @@ use JtlWooCommerceConnector\Utilities\Util;
 class WpmlProductVariation extends AbstractComponent
 {
     /**
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @param string $wcAttributeSlug
      * @param ProductVariation $productVariation
+     * @throws Exception
      */
     public function getTranslations(
-        \WC_Product $wcProduct,
+        WC_Product $wcProduct,
         string $wcAttributeSlug,
         ProductVariation $productVariation
-    ) {
-        $translatedProducts = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)
-            ->getWooCommerceProductTranslations($wcProduct);
+    ): void {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WpmlProduct $wpmlProduct */
+        $wpmlProduct        = $wpmlPlugin->getComponent(WpmlProduct::class);
+        $translatedProducts = $wpmlProduct->getWooCommerceProductTranslations($wcProduct);
+
         foreach ($translatedProducts as $wpmlLanguageCode => $translatedProduct) {
-            $translatedAttribute = $this->getCurrentPlugin()
-                ->getComponent(WpmlProduct::class)
+            $translatedAttribute = $wpmlProduct
                 ->getWooCommerceProductTranslatedAttributeBySlug($translatedProduct, $wcAttributeSlug);
 
             if (!\is_null($translatedAttribute)) {
@@ -41,7 +49,7 @@ class WpmlProductVariation extends AbstractComponent
                             ? $translatedLabels[$wpmlLanguageCode][$wcAttributeSlug]
                             : \wc_attribute_label($translatedAttribute->get_name())
                     )
-                    ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode)));
+                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)));
             }
         }
     }
@@ -49,20 +57,25 @@ class WpmlProductVariation extends AbstractComponent
     /**
      * @param int $productId
      * @param Product $product
+     * @throws Exception
      */
     public function updateMeta(int $productId, Product $product): void
     {
         $wcProduct = \wc_get_product($productId);
-        if ($wcProduct instanceof \WC_Product) {
-            $translations = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)
-                ->getWooCommerceProductTranslations($wcProduct);
+        if ($wcProduct instanceof WC_Product) {
+            /** @var Wpml $wpmlPlugin */
+            $wpmlPlugin = $this->getCurrentPlugin();
+
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct  = $wpmlPlugin->getComponent(WpmlProduct::class);
+            $translations = $wpmlProduct->getWooCommerceProductTranslations($wcProduct);
 
             foreach ($translations as $wpmlLanguageCode => $translation) {
-                if ($translation instanceof \WC_Product) {
+                if ($translation instanceof WC_Product) {
                     foreach ($product->getI18ns() as $productI18n) {
                         if (
                             $productI18n->getLanguageISO()
-                            === $this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode)
+                            === $wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)
                         ) {
                             \update_post_meta(
                                 $translation->get_id(),
@@ -78,38 +91,41 @@ class WpmlProductVariation extends AbstractComponent
     }
 
     /**
-     * @param \WC_Product $wcProduct
-     * @param $pushedVariations
-     * @param $languageCode
-     * @return array
-     * @throws \InvalidArgumentException
+     * @param WC_Product $wcProduct
+     * @param ProductVariation[] $pushedVariations
+     * @param string $languageCode
+     * @return string[]
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
-    public function setChildTranslation(\WC_Product $wcProduct, $pushedVariations, $languageCode)
+    public function setChildTranslation(WC_Product $wcProduct, array $pushedVariations, string $languageCode): array
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin  = $this->getCurrentPlugin();
+        $languageIso = $wpmlPlugin->convertLanguageToWawi($languageCode);
+
         $updatedAttributeKeys = [];
-        $languageIso          = $this->getCurrentPlugin()->convertLanguageToWawi($languageCode);
-        if ($wcProduct instanceof \WC_Product) {
-            foreach ($pushedVariations as $variation) {
-                foreach ($variation->getValues() as $variationValue) {
-                    foreach ($variation->getI18ns() as $variationI18n) {
-                        if ($this->getCurrentPlugin()->isDefaultLanguage($variationI18n->getLanguageISO())) {
+
+        foreach ($pushedVariations as $variation) {
+            foreach ($variation->getValues() as $variationValue) {
+                foreach ($variation->getI18ns() as $variationI18n) {
+                    if ($wpmlPlugin->isDefaultLanguage($variationI18n->getLanguageISO())) {
+                        continue;
+                    }
+
+                    foreach ($variationValue->getI18ns() as $i18n) {
+                        if ($languageIso !== $i18n->getLanguageISO()) {
                             continue;
                         }
 
-                        foreach ($variationValue->getI18ns() as $i18n) {
-                            if ($languageIso !== $i18n->getLanguageISO()) {
-                                continue;
-                            }
-
-                            $metaKey                = (new Util($this->getPluginsManager()->getDatabase()))
-                                ->createVariantTaxonomyName($variationI18n->getName());
-                            $updatedAttributeKeys[] = $metaKey;
-                            \update_post_meta(
-                                $wcProduct->get_id(),
-                                $metaKey,
-                                \wc_sanitize_taxonomy_name($i18n->getName())
-                            );
-                        }
+                        $metaKey                = (new Util($this->getPluginsManager()->getDatabase()))
+                            ->createVariantTaxonomyName($variationI18n->getName());
+                        $updatedAttributeKeys[] = $metaKey;
+                        \update_post_meta(
+                            $wcProduct->get_id(),
+                            $metaKey,
+                            \wc_sanitize_taxonomy_name($i18n->getName())
+                        );
                     }
                 }
             }
@@ -121,12 +137,17 @@ class WpmlProductVariation extends AbstractComponent
     /**
      * @param ProductVariationValue $productVariationValue
      * @param \WP_Term $term
+     * @throws Exception
      */
-    public function getValueTranslations(ProductVariationValue $productVariationValue, \WP_Term $term)
+    public function getValueTranslations(ProductVariationValue $productVariationValue, \WP_Term $term): void
     {
-        $termTranslations = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WpmlTermTranslation $termTranslations */
+        $termTranslations = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
         $elementType      = $term->taxonomy;
-        $trid             = $this->getCurrentPlugin()->getElementTrid($term->term_taxonomy_id, 'tax_' . $elementType);
+        $trid             = $wpmlPlugin->getElementTrid($term->term_taxonomy_id, 'tax_' . $elementType);
 
         $translations = $termTranslations->getTranslations($trid, $elementType);
         foreach ($translations as $wpmlLanguageCode => $translation) {
@@ -136,36 +157,41 @@ class WpmlProductVariation extends AbstractComponent
                 $productVariationValue->addI18n(
                     (new ProductVariationValueI18nModel())
                         ->setName($translatedTerm['name'])
-                        ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode))
+                        ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode))
                 );
             }
         }
     }
 
     /**
-     * @param \WC_Product $product
+     * @param WC_Product $product
      * @param string $slug
      * @param ProductVariationValue $variationValue
      * @param int $sort
+     * @throws Exception
      */
     public function getOptionTranslations(
-        \WC_Product $product,
+        WC_Product $product,
         string $slug,
         ProductVariationValue $variationValue,
         int $sort
     ): void {
-        $translatedProducts = $this->getCurrentPlugin()->getComponent(WpmlProduct::class)
-            ->getWooCommerceProductTranslations($product);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WpmlProduct $wpmlProduct */
+        $wpmlProduct        = $wpmlPlugin->getComponent(WpmlProduct::class);
+        $translatedProducts = $wpmlProduct->getWooCommerceProductTranslations($product);
+
         foreach ($translatedProducts as $wpmlLanguageCode => $translatedProduct) {
-            $translatedAttribute = $this->getCurrentPlugin()
-                ->getComponent(WpmlProduct::class)
+            $translatedAttribute = $wpmlProduct
                 ->getWooCommerceProductTranslatedAttributeBySlug($translatedProduct, $slug);
 
             if (!\is_null($translatedAttribute)) {
                 $translatedOptions = $translatedAttribute->get_options();
                 $variationValue->addI18n((new ProductVariationValueI18nModel())
                     ->setName($translatedOptions[$sort])
-                    ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode)));
+                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)));
             }
         }
     }

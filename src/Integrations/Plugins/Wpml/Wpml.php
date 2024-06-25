@@ -22,7 +22,7 @@ class Wpml extends AbstractPlugin
     /**
      * @var Db
      */
-    protected $database;
+    protected Db $database;
 
     /**
      * @return bool

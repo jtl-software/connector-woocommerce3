@@ -116,6 +116,7 @@ class WooCommerceProduct extends AbstractComponent
             ->setShortDescription(\html_entity_decode($wcProduct->get_short_description()))
             ->setUrlPath($wcProduct->get_slug());
 
+        /** @var Germanized $germanized */
         $germanized = $this->getPluginsManager()->get(Germanized::class);
         if ($germanized->canBeUsed() && $germanized->hasUnitProduct($wcProduct)) {
             $i18n->setMeasurementUnitName($germanized->getUnit($wcProduct));

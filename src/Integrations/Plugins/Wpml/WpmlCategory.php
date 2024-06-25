@@ -34,12 +34,14 @@ class WpmlCategory extends AbstractComponent
         array $wooCommerceMainCategory,
         Identity $parentCategoryId
     ): void {
-        $trid = (int)$this->getCurrentPlugin()
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $trid       = $wpmlPlugin
             ->getElementTrid((int)$wooCommerceMainCategory['term_taxonomy_id'], self::PRODUCT_CATEGORY_TYPE);
 
         foreach ($jtlCategory->getI18ns() as $categoryI18n) {
-            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($categoryI18n->getLanguageISO());
-            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($categoryI18n->getLanguageISO());
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
             }
 
@@ -49,19 +51,22 @@ class WpmlCategory extends AbstractComponent
                 $categoryId = (int)$categoryTerm['term_id'];
             }
 
-            $result = $this->getCurrentPlugin()
+            /** @var WooCommerceCategory $wooCommerceCategory */
+            $wooCommerceCategory = $wpmlPlugin
                 ->getPluginsManager()
                 ->get(WooCommerce::class)
-                ->getComponent(WooCommerceCategory::class)
+                ->getComponent(WooCommerceCategory::class);
+
+            $result = $wooCommerceCategory
                 ->saveWooCommerceCategory($categoryI18n, $parentCategoryId, $categoryId);
 
             if (!empty($result)) {
                 $categoryId = (int) $result['term_id'];
 
                 /** @var YoastSeo $yoastSeo */
-                $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
+                $yoastSeo = $wpmlPlugin->getPluginsManager()->get(YoastSeo::class);
                 /** @var RankMathSeo $rankMathSeo */
-                $rankMathSeo = $this->getCurrentPlugin()->getPluginsManager()->get(RankMathSeo::class);
+                $rankMathSeo = $wpmlPlugin->getPluginsManager()->get(RankMathSeo::class);
 
                 if ($yoastSeo->canBeUsed()) {
                     $yoastSeo->setCategorySeoData($categoryId, $categoryI18n);
@@ -69,7 +74,7 @@ class WpmlCategory extends AbstractComponent
                     $rankMathSeo->updateWpSeoTaxonomyMeta($categoryId, $categoryI18n);
                 }
 
-                $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
+                $wpmlPlugin->getSitepress()->set_element_language_details(
                     (int) $result['term_taxonomy_id'],
                     self::PRODUCT_CATEGORY_TYPE,
                     $trid,
@@ -86,16 +91,15 @@ class WpmlCategory extends AbstractComponent
      */
     protected function findCategoryTranslation(int $trid, string $languageCode): array
     {
-        $categoryTranslation = $this
-            ->getCurrentPlugin()
-            ->getComponent(WpmlTermTranslation::class)
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
+        $categoryTranslation = $wpmlTermTranslation
             ->getTranslations($trid, self::PRODUCT_CATEGORY_TYPE, false);
 
         $translation = [];
         if (isset($categoryTranslation[$languageCode])) {
             $translationData = $categoryTranslation[$languageCode];
-            $translation     = $this->getCurrentPlugin()
-                ->getComponent(WpmlTermTranslation::class)
+            $translation     = $wpmlTermTranslation
                 ->getTranslatedTerm($translationData->term_id, 'product_cat');
         }
         return $translation;
@@ -110,7 +114,9 @@ class WpmlCategory extends AbstractComponent
     {
         $this->fillCategoryLevelTable();
 
-        $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin  = $this->getCurrentPlugin();
+        $tablePrefix = $wpmlPlugin->getWpDb()->prefix;
 
         $sql = \sprintf("SELECT 
             tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*
@@ -130,7 +136,7 @@ class WpmlCategory extends AbstractComponent
                 AND l.host_id IS NULL
                 AND wpmlt.language_code = '%s'
         ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
-        LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $this->getCurrentPlugin()->getDefaultLanguage(), $limit);
+        LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $wpmlPlugin->getDefaultLanguage(), $limit);
 
 
         return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
@@ -142,13 +148,15 @@ class WpmlCategory extends AbstractComponent
      */
     public function getStats(): int
     {
-        $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin  = $this->getCurrentPlugin();
+        $tablePrefix = $wpmlPlugin->getWpDb()->prefix;
 
         $sql = \sprintf("SELECT 
                 COUNT(tt.term_id)        
-                FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
+                FROM `{$wpmlPlugin->getWpDb()->terms}` t
                     LEFT JOIN 
-                `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
+                `{$wpmlPlugin->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
                     LEFT JOIN
                 `%sjtl_connector_category_level` cl ON tt.term_id = cl.category_id
                     LEFT JOIN
@@ -162,7 +170,7 @@ class WpmlCategory extends AbstractComponent
                     AND l.host_id IS NULL
                     AND wpmlt.language_code = '%s'
             ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
-            ", $tablePrefix, $tablePrefix, $tablePrefix, $this->getCurrentPlugin()->getDefaultLanguage());
+            ", $tablePrefix, $tablePrefix, $tablePrefix, $wpmlPlugin->getDefaultLanguage());
 
         return (int)$this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryOne($sql);
     }
@@ -174,13 +182,16 @@ class WpmlCategory extends AbstractComponent
      */
     protected function fillCategoryLevelTable(array $parentIds = null, int $level = 0): void
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
         $where = ' AND tt.parent = 0';
         $db    = $this->getPluginsManager()->getDatabase();
 
         if ($parentIds === null) {
             $db->query(\sprintf(
                 'TRUNCATE TABLE `%s%s`',
-                $this->getCurrentPlugin()->getWpDb()->prefix,
+                $wpmlPlugin->getWpDb()->prefix,
                 CategoryUtil::LEVEL_TABLE
             ));
         } else {
@@ -204,9 +215,9 @@ class WpmlCategory extends AbstractComponent
               AND wpmlt.source_language_code IS NULL
               AND wpmlt.language_code = '%s'
             ORDER BY tt.parent ASC, sort ASC, t.name ASC",
-                $this->getCurrentPlugin()->getWpDb()->prefix,
+                $wpmlPlugin->getWpDb()->prefix,
                 CategoryUtil::TERM_TAXONOMY,
-                $this->getCurrentPlugin()->getDefaultLanguage()
+                $wpmlPlugin->getDefaultLanguage()
             )
         );
 

@@ -21,8 +21,11 @@ class WpmlLanguage extends AbstractComponent
     {
         $jtlLanguages = [];
 
-        $defaultLanguage = $this->plugin->getDefaultLanguage();
-        $activeLanguages = $this->plugin->getActiveLanguages();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->plugin;
+
+        $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
+        $activeLanguages = $wpmlPlugin->getActiveLanguages();
 
         foreach ($activeLanguages as $activeLanguage) {
             $jtlLanguages[] = (new Language())

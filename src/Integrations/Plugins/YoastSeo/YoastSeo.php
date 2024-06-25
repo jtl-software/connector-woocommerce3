@@ -19,7 +19,7 @@ class YoastSeo extends AbstractPlugin
     /**
      * @var null|bool|array
      */
-    protected $wpSeoTaxonomyMeta;
+    protected array|bool|null $wpSeoTaxonomyMeta;
 
     /**
      * @return bool

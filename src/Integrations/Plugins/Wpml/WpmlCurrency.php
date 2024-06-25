@@ -5,6 +5,8 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 use Jtl\Connector\Core\Model\Currency as CurrencyModel;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use Psr\Log\InvalidArgumentException;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlCurrency
@@ -14,19 +16,26 @@ class WpmlCurrency extends AbstractComponent
 {
     /**
      * @return bool
+     * @throws InvalidArgumentException
      */
     public function canUseMultiCurrency(): bool
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->plugin;
+
         return (bool)($this->plugin->canBeUsed() &&
-            $this->plugin->isMultiCurrencyEnabled());
+            $wpmlPlugin->isMultiCurrencyEnabled());
     }
 
     /**
      * @return CurrencyModel[]
+     * @throws InjectionException
      */
     public function getCurrencies(): array
     {
-        $wcml       = $this->plugin->getWcml();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->plugin;
+        $wcml       = $wpmlPlugin->getWcml();
         $currencies = $wcml->get_multi_currency()->get_currencies(true);
 
         $defaultCurrencyIso = $wcml->get_multi_currency()->get_default_currency();
@@ -51,13 +60,16 @@ class WpmlCurrency extends AbstractComponent
     /**
      * @param CurrencyModel ...$jtlCurrencies
      * @return array
+     * @throws InjectionException
      */
     public function setCurrencies(CurrencyModel ...$jtlCurrencies): array
     {
-        $wcml = $this->plugin->getWcml();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->plugin;
+        $wcml       = $wpmlPlugin->getWcml();
         $wcml->get_multi_currency()->enable();
 
-        $activeLanguages = $this->plugin->getActiveLanguages();
+        $activeLanguages = $wpmlPlugin->getActiveLanguages();
         $languages       = [];
         foreach ($activeLanguages as $activeLanguage) {
             $languages[$activeLanguage['code']] = 1;

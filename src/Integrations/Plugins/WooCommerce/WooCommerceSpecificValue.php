@@ -68,14 +68,18 @@ class WooCommerceSpecificValue extends AbstractComponent
             $termId = $newTerm['term_id'];
         } elseif (\is_null($exValId) && $endValId !== 0) {
             $wpml = $this->getPluginsManager()->get(Wpml::class);
+
+            /** @var WpmlTermTranslation $wpmlTermTranslation */
+            $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
             $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         } else {
             $termId = $exValId;

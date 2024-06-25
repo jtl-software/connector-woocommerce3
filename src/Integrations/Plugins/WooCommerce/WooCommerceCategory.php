@@ -102,14 +102,18 @@ class WooCommerceCategory extends AbstractComponent
                 $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
             }
             $wpml = $this->getCurrentPlugin()->getPluginsManager()->get(Wpml::class);
+
+            /** @var WpmlTermTranslation $wpmlTermTranslation */
+            $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         }
         \add_filter('pre_term_description', 'wp_filter_kses');

@@ -19,15 +19,15 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function getTranslations(int $trid, string $elementType, bool $withoutDefaultTranslation = true): array
     {
-        /** @var Wpml $currentPlugin */
-        $currentPlugin = $this->getCurrentPlugin();
-        $translations  = $currentPlugin->getSitepress()->get_element_translations($trid, $elementType);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $translations = $wpmlPlugin->getSitepress()->get_element_translations($trid, $elementType);
 
         if (
             $withoutDefaultTranslation === true
-            && isset($translations[$currentPlugin->getDefaultLanguage()])
+            && isset($translations[$wpmlPlugin->getDefaultLanguage()])
         ) {
-            unset($translations[$currentPlugin->getDefaultLanguage()]);
+            unset($translations[$wpmlPlugin->getDefaultLanguage()]);
         }
         return \is_array($translations) ? $translations : [];
     }
@@ -61,12 +61,12 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function disableGetTermAdjustId(): bool
     {
-        /** @var Wpml $currentPlugin */
-        $currentPlugin = $this->getCurrentPlugin();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
 
-        return \remove_filter('get_terms_args', [$currentPlugin->getSitepress(), 'get_terms_args_filter']) &&
-            \remove_filter('get_term', [$currentPlugin->getSitepress(), 'get_term_adjust_id'], 1) &&
-            \remove_filter('terms_clauses', [$currentPlugin->getSitepress(), 'terms_clauses']);
+        return \remove_filter('get_terms_args', [$wpmlPlugin->getSitepress(), 'get_terms_args_filter']) &&
+            \remove_filter('get_term', [$wpmlPlugin->getSitepress(), 'get_term_adjust_id'], 1) &&
+            \remove_filter('terms_clauses', [$wpmlPlugin->getSitepress(), 'terms_clauses']);
     }
 
     /**
@@ -74,11 +74,11 @@ class WpmlTermTranslation extends AbstractComponent
      */
     public function enableGetTermAdjustId(): bool
     {
-        /** @var Wpml $currentPlugin */
-        $currentPlugin = $this->getCurrentPlugin();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
 
-        return \add_filter('terms_clauses', [$currentPlugin->getSitepress(), 'terms_clauses'], 10, 4) &&
-            \add_filter('get_term', [$currentPlugin->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
-            \add_filter('get_terms_args', [$currentPlugin->getSitepress(), 'get_terms_args_filter'], 10, 2);
+        return \add_filter('terms_clauses', [$wpmlPlugin->getSitepress(), 'terms_clauses'], 10, 4) &&
+            \add_filter('get_term', [$wpmlPlugin->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
+            \add_filter('get_terms_args', [$wpmlPlugin->getSitepress(), 'get_terms_args_filter'], 10, 2);
     }
 }
