@@ -75,10 +75,6 @@ class B2BMarket extends WordpressUtils
         $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pull();
         $customerGroupsIds = \array_values(
             \array_map(static function (\Jtl\Connector\Core\Model\CustomerGroup $customerGroup) {
-                if ($customerGroup->getId() === null) {
-                    return '';
-                }
-
                 return $customerGroup->getId()->getEndpoint();
             }, $customerGroups)
         );

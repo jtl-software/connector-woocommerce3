@@ -25,6 +25,7 @@ class ProductPrice extends AbstractBaseController
      * @param ProductModel $model
      * @return array
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
     {

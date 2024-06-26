@@ -38,7 +38,6 @@ class Db implements LoggerAwareInterface
         $this->logger = $logger;
     }
 
-
     /**
      * Run a plain SQL query on the database.
      *

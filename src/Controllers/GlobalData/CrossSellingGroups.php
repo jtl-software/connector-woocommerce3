@@ -19,6 +19,7 @@ class CrossSellingGroups extends AbstractBaseController
      */
     public function pull(): array
     {
+        /** @var CrossSellingGroup[] $crossSellingGroups */
         $crossSellingGroups = CrossSellingGroup::all($this->util);
 
         if ($this->wpml->canBeUsed()) {

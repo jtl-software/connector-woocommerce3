@@ -152,7 +152,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
         );
 
         if (\in_array($type, self::getImageIdentityTypes(), true)) {
-            list($endpointId, $imageType) = Id::unlinkImage($endpointId);
+            list($endpointId, $imageType) = Id::unlinkImage($endpointId) ?? ['', '0'];
             $id                           = $this->db->query(
                 SqlHelper::primaryKeyMappingSaveImage((string)$endpointId, $hostId, (int)$imageType),
                 false

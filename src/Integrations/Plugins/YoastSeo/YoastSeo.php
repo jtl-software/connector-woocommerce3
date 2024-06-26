@@ -17,7 +17,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 class YoastSeo extends AbstractPlugin
 {
     /**
-     * @var null|bool|array
+     * @var null|bool|array<int, bool|null|string>
      */
     protected array|bool|null $wpSeoTaxonomyMeta;
 
@@ -182,9 +182,9 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @return array|bool|mixed|void|null
+     * @return array<int, bool|null|string>|bool|null
      */
-    protected function getSeoTaxonomyMeta()
+    protected function getSeoTaxonomyMeta(): array|bool|null
     {
         if (!isset($this->wpSeoTaxonomyMeta)) {
             $this->wpSeoTaxonomyMeta = \get_option('wpseo_taxonomy_meta', []);
