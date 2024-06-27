@@ -255,7 +255,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 \wc_format_decimal($salePrice, $pd),
                                 \get_post_meta($productId, $priceMetaKey, true)
                             );
-                        } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                        } elseif (
+                            '' !== $salePrice
+                            && $dateFrom <= $current_time
+                            && ($current_time <= $dateTo || $dateTo == '')
+                        ) {
                             \update_post_meta(
                                 $productId,
                                 $priceMetaKey,
@@ -394,7 +398,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                                         );
                                     }
                                 }
-                            } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                            } elseif (
+                                '' !== $salePrice
+                                && $dateFrom <= $current_time
+                                && ($current_time <= $dateTo || $dateTo == '')
+                            ) {
                                 \update_post_meta(
                                     $productId,
                                     $priceMetaKey,
