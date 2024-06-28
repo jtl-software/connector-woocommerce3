@@ -19,39 +19,124 @@ include:
   - project: 'connector/connector-utils/CI-Templates'
     file:
       - 'auto-create-mr/ci.yaml'
-      - 'code-quality/ci.yaml'
       - 'update-changelog/ci.yaml'
 
 stages:
   - createMR
-  - test
   - build
+  - test
   - deploy
   - extract-changelog
   - update-changelog
 
+
+build:vendor:
+  stage: build
+  script:
+    - composer install --no-progress --no-interaction
+  cache:
+    key:
+      files:
+        - composer.json
+    paths:
+      - vendor/
+      - .composer-cache
+  artifacts:
+    paths:
+      - vendor/
+
+build:vendor:no-dev:
+  stage: build
+  script:
+    - composer install --no-progress --no-interaction --no-dev
+  cache:
+    key:
+      files:
+        - composer.json
+    paths:
+      - vendor/
+      - .composer-cache
+  artifacts:
+    paths:
+      - vendor/
+
+
+random_files:
+  image: alpine:latest
+  stage: test
+  needs: []
+  script:
+    - >-
+      if [ `find . \( -name .idea -o -name .code -o -name .DS_Store \) -not -path "./vendor/*"` ] ; then
+        echo "Found .idea, .code or .DS_Store. Please remove them from your project.";
+        exit 1
+      fi
+
 code_quality:
-  before_script: []
+  stage: test
+  needs:
+    - build:vendor
+  script:
+    - composer run phpcs:ci
+  artifacts:
+    paths:
+      - phpcs-quality-report.json
+    when: always
+
+phpstan:
+  stage: test
+  needs:
+    - build:vendor
+  script:
+    - composer run phpstan:ci
+  artifacts:
+    paths:
+      - phpstan-quality-report.json
+    when: always
+
+combine_reports:
+  stage: test
+  needs:
+    - code_quality
+    - phpstan
+  when: always
+  script:
+    - >-
+      if [[ -f phpcs-quality-report.json ]] && [[ -f phpstan-quality-report.json ]]; then
+        jq -s 'add' phpcs-quality-report.json phpstan-quality-report.json > codeclimate-quality-report.json;
+      elif [[ -f phpcs-quality-report.json ]]; then
+        mv phpcs-quality-report.json codeclimate-quality-report.json;
+      elif [[ -f phpstan-quality-report.json ]]; then
+        mv phpstan-quality-report.json codeclimate-quality-report.json;
+      fi
+  artifacts:
+    reports:
+      codequality: codeclimate-quality-report.json
+    when: always
 
 test:unit:
   parallel:
     matrix:
       - BASE: 'php'
-        VERSION: [ '8.0', '8.1', '8.2' ] # no image for 8.3 yet
+        VERSION: [ '8.0', '8.1', '8.2', '8.3' ] # no image for 8.3 yet
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
+  needs:
+    - build:vendor
   script:
-    - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+    - composer run tests:ci
   artifacts:
     reports:
-      junit: junit.xml
+      junit: phpunit.xml
+    when: always
 
-build:
+build:dist:
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   stage: build
   variables:
     VERSION: dev
-  dependencies: []
+  needs:
+    - build:vendor:no-dev
   rules:
     - if: $CI_COMMIT_TAG
       variables:
@@ -61,7 +146,6 @@ build:
       when: never
     - when: on_success
   script:
-    - composer update --no-dev --optimize-autoloader --no-progress
     - php ./phing.phar build -Dversion=${VERSION} -Dtmpdir=.
   artifacts:
     paths:
@@ -72,7 +156,8 @@ build:zip:
   stage: build
   variables:
     VERSION: dev
-  dependencies: []
+  needs:
+    - build:vendor:no-dev
   rules:
     - if: $CI_COMMIT_TAG
       variables:
@@ -82,7 +167,6 @@ build:zip:
       when: never
     - when: on_success
   script:
-    - composer update --no-dev --optimize-autoloader --no-progress
     - php ./phing.phar release -Dversion=${VERSION}
   artifacts:
     expose_as: 'build'
@@ -101,8 +185,8 @@ deploy:
         VERSION: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
-  dependencies:
-    - build
+  needs:
+    - build:dist
   script:
     - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector --depth immediates
     - svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" https://plugins.svn.wordpress.org/woo-jtl-connector/trunk woo-jtl-connector/trunk/ --depth infinity
