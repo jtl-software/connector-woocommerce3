@@ -7,8 +7,6 @@ default:
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   tags:
     - docker
-  before_script:
-    - composer update --no-interaction --no-progress
   cache:
     key: vendor
     paths:
