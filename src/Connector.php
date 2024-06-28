@@ -41,19 +41,10 @@ use Symfony\Component\Yaml\Exception\ParseException;
 
 class Connector implements ConnectorInterface, UseChecksumInterface, HandleRequestInterface
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
-    /**
-     * @var LoggerService
-     */
     protected LoggerService $loggerService;
 
-    /**
-     * @var SqlHelper
-     */
     protected SqlHelper $sqlHelper;
 
     /**
@@ -74,7 +65,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
         $dispatcher->addListener(Event::createRpcEventName(
             Event::BEFORE
-        ), static function (RpcEvent $event) use ($config) {
+        ), static function (RpcEvent $event) use ($config): void {
             if ($event->getController() === 'Connector' && $event->getAction() === 'auth') {
                 \JtlConnectorAdmin::loadFeaturesJson($config->get(ConfigSchema::FEATURES_PATH));
             }
@@ -85,7 +76,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             Controller::CONNECTOR,
             Action::FINISH,
             Event::AFTER
-        ), static function (BoolEvent $event) use ($db, $util) {
+        ), static function (BoolEvent $event) use ($db, $util): void {
             if (Config::get(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
                 (new CategoryUtil($db))->saveCategoryLevelsAsPreOrder();
                 \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no');
@@ -145,7 +136,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
      * This method allows main entities to be added by plugins.
      *
      * @param EventDispatcher $eventDispatcher
-     * @param Request $request
+     * @param Request         $request
      * @return Response
      */
     public function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -17,6 +19,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Controllers
  */
 class CrossSellingController extends AbstractBaseController implements
@@ -197,7 +200,7 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param CrossSellingModel $crossSelling
+     * @param CrossSellingModel           $crossSelling
      * @param $crossSellingGroupEndpointId
      * @return array
      */

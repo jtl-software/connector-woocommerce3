@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
@@ -13,7 +15,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
@@ -23,7 +25,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function setRRPProperty(ProductModel &$product, WC_Product $wcProduct): void
@@ -54,7 +56,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -89,7 +91,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param $quantityObject
-     * @param WC_Product $wcProduct
+     * @param WC_Product     $wcProduct
      * @param $groupSlug
      * @return void
      */
@@ -113,7 +115,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function updateRRP(ProductModel $product, WC_Product $wcProduct): void
@@ -157,7 +159,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function updateSpecialPrices(ProductModel $product, WC_Product $wcProduct): void

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -190,7 +192,7 @@ class ManufacturerController extends AbstractBaseController implements
                 );
 
                 if ($newTerm instanceof WP_Error) {
-                    //  var_dump($newTerm);
+                    // var_dump($newTerm);
                     // die();
                     $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
                     $this->logger->error(ErrorFormatter::formatError($error));

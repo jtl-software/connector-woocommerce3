@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
 use Jtl\Connector\Core\Model\Product;
@@ -14,14 +16,15 @@ use JtlWooCommerceConnector\Utilities\Config;
 
 /**
  * Class WooCommerceProduct
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceProduct extends AbstractComponent
 {
     /**
-     * @param int $wcProductId
-     * @param string $masterProductId
-     * @param Product $product
+     * @param int              $wcProductId
+     * @param string           $masterProductId
+     * @param Product          $product
      * @param ProductI18nModel $defaultI18n
      * @return int|null
      * @throws \Exception
@@ -80,11 +83,11 @@ class WooCommerceProduct extends AbstractComponent
 
     /**
      * @param DateTime $creationDate
-     * @param bool $gmt
+     * @param bool     $gmt
      * @return string|null
      * @throws \Exception
      */
-    private function getCreationDate(DateTime $creationDate, $gmt = false): ?string
+    private function getCreationDate(DateTime $creationDate, bool $gmt = false): ?string
     {
         if (\is_null($creationDate)) {
             return null;
@@ -102,8 +105,8 @@ class WooCommerceProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @param Product $jtlProduct
-     * @param string $languageIso
+     * @param Product     $jtlProduct
+     * @param string      $languageIso
      * @return ProductI18nModel
      * @throws \Exception
      */

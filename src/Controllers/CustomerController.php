@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;

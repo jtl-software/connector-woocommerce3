@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -10,6 +12,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlUtils;
 
 /**
  * Class WpmlLanguageTest
+ *
  * @package JtlWooCommerceConnector\Tests\Wpml
  */
 class WpmlLanguageTest extends TestCase
@@ -18,7 +21,7 @@ class WpmlLanguageTest extends TestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    public function testGetLanguages()
+    public function testGetLanguages(): void
     {
         $util = \Mockery::mock("alias:" . Util::class);
         $util->shouldReceive('mapLanguageIso')->andReturn(

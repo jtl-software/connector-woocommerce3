@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -21,7 +23,7 @@ class ProductPrice extends AbstractBaseController
     public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
      * @return array
      * @throws \InvalidArgumentException
@@ -109,8 +111,8 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductModel $model
-     * @param WC_Product $wcProduct
-     * @param string $groupSlug
+     * @param WC_Product   $wcProduct
+     * @param string       $groupSlug
      * @return float|null
      */
     protected function getB2BMarketCustomerGroupPrice(
@@ -166,8 +168,8 @@ class ProductPrice extends AbstractBaseController
      * @param $items
      * @param CustomerGroupModel $customerGroup
      * @param $groupSlug
-     * @param WC_Product $product
-     * @param ProductModel $model
+     * @param WC_Product         $product
+     * @param ProductModel       $model
      * @return mixed
      */
     private function getBulkPrices(
@@ -263,9 +265,9 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param float $vat
-     * @param string $productType
+     * @param WC_Product        $wcProduct
+     * @param float             $vat
+     * @param string            $productType
      * @param ProductPriceModel ...$productPrices
      * @return void
      * @throws \InvalidArgumentException
@@ -286,9 +288,9 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array $groupedProductPrices
-     * @param float $vat
-     * @param string $productType
+     * @param array      $groupedProductPrices
+     * @param float      $vat
+     * @param string     $productType
      * @return void
      * @throws InvalidArgumentException
      */
@@ -406,10 +408,10 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param \WP_Post $customerGroup
-     * @param string $productType
+     * @param \WP_Post   $customerGroup
+     * @param string     $productType
      * @param WC_Product $wcProduct
-     * @param float $regularPrice
+     * @param float      $regularPrice
      * @return void
      */
     public function updateB2BMarketCustomerGroupPrice(
@@ -511,8 +513,8 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceItemModel $item
-     * @param int $productId
-     * @param float $vat
+     * @param int                   $productId
+     * @param float                 $vat
      * @return void
      */
     protected function updateDefaultProductPrice(ProductPriceItemModel $item, int $productId, float $vat): void
@@ -548,11 +550,11 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceItemModel $item
-     * @param float $vat
-     * @param int|null $pd
+     * @param float                 $vat
+     * @param int|null              $pd
      * @return float
      */
-    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd = null): float
+    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, ?int $pd = null): float
     {
         if ($this->isWcPricesIncludeTax()) {
             $regularPrice = $item->getNetPrice() * (1 + $vat / 100);

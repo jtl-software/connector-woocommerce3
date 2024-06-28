@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
@@ -45,9 +47,7 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_IMAGE     = 'category';
     public const MANUFACTURER_IMAGE = 'manufacturer';
 
-    /**
-     * @var array<int, string|array<int, string>>
-     */
+    /** @var array<int, string|array<int, string>> */
     private array $alreadyLinked = [];
 
     protected PrimaryKeyMapperInterface $primaryKeyMapper;
@@ -90,8 +90,8 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $images
-     * @param int $type
-     * @param int $limit
+     * @param int    $type
+     * @param int    $limit
      * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -124,7 +124,7 @@ class ImageController extends AbstractBaseController implements
             $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl( isset($imgSrc[0]) ? (string)$imgSrc[0] : (string)$image['guid'])
+                ->setRemoteUrl(isset($imgSrc[0]) ? (string)$imgSrc[0] : (string)$image['guid'])
                 ->setSort((int)$image['sort'])
                 ->setFilename((string)\wc_get_filename_from_url($image['guid']));
 
@@ -156,7 +156,7 @@ class ImageController extends AbstractBaseController implements
      * @return array The image entities.
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function productImagePull(int $limit = null): array
+    private function productImagePull(?int $limit = null): array
     {
         $imageCount  = 0;
         $attachments = [];
@@ -253,7 +253,7 @@ class ImageController extends AbstractBaseController implements
      * Filter out images that are already linked and get image information.
      *
      * @param array $attachmentIds The image ids that should be checked.
-     * @param int $postId The product which is owner of the images.
+     * @param int   $postId        The product which is owner of the images.
      *
      * @return array The filtered image data.
      * @throws \Psr\Log\InvalidArgumentException
@@ -266,7 +266,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $attachmentIds
-     * @param int $productId
+     * @param int           $productId
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -586,7 +586,7 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param int $newEndpointId
+     * @param int           $newEndpointId
      * @param AbstractImage $image
      * @return void
      * @throws Exception
@@ -794,7 +794,7 @@ class ImageController extends AbstractBaseController implements
     // <editor-fold defaultstate="collapsed" desc="Delete">
     /**
      * @param AbstractImage $model
-     * @param bool $realDelete
+     * @param bool          $realDelete
      * @return AbstractModel
      * @throws Exception
      */

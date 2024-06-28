@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
@@ -15,8 +17,8 @@ class ProductSpecificController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel $model
-     * @param \WC_Product $product
+     * @param ProductModel         $model
+     * @param \WC_Product          $product
      * @param WC_Product_Attribute $attribute
      * @param $slug
      * @return array
@@ -49,9 +51,9 @@ class ProductSpecificController extends AbstractBaseController
     /**
      * @param $productId
      * @param $curAttributes
-     * @param array $specificData
-     * @param array $pushedJtlSpecifics
-     * @param array $pushedJtlAttributes
+     * @param array         $specificData
+     * @param array         $pushedJtlSpecifics
+     * @param array         $pushedJtlAttributes
      * @return array
      * @throws TranslatableAttributeException
      */

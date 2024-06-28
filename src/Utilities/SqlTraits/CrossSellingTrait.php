@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -11,6 +13,7 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 /**
  * Trait CrossSellingTrait
+ *
  * @package JtlWooCommerceConnector\Utilities\SqlTraits
  */
 trait CrossSellingTrait

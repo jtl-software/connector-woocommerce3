@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
     use Jtl\Connector\Core\Model\ProductI18n;
@@ -13,7 +15,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         /**
          * @dataProvider hasWcAttributePrefixDataProvider
          * @param string $attributeName
-         * @param bool $expectedResult
+         * @param bool   $expectedResult
          * @return void
          * @throws \ReflectionException
          */
@@ -67,7 +69,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         /**
          * @dataProvider updateProductVisibilityDataProvider
          * @param string $visibilityType
-         * @param array $expectedVisibilityArray
+         * @param array  $expectedVisibilityArray
          * @return void
          * @throws \ReflectionException
          * @throws RuntimeException

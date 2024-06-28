@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
@@ -155,7 +157,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
-     * @param \WC_Order $order
+     * @param \WC_Order          $order
      * @param CustomerOrderModel $customerOrder
      * @return void
      */
@@ -245,7 +247,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
     /**
      * @param CustomerOrderModel $customerOrder
-     * @param array $dhlPreferredDeliveryOptions
+     * @param array              $dhlPreferredDeliveryOptions
      * @return void
      */
     protected function setPreferredDeliveryOptions(

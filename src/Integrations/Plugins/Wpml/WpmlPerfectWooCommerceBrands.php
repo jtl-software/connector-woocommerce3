@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\Manufacturer;
@@ -11,6 +13,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WpmlPerfectWooCommerceBrands
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlPerfectWooCommerceBrands extends AbstractComponent

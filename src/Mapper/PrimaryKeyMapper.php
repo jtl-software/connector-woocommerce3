@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Mapper;
 
 use InvalidArgumentException;
@@ -13,23 +15,15 @@ use Psr\Log\NullLogger;
 
 class PrimaryKeyMapper implements PrimaryKeyMapperInterface
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
-    /**
-     * @var LoggerInterface
-     */
+    /** @var LoggerInterface */
     protected LoggerInterface|NullLogger $logger;
 
-    /**
-     * @var SqlHelper
-     */
     protected SqlHelper $sqlHelper;
 
     /**
-     * @param Db $db
+     * @param Db        $db
      * @param SqlHelper $sqlHelper
      */
     public function __construct(Db $db, SqlHelper $sqlHelper)
@@ -106,21 +100,21 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             return null;
         }
 
-//        if ($type === IdentityType::TYPE_IMAGE) {
-//            switch ($relationType) {
-//                case ImageRelationType::TYPE_PRODUCT:
-//                    $relationType = IdentityLinker::TYPE_PRODUCT;
-//                    break;
-//                case ImageRelationType::TYPE_CATEGORY:
-//                    $relationType = IdentityLinker::TYPE_CATEGORY;
-//                    break;
-//                case ImageRelationType::TYPE_MANUFACTURER:
-//                    $relationType = IdentityLinker::TYPE_MANUFACTURER;
-//                    break;
-//            }
+// if ($type === IdentityType::TYPE_IMAGE) {
+// switch ($relationType) {
+// case ImageRelationType::TYPE_PRODUCT:
+// $relationType = IdentityLinker::TYPE_PRODUCT;
+// break;
+// case ImageRelationType::TYPE_CATEGORY:
+// $relationType = IdentityLinker::TYPE_CATEGORY;
+// break;
+// case ImageRelationType::TYPE_MANUFACTURER:
+// $relationType = IdentityLinker::TYPE_MANUFACTURER;
+// break;
+// }
 //
-//            $clause = "AND type = {$relationType}";
-//        }
+// $clause = "AND type = {$relationType}";
+// }
 
         $endpointId = $this->db->queryOne(
             $this->getSqlHelper()->primaryKeyMappingEndpoint($hostId, $tableName, $clause),
@@ -133,9 +127,9 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param int $type
+     * @param int    $type
      * @param string $endpointId
-     * @param int $hostId
+     * @param int    $hostId
      * @return bool
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -179,13 +173,13 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
     }
 
     /**
-     * @param int $type
+     * @param int         $type
      * @param string|null $endpointId
-     * @param int|null $hostId
+     * @param int|null    $hostId
      * @return bool
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function delete(int $type, string $endpointId = null, int $hostId = null): bool
+    public function delete(int $type, ?string $endpointId = null, ?int $hostId = null): bool
     {
         $where     = '';
         $tableName = self::getTableName($type);
@@ -219,7 +213,7 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
      * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function clear(int $type = null): bool
+    public function clear(?int $type = null): bool
     {
         $this->logger->debug('Clearing linking tables');
 
@@ -253,7 +247,8 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
                 return 'jtl_connector_link_crossselling';
             case IdentityType::CROSS_SELLING_GROUP:
                 return 'jtl_connector_link_crossselling_group';
-            /* case IdentityLinker::TYPE_CURRENCY:
+            /*
+                case IdentityLinker::TYPE_CURRENCY:
                  return 'jtl_connector_link_currency';*/
             case IdentityType::CUSTOMER:
                 return 'jtl_connector_link_customer';
@@ -267,11 +262,13 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             case IdentityType::CATEGORY_IMAGE:
             case IdentityType::PRODUCT_IMAGE:
                 return 'jtl_connector_link_image';
-            /*case IdentityLinker::TYPE_LANGUAGE:
+            /*
+                case IdentityLinker::TYPE_LANGUAGE:
                 return 'jtl_connector_link_language';*/
             case IdentityType::MANUFACTURER:
                 return 'jtl_connector_link_manufacturer';
-            /*    case IdentityLinker::TYPE_MEASUREMENT_UNIT:
+            /*
+                case IdentityLinker::TYPE_MEASUREMENT_UNIT:
                     return 'jtl_connector_link_measurement_unit';*/
             case IdentityType::CUSTOMER_ORDER:
                 return 'jtl_connector_link_order';
@@ -281,7 +278,8 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
                 return 'jtl_connector_link_product';
             case IdentityType::SHIPPING_CLASS:
                 return 'jtl_connector_link_shipping_class';
-            /*    case IdentityLinker::TYPE_SHIPPING_METHOD:
+            /*
+                case IdentityLinker::TYPE_SHIPPING_METHOD:
                     return 'jtl_connector_link_shipping_method';*/
             case IdentityType::SPECIFIC:
                 return 'jtl_connector_link_specific';

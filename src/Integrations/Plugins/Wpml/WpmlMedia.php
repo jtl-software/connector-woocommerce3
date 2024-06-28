@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -12,6 +14,7 @@ use JtlWooCommerceConnector\Utilities\Id;
 
 /**
  * Class WpmlMedia
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlMedia extends AbstractComponent
@@ -20,7 +23,7 @@ class WpmlMedia extends AbstractComponent
         ELEMENT_TYPE = 'post_attachment';
 
     /**
-     * @param int $mediaId
+     * @param int           $mediaId
      * @param AbstractImage $jtlImage
      * @throws \Exception
      */
@@ -60,7 +63,7 @@ class WpmlMedia extends AbstractComponent
     }
 
     /**
-     * @param int $attachmentId
+     * @param int   $attachmentId
      * @param array $imageI18ns
      * @throws \Exception
      */
@@ -154,7 +157,7 @@ class WpmlMedia extends AbstractComponent
      * @param int|null $limit
      * @return string
      */
-    public function imageCategoryPull(int $limit = null): string
+    public function imageCategoryPull(?int $limit = null): string
     {
         return $this->buildImageQueryPull(
             Id::CATEGORY_PREFIX,
@@ -169,7 +172,7 @@ class WpmlMedia extends AbstractComponent
      * @param int|null $limit
      * @return string
      */
-    public function imageManufacturerPull(int $limit = null): string
+    public function imageManufacturerPull(?int $limit = null): string
     {
         return $this->buildImageQueryPull(
             Id::MANUFACTURER_PREFIX,
@@ -181,10 +184,10 @@ class WpmlMedia extends AbstractComponent
     }
 
     /**
-     * @param string $prefix
-     * @param string $taxonomy
-     * @param string $metaKey
-     * @param int $identityType
+     * @param string   $prefix
+     * @param string   $taxonomy
+     * @param string   $metaKey
+     * @param int      $identityType
      * @param int|null $limit
      * @return string
      */
@@ -193,7 +196,7 @@ class WpmlMedia extends AbstractComponent
         string $taxonomy = 'pwb-brand',
         string $metaKey = ImageCtrl::MANUFACTURER_KEY,
         int $identityType = IdentityType::MANUFACTURER,
-        int $limit = null
+        ?int $limit = null
     ): string {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();

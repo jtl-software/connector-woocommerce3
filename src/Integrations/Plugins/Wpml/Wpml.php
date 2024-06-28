@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -15,13 +17,11 @@ use wpdb;
 
 /**
  * Class Wpml
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class Wpml extends AbstractPlugin
 {
-    /**
-     * @var Db
-     */
     protected Db $database;
 
     /**
@@ -72,7 +72,7 @@ class Wpml extends AbstractPlugin
     {
         $wpmlLanguageCode = \substr($wpmlLanguageCode, 0, 2);
         $language         = Util::mapLanguageIso($wpmlLanguageCode);
-        #$language         = Language::convert($wpmlLanguageCode);
+        // $language         = Language::convert($wpmlLanguageCode);
         if (\is_null($language)) {
             $this->logger->warning(
                 \sprintf("Cannot find corresponding language code %s", $wpmlLanguageCode)
@@ -154,7 +154,7 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @param int $termId
+     * @param int    $termId
      * @param string $elementType
      * @return int
      */

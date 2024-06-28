@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
@@ -54,9 +56,7 @@ class ProductController extends AbstractBaseController implements
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
 
-    /**
-     * @var int[]
-     */
+    /** @var int[] */
     private static array $idCache = [];
 
     /**
@@ -473,7 +473,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $jtlProduct
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -558,7 +558,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws WC_Data_Exception
      * @throws Exception
@@ -661,8 +661,8 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param string $productType
+     * @param WC_Product   $wcProduct
+     * @param string       $productType
      * @return void
      * @throws InvalidArgumentException
      * @throws Exception
@@ -680,7 +680,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @param $meta
      * @return void
      * @throws Exception
@@ -704,11 +704,11 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws Exception
      */
-    private function updateProduct(ProductModel $product, $wcProduct): void
+    private function updateProduct(ProductModel $product, WC_Product $wcProduct): void
     {
         $productId = $wcProduct->get_id();
 
@@ -763,7 +763,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param DateTime $creationDate
-     * @param bool $gmt
+     * @param bool     $gmt
      * @return string|null
      * @throws Exception
      */

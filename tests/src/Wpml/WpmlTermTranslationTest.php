@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -8,6 +10,7 @@ use JtlWooCommerceConnector\Tests\TestCase;
 
 /**
  * Class WpmlTermTranslationTest
+ *
  * @package JtlWooCommerceConnector\Tests\Wpml
  */
 class WpmlTermTranslationTest extends TestCase
@@ -26,15 +29,15 @@ class WpmlTermTranslationTest extends TestCase
     /**
      * @dataProvider existingTranslationsDataProvider
      *
-     * @param array $elementTranslations
+     * @param array           $elementTranslations
      * @param $defaultLanguage
-     * @param int $expectedTranslationsReturned
+     * @param int             $expectedTranslationsReturned
      */
     public function testGetAllExistingTranslations(
         array $elementTranslations,
         $defaultLanguage,
         int $expectedTranslationsReturned
-    ) {
+    ): void {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
         $wpmlPluginMock->shouldReceive('getSitepress->get_element_translations')->andReturn($elementTranslations);
         $wpmlPluginMock->shouldReceive('getDefaultLanguage')->andReturn($defaultLanguage);
@@ -49,7 +52,7 @@ class WpmlTermTranslationTest extends TestCase
     /**
      * @return array
      */
-    public function getTranslatedTermDataProvider()
+    public function getTranslatedTermDataProvider(): array
     {
         return [
             [[], []],
@@ -63,7 +66,7 @@ class WpmlTermTranslationTest extends TestCase
      * @param $getTermByIdReturnValue
      * @param $expectedReturnValue
      */
-    public function testGetTranslatedTerm($getTermByIdReturnValue, $expectedReturnValue)
+    public function testGetTranslatedTerm($getTermByIdReturnValue, $expectedReturnValue): void
     {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -29,7 +31,7 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param int $productId
+     * @param int    $productId
      * @param string $taxonomy
      * @return string
      */

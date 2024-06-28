@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use InvalidArgumentException;
@@ -52,13 +54,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param string $taxClass
+     * @param string         $taxClass
      * @param \WC_Order|null $order
      *
      * @return float
      * @throws \http\Exception\InvalidArgumentException
      */
-    public function getTaxRateByTaxClass(string $taxClass, \WC_Order $order = null): float
+    public function getTaxRateByTaxClass(string $taxClass, ?\WC_Order $order = null): float
     {
         $wcDefaultCountry = \get_option('woocommerce_default_country');
 
@@ -122,8 +124,8 @@ class Util extends WordpressUtils
 
     /**
      * @param float|int $stockLevel
-     * @param bool $backorders
-     * @param bool $managesStock
+     * @param bool      $backorders
+     * @param bool      $managesStock
      *
      * @return string
      */
@@ -140,7 +142,7 @@ class Util extends WordpressUtils
 
     /**
      * @param string $price
-     * @param int $pd
+     * @param int    $pd
      * @return int|string
      */
     public static function getNetPriceCutted(string $price, int $pd): mixed
@@ -156,9 +158,9 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param int $id
+     * @param int                   $id
      * @param array<string, string> $vatPluginsPriority
-     * @param callable $getMetaFieldValueFunction
+     * @param callable              $getMetaFieldValueFunction
      *
      * @return string
      */
@@ -277,7 +279,6 @@ class Util extends WordpressUtils
     }
 
     /**
-     *
      * @throws \http\Exception\InvalidArgumentException
      * @throws \Exception
      */
@@ -311,9 +312,6 @@ class Util extends WordpressUtils
         }
     }
 
-    /**
-     *
-     */
     public function countCategories(): void
     {
         $offset = 0;
@@ -430,9 +428,6 @@ class Util extends WordpressUtils
         return isset($taxonomies[ $name ]) ? (int) $taxonomies[ $name ] : 0;
     }
 
-    /**
-     *
-     */
     public static function deleteB2Bcache(): void
     {
         if (
@@ -599,8 +594,8 @@ class Util extends WordpressUtils
 
 
     /**
-     * @param string      $attributeName
-     * @param string      $languageIso
+     * @param string                $attributeName
+     * @param string                $languageIso
      * @param TranslatableAttribute ...$productAttributes
      *
      * @return TranslatableAttributeI18n|null
@@ -628,7 +623,7 @@ class Util extends WordpressUtils
 
     /**
      * @param array<string, string> $dataSet
-     * @param int   $termId
+     * @param int                   $termId
      */
     public function updateTermMeta(array $dataSet, int $termId): void
     {
@@ -645,7 +640,7 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param CategoryI18n|ManufacturerI18n $i18n
+     * @param CategoryI18n|ManufacturerI18n     $i18n
      * @param array<int, array<string, string>> $rankMathSeoData
      *
      * @return void

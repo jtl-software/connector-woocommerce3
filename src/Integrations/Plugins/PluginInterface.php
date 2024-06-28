@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 /**
  * Interface PluginInterface
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 interface PluginInterface

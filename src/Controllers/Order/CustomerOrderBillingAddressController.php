@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;

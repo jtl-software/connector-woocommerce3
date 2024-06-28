@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -17,7 +19,7 @@ use function Symfony\Component\String\s;
 trait PaymentTrait
 {
     /**
-     * @param bool $includeCompletedOrders
+     * @param bool     $includeCompletedOrders
      * @param int|null $limit
      * @return string
      */

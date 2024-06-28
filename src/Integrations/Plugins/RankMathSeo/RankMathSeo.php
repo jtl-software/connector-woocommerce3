@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo;
 
 use Jtl\Connector\Core\Model\ManufacturerI18n;
@@ -13,6 +15,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class RankMathSeo
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\YoastSeo
  */
 class RankMathSeo extends AbstractPlugin
@@ -61,7 +64,7 @@ class RankMathSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $categoryId
+     * @param int          $categoryId
      * @param CategoryI18n $categoryI18n
      * @throws \InvalidArgumentException
      */
@@ -77,7 +80,7 @@ class RankMathSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $taxonomyId
+     * @param int                           $taxonomyId
      * @param ManufacturerI18n|CategoryI18n $i18nModel
      * @throws \InvalidArgumentException
      */

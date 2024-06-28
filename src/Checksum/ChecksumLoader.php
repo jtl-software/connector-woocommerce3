@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Checksum;
 
 use Jtl\Connector\Core\Checksum\ChecksumLoaderInterface;
@@ -11,14 +13,8 @@ use Psr\Log\NullLogger;
 
 class ChecksumLoader implements ChecksumLoaderInterface
 {
-    /**
-     * @var NullLogger
-     */
-    protected $logger;
+    protected NullLogger $logger;
 
-    /**
-     * @var Db
-     */
     protected Db $db;
 
     public function __construct(Db $db)

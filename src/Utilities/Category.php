@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Model\Category as CategoryModel;
@@ -20,7 +22,7 @@ class Category
 
     /**
      * @param int[]|null $parentIds
-     * @param int $level
+     * @param int        $level
      * @return void
      * @throws InvalidArgumentException
      */
@@ -67,7 +69,7 @@ class Category
 
     /**
      * @param int[]|string[] $parent
-     * @param int $count
+     * @param int            $count
      * @return void
      * @throws InvalidArgumentException
      * @throws \http\Exception\InvalidArgumentException
@@ -96,7 +98,7 @@ class Category
 
     /**
      * @param CategoryModel $category
-     * @param bool $isNew
+     * @param bool          $isNew
      * @return void
      * @throws InvalidArgumentException
      */

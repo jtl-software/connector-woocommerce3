@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Event;
 
 use Jtl\Connector\Core\Model\QueryFilter;
@@ -16,7 +18,7 @@ class HandlePullEvent extends Event
     protected array $params;
 
     /**
-     * @param string $controller
+     * @param string        $controller
      * @param QueryFilter[] $params
      */
     public function __construct(string $controller, array $params)

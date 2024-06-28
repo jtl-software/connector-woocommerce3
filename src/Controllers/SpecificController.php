@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -34,9 +36,7 @@ class SpecificController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    /**
-     * @var int[]
-     */
+    /** @var int[] */
     private static array $idCache = [];
 
     /**
@@ -277,7 +277,7 @@ class SpecificController extends AbstractBaseController implements
                     );
 
                     if ($newTerm instanceof WP_Error) {
-                        //  var_dump($newTerm);
+                        // var_dump($newTerm);
                         // die();
                         $this->logger->error(ErrorFormatter::formatError($newTerm));
                         continue;

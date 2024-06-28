@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use http\Exception\InvalidArgumentException;
@@ -9,6 +11,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class Config
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 class Config
@@ -152,11 +155,11 @@ class Config
     }
 
     /**
-     * @param string $name
+     * @param string     $name
      * @param mixed|null $defaultValue
      * @return false|mixed|null
      */
-    public static function get(string $name, mixed $defaultValue = null)
+    public static function get(string $name, mixed $defaultValue = null): mixed
     {
         return \get_option($name, $defaultValue);
     }
@@ -199,7 +202,7 @@ class Config
 
     /**
      * @param string $key
-     * @param bool $value
+     * @param bool   $value
      * @return bool
      */
     public static function writeCoreConfigFile(string $key, bool $value): bool
@@ -210,7 +213,7 @@ class Config
         if (!\file_exists($file)) {
             \file_put_contents($file, \json_encode($config));
         } else {
-            $config      = \json_decode((string)\file_get_contents($file));
+            $config = \json_decode((string)\file_get_contents($file));
             if (!$config instanceof \stdClass) {
                 $config = new \stdClass();
             }

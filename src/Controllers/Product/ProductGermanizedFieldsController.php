@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use http\Exception\InvalidArgumentException;
@@ -23,7 +25,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
@@ -35,7 +37,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException

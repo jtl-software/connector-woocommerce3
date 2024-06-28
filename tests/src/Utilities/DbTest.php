@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
@@ -34,7 +36,7 @@ class DbTest extends AbstractTestCase
      * @throws Exception
      * @throws ClassAlreadyExistsException
      */
-    public function testInitialization()
+    public function testInitialization(): void
     {
         $wpDb = $this->getMockBuilder('\wpdb')->getMock();
         $db   = new Db($wpDb);

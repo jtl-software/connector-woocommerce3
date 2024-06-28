@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
@@ -14,7 +16,7 @@ use WC_Product;
 class ProductI18nController extends AbstractBaseController
 {
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
      * @return ProductI18nModel
      * @throws Exception
@@ -54,7 +56,7 @@ class ProductI18nController extends AbstractBaseController
 
     /**
      * @param ProductI18nModel $i18n
-     * @param array $tmpMeta
+     * @param array            $tmpMeta
      * @return void
      */
     protected function setI18nSeoData(ProductI18nModel $i18n, array $tmpMeta): void

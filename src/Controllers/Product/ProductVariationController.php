@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -21,9 +23,9 @@ class ProductVariationController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel $model
+     * @param ProductModel         $model
      * @param WC_Product_Attribute $attribute
-     * @param string $languageIso
+     * @param string               $languageIso
      * @return ProductVariationModel|null
      */
     public function pullDataParent(
@@ -77,9 +79,9 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
-     * @param string $languageIso
+     * @param string       $languageIso
      * @return array
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
@@ -154,8 +156,8 @@ class ProductVariationController extends AbstractBaseController
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
      * @param string $productId
-     * @param array $variationSpecificData
-     * @param array $attributesFilteredVariationSpecifics
+     * @param array  $variationSpecificData
+     * @param array  $attributesFilteredVariationSpecifics
      * @return array|null
      * @throws InvalidArgumentException
      */
@@ -300,7 +302,7 @@ class ProductVariationController extends AbstractBaseController
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
+                            // var_dump($newTerm);
                             // die();
                             $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;

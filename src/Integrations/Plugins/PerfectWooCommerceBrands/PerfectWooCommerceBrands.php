@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands;
 
 use Jtl\Connector\Core\Model\Manufacturer;
@@ -17,6 +19,7 @@ use WP_Term;
 
 /**
  * Class PerfectWooCommerceBrands
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands
  */
 class PerfectWooCommerceBrands extends AbstractPlugin
@@ -31,9 +34,9 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @param Manufacturer $manufacturer
-     * @param string $languageIso
-     * @param string $description
-     * @param int $termId
+     * @param string       $languageIso
+     * @param string       $description
+     * @param int          $termId
      * @return ManufacturerI18nModel
      * @throws \Exception
      */
@@ -72,7 +75,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     }
 
     /**
-     * @param Manufacturer $jtlManufacturer
+     * @param Manufacturer          $jtlManufacturer
      * @param ManufacturerI18nModel $manufacturerI18n
      * @return array<>|false|WP_Error|\WP_Term
      * @throws \Exception
@@ -157,8 +160,8 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     }
 
     /**
-     * @param string $slug
-     * @param string $manufacturerName
+     * @param string                $slug
+     * @param string                $manufacturerName
      * @param ManufacturerI18nModel $manufacturerI18n
      * @return array|int[]|WP_Error
      */
@@ -178,8 +181,8 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     }
 
     /**
-     * @param int $termId
-     * @param string $manufacturerName
+     * @param int                   $termId
+     * @param string                $manufacturerName
      * @param ManufacturerI18nModel $manufacturerI18
      * @return array|WP_Error
      */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -31,7 +33,7 @@ class Id
     }
 
     /**
-     * @param int $imageId
+     * @param int        $imageId
      * @param int|string $productId
      * @return string
      */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -20,6 +22,7 @@ use WC_Product_Variation;
 
 /**
  * Class WpmlProduct
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlProduct extends AbstractComponent
@@ -29,8 +32,8 @@ class WpmlProduct extends AbstractComponent
         POST_TYPE_VARIATION = 'post_product_variation';
 
     /**
-     * @param int $wcBaseTranslationProductId
-     * @param string $masterProductId
+     * @param int     $wcBaseTranslationProductId
+     * @param string  $masterProductId
      * @param Product $jtlProduct
      * @throws Exception
      */
@@ -110,8 +113,8 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param string $languageIso
-     * @param string $defaultName
+     * @param string      $languageIso
+     * @param string      $defaultName
      * @param ProductI18n ...$i18ns
      * @return ProductI18n|null
      */
@@ -142,7 +145,7 @@ class WpmlProduct extends AbstractComponent
      * @param $translationInfo
      * @param $masterProductTranslations
      * @param $languageCode
-     * @param Product $jtlProduct
+     * @param Product                   $jtlProduct
      * @param $productI18n
      * @param $masterProductId
      * @param $trid
@@ -247,7 +250,7 @@ class WpmlProduct extends AbstractComponent
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getProducts(int $limit = null): array
+    public function getProducts(?int $limit = null): array
     {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin      = $this->getCurrentPlugin();
@@ -292,7 +295,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @param Product $jtlProduct
+     * @param Product     $jtlProduct
      * @throws Exception
      */
     public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct): void
@@ -344,7 +347,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @param string $slug
+     * @param string      $slug
      * @return \WC_Product_Attribute|null
      */
     public function getWooCommerceProductTranslatedAttributeBySlug(
@@ -366,7 +369,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param WC_Product_Variation $wcProduct
-     * @param string $slug
+     * @param string               $slug
      * @return string|null
      */
     public function getWooCommerceProductTranslatedAttributeValueBySlug(
@@ -387,7 +390,7 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param int $productId
+     * @param int    $productId
      * @param string $elementType
      * @return array
      * @throws Exception

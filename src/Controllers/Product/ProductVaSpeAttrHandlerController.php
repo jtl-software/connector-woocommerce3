@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
@@ -251,7 +253,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         ];
 
         if (SupportedPluginsAlias::isActive(SupportedPluginsAlias::PLUGIN_FB_FOR_WOO)) {
-            /*  $functionAttributes[] = $this->getFacebookVisibilityFunctionAttribute($product);*/
+            // $functionAttributes[] = $this->getFacebookVisibilityFunctionAttribute($product);
+
             $functionAttributes[] = $this->getFacebookSyncStatusFunctionAttribute(
                 $product,
                 $languageIso
@@ -651,8 +654,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param ProductI18n $productI18n
+     * @param WC_Product   $wcProduct
+     * @param ProductI18n  $productI18n
      * @return void
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException

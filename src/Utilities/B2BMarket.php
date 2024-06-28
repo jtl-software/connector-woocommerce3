@@ -19,9 +19,9 @@ class B2BMarket extends WordpressUtils
     }
 
     /**
-     * @param array<int, string>     $customerGroupIds
-     * @param string    $metaKey
-     * @param AbstractModel ...$models
+     * @param array<int, string> $customerGroupIds
+     * @param string             $metaKey
+     * @param AbstractModel      ...$models
      *
      * @return void
      * @noinspection PhpPossiblePolymorphicInvocationInspection
@@ -63,7 +63,7 @@ class B2BMarket extends WordpressUtils
     }
 
     /**
-     * @param string $controller
+     * @param string        $controller
      * @param AbstractModel ...$entities
      *
      * @return void

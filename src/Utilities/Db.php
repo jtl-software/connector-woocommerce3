@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use Psr\Log\InvalidArgumentException;
@@ -10,14 +12,9 @@ use wpdb;
 
 class Db implements LoggerAwareInterface
 {
-    /**
-     * @var wpdb
-     */
     protected wpdb $wpDb;
 
-    /**
-     * @var LoggerInterface
-     */
+    /** @var LoggerInterface */
     protected LoggerInterface|NullLogger $logger;
 
     /**
@@ -41,8 +38,8 @@ class Db implements LoggerAwareInterface
     /**
      * Run a plain SQL query on the database.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
      * @return array<int, array>|null Database query results
      * @throws InvalidArgumentException
@@ -61,10 +58,10 @@ class Db implements LoggerAwareInterface
     /**
      * Run a SQL query which should only return one value.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
-     * @return null|string Found value or null.
+     * @return string|null Found value or null.
      * @throws InvalidArgumentException
      */
     public function queryOne(string $query, bool $shouldLog = true): ?string
@@ -81,8 +78,8 @@ class Db implements LoggerAwareInterface
     /**
      * Run a SQL query which should return a list of single values.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
      * @return array<int, int|string> The array of values
      * @throws InvalidArgumentException

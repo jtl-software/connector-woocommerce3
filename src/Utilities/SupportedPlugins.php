@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 class SupportedPlugins
@@ -232,9 +234,9 @@ class SupportedPlugins
     }
 
         /**
-     * @param string $pluginName
-     * @return string|null
-     */
+         * @param string $pluginName
+         * @return string|null
+         */
     public static function getVersionOf(string $pluginName = 'WooCommerce'): ?string
     {
         $plArray = self::getInstalledAndActivated();

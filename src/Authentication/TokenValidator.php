@@ -1,14 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Authentication;
 
 use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 
 class TokenValidator implements TokenValidatorInterface
 {
-    /**
-     * @var string
-     */
     protected string $endpointToken;
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -14,7 +16,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param \WC_Product  $wcProduct
      * @return void
      * @throws \Exception
      */
@@ -113,7 +115,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 );
 
                 if ($newTerm instanceof WP_Error) {
-                    //  var_dump($newTerm);
+                    // var_dump($newTerm);
                     // die();
                     $error = new WP_Error('invalid_taxonomy', 'Could not create delivery time.');
                     $this->logger->error(ErrorFormatter::formatError($error));
@@ -205,7 +207,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
 
     /**
      * @param $productId
-     * @param string $taxonomyName
+     * @param string    $taxonomyName
      * @return void
      */
     private function removeDeliveryTimeTerm($productId, string $taxonomyName = 'product_delivery_times'): void

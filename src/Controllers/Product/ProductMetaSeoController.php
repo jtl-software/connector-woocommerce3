@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -43,7 +45,7 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @param ProductModel $model
      * @return array|null
      */
@@ -87,11 +89,11 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int              $productId
      * @param ProductI18nModel $tmpMeta
-     * @param string $metaTitle
-     * @param string $metaDescription
-     * @param string $metaKeywords
+     * @param string           $metaTitle
+     * @param string           $metaDescription
+     * @param string           $metaKeywords
      * @return void
      */
     protected function setSeoValues(
@@ -117,9 +119,9 @@ class ProductMetaSeoController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param string $metaTitle
-     * @param string $metaDescription
-     * @param string $metaKeywords
+     * @param string     $metaTitle
+     * @param string     $metaDescription
+     * @param string     $metaKeywords
      * @return array
      */
     protected function getSeoValues(

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -15,13 +17,14 @@ use WC_Product;
 
 /**
  * Class WpmlProductVariation
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlProductVariation extends AbstractComponent
 {
     /**
-     * @param WC_Product $wcProduct
-     * @param string $wcAttributeSlug
+     * @param WC_Product       $wcProduct
+     * @param string           $wcAttributeSlug
      * @param ProductVariation $productVariation
      * @throws Exception
      */
@@ -55,7 +58,7 @@ class WpmlProductVariation extends AbstractComponent
     }
 
     /**
-     * @param int $productId
+     * @param int     $productId
      * @param Product $product
      * @throws Exception
      */
@@ -91,9 +94,9 @@ class WpmlProductVariation extends AbstractComponent
     }
 
     /**
-     * @param WC_Product $wcProduct
+     * @param WC_Product         $wcProduct
      * @param ProductVariation[] $pushedVariations
-     * @param string $languageCode
+     * @param string             $languageCode
      * @return string[]
      * @throws InvalidArgumentException
      * @throws Exception
@@ -136,7 +139,7 @@ class WpmlProductVariation extends AbstractComponent
 
     /**
      * @param ProductVariationValue $productVariationValue
-     * @param \WP_Term $term
+     * @param \WP_Term              $term
      * @throws Exception
      */
     public function getValueTranslations(ProductVariationValue $productVariationValue, \WP_Term $term): void
@@ -164,10 +167,10 @@ class WpmlProductVariation extends AbstractComponent
     }
 
     /**
-     * @param WC_Product $product
-     * @param string $slug
+     * @param WC_Product            $product
+     * @param string                $slug
      * @param ProductVariationValue $variationValue
-     * @param int $sort
+     * @param int                   $sort
      * @throws Exception
      */
     public function getOptionTranslations(

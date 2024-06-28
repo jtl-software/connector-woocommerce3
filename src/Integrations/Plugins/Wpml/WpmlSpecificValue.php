@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\SpecificValue;
@@ -10,14 +12,15 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific
 
 /**
  * Class WpmlSpecificValue
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlSpecificValue extends AbstractComponent
 {
     /**
      * @param SpecificValue $specificValue
-     * @param int $mainSpecificValueId
-     * @param string $elementType
+     * @param int           $mainSpecificValueId
+     * @param string        $elementType
      * @throws \Exception
      */
     public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType): void
@@ -39,9 +42,9 @@ class WpmlSpecificValue extends AbstractComponent
     }
 
     /**
-     * @param string $taxonomy
+     * @param string        $taxonomy
      * @param SpecificValue $specificValue
-     * @param int $mainSpecificValueId
+     * @param int           $mainSpecificValueId
      * @throws \Exception
      */
     public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void
@@ -88,7 +91,7 @@ class WpmlSpecificValue extends AbstractComponent
     }
 
     /**
-     * @param int $trid
+     * @param int    $trid
      * @param string $taxonomy
      * @param string $languageCode
      * @return array

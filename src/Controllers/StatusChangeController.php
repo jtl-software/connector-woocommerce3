@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
  * @copyright 2010-2013 JTL-Software GmbH
@@ -78,7 +80,7 @@ class StatusChangeController extends AbstractBaseController implements PushInter
 
     /**
      * @param StatusChangeModel $statusChange
-     * @param WC_Order $wcOrder
+     * @param WC_Order          $wcOrder
      * @return string|null
      */
     private function mapStatus(StatusChangeModel $statusChange, WC_Order $wcOrder): ?string

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -20,7 +22,7 @@ trait ImageTrait
      * @param int|null $limit
      * @return string
      */
-    public static function imageCategoryPull(int $limit = null): string
+    public static function imageCategoryPull(?int $limit = null): string
     {
         global $wpdb;
 
@@ -58,7 +60,7 @@ trait ImageTrait
      * @param int|null $limit
      * @return string
      */
-    public static function imageManufacturerPull(int $limit = null): string
+    public static function imageManufacturerPull(?int $limit = null): string
     {
         global $wpdb;
 
@@ -159,7 +161,7 @@ trait ImageTrait
      * @param int|null $limit
      * @return string
      */
-    public static function imageVariationCombinationPull(int $limit = null): string
+    public static function imageVariationCombinationPull(?int $limit = null): string
     {
         global $wpdb;
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';
@@ -190,7 +192,7 @@ trait ImageTrait
     }
 
     /**
-     * @param int $attachementId
+     * @param int    $attachementId
      * @param string $metaKey
      * @return string
      */

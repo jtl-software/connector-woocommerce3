@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 use Psr\Log\LoggerAwareInterface;
@@ -7,19 +9,14 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Class AbstractComponent
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 abstract class AbstractComponent implements ComponentInterface, LoggerAwareInterface
 {
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
-    /**
-     * @var PluginInterface
-     */
-    protected $plugin;
+    protected PluginInterface $plugin;
 
     /**
      * @param LoggerInterface $logger

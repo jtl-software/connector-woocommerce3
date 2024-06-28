@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
@@ -9,6 +11,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Controllers\GlobalData
  */
 class CrossSellingGroups extends AbstractBaseController

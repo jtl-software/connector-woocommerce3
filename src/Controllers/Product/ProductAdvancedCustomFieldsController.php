@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -21,7 +23,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
 {
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
-        #finde alle acf fields
+        // finde alle acf fields
         $acfFields = $this->getAllAcfExcerpts();
 
         foreach ($wcProduct->get_meta_data() as $metaData) {
@@ -87,9 +89,9 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
-* @param string $excerpt
-* @return string|null
-* @throws InvalidArgumentException
+     * @param string $excerpt
+     * @return string|null
+     * @throws InvalidArgumentException
      */
     private function getAcfFieldPostName(string $excerpt): ?string
     {
@@ -128,7 +130,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
         $product->addAttribute($attribute);
     }
 
-    private function deleteRemovedAttributes($productId, $wawiAcfFields)
+    private function deleteRemovedAttributes($productId, $wawiAcfFields): void
     {
         global $wpdb;
 

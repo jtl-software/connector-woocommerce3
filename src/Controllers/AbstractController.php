@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use DI\Container;
@@ -8,23 +10,14 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 abstract class AbstractController
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
-    /**
-     * @var Container
-     */
     protected Container $container;
 
-    /**
-     * @var Util
-     */
     protected Util $util;
 
     /**
-     * @param Db $db
+     * @param Db   $db
      * @param Util $util
      */
     public function __construct(Db $db, Util $util)

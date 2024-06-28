@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -16,28 +18,17 @@ use ReflectionClass;
 
 abstract class AbstractBaseController extends AbstractController implements LoggerAwareInterface
 {
-    /**
-     * @var string
-     */
     protected string $controllerName;
 
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
-    /**
-     * @var PluginsManager
-     */
-    protected $pluginsManager;
+    protected PluginsManager $pluginsManager;
 
-    /**
-     * @var Wpml
-     */
-    protected $wpml;
+    protected Wpml $wpml;
 
     /**
      * BaseController constructor.
+     *
      * @throws \Exception
      */
     public function __construct(Db $db, Util $util)
@@ -106,7 +97,7 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $objectId
      * @param $terms
      * @param $taxonomy
-     * @param bool $append
+     * @param bool     $append
      * @return array|\WP_Error|int|bool|string|null
      */
     protected function wpSetObjectTerms(

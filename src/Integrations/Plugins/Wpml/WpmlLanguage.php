@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -9,6 +11,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WpmlLanguage
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlLanguage extends AbstractComponent

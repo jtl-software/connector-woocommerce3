@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;

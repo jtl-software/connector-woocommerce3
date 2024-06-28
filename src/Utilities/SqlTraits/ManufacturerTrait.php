@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -11,7 +13,8 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait ManufacturerTrait
 {
-    /*    public static function specificPull($limit)
+    /*
+        public static function specificPull($limit)
         {
             global $wpdb;
             $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -115,8 +118,9 @@ trait ManufacturerTrait
             \join('","', $metaKeys)
         );
     }
-    /*  public static function getSpecificValueId($specificName, $specificValueName)
-      {
+    /*
+        public static function getSpecificValueId($specificName, $specificValueName)
+        {
           global $wpdb;
           $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
 
@@ -126,10 +130,10 @@ trait ManufacturerTrait
                     LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
                   WHERE tt.taxonomy LIKE '{$specificName}' AND t.name = '{$specificValueName}';
           ";
-      }
+        }
 
-      public static function getSpecificId($specificName)
-      {
+        public static function getSpecificId($specificName)
+        {
           global $wpdb;
 
           $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -140,19 +144,19 @@ trait ManufacturerTrait
                     LEFT JOIN {$jcls} l ON wat.attribute_id = l.endpoint_id
                   WHERE wat.attribute_name LIKE '{$specificName}';
           ";
-      }
+        }
 
-      public static function removeSpecificLinking($id)
-      {
+        public static function removeSpecificLinking($id)
+        {
           global $wpdb;
 
           $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
 
           return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
-      }
+        }
 
-      public static function removeSpecificValueLinking($id)
-      {
+        public static function removeSpecificValueLinking($id)
+        {
           global $wpdb;
 
           $jcls = $wpdb->prefix . 'jtl_connector_link_specific_value';

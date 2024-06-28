@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Authentication;
 
 use Jtl\UnitTest\TestCase;

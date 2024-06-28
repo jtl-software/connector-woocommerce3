@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\AbstractOrderAddress;
@@ -10,6 +12,7 @@ use WC_Order;
 
 /**
  * Class CustomerOrderAddress
+ *
  * @package JtlWooCommerceConnector\Controllers\Order
  */
 class CustomerOrderAddressController extends AbstractBaseController
@@ -37,7 +40,7 @@ class CustomerOrderAddressController extends AbstractBaseController
         );
     }
 
-    protected function createDefaultAddresses(AbstractOrderAddress $address, WC_Order $order = null): void
+    protected function createDefaultAddresses(AbstractOrderAddress $address, ?WC_Order $order = null): void
     {
         if (empty($address->getCity())) {
             $address->setCity(\get_option('woocommerce_store_city'));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
 use Exception;
@@ -19,13 +21,14 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WooCommerceCategory
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceCategory extends AbstractComponent
 {
     /**
-     * @param Category $category
-     * @param string $languageIso
+     * @param Category              $category
+     * @param string                $languageIso
      * @param array<string, string> $data
      * @return CategoryI18nModel
      * @throws Exception
@@ -76,8 +79,8 @@ class WooCommerceCategory extends AbstractComponent
 
     /**
      * @param CategoryI18nModel $categoryI18n
-     * @param Identity $parentCategoryId
-     * @param int|null $categoryId
+     * @param Identity          $parentCategoryId
+     * @param int|null          $categoryId
      * @return array
      * @throws Exception
      */

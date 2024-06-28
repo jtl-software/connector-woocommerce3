@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Traits;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -14,7 +16,7 @@ trait WawiProductPriceSchmuddelTrait
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      */

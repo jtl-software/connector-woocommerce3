@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\Currency as CurrencyModel;
@@ -10,6 +12,7 @@ use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlCurrency
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlCurrency extends AbstractComponent

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use InvalidArgumentException;
@@ -76,7 +78,7 @@ class CustomerOrderItemController extends AbstractBaseController
     /**
      * Add the positions for products. Not that complicated.
      *
-     * @param WC_Order $order
+     * @param WC_Order           $order
      * @param $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -176,7 +178,7 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
+     * @param WC_Order           $order
      * @param $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -197,7 +199,7 @@ class CustomerOrderItemController extends AbstractBaseController
      * Create an order item with the basic non price relevant information.
      *
      * @param WC_Order_Item_Shipping $shippingItem
-     * @param WC_Order $order
+     * @param WC_Order               $order
      * @param $taxRateId
      * @return CustomerOrderItemModel
      */
@@ -214,7 +216,7 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
+     * @param WC_Order           $order
      * @param $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -235,7 +237,7 @@ class CustomerOrderItemController extends AbstractBaseController
      * Create an order item with the basic non price relevant information.
      *
      * @param \WC_Order_Item_Fee $feeItem
-     * @param WC_Order $order
+     * @param WC_Order           $order
      * @param $taxRateId
      * @return CustomerOrderItemModel
      */
@@ -256,10 +258,10 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
+     * @param WC_Order           $order
      * @param $type
      * @param $customerOrderItems
-     * @param callable $getItem
+     * @param callable           $getItem
      * @return void
      * @throws InvalidArgumentException
      */
@@ -360,7 +362,7 @@ class CustomerOrderItemController extends AbstractBaseController
 
     /**
      * @param WC_Order $order
-     * @param array $customerOrderItems
+     * @param array    $customerOrderItems
      * @return void
      */
     public function pullDiscountOrderItems(WC_Order $order, array &$customerOrderItems): void
@@ -374,7 +376,7 @@ class CustomerOrderItemController extends AbstractBaseController
         }
 
         /**
-         * @var integer $itemId
+         * @var int $itemId
          * @var \WC_Order_Item_Coupon $item
          */
         foreach ($order->get_items('coupon') as $itemId => $item) {
@@ -407,8 +409,8 @@ class CustomerOrderItemController extends AbstractBaseController
     /**
      * @param float $totalNet
      * @param float $totalGross
-     * @param int $wooCommerceRoundPrecision
-     * @param int $vatRoundPrecision
+     * @param int   $wooCommerceRoundPrecision
+     * @param int   $vatRoundPrecision
      * @return float
      */
     private function calculateVat(

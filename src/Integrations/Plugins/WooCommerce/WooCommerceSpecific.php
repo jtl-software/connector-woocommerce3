@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
 use Jtl\Connector\Core\Model\Specific;
@@ -10,12 +12,13 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WooCommerceSpecific
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceSpecific extends AbstractComponent
 {
     /**
-     * @param Specific $specific
+     * @param Specific     $specific
      * @param SpecificI18n $specificI18n
      * @return Specific|null
      */

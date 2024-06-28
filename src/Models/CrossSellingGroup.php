@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Models;
 
 use Jtl\Connector\Core\Model\CrossSelling;
@@ -9,6 +11,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Models
  */
 class CrossSellingGroup
@@ -16,9 +19,7 @@ class CrossSellingGroup
     public const TYPE_CROSS_SELL = "1";
     public const TYPE_UP_SELL    = "2";
 
-    /**
-     * @var array<int, array<string, string>>
-     */
+    /** @var array<int, array<string, string>> */
     protected static array $groups = [
         [
             'endpointId' => self::TYPE_CROSS_SELL,
@@ -67,7 +68,7 @@ class CrossSellingGroup
 
     /**
      * @param array<string, string> $groupData
-     * @param Util $util
+     * @param Util                  $util
      * @return \Jtl\Connector\Core\Model\CrossSellingGroup
      */
     protected static function createFromArray(array $groupData, Util $util): \Jtl\Connector\Core\Model\CrossSellingGroup

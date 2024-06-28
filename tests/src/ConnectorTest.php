@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests;
 
 use Jtl\Connector\Core\Application\Application;
@@ -89,7 +91,7 @@ class ConnectorTest extends TestCase
         $application = $this->createApplicationMock(['getEventDispatcher']);
         $application->method('getEventDispatcher')->willReturn($dispatcher = new EventDispatcher());
 
-        $dispatcher->addListener(CanHandleEvent::EVENT_NAME, function (CanHandleEvent $event) {
+        $dispatcher->addListener(CanHandleEvent::EVENT_NAME, function (CanHandleEvent $event): void {
             $event->setCanHandle(true);
         });
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -20,7 +22,7 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
@@ -40,7 +42,7 @@ class ProductAttrController extends AbstractBaseController
      * @param $productId
      * @param $pushedAttributes
      * @param $attributesFilteredVariationsAndSpecifics
-     * @param ProductModel $product
+     * @param ProductModel                             $product
      * @throws TranslatableAttributeException
      * @throws \Exception
      */
@@ -324,7 +326,7 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
      * @param $slug
      * @param $languageIso
@@ -355,9 +357,9 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param ProductAttrModel $attribute
+     * @param ProductAttrModel     $attribute
      * @param ProductAttrI18nModel $i18n
-     * @param array $attributes
+     * @param array                $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -378,8 +380,8 @@ class ProductAttrController extends AbstractBaseController
 
     /**
      * @param ProductAttrI18nModel $i18n
-     * @param array $data
-     * @param array $attributes
+     * @param array                $data
+     * @param array                $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -484,8 +486,8 @@ class ProductAttrController extends AbstractBaseController
 
     /**
      * @param $productId
-     * @param string $metaKey
-     * @param string $value
+     * @param string    $metaKey
+     * @param string    $value
      * @return void
      */
     protected function addOrUpdateMetaField($productId, string $metaKey, string $value): void
@@ -496,7 +498,7 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param string $value
+     * @param string    $value
      * @param $productId
      * @return string
      */

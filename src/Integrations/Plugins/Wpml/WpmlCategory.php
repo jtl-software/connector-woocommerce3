@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -16,6 +18,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WpmlCategory
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlCategory extends AbstractComponent
@@ -25,7 +28,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param Category $jtlCategory
-     * @param array $wooCommerceMainCategory
+     * @param array    $wooCommerceMainCategory
      * @param Identity $parentCategoryId
      * @throws Exception
      */
@@ -85,7 +88,7 @@ class WpmlCategory extends AbstractComponent
     }
 
     /**
-     * @param int $trid
+     * @param int    $trid
      * @param string $languageCode
      * @return array
      */
@@ -177,10 +180,10 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param array|null $parentIds
-     * @param int $level
+     * @param int        $level
      * @throws InvalidArgumentException
      */
-    protected function fillCategoryLevelTable(array $parentIds = null, int $level = 0): void
+    protected function fillCategoryLevelTable(?array $parentIds = null, int $level = 0): void
     {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();

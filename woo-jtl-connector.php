@@ -51,7 +51,7 @@ try {
 }
 
 
-add_action('before_woocommerce_init', function () {
+add_action('before_woocommerce_init', function (): void {
     if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
     }
@@ -307,7 +307,7 @@ function jtlwcc_deactivate_plugin(): void
  *
  * @return bool
  */
-function jtlwcc_woocommerce_deactivated()
+function jtlwcc_woocommerce_deactivated(): bool
 {
     return !in_array(
         JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
@@ -330,7 +330,7 @@ function woo_jtl_connector_menu_link(): void
  *
  * @return bool
  */
-function jtlwcc_connector_activated()
+function jtlwcc_connector_activated(): bool
 {
     return in_array(
         'woo-jtl-connector/woo-jtl-connector.php',
@@ -343,7 +343,7 @@ function jtlwcc_connector_activated()
  *
  * @return string The WC version.
  */
-function jtlwcc_get_woocommerce_version()
+function jtlwcc_get_woocommerce_version(): string
 {
     $plugin = get_plugin_data(WP_PLUGIN_DIR . '/' . JTLWCC_WOOCOMMERCE_PLUGIN_FILE);
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Event;
 
 use Jtl\Connector\Core\Model\Statistic;

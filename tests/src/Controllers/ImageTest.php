@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use InvalidArgumentException;
@@ -46,14 +48,14 @@ class ImageTest extends TestCase
 
     /**
      * @dataProvider imageAltTextDataProvider
-     * @param ProductImage $image
+     * @param ProductImage    $image
      * @param $expectedAltText
      * @return void
      * @throws ReflectionException
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
-    public function testGetImageAltText(ProductImage $image, $expectedAltText)
+    public function testGetImageAltText(ProductImage $image, $expectedAltText): void
     {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();

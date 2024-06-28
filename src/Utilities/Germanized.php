@@ -1,21 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 /**
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 class Germanized
 {
-    /**
-     * @var array<int, string> Index used in database mapped to translated salutation.
-     */
+    /** @var array<int, string> Index used in database mapped to translated salutation. */
     private array $salutations;
 
-    /**
-     * @var array<string, string>
-     */
+    /** @var array<string, string> */
     private static array $units = [
         'l'  => 'L',
         'ml' => 'mL',

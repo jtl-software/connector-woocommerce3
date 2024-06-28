@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 /**
  * Class WordpressUtils
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 abstract class WordpressUtils
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
     public function __construct(Db $db)
@@ -19,10 +19,10 @@ abstract class WordpressUtils
     }
 
     /**
-     * @param string $postId
-     * @param string $metaKey
+     * @param string          $postId
+     * @param string          $metaKey
      * @param string|string[] $metaValue
-     * @param string $prevValue
+     * @param string          $prevValue
      * @return bool|int
      */
     public function updatePostMeta(
@@ -36,8 +36,8 @@ abstract class WordpressUtils
 
     /**
      * @param string|int $postId
-     * @param string $metaKey
-     * @param bool $single
+     * @param string     $metaKey
+     * @param bool       $single
      * @return mixed
      */
     public function getPostMeta(string|int $postId, string $metaKey = '', bool $single = false): mixed //TODO:check das

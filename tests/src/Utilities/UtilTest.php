@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -11,10 +13,7 @@ use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 class UtilTest extends TestCase
 {
-    /**
-     * @var array
-     */
-    protected $mockedFunctions = [];
+    protected array $mockedFunctions = [];
 
     /**
      * @dataProvider bulkPricesProvider
@@ -22,7 +21,7 @@ class UtilTest extends TestCase
      * @param $bulkPricesInput
      * @param $expectedOutput
      */
-    public function testSetBulkPricesQuantityTo($bulkPricesInput, $expectedOutput)
+    public function testSetBulkPricesQuantityTo($bulkPricesInput, $expectedOutput): void
     {
         $bulkPrices = [];
         foreach ($bulkPricesInput as $quantityFrom) {
@@ -47,7 +46,7 @@ class UtilTest extends TestCase
     /**
      * @return array
      */
-    public function bulkPricesProvider()
+    public function bulkPricesProvider(): array
     {
         return [
             [
@@ -85,10 +84,7 @@ class UtilTest extends TestCase
         ];
     }
 
-    /**
-     *
-     */
-    public function testFindVatId()
+    public function testFindVatId(): void
     {
         $expectedVatId = 'DE123456789';
         $returnOnKeys  = ['_billing_vat_id' => $expectedVatId, '_shipping_vat_id' => 'DE0000000'];
@@ -116,10 +112,7 @@ class UtilTest extends TestCase
         $this->assertSame($expectedVatId, $foundVatId);
     }
 
-    /**
-     *
-     */
-    public function testFindVatIdNotFound()
+    public function testFindVatIdNotFound(): void
     {
         $getMetaField = function ($id, $metaKey) {
             return false;
@@ -144,9 +137,6 @@ class UtilTest extends TestCase
         $this->assertSame('', $foundVatId);
     }
 
-    /**
-     *
-     */
     protected function tearDown(): void
     {
         foreach ($this->mockedFunctions as $function) {
@@ -160,7 +150,7 @@ class UtilTest extends TestCase
      * @param $enabledPlugins
      * @throws \phpmock\MockEnabledException
      */
-    protected function enablePlugins($enabledPlugins)
+    protected function enablePlugins($enabledPlugins): void
     {
         $builder    = new MockBuilder();
         $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
@@ -186,9 +176,9 @@ class UtilTest extends TestCase
      * @dataProvider getDecimalPrecisionDataProvider
      *
      * @param float $number
-     * @param int $expectedPrecision
+     * @param int   $expectedPrecision
      */
-    public function testGetDecimalPrecision(float $number, int $expectedPrecision)
+    public function testGetDecimalPrecision(float $number, int $expectedPrecision): void
     {
         $precision = Util::getDecimalPrecision($number);
         $this->assertSame($expectedPrecision, $precision);
@@ -213,9 +203,9 @@ class UtilTest extends TestCase
     /**
      * @dataProvider checkIfTrueDataProvider
      * @param string $value
-     * @param bool $expectedResult
+     * @param bool   $expectedResult
      */
-    public function testCheckIfTrue(string $value, bool $expectedResult)
+    public function testCheckIfTrue(string $value, bool $expectedResult): void
     {
         $this->assertSame($expectedResult, Util::isTrue($value));
     }
@@ -244,7 +234,7 @@ class UtilTest extends TestCase
      * @throws \InvalidArgumentException
      * @throws ExpectationFailedException
      */
-    public function testMapLanguageIso(string $locale, string $expectedResult)
+    public function testMapLanguageIso(string $locale, string $expectedResult): void
     {
         $iso = Util::mapLanguageIso($locale);
         $this->assertEquals($expectedResult, $iso);

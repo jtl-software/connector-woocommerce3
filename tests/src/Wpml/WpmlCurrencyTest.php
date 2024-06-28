@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Wpml;
 
 use Jtl\Connector\Core\Model\Currency;
@@ -11,6 +13,7 @@ use woocommerce_wpml;
 
 /**
  * Class WpmlCurrencyTest
+ *
  * @package JtlWooCommerceConnector\Tests\Wpml
  */
 class WpmlCurrencyTest extends TestCase
@@ -18,7 +21,7 @@ class WpmlCurrencyTest extends TestCase
     /**
      * @throws \phpmock\MockEnabledException
      */
-    public function testGetCurrencies()
+    public function testGetCurrencies(): void
     {
         $wcmlMock = \Mockery::mock(woocommerce_wpml::class);
         $wcmlMock->shouldReceive('get_multi_currency->get_default_currency')
@@ -66,10 +69,7 @@ class WpmlCurrencyTest extends TestCase
         $this->assertEquals(true, $currencies[1]->getIsDefault());
     }
 
-    /**
-     *
-     */
-    public function testSetCurrencies()
+    public function testSetCurrencies(): void
     {
         $wcmlMock = \Mockery::mock(woocommerce_wpml::class);
         $wcmlMock->shouldReceive('get_multi_currency->enable');

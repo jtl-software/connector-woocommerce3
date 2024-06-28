@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -13,7 +15,7 @@ trait PrimaryKeyMappingTrait
 {
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @return string
      */
     public static function primaryKeyMappingHostImage(string $endpointId, int $type): string

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
@@ -668,7 +670,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ]
         );
 
-        $wooJtlConnectorLoadCssAndJs = function ($hook) {
+        $wooJtlConnectorLoadCssAndJs = function ($hook): void {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
             // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
             if (! str_starts_with($hook, 'jtl-connector_page_woo-')) {
@@ -692,16 +694,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             );
         };
 
-        $wooJtlConnectorAddAdminMenu = function () {
+        $wooJtlConnectorAddAdminMenu = function (): void {
 
-            $wooJtlConnectorInformationPage = function () {
+            $wooJtlConnectorInformationPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'information_page',
                     __('Connector information', JTLWCC_TEXT_DOMAIN)
                 );
             };
 
-            $wooJtlConnectorAdvancedPage = function () {
+            $wooJtlConnectorAdvancedPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'advanced_page',
                     __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
@@ -709,7 +711,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             };
 
-            $wooJtlConnectorDeliveryTimePage = function () {
+            $wooJtlConnectorDeliveryTimePage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'delivery_time_page',
                     __('Delivery time', JTLWCC_TEXT_DOMAIN),
@@ -717,7 +719,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             };
 
-            $wooJtlConnectorCustomerOrderPage = function () {
+            $wooJtlConnectorCustomerOrderPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'customer_order_page',
                     __('Customer order', JTLWCC_TEXT_DOMAIN),
@@ -725,7 +727,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             };
 
-            $wooJtlConnectorCustomersPage = function () {
+            $wooJtlConnectorCustomersPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'customers_page',
                     __('Customers', JTLWCC_TEXT_DOMAIN),
@@ -733,7 +735,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             };
 
-            $wooJtlConnectorDeveloperSettingsPage = function () {
+            $wooJtlConnectorDeveloperSettingsPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'developer_settings_page',
                     __('Developer Settings', JTLWCC_TEXT_DOMAIN),
@@ -746,7 +748,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector',
-                function () {
+                function (): void {
                 },
                 '',
                 55.5
@@ -758,7 +760,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Information', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-information',
-                function () use ($wooJtlConnectorInformationPage) {
+                function () use ($wooJtlConnectorInformationPage): void {
                     $wooJtlConnectorInformationPage();
                 }
             );
@@ -769,7 +771,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-advanced',
-                function () use ($wooJtlConnectorAdvancedPage) {
+                function () use ($wooJtlConnectorAdvancedPage): void {
                     $wooJtlConnectorAdvancedPage();
                 }
             );
@@ -780,7 +782,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Delivery times', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-delivery-time',
-                function () use ($wooJtlConnectorDeliveryTimePage) {
+                function () use ($wooJtlConnectorDeliveryTimePage): void {
                     $wooJtlConnectorDeliveryTimePage();
                 }
             );
@@ -791,7 +793,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Customer orders', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-customer-order',
-                function () use ($wooJtlConnectorCustomerOrderPage) {
+                function () use ($wooJtlConnectorCustomerOrderPage): void {
                     $wooJtlConnectorCustomerOrderPage();
                 }
             );
@@ -802,7 +804,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Customers', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-customers',
-                function () use ($wooJtlConnectorCustomersPage) {
+                function () use ($wooJtlConnectorCustomersPage): void {
                     $wooJtlConnectorCustomersPage();
                 }
             );
@@ -813,7 +815,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 __('Developer Settings', JTLWCC_TEXT_DOMAIN),
                 'manage_woocommerce',
                 'woo-jtl-connector-developer-settings',
-                function () use ($wooJtlConnectorDeveloperSettingsPage) {
+                function () use ($wooJtlConnectorDeveloperSettingsPage): void {
                     $wooJtlConnectorDeveloperSettingsPage();
                 }
             );
@@ -822,59 +824,59 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         };
 
         //NEW PAGE
-        add_action('admin_menu', function () use ($wooJtlConnectorAddAdminMenu) {
+        add_action('admin_menu', function () use ($wooJtlConnectorAddAdminMenu): void {
             $wooJtlConnectorAddAdminMenu();
         });
-        add_action('admin_enqueue_scripts', function ($hook) use ($wooJtlConnectorLoadCssAndJs) {
+        add_action('admin_enqueue_scripts', function ($hook) use ($wooJtlConnectorLoadCssAndJs): void {
             $wooJtlConnectorLoadCssAndJs($hook);
         });
 
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_add_admin_menu(): void
+        // function woo_jtl_connector_add_admin_menu(): void
 
-        #/**
-        # * @param string|null $hook
-        # *
-        # * @return void
-        # */
+        // /**
+        // * @param string|null $hook
+        // *
+        // * @return void
+        // */
         //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_loadCssAndJs(?string $hook): void
+        // function woo_jtl_connector_loadCssAndJs(?string $hook): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_information_page(): void
+        // function woo_jtl_connector_information_page(): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_advanced_page(): void
+        // function woo_jtl_connector_advanced_page(): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_delivery_time_page(): void
+        // function woo_jtl_connector_delivery_time_page(): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_customer_order_page(): void
+        // function woo_jtl_connector_customer_order_page(): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_customers_page(): void
+        // function woo_jtl_connector_customers_page(): void
 
-        #/**
-        # * @return void
-        # */
+        // /**
+        // * @return void
+        // */
         //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        #function woo_jtl_connector_developer_settings_page(): void
+        // function woo_jtl_connector_developer_settings_page(): void
 
         self::update($db);
     }
@@ -882,7 +884,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @param string $page
      * @param string $title
-     * @param bool $submit
+     * @param bool   $submit
      *
      * @return void
      * @throws InvalidArgumentException
@@ -1710,16 +1712,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
-//            $fields[] = [
-//                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
-//                'type' => 'jtlwcc_card',
-//                'color' => 'border-info',
-//                'text-color' => 'text-info',
-//                'center' => false,
-//                'text' => __('Similar plugins, like the <b>not compatible
-//                              plugins</b> which are listed here, might be incompatible too!',
-//                    JTLWCC_TEXT_DOMAIN),
-//            ];
+// $fields[] = [
+// 'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+// 'type' => 'jtlwcc_card',
+// 'color' => 'border-info',
+// 'text-color' => 'text-info',
+// 'center' => false,
+// 'text' => __('Similar plugins, like the <b>not compatible
+// plugins</b> which are listed here, might be incompatible too!',
+// JTLWCC_TEXT_DOMAIN),
+// ];
         }
 
         //Add sectionend
@@ -2144,7 +2146,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         } else {
             $wpdb->query('ROLLBACK');
             Config::set(Config::OPTIONS_UPDATE_FAILED, 'yes');
-            add_action('admin_notices', function () {
+            add_action('admin_notices', function (): void {
                 $this->update_failed();
             });
         }
@@ -2414,7 +2416,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param string[] $links
+     * @param string[]    $links
      * @param string|null $file
      * @return string[]
      */

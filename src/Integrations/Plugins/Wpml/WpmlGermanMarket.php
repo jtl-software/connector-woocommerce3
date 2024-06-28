@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\MeasurementUnitI18n;
@@ -7,12 +9,13 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 
 /**
  * Class WpmlGermanMarket
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlGermanMarket extends AbstractComponent
 {
     /**
-     * @param int $termTaxonomyId
+     * @param int    $termTaxonomyId
      * @param string $taxonomyName
      * @return array
      * @throws \Exception

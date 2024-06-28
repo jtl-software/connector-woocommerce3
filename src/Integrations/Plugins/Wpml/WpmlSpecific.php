@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -11,6 +13,7 @@ use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlSpecific
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlSpecific extends AbstractComponent
@@ -40,7 +43,7 @@ class WpmlSpecific extends AbstractComponent
 
     /**
      * @param Specific $specific
-     * @param string $name
+     * @param string   $name
      * @throws Exception
      */
     public function getTranslations(Specific $specific, string $name): void
@@ -62,7 +65,7 @@ class WpmlSpecific extends AbstractComponent
     }
 
     /**
-     * @param Specific $specific
+     * @param Specific          $specific
      * @param SpecificI18nModel $defaultTranslation
      * @throws InjectionException
      * @throws Exception

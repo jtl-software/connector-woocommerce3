@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
@@ -20,7 +22,7 @@ use WC_Product;
 class ProductSpecialPriceController extends AbstractBaseController
 {
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
      * @return ProductSpecialPriceModel[]
      * @throws InvalidArgumentException
@@ -122,7 +124,7 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string $priceNet
+     * @param string     $priceNet
      * @param WC_Product $product
      * @return float
      * @throws \http\Exception\InvalidArgumentException
@@ -143,8 +145,8 @@ class ProductSpecialPriceController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param string $productType
+     * @param WC_Product   $wcProduct
+     * @param string       $productType
      * @return void
      * @throws InvalidArgumentException
      * @throws \Exception

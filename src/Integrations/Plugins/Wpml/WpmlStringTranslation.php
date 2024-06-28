@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -7,6 +9,7 @@ use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlStringTranslation
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlStringTranslation extends AbstractComponent

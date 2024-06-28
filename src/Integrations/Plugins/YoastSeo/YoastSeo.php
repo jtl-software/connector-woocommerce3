@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\YoastSeo;
 
 use Jtl\Connector\Core\Definition\Model;
@@ -12,13 +14,12 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 /**
  * Class YoastSeo
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\YoastSeo
  */
 class YoastSeo extends AbstractPlugin
 {
-    /**
-     * @var null|bool|array<int, bool|null|string>
-     */
+    /** @var bool|array<int, bool|string|null>|null */
     protected array|bool|null $wpSeoTaxonomyMeta;
 
     /**
@@ -31,9 +32,9 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $taxonomyId
+     * @param int                           $taxonomyId
      * @param CategoryI18n|ManufacturerI18n $i18nModel
-     * @param string $type
+     * @param string                        $type
      */
     protected function updateWpSeoTaxonomyMeta(
         int $taxonomyId,
@@ -84,8 +85,8 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param ProductI18n|CategoryI18n|ManufacturerI18n $i18n
-     * @param int $termId
-     * @param string $type
+     * @param int                                       $termId
+     * @param string                                    $type
      */
     public function setSeoData(ProductI18n|CategoryI18n|ManufacturerI18n $i18n, int $termId, string $type): void
     {
@@ -98,7 +99,7 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $termId
+     * @param int    $termId
      * @param string $type
      * @return array
      */
@@ -119,7 +120,7 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $categoryId
+     * @param int          $categoryId
      * @param CategoryI18n $categoryI18n
      */
     public function setCategorySeoData(int $categoryId, CategoryI18n $categoryI18n): void
@@ -128,7 +129,7 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $manufacturerId
+     * @param int              $manufacturerId
      * @param ManufacturerI18n $manufacturerI18n
      */
     public function setManufacturerSeoData(int $manufacturerId, ManufacturerI18n $manufacturerI18n): void
@@ -182,7 +183,7 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @return array<int, bool|null|string>|bool|null
+     * @return array<int, bool|string|null>|bool|null
      */
     protected function getSeoTaxonomyMeta(): array|bool|null
     {

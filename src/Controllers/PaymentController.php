@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;
@@ -16,13 +18,11 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Payment
+ *
  * @package JtlWooCommerceConnector\Controllers
  */
 class PaymentController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
-    /**
-     *
-     */
     public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
@@ -68,9 +68,9 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-    * @param int $endpointId
-    * @return int
-    * @throws InvalidArgumentException
+     * @param int $endpointId
+     * @return int
+     * @throws InvalidArgumentException
      */
     public function getOrderHostId(int $endpointId): int
     {
@@ -84,7 +84,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-     * @param string $paymentModuleCode
+     * @param string    $paymentModuleCode
      * @param \WC_Order $order
      * @return string
      */

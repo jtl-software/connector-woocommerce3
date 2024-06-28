@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
 use Jtl\Connector\Core\Model\SpecificValue;
@@ -12,15 +14,16 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
  * Class WooCommerceSpecificValue
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceSpecificValue extends AbstractComponent
 {
     /**
-     * @param string $taxonomy
-     * @param SpecificValue $specificValue
+     * @param string            $taxonomy
+     * @param SpecificValue     $specificValue
      * @param SpecificValueI18n $specificValueI18n
-     * @param null $slug
+     * @param null              $slug
      * @return SpecificValue|null
      * @throws \Exception
      */

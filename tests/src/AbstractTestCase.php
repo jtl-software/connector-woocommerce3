@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests;
 
 use DI\Container;
@@ -20,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractTestCase
+ *
  * @package JtlWooCommerceConnector\Tests
  */
 abstract class AbstractTestCase extends TestCase

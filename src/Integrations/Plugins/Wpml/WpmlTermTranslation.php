@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -7,14 +9,15 @@ use JtlWooCommerceConnector\Integrations\Plugins\PluginInterface;
 
 /**
  * Class WpmlTermTranslation
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlTermTranslation extends AbstractComponent
 {
     /**
-     * @param int $trid
+     * @param int    $trid
      * @param string $elementType
-     * @param bool $withoutDefaultTranslation
+     * @param bool   $withoutDefaultTranslation
      * @return array
      */
     public function getTranslations(int $trid, string $elementType, bool $withoutDefaultTranslation = true): array
@@ -33,7 +36,7 @@ class WpmlTermTranslation extends AbstractComponent
     }
 
     /**
-     * @param int $translatedTermId
+     * @param int    $translatedTermId
      * @param string $taxonomy
      * @return array
      */
@@ -47,7 +50,7 @@ class WpmlTermTranslation extends AbstractComponent
     }
 
     /**
-     * @param int $translatedTermId
+     * @param int    $translatedTermId
      * @param string $taxonomy
      * @return array|false|\WP_Term
      */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
@@ -17,7 +19,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -28,7 +30,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -93,7 +95,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array $metaKeys
+     * @param array      $metaKeys
      * @return bool
      */
     private function hasGermanMarketUnitPrice(WC_Product $wcProduct, array $metaKeys): bool
@@ -120,7 +122,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array $metaKeys
+     * @param array      $metaKeys
      * @return array
      */
     private function getGermanMarketMeta(WC_Product $wcProduct, array $metaKeys): array
@@ -342,7 +344,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param array $metaKeys
+     * @param array        $metaKeys
      * @return void
      */
     private function clearPPU(ProductModel $product, array $metaKeys): void
