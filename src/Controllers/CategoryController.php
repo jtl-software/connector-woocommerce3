@@ -99,6 +99,8 @@ class CategoryController extends AbstractBaseController implements
                 }
             }
 
+            $category->addI18n($i18n);
+
             if ($this->wpml->canBeUsed()) {
                 $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
                 $categoryTranslations     = $wpmlTaxonomyTranslations
