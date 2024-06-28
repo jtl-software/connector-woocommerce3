@@ -69,6 +69,6 @@
     "phpstan": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon",
     "phpstan:ci": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon --error-format gitlab > phpstan-quality-report.json",
     "tests": "phpunit",
-    "tests:ci": "phpunit --log-junit phpunit.xml"
+    "tests:ci": "phpunit --log-junit junit.xml"
   }
 }

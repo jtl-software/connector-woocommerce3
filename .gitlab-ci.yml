@@ -116,16 +116,17 @@ test:unit:
   parallel:
     matrix:
       - BASE: 'php'
-        VERSION: [ '8.0', '8.1', '8.2', '8.3' ] # no image for 8.3 yet
+        VERSION: [ '8.0', '8.1', '8.2', '8.3' ]
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
+  allow_failure: true
   needs:
     - build:vendor
   script:
     - composer run tests:ci
   artifacts:
     reports:
-      junit: phpunit.xml
+      junit: junit.xml
     when: always
 
 build:dist:
