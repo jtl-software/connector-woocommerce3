@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Utilities;
 
 use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\Product;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 
 class B2BMarket extends WordpressUtils
@@ -20,16 +23,16 @@ class B2BMarket extends WordpressUtils
 
     /**
      * @param array<int, string> $customerGroupIds
-     * @param string             $metaKey
-     * @param AbstractModel      ...$models
-     *
+     * @param string $metaKey
+     * @param Category|Product ...$models
      * @return void
-     * @noinspection PhpPossiblePolymorphicInvocationInspection
+     * @throws MustNotBeNullException
+     * @throws \TypeError
      */
     protected function setB2BCustomerGroupBlacklist(
         array $customerGroupIds,
         string $metaKey,
-        AbstractModel ...$models
+        Category|Product ...$models
     ): void {
         foreach ($models as $model) {
             $modelId = $model->getId()->getEndpoint();
@@ -63,14 +66,15 @@ class B2BMarket extends WordpressUtils
     }
 
     /**
-     * @param string        $controller
-     * @param AbstractModel ...$entities
+     * @param string $controller
+     * @param Category|Product ...$entities
      *
      * @return void
      * @throws InvalidArgumentException
-     * @throws \Exception
+     * @throws MustNotBeNullException
+     * @throws \TypeError
      */
-    public function handleCustomerGroupsBlacklists(string $controller, AbstractModel ...$entities): void
+    public function handleCustomerGroupsBlacklists(string $controller, Category|Product ...$entities): void
     {
         $customerGroups    = ( new CustomerGroupController($this->db, $this->util) )->pull();
         $customerGroupsIds = \array_values(

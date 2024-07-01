@@ -66,9 +66,9 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     }
 
     /**
-     * @return object|WC_Advanced_Shipment_Tracking_Actions|null
+     * @return object|null
      */
-    protected function getShipmentTrackingActions(): object|WC_Advanced_Shipment_Tracking_Actions|null
+    protected function getShipmentTrackingActions(): object|null
     {
         $shipmentTrackingActions = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {

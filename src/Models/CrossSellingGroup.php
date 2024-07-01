@@ -35,7 +35,7 @@ class CrossSellingGroup
 
     /**
      * @param Util $util
-     * @return array<int, CrossSelling[]>
+     * @return array<int, \Jtl\Connector\Core\Model\CrossSellingGroup>
      */
     public static function all(Util $util): array
     {

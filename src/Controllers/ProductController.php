@@ -11,6 +11,7 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -144,6 +145,12 @@ class ProductController extends AbstractBaseController implements
                     $manufacturerNumber = \get_post_meta($product->get_id(), '_ts_mpn', true);
                     $ean                = \get_post_meta($product->get_id(), '_ts_gtin');
 
+                    if (!\is_string($manufacturerNumber)) {
+                        throw new \http\Exception\InvalidArgumentException(
+                            'Manufacturer number is not a string'
+                        );
+                    }
+
                     if (\is_array($ean) && \count($ean) > 0 && \array_key_exists(0, $ean)) {
                         $ean = $ean[0];
                     } else {
@@ -166,7 +173,7 @@ class ProductController extends AbstractBaseController implements
             }
 
             if ($product->get_parent_id() !== 0) {
-                $productModel->setMasterProductId(new Identity($product->get_parent_id()));
+                $productModel->setMasterProductId(new Identity((string)$product->get_parent_id()));
             }
 
             $specialPrices = (new ProductSpecialPriceController($this->db, $this->util))
@@ -175,7 +182,9 @@ class ProductController extends AbstractBaseController implements
                 ->pullData($product, $productModel);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($product, $productModel);
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+                $wpmlProduct->getTranslations($product, $productModel);
             }
 
             $productModel
@@ -264,7 +273,7 @@ class ProductController extends AbstractBaseController implements
 
         if (empty($masterProductId) && isset(self::$idCache[$model->getMasterProductId()->getHost()])) {
             $masterProductId = self::$idCache[$model->getMasterProductId()->getHost()];
-            $model->getMasterProductId()->setEndpoint($masterProductId);
+            $model->getMasterProductId()->setEndpoint((string)$masterProductId);
         }
 
         foreach ($model->getI18ns() as $i18n) {
@@ -328,24 +337,22 @@ class ProductController extends AbstractBaseController implements
         \add_filter('content_save_pre', 'wp_filter_post_kses');
         \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-        if ($newPostId instanceof \WP_Error) {
+        if (!\is_int($newPostId)) {
             $this->logger->error(ErrorFormatter::formatError($newPostId));
             return $model;
         }
 
-        if (\is_null($newPostId)) {
-            return $model;
-        }
-
-        $model->getId()->setEndpoint($newPostId);
+        $model->getId()->setEndpoint((string)$newPostId);
 
         $wcProduct = \wc_get_product($newPostId);
         $this->onProductInserted($model, $tmpI18n);
 
         if ($this->wpml->canBeUsed()) {
-            $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+            $wpmlProduct->setProductTranslations(
                 $newPostId,
-                $masterProductId,
+                (string)$masterProductId,
                 $model
             );
         }
@@ -410,7 +417,9 @@ class ProductController extends AbstractBaseController implements
             \wc_delete_product_transients($productId);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml->getComponent(WpmlProduct::class)->deleteTranslations($wcProduct);
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+                $wpmlProduct->deleteTranslations($wcProduct);
             }
 
             unset(self::$idCache[$model->getId()->getHost()]);
@@ -428,7 +437,9 @@ class ProductController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         if ($this->wpml->canBeUsed()) {
-            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts();
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+            $ids         = $wpmlProduct->getProducts();
         } else {
             $ids = $this->db->queryList(SqlHelper::productPull());
         }
@@ -437,30 +448,33 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param $meta
+     * @param ProductI18nModel $meta
      * @return void
      * @throws InvalidArgumentException
+     * @throws TranslatableAttributeException
      * @throws WC_Data_Exception
+     * @throws MustNotBeNullException
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \TypeError
      * @throws Exception
      */
-    protected function onProductInserted(ProductModel &$product, &$meta): void
+    protected function onProductInserted(ProductModel &$product, ProductI18nModel &$meta): void
     {
         $wcProduct   = \wc_get_product($product->getId()->getEndpoint());
         $productType = $this->getType($product);
 
-        if (\is_null($wcProduct)) {
+        if (\is_null($wcProduct) || $wcProduct === false) {
             return;
         }
 
         $this->updateProductMeta($product, $wcProduct);
-
         $this->updateProductRelations($product, $wcProduct, $productType);
 
         (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct, $meta);
 
         if ($productType !== ProductController::TYPE_CHILD) {
             $this->updateProduct($product, $wcProduct);
-            \wc_delete_product_transients($product->getId()->getEndpoint());
+            \wc_delete_product_transients((int)$product->getId()->getEndpoint());
         }
 
         //variations
