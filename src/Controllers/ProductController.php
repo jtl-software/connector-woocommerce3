@@ -551,6 +551,12 @@ class ProductController extends AbstractBaseController implements
             $productTypeTerm    = \get_term_by('slug', $oldWcProductType, 'product_type');
             $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
+            if ($currentProductType instanceof \WP_Error) {
+                throw new \http\Exception\InvalidArgumentException(
+                    "Expected current product type to be iterable. Got WP_Error."
+                );
+            }
+
             $removeTerm = null;
             foreach ($currentProductType as $term) {
                 if ($term instanceof \WP_Term) {
@@ -598,17 +604,17 @@ class ProductController extends AbstractBaseController implements
             $productId = $product->getId()->getEndpoint();
             if ($this->util->useGtinAsEanEnabled()) {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_ts_gtin',
                     (string)$product->getEan(),
-                    \get_post_meta($productId, '_ts_gtin', true)
+                    \get_post_meta((int)$productId, '_ts_gtin', true)
                 );
             } else {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_ts_gtin',
                     '',
-                    \get_post_meta($productId, '_ts_gtin', true)
+                    \get_post_meta((int)$productId, '_ts_gtin', true)
                 );
             }
         }
@@ -618,17 +624,17 @@ class ProductController extends AbstractBaseController implements
 
             if ($this->util->useGtinAsEanEnabled()) {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_gm_gtin',
                     (string)$product->getEan(),
-                    \get_post_meta($productId, '_gm_gtin', true)
+                    \get_post_meta((int)$productId, '_gm_gtin', true)
                 );
             } else {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_gm_gtin',
                     '',
-                    \get_post_meta($productId, '_gm_gtin', true)
+                    \get_post_meta((int)$productId, '_gm_gtin', true)
                 );
             }
         }
