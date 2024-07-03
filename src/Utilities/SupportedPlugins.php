@@ -49,7 +49,6 @@ class SupportedPlugins
         PLUGIN_WORDFENCE                 = 'Wordfence Security – Firewall & Malware Scan',
         PLUGIN_THEME_WOODMART_CORE       = 'Woodmart Core',
         PLUGIN_WP_FASTEST_CACHE          = 'WP Fastest Cache',
-        PLUGIN_WP_MULTILANG              = 'WP Multilang',
         PLUGIN_WOODY_AD_SNIPPET          = 'Woody ad snippets (PHP snippets | Insert PHP)',
         PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET = 'Schema - All In One Schema Rich Snippets',
         PLUGIN_BACKWPUP                  = 'BackWPup';
@@ -95,7 +94,6 @@ class SupportedPlugins
         self::PLUGIN_CERBER_SECURITY,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
-        self::PLUGIN_WP_MULTILANG,
         self::PLUGIN_THEME_WOODMART_CORE,
         self::PLUGIN_WOODY_AD_SNIPPET,
         self::PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET,

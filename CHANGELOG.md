@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.4 _2024-07-03_
 - CO-2632 - fix missing category iso code
 - CO-2643 - update image identities once
 
