@@ -52,32 +52,34 @@ class YoastSeo extends AbstractPlugin
         }
         $exists = false;
 
-        foreach ($taxonomySeo[$type] as $catKey => $seoData) {
-            if ($catKey === (int)$taxonomyId) {
-                $exists                                       = true;
-                $taxonomySeo[$type][$catKey]['wpseo_desc']    = $i18nModel->getMetaDescription();
-                $taxonomySeo[$type][$catKey]['wpseo_focuskw'] = $i18nModel->getMetaKeywords();
-                $taxonomySeo[$type][$catKey]['wpseo_title']   = \strcmp(
-                    $i18nModel->getTitleTag(),
-                    ''
-                ) === 0 && \method_exists(
-                    $i18nModel,
-                    'getName'
-                ) ? $i18nModel->getName() : $i18nModel->getTitleTag();
+        if (\is_array($taxonomySeo[$type]) and !empty($taxonomySeo[$type])) {
+            foreach ($taxonomySeo[$type] as $catKey => $seoData) {
+                if ((int)$catKey === $taxonomyId) {
+                    $exists                                       = true;
+                    $taxonomySeo[$type][$catKey]['wpseo_desc']    = $i18nModel->getMetaDescription();
+                    $taxonomySeo[$type][$catKey]['wpseo_focuskw'] = $i18nModel->getMetaKeywords();
+                    $taxonomySeo[$type][$catKey]['wpseo_title']   = \strcmp(
+                        $i18nModel->getTitleTag(),
+                        ''
+                    ) === 0 && \method_exists(
+                        $i18nModel,
+                        'getName'
+                    ) ? $i18nModel->getName() : $i18nModel->getTitleTag();
+                }
             }
-        }
-        if ($exists === false) {
-            $taxonomySeo[$type][(int)$taxonomyId] = [
-                'wpseo_desc' => $i18nModel->getMetaDescription(),
-                'wpseo_focuskw' => $i18nModel->getMetaKeywords(),
-                'wpseo_title' => \strcmp(
-                    $i18nModel->getTitleTag(),
-                    ''
-                ) === 0 && \method_exists(
-                    $i18nModel,
-                    'getName'
-                ) ? $i18nModel->getName() : $i18nModel->getTitleTag(),
-            ];
+            if ($exists === false) {
+                $taxonomySeo[$type][(int)$taxonomyId] = [
+                    'wpseo_desc' => $i18nModel->getMetaDescription(),
+                    'wpseo_focuskw' => $i18nModel->getMetaKeywords(),
+                    'wpseo_title' => \strcmp(
+                        $i18nModel->getTitleTag(),
+                        ''
+                    ) === 0 && \method_exists(
+                        $i18nModel,
+                        'getName'
+                    ) ? $i18nModel->getName() : $i18nModel->getTitleTag(),
+                ];
+            }
         }
 
         \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
@@ -93,8 +95,8 @@ class YoastSeo extends AbstractPlugin
         $seoData = $this->findSeoTranslationData($termId, $type);
         if (!empty($seoData)) {
             $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
-                ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $i18n->getName())
-                ->setTitleTag($seoData['wpseo_title'] ?? $i18n->getName());
+                ->setMetaKeywords($seoData['wpseo_focuskw'] ?? '')
+                ->setTitleTag($seoData['wpseo_title'] ?? '');
         }
     }
 

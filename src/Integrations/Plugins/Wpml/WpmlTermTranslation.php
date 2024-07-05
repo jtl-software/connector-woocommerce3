@@ -6,6 +6,7 @@ namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PluginInterface;
+use stdClass;
 
 /**
  * Class WpmlTermTranslation
@@ -18,7 +19,7 @@ class WpmlTermTranslation extends AbstractComponent
      * @param int    $trid
      * @param string $elementType
      * @param bool   $withoutDefaultTranslation
-     * @return array
+     * @return stdClass[]
      */
     public function getTranslations(int $trid, string $elementType, bool $withoutDefaultTranslation = true): array
     {
@@ -32,7 +33,7 @@ class WpmlTermTranslation extends AbstractComponent
         ) {
             unset($translations[$wpmlPlugin->getDefaultLanguage()]);
         }
-        return \is_array($translations) ? $translations : [];
+        return $translations;
     }
 
     /**
@@ -73,15 +74,15 @@ class WpmlTermTranslation extends AbstractComponent
     }
 
     /**
-     * @return true
+     * @return void
      */
-    public function enableGetTermAdjustId(): bool
+    public function enableGetTermAdjustId(): void
     {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();
 
-        return \add_filter('terms_clauses', [$wpmlPlugin->getSitepress(), 'terms_clauses'], 10, 4) &&
-            \add_filter('get_term', [$wpmlPlugin->getSitepress(), 'get_term_adjust_id'], 1, 1) &&
-            \add_filter('get_terms_args', [$wpmlPlugin->getSitepress(), 'get_terms_args_filter'], 10, 2);
+        \add_filter('terms_clauses', [$wpmlPlugin->getSitepress(), 'terms_clauses'], 10, 3);
+        \add_filter('get_term', [$wpmlPlugin->getSitepress(), 'get_term_adjust_id'], 1, 1);
+        \add_filter('get_terms_args', [$wpmlPlugin->getSitepress(), 'get_terms_args_filter'], 10, 2);
     }
 }

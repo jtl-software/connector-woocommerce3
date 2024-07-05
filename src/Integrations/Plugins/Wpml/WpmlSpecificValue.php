@@ -65,7 +65,7 @@ class WpmlSpecificValue extends AbstractComponent
             if (isset($specificTranslation['term_taxonomy_id'])) {
                 $specificValue->getId()->setEndpoint($specificTranslation['term_taxonomy_id']);
             } else {
-                $specificValue->getId()->setEndpoint(0);
+                $specificValue->getId()->setEndpoint('0');
             }
 
             $slug = \wc_sanitize_taxonomy_name($specificValueI18n->getValue()) . '-' . $languageCode;

@@ -103,7 +103,7 @@ class WpmlSpecific extends AbstractComponent
 
     /**
      * @param string $specificName
-     * @return array|null
+     * @return array<int, array<string, string>>|null
      * @throws InvalidArgumentException
      */
     public function getValues(string $specificName): ?array

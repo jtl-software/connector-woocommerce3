@@ -67,7 +67,13 @@ class Germanized
     public function hasUnitProduct(\WC_Product $wcProduct): bool
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                return $gzdProduct->has_unit_product();
+            }
         }
         return $wcProduct->gzd_product->has_product_units();
     }
@@ -81,7 +87,13 @@ class Germanized
     public function getUnit(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                return $gzdProduct->get_unit();
+            }
         }
         return $wcProduct->gzd_product->unit;
     }
@@ -95,7 +107,13 @@ class Germanized
     public function getUnitProduct(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                return $gzdProduct->get_unit();
+            }
         }
         return $wcProduct->gzd_product->unit_product;
     }
@@ -109,7 +127,13 @@ class Germanized
     public function getUnitBase(\WC_Product $wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                return $gzdProduct->get_unit_base();
+            }
         }
         return $wcProduct->gzd_product->unit_base;
     }

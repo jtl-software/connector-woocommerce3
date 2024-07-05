@@ -23,7 +23,7 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @param string            $taxonomy
      * @param SpecificValue     $specificValue
      * @param SpecificValueI18n $specificValueI18n
-     * @param null              $slug
+     * @param ?string              $slug
      * @return SpecificValue|null
      * @throws \Exception
      */
@@ -31,7 +31,7 @@ class WooCommerceSpecificValue extends AbstractComponent
         string $taxonomy,
         SpecificValue $specificValue,
         SpecificValueI18n $specificValueI18n,
-        $slug = null
+        ?string $slug = null
     ): ?int {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
