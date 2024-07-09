@@ -5,6 +5,9 @@ namespace JtlWooCommerceConnector;
 \ini_set('display_errors', 'off');
 
 use DI\Container;
+use DI\DependencyException;
+use DI\NotFoundException;
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Application\Request;
 use Jtl\Connector\Core\Application\Response;
@@ -19,7 +22,11 @@ use Jtl\Connector\Core\Definition\Event;
 use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 use Jtl\Connector\Core\Event\BoolEvent;
 use Jtl\Connector\Core\Event\RpcEvent;
+use Jtl\Connector\Core\Exception\ApplicationException;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Logger\LoggerService;
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\Product;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
@@ -49,6 +56,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     /**
      * @return void
+     * @throws \RuntimeException
      */
     public function initialize(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
     {
@@ -57,9 +65,16 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         $db   = new Db($wpdb);
         $util = new Util($db);
 
-        $this->db            = $db;
-        $this->sqlHelper     = new SqlHelper($this->db);
-        $this->loggerService = $container->get(LoggerService::class);
+        $this->db        = $db;
+        $this->sqlHelper = new SqlHelper();
+
+        $loggerService = $container->get(LoggerService::class);
+
+        if (!$loggerService instanceof LoggerService) {
+            throw new \RuntimeException('LoggerService not found');
+        }
+
+        $this->loggerService = $loggerService;
         $container->set(Db::class, $db);
         $container->set(Util::class, $util);
 
@@ -67,7 +82,15 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             Event::BEFORE
         ), static function (RpcEvent $event) use ($config): void {
             if ($event->getController() === 'Connector' && $event->getAction() === 'auth') {
-                \JtlConnectorAdmin::loadFeaturesJson($config->get(ConfigSchema::FEATURES_PATH));
+                $featuresPath = $config->get(ConfigSchema::FEATURES_PATH);
+
+                if (!\is_string($featuresPath)) {
+                    throw new InvalidArgumentException(
+                        "Expected featuresPath to be string but got " . \gettype($featuresPath) . " instead"
+                    );
+                }
+
+                \JtlConnectorAdmin::loadFeaturesJson($featuresPath);
             }
         });
 
@@ -89,8 +112,18 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
-     * @return bool
+     * @param Application $application
+     * @param Request $request
+     * @return Response
+     * @throws DependencyException
+     * @throws NotFoundException
      * @throws \InvalidArgumentException
+     * @throws ApplicationException
+     * @throws MustNotBeNullException
+     * @throws \ReflectionException
+     * @throws \RuntimeException
+     * @throws \Throwable
+     * @throws \TypeError
      */
     public function handle(Application $application, Request $request): Response
     {
@@ -111,11 +144,16 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             $result = $application->handleRequest($this, $request);
 
             if (\in_array($controllerName = $request->getController(), ['product', 'category'])) {
+                /** @var Db $database */
                 $database = $application->getContainer()->get(Db::class);
-                $util     = $application->getContainer()->get(Util::class);
+                /** @var Util $util */
+                $util = $application->getContainer()->get(Util::class);
+
+                /** @var Category[]|Product[] $entities */
+                $entities = $request->getParams();
 
                 (new B2BMarket($database, $util))
-                    ->handleCustomerGroupsBlacklists($controllerName, ...$request->getParams());
+                    ->handleCustomerGroupsBlacklists($controllerName, ...$entities);
             }
         }
 
@@ -176,7 +214,9 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     public function getTokenValidator(): TokenValidatorInterface
     {
-        return new TokenValidator(Config::get(Config::OPTIONS_TOKEN, ''));
+        /** @var string $optionsToken */
+        $optionsToken = Config::get(Config::OPTIONS_TOKEN, '');
+        return new TokenValidator($optionsToken);
     }
 
     public function getControllerNamespace(): string

@@ -75,6 +75,7 @@ class Germanized
                 return $gzdProduct->has_unit_product();
             }
         }
+
         return $wcProduct->gzd_product->has_product_units();
     }
 

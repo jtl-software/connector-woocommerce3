@@ -13,7 +13,7 @@ use Psr\Log\NullLogger;
 
 class ChecksumLoader implements ChecksumLoaderInterface
 {
-    protected NullLogger $logger;
+    protected LoggerInterface $logger;
 
     protected Db $db;
 
@@ -36,7 +36,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      */
     public function read($endpointId, $type): string
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return '';
         }
 
@@ -58,7 +58,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      */
     public function write($endpointId, $type, $checksum): bool
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
         }
 
@@ -72,14 +72,14 @@ class ChecksumLoader implements ChecksumLoaderInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $type
+     * @param string $endpointId
+     * @param int $type
      * @return bool
      * @throws InvalidArgumentException
      */
     public function delete($endpointId, $type): bool
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
         }
 
@@ -92,7 +92,12 @@ class ChecksumLoader implements ChecksumLoaderInterface
         return (bool)$rows;
     }
 
-    public function getChecksumRead($endpointId, $type): string
+    /**
+     * @param string $endpointId
+     * @param int $type
+     * @return string
+     */
+    public function getChecksumRead(string $endpointId, int $type): string
     {
         global $wpdb;
 
@@ -108,7 +113,13 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumWrite($endpointId, $type, $checksum): string
+    /**
+     * @param string $endpointId
+     * @param int $type
+     * @param string $checksum
+     * @return string
+     */
+    public function getChecksumWrite(string $endpointId, int $type, string $checksum): string
     {
         global $wpdb;
 
@@ -122,7 +133,12 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumDelete($endpointId, $type): string
+    /**
+     * @param string $endpointId
+     * @param int $type
+     * @return string
+     */
+    public function getChecksumDelete(string $endpointId, int $type): string
     {
         global $wpdb;
         $jcpc = $wpdb->prefix . 'jtl_connector_product_checksum';

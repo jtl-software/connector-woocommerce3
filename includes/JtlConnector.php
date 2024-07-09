@@ -38,6 +38,13 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             }
 
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
+
+            if (!\is_string($features)) {
+                throw new \http\Exception\InvalidArgumentException(
+                    "Expected features to be a string but got " . \gettype($features) . " instead."
+                );
+            }
+
             if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
             }

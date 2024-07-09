@@ -164,7 +164,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 } else {
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
-            } elseif ($oldExists && ! $newExists) {
+                /** @phpstan-ignore booleanNot.alwaysTrue */
+            } elseif ($oldExists && !$newExists) {
                 if (strcmp($table, 'category_level') === 0 || strcmp($table, 'product_checksum') === 0) {
                     $tmp    = $prefix;
                     $prefix = substr($prefix, 0, - 5);
@@ -1814,12 +1815,20 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     private static function update(Db $db): void
     {
         $wpdb = $db->getWpDb();
 
-        $installed_version = (string) Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
+        $installed_version = Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
+
+        if (!\is_string($installed_version)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected installed_version to be a string, got " . gettype($installed_version) . "instead."
+            );
+        }
+
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
 
         switch ($installed_version) {
@@ -2121,6 +2130,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $result = true;
         $wpdb->query('START TRANSACTION');
 
+        /** @phpstan-ignore booleanAnd.leftAlwaysTrue */
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_customer'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
@@ -2147,7 +2157,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wpdb->query('ROLLBACK');
             Config::set(Config::OPTIONS_UPDATE_FAILED, 'yes');
             add_action('admin_notices', function (): void {
-                $this->update_failed();
+                self::jtlwcc_show_wordpress_error(__(
+                    'The linking table migration was not successful. Please use the forum for help.',
+                    JTLWCC_TEXT_DOMAIN
+                ));
             });
         }
     }
@@ -2416,11 +2429,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param string[]    $links
-     * @param string|null $file
+     * @param string[] $links
+     * @param string $file
      * @return string[]
      */
-    public static function jtlconnector_plugin_row_meta(array $links, ?string $file ):array //phpcs:ignore
+    public static function jtlconnector_plugin_row_meta(array $links, string $file ):array //phpcs:ignore
     {
         if (\str_contains($file, 'woo-jtl-connector.php')) {
             $url       = esc_url('https://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
@@ -2452,7 +2465,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // </editor-fold>
 
     /**
-     * @param $field
+     * @param array<string, null|string> $field
      *
      * @return void
      */
@@ -2593,14 +2606,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function not_compatible_plugins_field(array $field): void
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var array<string, string> $plugins */
+        $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
-                if (count($field['plugins']) > 0) {
-                    foreach ($field['plugins'] as $key => $value) {
+                if (count($plugins) > 0) {
+                    foreach ($plugins as $key => $value) {
                         //phpcs:disable
                         ?>
                         <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>"><?php print $value; ?></li> <?php
@@ -2649,14 +2666,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function compatible_plugins_field(array $field): void
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var array<int, array<string, null|string>> $plugins */
+        $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
-                if (count($field['plugins']) > 0) {
-                    foreach ($field['plugins'] as $key => $value) {
+                if (count($plugins) > 0) {
+                    foreach ($plugins as $key => $value) {
                         //phpcs:disable
                         ?>
                         <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>">
@@ -2687,13 +2708,15 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function paragraph_field(array $field): void
     {
+        /** @var string $title */
+        $title = $field['title'];
         ?>
         <div class="form-group row">
-            <label for="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>"
-                   class="col-12 col-form-label"><?= $field['title'] ?></label>
+            <label for="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
+                   class="col-12 col-form-label"><?= $title ?></label>
             <div class="col-12">
                 <input type="text" readonly class="form-control-plaintext"
-                       id="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>"
+                       id="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
                        value="<?= $field['desc'] ?>">
                 <?php
                 if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
@@ -2769,10 +2792,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function jtl_connector_select(array $field): void
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var string $id */
+        $id = $field['id'];
+        /** @var string $helpBlock */
+        $helpBlock = $field['helpBlock'];
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select required class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
+            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
+            <select required class="form-control custom-select col-12 ml-3" name="<?= $id ?>">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
@@ -2785,10 +2814,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 ?>
             </select>
             <?php
-            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+            if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $helpBlock ?>
                 </small>
                 <?php
             }
@@ -2808,24 +2837,32 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function jtl_connector_multiselect(array $field): void
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var string $id */
+        $id = $field['id'];
+        /** @var string $helpBlock */
+        $helpBlock = $field['helpBlock'];
+        /** @var array<int, string> $statusValues */
+        $statusValues = $field['value'];
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>[]">
+            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
+            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $id ?>[]">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) { ?>
-                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) {
+                        <option value="<?php print $key; ?>" <?php if (in_array($key, $statusValues)) {
                             print 'selected="selected"';
                                        } ?>><?php print $ovalue; ?> </option>
                     <?php }
                 } ?>
             </select>
             <?php
-            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+            if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $helpBlock ?>
                 </small>
                 <?php
             }
@@ -2927,7 +2964,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
