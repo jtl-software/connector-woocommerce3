@@ -7,6 +7,7 @@ namespace JtlWooCommerceConnector\Controllers;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Integrations\IntegrationsManager;
+use JtlWooCommerceConnector\Integrations\Plugins\PluginInterface;
 use JtlWooCommerceConnector\Integrations\Plugins\PluginsManager;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -24,7 +25,10 @@ abstract class AbstractBaseController extends AbstractController implements Logg
 
     protected PluginsManager $pluginsManager;
 
-    protected Wpml $wpml;
+    /**
+     * @var Wpml|PluginInterface $wpml
+     */
+    protected Wpml|PluginInterface $wpml;
 
     /**
      * BaseController constructor.

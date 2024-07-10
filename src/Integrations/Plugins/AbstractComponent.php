@@ -31,7 +31,7 @@ abstract class AbstractComponent implements ComponentInterface, LoggerAwareInter
      * @param PluginInterface $plugin
      * @return $this
      */
-    public function setPlugin(PluginInterface $plugin)
+    public function setPlugin(PluginInterface $plugin): mixed
     {
         $this->plugin = $plugin;
         return $this;
