@@ -76,12 +76,12 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param $postId
-     * @param $metaKey
-     * @param $value
+     * @param int $postId
+     * @param string $metaKey
+     * @param string $value
      * @return bool|int
      */
-    protected function updatePostMeta($postId, $metaKey, $value): bool|int
+    protected function updatePostMeta(int $postId, string $metaKey, string $value): bool|int
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }
@@ -92,43 +92,43 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @param $value
      * @return bool|int
      */
-    protected function addPostMeta($postId, $metaKey, $value): bool|int
+    protected function addPostMeta(int $postId, string $metaKey, string $value): bool|int
     {
         return \add_post_meta($postId, $metaKey, $value, true);
     }
 
     /**
-     * @param $objectId
-     * @param $terms
-     * @param $taxonomy
-     * @param bool     $append
-     * @return array|\WP_Error|int|bool|string|null
+     * @param int $objectId
+     * @param array|int|string $terms
+     * @param string $taxonomy
+     * @param bool $append
+     * @return array|\WP_Error
      */
     protected function wpSetObjectTerms(
-        $objectId,
-        $terms,
-        $taxonomy,
+        int $objectId,
+        array|int|string $terms,
+        string $taxonomy,
         bool $append = false
-    ): array|\WP_Error|int|bool|string|null {
+    ): array|\WP_Error {
         return \wp_set_object_terms($objectId, $terms, $taxonomy, $append);
     }
 
     /**
-     * @param $objectId
-     * @param $terms
-     * @param $taxonomy
+     * @param int $objectId
+     * @param array|int|string $terms
+     * @param string $taxonomy
      * @return array|\WP_Error|bool|int|string|null
      */
-    protected function wpRemoveObjectTerms($objectId, $terms, $taxonomy): array|\WP_Error|bool|int|string|null
+    protected function wpRemoveObjectTerms(int $objectId, array|int|string $terms, string $taxonomy): array|\WP_Error|bool|int|string|null
     {
         return \wp_remove_object_terms($objectId, $terms, $taxonomy);
     }
 
     /**
-     * @param $taxonomyName
+     * @param string|AbstractModel $taxonomyName
      * @return string
      */
-    protected function wcSanitizeTaxonomyName($taxonomyName): string
+    protected function wcSanitizeTaxonomyName(string|AbstractModel $taxonomyName): string
     {
         if ($taxonomyName instanceof AbstractModel && \method_exists($taxonomyName, 'getName')) {
             $taxonomyName = $taxonomyName->getName();
@@ -145,8 +145,8 @@ abstract class AbstractBaseController extends AbstractController implements Logg
      * @return \WP_Term|\WP_Error|bool|array|null
      */
     protected function getTermBy(
-        $field,
-        $value,
+        string $field,
+        int|string $value,
         string $taxonomy = '',
         string $output = \OBJECT,
         string $filter = 'raw'
@@ -155,20 +155,20 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param $variable
+     * @param array|string $variable
      * @return array|string
      */
-    protected function wcClean($variable): array|string
+    protected function wcClean(array|string $variable): array|string
     {
         return \wc_clean($variable);
     }
 
     /**
-     * @param $postId
-     * @param $metaKey
+     * @param int $postId
+     * @param string $metaKey
      * @return bool
      */
-    protected function deletePostMeta($postId, $metaKey): bool
+    protected function deletePostMeta(int $postId, string $metaKey): bool
     {
         return \delete_post_meta($postId, $metaKey);
     }

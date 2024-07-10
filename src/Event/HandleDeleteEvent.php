@@ -14,7 +14,7 @@ class HandleDeleteEvent extends Event
     protected string $controller;
     protected $entities;
 
-    public function __construct($controller, $entities)
+    public function __construct(string $controller, $entities)
     {
         $this->controller = $controller;
         $this->entities   = $entities;
@@ -40,6 +40,7 @@ class HandleDeleteEvent extends Event
 
     /**
      * @param $result
+     * @return HandleDeleteEvent
      */
     public function setResult($result): static
     {

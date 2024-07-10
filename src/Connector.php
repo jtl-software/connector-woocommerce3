@@ -27,6 +27,7 @@ use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Logger\LoggerService;
 use Jtl\Connector\Core\Model\Category;
 use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
@@ -180,13 +181,17 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     public function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
     {
         if ($request->getAction() === 'pull') {
-            $event = new HandlePullEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event = new HandlePullEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePullEvent::EVENT_NAME);
         } elseif ($request->getAction() === 'statistic') {
             $event = new HandleStatsEvent($request->getController());
             $eventDispatcher->dispatch($event, HandleStatsEvent::EVENT_NAME);
         } elseif ($request->getAction() === 'push') {
-            $event = new HandlePushEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event = new HandlePushEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePushEvent::EVENT_NAME);
         } else {
             $event = new HandleDeleteEvent($request->getController(), $request->getParams());
