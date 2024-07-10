@@ -14,7 +14,7 @@ class HandleStatsEvent extends Event
     protected $result;
     protected string $controller;
 
-    public function __construct($controller)
+    public function __construct(string $controller)
     {
         $this->controller = $controller;
     }
