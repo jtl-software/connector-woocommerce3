@@ -33,14 +33,14 @@ class CrossSellingController extends AbstractBaseController implements
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return CrossSellingModel[]
      * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
         $crossSelling = [];
 
-        $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit()));
+        $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit())) ?? [];
         $formattedResults = $this->formatResults($results);
 
         foreach ($formattedResults as $row) {
@@ -59,15 +59,20 @@ class CrossSellingController extends AbstractBaseController implements
                     ->setProductId(new Identity($row['post_id']));
 
                 $crosssellingProducts = [];
-                foreach ($relatedProducts as $product) {
-                    $crosssellingProducts[] = new Identity($product);
+
+                if (\is_array($relatedProducts)) {
+                    foreach ($relatedProducts as $product) {
+                        $crosssellingProducts[] = new Identity($product);
+                    }
                 }
 
-                $crossSelling[$row['post_id']]->addItem(
-                    (new CrossSellingItem())
-                        ->setCrossSellingGroupId($crossSellingGroup->getId())
-                        ->setProductIds(...$crosssellingProducts)
-                );
+                if (!\is_bool($crossSellingGroup)) {
+                    $crossSelling[$row['post_id']]->addItem(
+                        (new CrossSellingItem())
+                            ->setCrossSellingGroupId($crossSellingGroup->getId())
+                            ->setProductIds(...$crosssellingProducts)
+                    );
+                }
             } else {
                 $this->logger->error(\sprintf(
                     'CrossSelling values for product id %s are empty',
@@ -82,13 +87,18 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param array $result
-     * @return array
+     * @param array<int, array<string, int|string>> $result
+     * @return array<int, array<string, string>>
      */
     protected function formatResults(array $result): array
     {
         $formattedResults = [];
         foreach ($result as $row) {
+            /** @var string $metaKey */
+            $metaKey = $row['meta_key'];
+            /** @var string $metaValue */
+            $metaValue = $row['meta_value'];
+
             $types  = \explode('||', $row['meta_key']);
             $values = \explode('||', $row['meta_value']);
 

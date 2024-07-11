@@ -47,7 +47,7 @@ class ProductAttrController extends AbstractBaseController
      * @throws \Exception
      */
     public function pushData(
-        $productId,
+        int $productId,
         $pushedAttributes,
         $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
@@ -365,6 +365,7 @@ class ProductAttrController extends AbstractBaseController
      */
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes): void
     {
+        /** @var string $value */
         $value = $i18n->getValue();
         if ((bool)Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES, false) === false) {
             $value = $this->wcClean($value);
@@ -390,7 +391,9 @@ class ProductAttrController extends AbstractBaseController
         $slug = $this->wcSanitizeTaxonomyName($i18n->getName());
 
         if (isset($attributes[$slug])) {
-            $this->updateAttribute($slug, $i18n->getValue(), $attributes);
+            /** @var string $value */
+            $value = $i18n->getValue();
+            $this->updateAttribute($slug, $value, $attributes);
         } else {
             $this->createAttribute($slug, $data, $attributes);
         }

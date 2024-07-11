@@ -82,9 +82,11 @@ class CategoryController extends AbstractBaseController implements
                 SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             ) {
+                //['product_cat' => [catId => seoData[desc -> string, focus -> string], catId => seoData]]
+                /** @var array<string, array<int, array<string, string>>|bool|string> $taxonomySeo */
                 $taxonomySeo = \get_option('wpseo_taxonomy_meta');
 
-                if (isset($taxonomySeo['product_cat'])) {
+                if (isset($taxonomySeo['product_cat']) && \is_array($taxonomySeo['product_cat'])) {
                     foreach ($taxonomySeo['product_cat'] as $catId => $seoData) {
                         if ($catId === (int)$categoryDataSet['category_id']) {
                             $i18n
@@ -157,7 +159,7 @@ class CategoryController extends AbstractBaseController implements
         $parentCategoryId = $model->getParentCategoryId();
 
         if (isset(self::$idCache[$parentCategoryId->getHost()])) {
-            $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
+            $parentCategoryId->setEndpoint((string)self::$idCache[$parentCategoryId->getHost()]);
         }
 
         $meta       = null;
@@ -197,7 +199,7 @@ class CategoryController extends AbstractBaseController implements
             $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
             $categoryTerm = \get_term($categoryId, CategoryUtil::TERM_TAXONOMY);
-            if ($categoryTerm instanceof \WP_Error) {
+            if (!$categoryTerm instanceof \WP_Term) {
                 throw new \Exception(\sprintf("Cannot find category %s", $categoryId));
             }
             // WordPress does not create a unique slug itself if the given already exists
@@ -241,31 +243,33 @@ class CategoryController extends AbstractBaseController implements
                 $taxonomySeo = ['product_cat' => []];
             }
 
-            if (!isset($taxonomySeo['product_cat'])) {
+            if (\is_array($taxonomySeo) && !isset($taxonomySeo['product_cat'])) {
                 $taxonomySeo['product_cat'] = [];
             }
             $exists = false;
 
-            foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
-                if ($catKey === (int)$result['term_id']) {
-                    $exists                                               = true;
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_desc']    = $meta->getMetaDescription();
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_title']   = \strcmp(
-                        $meta->getTitleTag(),
-                        ''
-                    ) === 0 ? $meta->getName() : $meta->getTitleTag();
+            if (\is_array($taxonomySeo) && \is_array($taxonomySeo['product_cat'])) {
+                foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
+                    if ($catKey === (int)$result['term_id']) {
+                        $exists                                               = true;
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_desc']    = $meta->getMetaDescription();
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_title']   = \strcmp(
+                            $meta->getTitleTag(),
+                            ''
+                        ) === 0 ? $meta->getName() : $meta->getTitleTag();
+                    }
                 }
-            }
-            if ($exists === false) {
-                $taxonomySeo['product_cat'][(int)$result['term_id']] = [
-                    'wpseo_desc'    => $meta->getMetaDescription(),
-                    'wpseo_focuskw' => $meta->getMetaKeywords(),
-                    'wpseo_title'   => \strcmp(
-                        $meta->getTitleTag(),
-                        ''
-                    ) === 0 ? $meta->getName() : $meta->getTitleTag(),
-                ];
+                if ($exists === false) {
+                    $taxonomySeo['product_cat'][(int)$result['term_id']] = [
+                        'wpseo_desc'    => $meta->getMetaDescription(),
+                        'wpseo_focuskw' => $meta->getMetaKeywords(),
+                        'wpseo_title'   => \strcmp(
+                            $meta->getTitleTag(),
+                            ''
+                        ) === 0 ? $meta->getName() : $meta->getTitleTag(),
+                    ];
+                }
             }
 
             \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
@@ -288,9 +292,9 @@ class CategoryController extends AbstractBaseController implements
             (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml
-                ->getComponent(WpmlCategory::class)
-                ->setCategoryTranslations($model, $result, $parentCategoryId);
+                /** @var WpmlCategory $wpmlCategory */
+                $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+                $wpmlCategory->setCategoryTranslations($model, $result, $parentCategoryId);
             }
         }
 
