@@ -40,6 +40,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
      * @param int $limit
      * @return array<int, Customer>
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pullCustomers(int $limit): array
     {
@@ -48,11 +49,14 @@ class CustomerController extends AbstractBaseController implements PullInterface
         $customerIds = $this->db->queryList(SqlHelper::customerNotLinked($limit, $this->logger));
 
         foreach ($customerIds as $customerId) {
-            $wcCustomer = new \WC_Customer($customerId);
+            $wcCustomer = new \WC_Customer((int)$customerId);
+
+            /** @var bool|int|string $userMetaDescription */
+            $userMetaDescription = \get_user_meta($wcCustomer->get_id(), 'description', true);
 
             $customer = (new CustomerModel())
-                ->setId(new Identity($customerId))
-                ->setCustomerNumber($customerId)
+                ->setId(new Identity((string)$customerId))
+                ->setCustomerNumber((string)$customerId)
                 ->setCompany($wcCustomer->get_billing_company())
                 ->setStreet($wcCustomer->get_billing_address_1())
                 ->setExtraAddressLine($wcCustomer->get_billing_address_2())
@@ -61,7 +65,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 ->setState($wcCustomer->get_billing_state())
                 ->setCountryIso($wcCustomer->get_billing_country())
                 ->setPhone($wcCustomer->get_billing_phone())
-                ->setNote((string)\get_user_meta($wcCustomer->get_id(), 'description', true))
+                ->setNote((string)$userMetaDescription)
                 ->setCreationDate($wcCustomer->get_date_created())
                 ->setCustomerGroupId($this->getCustomerGroupId($wcCustomer))
                 ->setIsActive(true)
@@ -94,11 +98,12 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
-                $index = \get_user_meta($customerId, 'billing_title', true);
-                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
+                /** @var bool|int|string $index */
+                $index = \get_user_meta((int)$customerId, 'billing_title', true);
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation((string)$index));
             }
 
-            $customer->setVatNumber(Util::getVatIdFromCustomer($customerId));
+            $customer->setVatNumber(Util::getVatIdFromCustomer((int)$customerId));
 
             $customers[] = $customer;
         }
@@ -110,6 +115,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
      * @param int $limit
      * @return array<int, Customer>
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     private function pullGuests(int $limit): array
     {
@@ -118,7 +124,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
         $guests = $this->db->queryList(SqlHelper::guestNotLinked($limit, $this->logger));
 
         foreach ($guests as $guest) {
-            $order = new \WC_Order((Id::unlink($guest)[1]));
+            $order = new \WC_Order((int)(Id::unlink((string)$guest)[1]));
 
             $customer = (new CustomerModel())
                 ->setId(new Identity(Id::link([
@@ -151,8 +157,9 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
+                /** @var bool|int|string $index */
                 $index = \get_post_meta($order->get_id(), '_billing_title', true);
-                $customer->setSalutation((new Germanized())->parseIndexToSalutation($index));
+                $customer->setSalutation((new Germanized())->parseIndexToSalutation((string)$index));
             }
 
             $customers[] = $customer;
@@ -248,7 +255,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 $groups = $this->getB2BMarketCustomerGroups();
                 foreach ($groups as $id => $groupName) {
                     if ($customerGroupName === $groupName) {
-                        $customerGroupIdentity->setEndpoint($id);
+                        $customerGroupIdentity->setEndpoint((string)$id);
                         break;
                     }
                 }
@@ -267,10 +274,11 @@ class CustomerController extends AbstractBaseController implements PullInterface
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroupIdentity = new Identity();
 
-            $defaultCustomerGroupId = (int)Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
+            /** @var bool|int|null|string $defaultCustomerGroupId */
+            $defaultCustomerGroupId = Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
             $groups                 = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {
-                if ($defaultCustomerGroupId === $id) {
+                if ((int)$defaultCustomerGroupId === $id) {
                     $customerGroupIdentity->setEndpoint((string)$id);
                     break;
                 }
@@ -281,7 +289,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @return array
+     * @return array<int, string>
      */
     protected function getB2BMarketCustomerGroups(): array
     {

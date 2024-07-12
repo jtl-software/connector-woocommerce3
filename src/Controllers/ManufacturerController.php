@@ -46,9 +46,9 @@ class ManufacturerController extends AbstractBaseController implements
 
         if ($perfectWooCommerceBrands->canBeUsed()) {
             if ($this->wpml->canBeUsed()) {
-                $manufacturerData = $this->wpml
-                    ->getComponent(WpmlPerfectWooCommerceBrands::class)
-                    ->getManufacturers((int)$query->getLimit());
+                /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                $manufacturerData    = $wpmlPerfectWcBrands->getManufacturers((int)$query->getLimit());
             } else {
                 $sql              = SqlHelper::manufacturerPull($query->getLimit());
                 $manufacturerData = $this->db->query($sql);
@@ -63,7 +63,7 @@ class ManufacturerController extends AbstractBaseController implements
                     $manufacturer,
                     $this->util->getWooCommerceLanguage(),
                     $manufacturerDataSet['description'],
-                    (int)$manufacturerDataSet['term_id']
+                    $manufacturerDataSet['term_id']
                 );
 
                 $manufacturer->addI18n(
@@ -71,8 +71,8 @@ class ManufacturerController extends AbstractBaseController implements
                 );
 
                 if ($this->wpml->canBeUsed()) {
-                    $wpmlTaxonomyTranslations = $this->wpml
-                        ->getComponent(WpmlTermTranslation::class);
+                    /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
+                    $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
 
                     $manufacturerTranslations = $wpmlTaxonomyTranslations
                         ->getTranslations((int)$manufacturerDataSet['trid'], 'tax_pwb-brand');
@@ -88,7 +88,7 @@ class ManufacturerController extends AbstractBaseController implements
                                 $manufacturer,
                                 Util::mapLanguageIso($translation->language_code),
                                 $term['description'],
-                                (int)$term['term_id']
+                                $term['term_id']
                             );
 
                             $manufacturer->addI18n($i18n);

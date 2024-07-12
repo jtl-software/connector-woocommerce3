@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
@@ -35,9 +36,18 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
+            if (!$shipmentTrackingActions instanceof WC_Advanced_Shipment_Tracking_Actions) {
+                throw new InvalidArgumentException(
+                    "shipmentTrackingActions expected to be instance of
+                    WC_Advanced_Shipment_Tracking_Actions but got null or object instead."
+                );
+            }
+
             foreach ($model->getTrackingLists() as $trackingList) {
                 $trackingInfoItem                 = [];
-                $trackingInfoItem['date_shipped'] = $model->getCreationDate()->format("Y-m-d");
+                $trackingInfoItem['date_shipped'] = $model->getCreationDate()
+                    ? $model->getCreationDate()->format("Y-m-d")
+                    : '';
 
                 $trackingProviders = $shipmentTrackingActions->get_providers();
 
@@ -83,7 +93,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 
     /**
      * @param string $shippingMethodName
-     * @param array  $trackingProviders
+     * @param array<int|string, array<string, string>>  $trackingProviders
      * @return string|null
      */
     private function findTrackingProviderSlug(string $shippingMethodName, array $trackingProviders): ?string

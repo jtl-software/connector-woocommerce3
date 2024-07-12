@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n;
 use Jtl\Connector\Core\Model\Identity;
@@ -67,6 +68,12 @@ class CustomerGroupController extends AbstractBaseController
                     }
 
                     $meta = \get_post_meta($group['ID']);
+
+                    if (!\is_array($meta)) {
+                        throw new InvalidArgumentException(
+                            "meta expected to be an array but got " . \gettype($meta) . " instead"
+                        );
+                    }
 
                     $isDefaultGroup = $isDefaultGroupSet === false &&
                         (string) $group['ID'] === Config::get('jtlconnector_default_customer_group');

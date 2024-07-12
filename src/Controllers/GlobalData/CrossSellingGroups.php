@@ -17,12 +17,12 @@ use Psr\Log\InvalidArgumentException;
 class CrossSellingGroups extends AbstractBaseController
 {
     /**
-     * @return CrossSellingGroup[]
+     * @return \Jtl\Connector\Core\Model\CrossSellingGroup[]
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pull(): array
     {
-        /** @var CrossSellingGroup[] $crossSellingGroups */
         $crossSellingGroups = CrossSellingGroup::all($this->util);
 
         if ($this->wpml->canBeUsed()) {
