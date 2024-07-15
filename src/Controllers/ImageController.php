@@ -47,7 +47,7 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_IMAGE     = 'category';
     public const MANUFACTURER_IMAGE = 'manufacturer';
 
-    /** @var array<int, string|array<int, string>> */
+    /** @var array<int, string> */
     private array $alreadyLinked = [];
 
     protected PrimaryKeyMapperInterface $primaryKeyMapper;
@@ -62,7 +62,7 @@ class ImageController extends AbstractBaseController implements
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return array<int, CategoryImage|ManufacturerImage|ProductImage>
      * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
@@ -89,13 +89,14 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $images
-     * @param int    $type
-     * @param int    $limit
+     * @param array<int, array<string, array<int, int>|int|string>> $images
+     * @param int $type
+     * @param int $limit
      * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
-    private function addNextImages($images, int $type, int $limit): array
+    private function addNextImages(array $images, int $type, int $limit): array
     {
         $return = [];
 
@@ -105,7 +106,20 @@ class ImageController extends AbstractBaseController implements
         }
 
         foreach ($images as $image) {
-            $imgSrc = \wp_get_attachment_image_src($image['ID'], 'full');
+            /** @var int $imageId */
+            $imageId = $image['ID'];
+            /** @var string $imageLinkId */
+            $imageLinkId = $image['id'];
+            /** @var string $postName */
+            $postName = $image['post_name'];
+            /** @var int $parent */
+            $parent = $image['parent'];
+            /** @var string $guid */
+            $guid = $image['guid'];
+            /** @var int $sort */
+            $sort = $image['sort'];
+
+            $imgSrc = \wp_get_attachment_image_src($imageId, 'full');
 
             switch ($type) {
                 case IdentityType::PRODUCT_IMAGE:
@@ -121,25 +135,26 @@ class ImageController extends AbstractBaseController implements
                     throw new \Exception(\sprintf("Invalid image type '%s'", $type));
             }
 
-            $model->setId(new Identity($image['id']))
-                ->setName((string)$image['post_name'])
-                ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl(isset($imgSrc[0]) ? (string)$imgSrc[0] : (string)$image['guid'])
-                ->setSort((int)$image['sort'])
-                ->setFilename((string)\wc_get_filename_from_url($image['guid']));
+            $model->setId(new Identity($imageLinkId))
+                ->setName($postName)
+                ->setForeignKey(new Identity((string)$parent))
+                ->setRemoteUrl(isset($imgSrc[0]) ? (string)$imgSrc[0] : $guid)
+                ->setSort($sort)
+                ->setFilename(\wc_get_filename_from_url($guid));
 
-            $altText = \get_post_meta($image['ID'], '_wp_attachment_image_alt', true);
+            /** @var false|string $altText */
+            $altText = \get_post_meta($imageId, '_wp_attachment_image_alt', true);
 
             $model
                 ->addI18n((new ImageI18n())
-                    ->setId(new Identity($image['id']))
-                    ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
+                    ->setId(new Identity($imageLinkId))
+                    ->setAltText(\substr($altText !== false ? $altText : '', 0, 254))
                     ->setLanguageISO($language));
 
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-                $this->wpml
-                    ->getComponent(WpmlMedia::class)
-                    ->getTranslations($image['ID'], $model);
+                /** @var WpmlMedia $wpmlMedia */
+                $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
+                $wpmlMedia->getTranslations($imageId, $model);
             }
 
             $return[] = $model;
@@ -151,9 +166,9 @@ class ImageController extends AbstractBaseController implements
     /**
      * Loop the products to get their images and validate and map them.
      *
-     * @param int $limit The limit.
+     * @param int|null $limit The limit.
      *
-     * @return array The image entities.
+     * @return array<int, array<string, array<int, int>|int|string>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
@@ -161,7 +176,9 @@ class ImageController extends AbstractBaseController implements
         $imageCount  = 0;
         $attachments = [];
 
-        $this->alreadyLinked = $this->db->queryList(SqlHelper::linkedProductImages());
+        /** @var string[] $linkedProductImages */
+        $linkedProductImages = $this->db->queryList(SqlHelper::linkedProductImages());
+        $this->alreadyLinked = $linkedProductImages;
 
         try {
             $page = 0;
@@ -182,6 +199,12 @@ class ImageController extends AbstractBaseController implements
 
                         if (!$product instanceof WC_Product) {
                             continue;
+                        }
+
+                        if (!\is_int($postId)) {
+                            throw new \http\Exception\InvalidArgumentException(
+                                "Expected postId to be an integer but got " . \gettype($postId) . " instead."
+                            );
                         }
 
                         $attachmentIds  = $this->fetchProductAttachmentIds($product);
@@ -214,7 +237,7 @@ class ImageController extends AbstractBaseController implements
      *
      * @param WC_Product $product The product for which the cover image and gallery images should be fetched.
      *
-     * @return array An array with the image ids.
+     * @return array<int, int|string> An array with the image ids.
      */
     private function fetchProductAttachmentIds(WC_Product $product): array
     {
@@ -252,10 +275,10 @@ class ImageController extends AbstractBaseController implements
     /**
      * Filter out images that are already linked and get image information.
      *
-     * @param array $attachmentIds The image ids that should be checked.
+     * @param array<int, int|string> $attachmentIds The image ids that should be checked.
      * @param int   $postId        The product which is owner of the images.
      *
-     * @return array The filtered image data.
+     * @return array<int, array<string, array<int, int>|int|string>> The filtered image data.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function addProductImagesForPost(array $attachmentIds, int $postId): array
@@ -265,12 +288,12 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $attachmentIds
-     * @param int           $productId
-     * @return array
+     * @param array<int, int|string> $attachmentIds
+     * @param int $productId
+     * @return array<int, array<string, array<int, int>|int|string>>
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function fetchProductAttachments($attachmentIds, int $productId): array
+    private function fetchProductAttachments(array $attachmentIds, int $productId): array
     {
         $sort        = 0;
         $attachments = [];
@@ -280,24 +303,25 @@ class ImageController extends AbstractBaseController implements
         }
 
         foreach ($attachmentIds as $attachmentId) {
-            if (!\file_exists(\get_attached_file($attachmentId))) {
+            $attachedFile = \get_attached_file((int)$attachmentId);
+            if (!\file_exists($attachedFile !== false ? $attachedFile : '')) {
                 $this->logger->debug(
-                    \sprintf('Image file does not exist: %s', \get_attached_file($attachmentId))
+                    \sprintf('Image file does not exist: %s', \get_attached_file((int)$attachmentId))
                 );
 
                 continue;
             }
 
-            $picture = \get_post($attachmentId, \ARRAY_A);
+            $picture = \get_post((int)$attachmentId, \ARRAY_A);
 
             if (!\is_array($picture)) {
                 continue;
             }
 
-            $picture['id']     = Id::linkProductImage($attachmentId, $productId);
+            $picture['id']     = Id::linkProductImage((int)$attachmentId, $productId);
             $picture['parent'] = $productId;
 
-            if ($attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
+            if ((int)$attachmentId !== \get_post_thumbnail_id($productId) && $sort === 0) {
                 $picture['sort'] = ++$sort;
             } else {
                 $picture['sort'] = $sort;
@@ -312,11 +336,11 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $productAttachments
-     * @param $productId
-     * @return array
+     * @param array<int, int|string> $productAttachments
+     * @param int $productId
+     * @return array<int, int|string>
      */
-    private function filterAlreadyLinkedProducts($productAttachments, $productId): array
+    private function filterAlreadyLinkedProducts(array $productAttachments, int $productId): array
     {
         $filtered      = [];
         $attachmentIds = $productAttachments;
@@ -334,14 +358,17 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
+     * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
      */
-    private function getCategoryImagePullQuery($limit): string
+    private function getCategoryImagePullQuery(?int $limit): string
     {
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-            $categoryImageQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull($limit);
+            /** @var WpmlMedia $wpmlMedia */
+            $wpmlMedia          = $this->wpml->getComponent(WpmlMedia::class);
+            $categoryImageQuery = $wpmlMedia->imageCategoryPull($limit);
         } else {
             $categoryImageQuery = SqlHelper::imageCategoryPull($limit);
         }
@@ -350,15 +377,22 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $limit
+     * @param string $query
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
-    private function categoryImagePullByQuery($query): array
+    private function categoryImagePullByQuery(string $query): array
     {
         $result = [];
 
         $images = $this->db->query($query);
+
+        if (!\is_array($images)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected images to be an array but got " . \gettype($images) . " instead."
+            );
+        }
 
         foreach ($images as $image) {
             $image['sort'] = 0;
@@ -369,14 +403,17 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
+     * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
      */
-    private function getManufacturerImagePullQuery($limit): string
+    private function getManufacturerImagePullQuery(?int $limit): string
     {
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-            $manufacturerImagesQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull($limit);
+            /** @var WpmlMedia $manufacturerImagesQuery */
+            $wpmlMedia               = $this->wpml->getComponent(WpmlMedia::class);
+            $manufacturerImagesQuery = $wpmlMedia->imageManufacturerPull($limit);
         } else {
             $manufacturerImagesQuery = SqlHelper::imageManufacturerPull($limit);
         }
@@ -385,15 +422,15 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $limit
+     * @param string $query
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function manufacturerImagePull($query): array
+    private function manufacturerImagePull(string $query): array
     {
         $result = [];
 
-        $images = $this->db->query($query);
+        $images = $this->db->query($query) ?? [];
 
         foreach ($images as $image) {
             $image['sort'] = 0;
@@ -414,21 +451,22 @@ class ImageController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         $imageCount  = $this->masterProductImageStats();
-        $imageCount += \count($this->db->query(SqlHelper::imageVariationCombinationPull()));
+        $imageCount += \count($this->db->query(SqlHelper::imageVariationCombinationPull() ?? []));
 
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
-            $imageCategoryQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull();
-            $imageCount        += \count($this->db->query($imageCategoryQuery));
+            $wpmlMedia          = $this->wpml->getComponent(WpmlMedia::class);
+            $imageCategoryQuery = $wpmlMedia->imageCategoryPull();
+            $imageCount        += \count($this->db->query($imageCategoryQuery) ?? []);
         } else {
-            $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()));
+            $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()) ?? []);
         }
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
                 $imageManufacturerQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull();
-                $imageCount            += \count($this->db->query($imageManufacturerQuery));
+                $imageCount            += \count($this->db->query($imageManufacturerQuery) ?? []);
             } else {
-                $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
+                $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()) ?? []);
             }
         }
 
