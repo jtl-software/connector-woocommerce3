@@ -76,9 +76,9 @@ class Id
 
     /**
      * @param string $endpoint
-     * @return mixed|string
+     * @return string
      */
-    public static function unlinkCategoryImage(string $endpoint): mixed
+    public static function unlinkCategoryImage(string $endpoint): string
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -98,9 +98,9 @@ class Id
 
     /**
      * @param string $endpoint
-     * @return mixed|string
+     * @return string
      */
-    public static function unlinkManufacturerImage(string $endpoint): mixed
+    public static function unlinkManufacturerImage(string $endpoint): string
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];

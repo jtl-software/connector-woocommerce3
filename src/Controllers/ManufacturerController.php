@@ -34,7 +34,7 @@ class ManufacturerController extends AbstractBaseController implements
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return ManufacturerModel[]
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -51,7 +51,7 @@ class ManufacturerController extends AbstractBaseController implements
                 $manufacturerData    = $wpmlPerfectWcBrands->getManufacturers((int)$query->getLimit());
             } else {
                 $sql              = SqlHelper::manufacturerPull($query->getLimit());
-                $manufacturerData = $this->db->query($sql);
+                $manufacturerData = $this->db->query($sql) ?? [];
             }
 
             foreach ($manufacturerData as $manufacturerDataSet) {
@@ -111,7 +111,7 @@ class ManufacturerController extends AbstractBaseController implements
         string $languageIso,
         string $description,
         string $termId
-    ): \Jtl\Connector\Core\Model\AbstractI18n|ManufacturerI18nModel {
+    ): ManufacturerI18nModel {
         $i18n = (new ManufacturerI18nModel())
             ->setLanguageISO($languageIso)
             ->setDescription($description);
@@ -120,6 +120,7 @@ class ManufacturerController extends AbstractBaseController implements
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
         ) {
+            /** @var array<string, array<int|string, array<string, null|string>>> $taxonomySeo */
             $taxonomySeo = \get_option('wpseo_taxonomy_meta');
             if (isset($taxonomySeo['pwb-brand'])) {
                 foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
@@ -181,7 +182,6 @@ class ManufacturerController extends AbstractBaseController implements
 
             if ($term === false) {
                 //Add term
-                /** @var \WP_Term $newTerm */
                 $newTerm = \wp_insert_term(
                     $model->getName(),
                     'pwb-brand',
@@ -200,10 +200,10 @@ class ManufacturerController extends AbstractBaseController implements
                 }
                 $term = $newTerm;
 
-                if (!$term instanceof \WP_Term) {
-                    $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
-                }
-            } else {
+                #if (!$term instanceof \WP_Term) {
+                #    $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
+                #}
+            } elseif ($term instanceof \WP_Term) {
                 \wp_update_term($term->term_id, 'pwb-brand', [
                     'name' => $model->getName(),
                     'description' => $meta->getDescription(),
@@ -213,13 +213,14 @@ class ManufacturerController extends AbstractBaseController implements
             \add_filter('pre_term_description', 'wp_filter_kses');
 
             if ($term instanceof \WP_Term) {
-                $model->getId()->setEndpoint($term->term_id);
+                $model->getId()->setEndpoint((string)$term->term_id);
 
                 foreach ($model->getI18ns() as $i18n) {
                     if (
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
                         || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
                     ) {
+                        /** @var array<string, array<int, array<string, string>>>|false $taxonomySeo */
                         $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
 
                         if ($taxonomySeo === false) {

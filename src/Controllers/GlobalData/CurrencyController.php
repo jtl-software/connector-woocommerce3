@@ -70,13 +70,13 @@ class CurrencyController extends AbstractBaseController
                 continue;
             }
 
-            \update_option(self::ISO, $currency->getIso(), 'yes');
-            \update_option(self::CENT_DELIMITER, $currency->getDelimiterCent(), 'yes');
-            \update_option(self::THOUSAND_DELIMITER, $currency->getDelimiterThousand(), 'yes');
+            \update_option(self::ISO, $currency->getIso(), true);
+            \update_option(self::CENT_DELIMITER, $currency->getDelimiterCent(), true);
+            \update_option(self::THOUSAND_DELIMITER, $currency->getDelimiterThousand(), true);
             \update_option(
                 self::SIGN_POSITION,
                 $currency->getHasCurrencySignBeforeValue() ? 'left' : 'right',
-                'yes'
+                true
             );
 
             break;
