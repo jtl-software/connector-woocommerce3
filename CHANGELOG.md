@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2649 - fix hardcoded database prefix
 
 ## 2.0.4 _2024-07-03_
 - CO-2632 - fix missing category iso code
