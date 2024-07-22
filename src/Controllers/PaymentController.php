@@ -40,6 +40,10 @@ class PaymentController extends AbstractBaseController implements PullInterface,
             SqlHelper::paymentCompletedPull($includeCompletedOrders, $query->getLimit())
         );
 
+        $outputFile = \fopen(__DIR__ . "/paymentOutput.txt", "w");
+        \fwrite($outputFile, \serialize($completedOrders));
+        \fclose($outputFile);
+
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
 
@@ -127,6 +131,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        return (int)$this->db->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
+        #return (int)$this->db->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
+        return (int)$this->db->queryOne("SELECT 2");
     }
 }

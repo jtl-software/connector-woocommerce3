@@ -51,19 +51,25 @@ class CustomerOrderAddressController extends AbstractBaseController
         if (empty($address->getZipCode())) {
             /** @var string $wcStorePostcode */
             $wcStorePostcode = \get_option('woocommerce_store_city');
-            $address->setZipCode(\get_option($wcStorePostcode));
+            /** @var string $wcStoreZipCode */
+            $wcStoreZipCode = \get_option($wcStorePostcode);
+            $address->setZipCode($wcStoreZipCode);
         }
 
         if (empty($address->getStreet())) {
             /** @var string $wcStoreAddress */
             $wcStoreAddress = \get_option('woocommerce_store_city');
-            $address->setStreet(\get_option($wcStoreAddress));
+            /** @var string $wcStoreStreet */
+            $wcStoreStreet = \get_option($wcStoreAddress);
+            $address->setStreet(\get_option($wcStoreStreet));
         }
 
         if (empty($address->getCountryIso())) {
             /** @var string $wcDefaultCountry */
             $wcDefaultCountry = \get_option('woocommerce_store_city');
-            $address->setCountryIso(\get_option($wcDefaultCountry));
+            /** @var string $wcCountryIso */
+            $wcCountryIso = \get_option($wcDefaultCountry);
+            $address->setCountryIso($wcCountryIso);
         }
 
         if (empty($address->getLastName())) {
