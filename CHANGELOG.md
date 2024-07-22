@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.0.5 _2024-07-22_
 - CO-2649 - fix hardcoded database prefix
 
 ## 2.0.4 _2024-07-03_
