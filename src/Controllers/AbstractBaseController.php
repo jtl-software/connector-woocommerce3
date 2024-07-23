@@ -81,10 +81,10 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     /**
      * @param int $postId
      * @param string $metaKey
-     * @param string $value
+     * @param string|array<string, string> $value
      * @return bool|int
      */
-    protected function updatePostMeta(int $postId, string $metaKey, string $value): bool|int
+    protected function updatePostMeta(int $postId, string $metaKey, string|array $value): bool|int
     {
         return \update_post_meta($postId, $metaKey, $value, \get_post_meta($postId, $metaKey, true));
     }

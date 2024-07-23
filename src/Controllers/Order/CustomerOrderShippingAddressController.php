@@ -50,6 +50,7 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
+            /** @var string $index */
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation((new Germanized())->parseIndexToSalutation($index));
 

@@ -12,13 +12,14 @@ use Jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Id;
+use Psr\Log\LogLevel;
 use WC_Product;
 
 class Product2CategoryController extends AbstractBaseController
 {
     /**
      * @param WC_Product $product
-     * @return array
+     * @return Product2CategoryModel[]
      * @throws InvalidArgumentException
      */
     public function pullData(WC_Product $product): array
@@ -28,10 +29,8 @@ class Product2CategoryController extends AbstractBaseController
         if (!$product->is_type('variation')) {
             $categories = $product->get_category_ids();
 
-            if ($categories instanceof \WP_Error) {
-                $this->logger->error(ErrorFormatter::formatError($categories));
-
-                return [];
+            if (empty($categories)) {
+                $this->logger->log(LogLevel::INFO, 'No categories for product found.');
             }
 
             foreach ($categories as $category) {
@@ -49,23 +48,34 @@ class Product2CategoryController extends AbstractBaseController
     /**
      * @param ProductModel $model
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function pushData(AbstractModel $model): void
     {
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
+
+        if (!$wcProduct instanceof WC_Product) {
+            $this->logger->log(
+                LogLevel::INFO,
+                'Product not found for given product id',
+                ['product_id' => $model->getId()->getEndpoint()]
+            );
+
+            return;
+        }
+
         $wcProduct->set_category_ids($this->getCategoryIds($model->getCategories()));
         $wcProduct->save();
     }
 
     /**
-     * @param array $categories
-     * @return array
+     * @param Product2CategoryModel[] $categories
+     * @return int[]
      */
     private function getCategoryIds(array $categories): array
     {
         $productCategories = [];
 
-        /** @var Product2CategoryModel $category */
         foreach ($categories as $category) {
             $categoryId = $category->getCategoryId()->getEndpoint();
 

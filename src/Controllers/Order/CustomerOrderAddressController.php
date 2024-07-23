@@ -61,7 +61,7 @@ class CustomerOrderAddressController extends AbstractBaseController
             $wcStoreAddress = \get_option('woocommerce_store_city');
             /** @var string $wcStoreStreet */
             $wcStoreStreet = \get_option($wcStoreAddress);
-            $address->setStreet(\get_option($wcStoreStreet));
+            $address->setStreet($wcStoreStreet);
         }
 
         if (empty($address->getCountryIso())) {

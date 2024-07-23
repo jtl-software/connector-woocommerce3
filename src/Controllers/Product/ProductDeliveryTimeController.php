@@ -41,7 +41,9 @@ class ProductDeliveryTimeController extends AbstractBaseController
 
                     if (\preg_match('/^(wc_)[a-zA-Z\_]+$/', \trim($i18n->getName()))) {
                         if (\strcmp(\trim($i18n->getName()), 'wc_dt_offset') === 0) {
-                            $offset = (int)\trim($i18n->getValue());
+                            /** @var string $i18nValue */
+                            $i18nValue = $i18n->getValue();
+                            $offset    = (int)\trim($i18nValue);
                         }
                     }
                     unset($pushedAttributes[$key]);
@@ -75,13 +77,18 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 return;
             }
 
+            /** @var string $prefixDeliveryTime */
+            $prefixDeliveryTime = Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME);
+            /** @var string $suffixDeliveryTime */
+            $suffixDeliveryTime = Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME);
+
             //Build Term string
             $deliveryTimeString = \trim(
                 \sprintf(
                     '%s %s %s',
-                    Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME),
+                    $prefixDeliveryTime,
                     $time,
-                    Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME)
+                    $suffixDeliveryTime
                 )
             );
 
@@ -123,17 +130,17 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 } else {
                     $termId = $newTerm['term_id'];
 
-                    \wp_set_object_terms($productId, $termId, 'product_delivery_times', true);
+                    \wp_set_object_terms((int)$productId, $termId, 'product_delivery_times', true);
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                        \update_post_meta($productId, '_lieferzeit', $termId);
+                        \update_post_meta((int)$productId, '_lieferzeit', $termId);
                     }
                 }
-            } else {
-                \wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
+            } elseif ($term instanceof \WP_Term) {
+                \wp_set_object_terms((int)$productId, $term->term_id, $term->taxonomy, true);
 
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                    \update_post_meta($productId, '_lieferzeit', $term->term_id);
+                    \update_post_meta((int)$productId, '_lieferzeit', $term->term_id);
                 }
             }
 
@@ -169,13 +176,13 @@ class ProductDeliveryTimeController extends AbstractBaseController
                     if (\is_array($germanizedTermArray) && isset($germanizedTermArray['term_id'])) {
                         $germanizedTermId = $germanizedTermArray['term_id'];
                     }
-                } else {
+                } elseif ($germanizedTerm instanceof \WP_Term) {
                     $germanizedTermId = $germanizedTerm->term_id;
                 }
 
                 if ($germanizedTermId !== false) {
                     \wp_set_object_terms(
-                        $productId,
+                        (int)$productId,
                         $germanizedTermId,
                         $germanizedDeliveryTimeTaxonomyName,
                         true
@@ -196,7 +203,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                         $this->util->updatePostMeta(
                             $productId,
                             '_default_delivery_time',
-                            $germanizedTerm->slug,
+                            ($germanizedTerm instanceof \WP_Term) ? $germanizedTerm->slug : '',
                             $oldDeliveryTime
                         );
                     }

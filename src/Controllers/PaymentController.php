@@ -29,6 +29,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      * @param QueryFilter $query
      * @return array|AbstractModel[]
      * @throws InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -39,10 +40,6 @@ class PaymentController extends AbstractBaseController implements PullInterface,
         $completedOrders = $this->db->queryList(
             SqlHelper::paymentCompletedPull($includeCompletedOrders, $query->getLimit())
         );
-
-        $outputFile = \fopen(__DIR__ . "/paymentOutput.txt", "w");
-        \fwrite($outputFile, \serialize($completedOrders));
-        \fclose($outputFile);
 
         foreach ($completedOrders as $orderId) {
             $order = \wc_get_order((int)$orderId);
@@ -56,8 +53,8 @@ class PaymentController extends AbstractBaseController implements PullInterface,
             $paymentModuleCode = $this->util->mapPaymentModuleCode($order);
 
             $payments[] = (new PaymentModel())
-                ->setId(new Identity($order->get_id()))
-                ->setCustomerOrderId(new Identity($order->get_id(), $orderHostId))
+                ->setId(new Identity((string)$order->get_id()))
+                ->setCustomerOrderId(new Identity((string)$order->get_id(), $orderHostId))
                 ->setTotalSum((float)$order->get_total())
                 ->setPaymentModuleCode($paymentModuleCode)
                 ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
@@ -84,7 +81,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
             $endpointId
         );
 
-        return $this->db->queryOne($query);
+        return (int)$this->db->queryOne($query);
     }
 
     /**
@@ -96,6 +93,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     {
         $transactionId = $order->get_transaction_id();
         if ($paymentModuleCode == PaymentType::AMAPAY) {
+            /** @var int|string $transactionId */
             $transactionId = $order->get_meta('amazon_charge_id');
         }
 
@@ -116,7 +114,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
         }
 
         $order->set_transaction_id($model->getTransactionId());
-        $order->set_date_paid($model->getCreationDate());
+        $order->set_date_paid($model->getCreationDate() ? $model->getCreationDate()->getTimestamp() : null);
         $order->save();
 
         return $model;
@@ -126,12 +124,12 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {
         $includeCompletedOrders = Util::includeCompletedOrders();
 
-        #return (int)$this->db->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
-        return (int)$this->db->queryOne("SELECT 2");
+        return (int)$this->db->queryOne(SqlHelper::paymentCompletedPull($includeCompletedOrders));
     }
 }
