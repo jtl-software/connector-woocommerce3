@@ -60,7 +60,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param bool $isMaster
-     * @return string[]
+     * @return array<string, string>
      */
     private function getGermanMarketMetaKeys(bool $isMaster = false): array
     {
@@ -95,7 +95,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array      $metaKeys
+     * @param array<string, string>      $metaKeys
      * @return bool
      */
     private function hasGermanMarketUnitPrice(WC_Product $wcProduct, array $metaKeys): bool
@@ -122,8 +122,8 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array      $metaKeys
-     * @return array
+     * @param array<string, string> $metaKeys
+     * @return array<string, string>
      */
     private function getGermanMarketMeta(WC_Product $wcProduct, array $metaKeys): array
     {
@@ -226,7 +226,13 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             }
 
             $productId = $product->getId()->getEndpoint();
-            $metaData  = $this->getGermanMarketMeta(\wc_get_product($productId), $metaKeys);
+            $wcProduct = \wc_get_product($productId);
+
+            if (!$wcProduct instanceof WC_Product) {
+                throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+            }
+
+            $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
 
             $basePriceUnitCode = \strtolower($product->getBasePriceUnitCode());
             $basePriceQuantity = $product->getBasePriceQuantity();
@@ -344,13 +350,20 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param array        $metaKeys
+     * @param array<string, string> $metaKeys
      * @return void
+     * @throws \http\Exception\InvalidArgumentException
      */
     private function clearPPU(ProductModel $product, array $metaKeys): void
     {
         $productId = $product->getId()->getEndpoint();
-        $metaData  = $this->getGermanMarketMeta(
+        $wcProduct = \wc_get_product($productId);
+
+        if (!$wcProduct instanceof WC_Product) {
+            throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+        }
+
+        $metaData = $this->getGermanMarketMeta(
             \wc_get_product($productId),
             $metaKeys
         );

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
@@ -17,18 +19,18 @@ class ProductSpecificController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel         $model
-     * @param \WC_Product          $product
+     * @param ProductModel $model
+     * @param \WC_Product $product
      * @param WC_Product_Attribute $attribute
-     * @param $slug
-     * @return array
+     * @param string $slug
+     * @return ProductSpecificModel[]
      * @throws \InvalidArgumentException
      */
     public function pullData(
         ProductModel $model,
         \WC_Product $product,
         WC_Product_Attribute $attribute,
-        $slug
+        string $slug
     ): array {
         $name             = $attribute->get_name();
         $productAttribute = $product->get_attribute($name);
@@ -49,24 +51,26 @@ class ProductSpecificController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param $productId
-     * @param $curAttributes
-     * @param array         $specificData
-     * @param array         $pushedJtlSpecifics
-     * @param array         $pushedJtlAttributes
-     * @return array
+     * @param int $productId
+     * @param array<int|string, WC_Product_Attribute> $curAttributes
+     * @param array<int, array<string, array<int, int|string>>> $specificData
+     * @param ProductSpecificModel[] $pushedJtlSpecifics
+     * @param TranslatableAttribute[] $pushedJtlAttributes
+     * @return array<string, array<string, int|null|string>>
      * @throws TranslatableAttributeException
+     * @throws MustNotBeNullException
+     * @throws \TypeError
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pushData(
-        $productId,
-        $curAttributes,
+        int $productId,
+        array $curAttributes,
         array $specificData = [],
         array $pushedJtlSpecifics = [],
         array $pushedJtlAttributes = []
     ): array {
         $newSpecifics = [];
 
-        /** @var ProductSpecificModel $specific */
         foreach ($pushedJtlSpecifics as $specific) {
             $endpointId      = $specific->getId()->getEndpoint();
             $specificValueId = $specific->getSpecificValueId()->getEndpoint();
@@ -82,7 +86,7 @@ class ProductSpecificController extends AbstractBaseController
          * @var WC_Product_Attribute $wcProductAttribute
          */
         foreach ($curAttributes as $slug => $wcProductAttribute) {
-            if (!\str_starts_with($slug, 'pa_')) {
+            if (!\str_starts_with((string)$slug, 'pa_')) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
                     'value'        => $this->util->findAttributeValue(
@@ -95,7 +99,7 @@ class ProductSpecificController extends AbstractBaseController
                     'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             } elseif (
-                \str_starts_with($slug, 'pa_')
+                \str_starts_with((string)$slug, 'pa_')
                 && \array_key_exists($wcProductAttribute->get_id(), $specificData)
             ) {
                 $cOldOptions = $wcProductAttribute->get_options();
@@ -114,7 +118,7 @@ class ProductSpecificController extends AbstractBaseController
                     if ($wcProductAttribute->get_variation()) {
                         continue;
                     }
-                    \wp_remove_object_terms($productId, $value, $slug);
+                    \wp_remove_object_terms($productId, $value, (string)$slug);
                 }
             }
         }
@@ -131,7 +135,7 @@ class ProductSpecificController extends AbstractBaseController
             ];
             $values              = [];
 
-            if (isset($specific) && \count($specific['options']) > 0) {
+            if (\count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
                     $term = \get_term_by('id', $valId, $slug);
                     if ($term instanceof \WP_Term) {
@@ -149,11 +153,11 @@ class ProductSpecificController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Methods">
     /**
-     * @param $slug
+     * @param string $slug
      * @return string
      * @throws InvalidArgumentException
      */
-    public function getSpecificId($slug): string
+    public function getSpecificId(string $slug): string
     {
         $name = \substr($slug, 3);
         $val  = $this->db->query(SqlHelper::getSpecificId($name));
@@ -169,7 +173,7 @@ class ProductSpecificController extends AbstractBaseController
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    private function buildProductSpecific($slug, $value, ProductModel $result): ProductSpecificModel
+    private function buildProductSpecific(string $slug, string $value, ProductModel $result): ProductSpecificModel
     {
         $parent     = (new ProductVaSpeAttrHandlerController($this->db, $this->util));
         $valueId    = $parent->getSpecificValueId($slug, $value);

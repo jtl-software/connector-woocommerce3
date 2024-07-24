@@ -13,11 +13,11 @@ use WC_Product;
 class ProductMetaSeoController extends AbstractBaseController
 {
     /**
-     * @param $newPostId
+     * @param int $newPostId
      * @param ProductI18nModel $tmpMeta
      * @return void
      */
-    public function pushData($newPostId, ProductI18nModel $tmpMeta): void
+    public function pushData(int $newPostId, ProductI18nModel $tmpMeta): void
     {
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -47,7 +47,7 @@ class ProductMetaSeoController extends AbstractBaseController
     /**
      * @param WC_Product   $wcProduct
      * @param ProductModel $model
-     * @return array|null
+     * @return array<int|string, array<int, string>|int|string>|null
      */
     public function pullData(WC_Product $wcProduct, ProductModel $model): ?array
     {
@@ -122,7 +122,7 @@ class ProductMetaSeoController extends AbstractBaseController
      * @param string     $metaTitle
      * @param string     $metaDescription
      * @param string     $metaKeywords
-     * @return array
+     * @return array<string, int|string>
      */
     protected function getSeoValues(
         WC_Product $wcProduct,

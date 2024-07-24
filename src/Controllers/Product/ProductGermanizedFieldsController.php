@@ -37,10 +37,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product   $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException
+     * @throws \JsonException
      */
     private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct): void
     {
@@ -49,7 +50,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         if ($germanizedUtils->hasUnitProduct($wcProduct)) {
             $plugin = \get_plugin_data(\WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
 
-            if (isset($plugin['Version']) && \version_compare($plugin['Version'], '1.6.0') < 0) {
+            if (\version_compare($plugin['Version'], '1.6.0') < 0) {
                 $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
             } else {
                 $unit       = $germanizedUtils->getUnit($wcProduct);
@@ -59,7 +60,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $code            = $germanizedUtils->parseUnit($unitObject->slug);
             $productQuantity = (double)$germanizedUtils->getUnitProduct($wcProduct);
             $product->setMeasurementQuantity($productQuantity);
-            $product->setMeasurementUnitId(new Identity($unitObject->term_id));
+            $product->setMeasurementUnitId(new Identity((string)$unitObject->term_id));
             $product->setMeasurementUnitCode($code);
 
             $product->setConsiderBasePrice(true);
@@ -70,7 +71,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             }
 
             $product->setBasePriceQuantity($baseQuantity);
-            $product->setBasePriceUnitId(new Identity($unitObject->term_id));
+            $product->setBasePriceUnitId(new Identity((string)$unitObject->term_id));
             $product->setBasePriceUnitCode($code);
             $product->setBasePriceUnitName($unitObject->name);
         }
@@ -140,9 +141,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     {
         $id = $product->getId()->getEndpoint();
 
-        \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
+        \update_post_meta((int)$id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
-        $this->updateGermanizedBasePriceAndUnits($product, $id);
+        $this->updateGermanizedBasePriceAndUnits($product, (int)$id);
 
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
@@ -154,7 +155,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param $id
      * @return void
      */
-    private function updateGermanizedBasePriceAndUnits(ProductModel $product, $id): void
+    private function updateGermanizedBasePriceAndUnits(ProductModel $product, int $id): void
     {
         if ($product->getConsiderBasePrice()) {
             $pd = Util::getPriceDecimals();
@@ -198,7 +199,14 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
     }
 
-    private function updateGermanizedProFoodProductData($product): void
+    /**
+     * @param ProductModel $product
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \Psr\Log\InvalidArgumentException
+     */
+    private function updateGermanizedProFoodProductData(ProductModel $product): void
     {
         $id          = $product->getId()->getEndpoint();
         $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
@@ -214,11 +222,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     )
                 ) {
                     if (empty($metaValue = $i18n->getValue())) {
-                        \delete_post_meta($id, $metaKey);
+                        \delete_post_meta((int)$id, $metaKey);
                         continue;
                     }
 
-                    \update_post_meta($id, $metaKey, $metaValue);
+                    \update_post_meta((int)$id, $metaKey, $metaValue);
                 } elseif (
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && \str_contains($i18n->getName(), 'wc_gzd_pro')
@@ -226,14 +234,16 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     $metaKey = \str_replace('wc_gzd_pro_', '', $i18n->getName());
 
                     if ($metaKey === 'allergens') {
-                        foreach (\explode(',', $i18n->getValue()) as $allergen) {
+                        /** @var string $i18nValue */
+                        $i18nValue = $i18n->getValue();
+                        foreach (\explode(',', $i18nValue) as $allergen) {
                             $termId      = $this->getNutrientTermData($allergen, 'getTermId');
                             $allergens[] = $termId;
                         }
                     } elseif (\str_contains($metaKey, 'ref')) {
                         $metaKey = \str_replace('ref_', '', $metaKey);
-                        $termId  = $this->getNutrientTermData($metaKey, 'getTermId');
-                        if (!\array_key_exists($termId, $nutrients)) {
+                        $termId  = $this->getNutrientTermData($metaKey, 'getTermId') ?? '';
+                        if ($termId !== '' && !\array_key_exists($termId, $nutrients)) {
                             $nutrients[$termId] = [
                                 'value' => '',
                             ];
@@ -246,10 +256,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 }
             }
         }
-        \update_post_meta($id, '_allergen_ids', $allergens);
-        \update_post_meta($id, '_nutrient_ids', $nutrients);
+        \update_post_meta((int)$id, '_allergen_ids', $allergens);
+        \update_post_meta((int)$id, '_nutrient_ids', $nutrients);
     }
 
+    /**
+     * @return string[]
+     */
     private function getGermanizedProFoodMetaKeys(): array
     {
         return [
@@ -271,18 +284,19 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param $product ProductModel
      * @param $value
-     * @param $wawiAttributeKey
+     * @param string $wawiAttributeKey
      * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
      */
-    private function setProductAttribute($product, $value, $wawiAttributeKey): void
+    private function setProductAttribute(ProductModel $product, $value, string $wawiAttributeKey): void
     {
         $i18n = (new ProductAttrI18nModel())
             ->setName($wawiAttributeKey)
             ->setValue($value)
             ->setLanguageIso($this->util->getWooCommerceLanguage());
 
+        /** @var ProductAttribute $attribute */
         $attribute = (new ProductAttribute())
             ->setId(new Identity($product->getId()->getEndpoint() . '_' . $wawiAttributeKey))
             ->setI18ns($i18n);
@@ -290,7 +304,12 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $product->addAttribute($attribute);
     }
 
-    private function isGermanizedProFoodProduct($product): bool
+    /**
+     * @param ProductModel $product
+     * @return bool
+     * @throws TranslatableAttributeException
+     */
+    private function isGermanizedProFoodProduct(ProductModel $product): bool
     {
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
             foreach ($product->getAttributes() as $attribute) {
@@ -305,10 +324,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param int|string $nutrientData
+     * @param string $flag
+     * @return string|null
      * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function getNutrientTermData($nutrientData, $flag): string
+    private function getNutrientTermData(int|string $nutrientData, string $flag): ?string
     {
         if (!\in_array($flag, ['getSlug', 'getTermId'])) {
             throw new InvalidArgumentException('Invalid nutrient flag argument');

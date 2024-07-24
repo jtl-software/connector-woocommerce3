@@ -25,7 +25,7 @@ class ProductPrice extends AbstractBaseController
     /**
      * @param WC_Product   $product
      * @param ProductModel $model
-     * @return array
+     * @return ProductPriceModel[]
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
@@ -85,7 +85,7 @@ class ProductPrice extends AbstractBaseController
                 } else {
                     $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
 
-                    $price = $this->getB2BMarketCustomerGroupPrice($model, $product, $groupSlug);
+                    $price = $this->getB2BMarketCustomerGroupPrice($model, $product, (string)$groupSlug);
 
                     if ($price === null) {
                         $price = $this->netPrice($product);
@@ -165,20 +165,20 @@ class ProductPrice extends AbstractBaseController
 
 
     /**
-     * @param $items
+     * @param ProductPriceItemModel[] $items
      * @param CustomerGroupModel $customerGroup
-     * @param $groupSlug
+     * @param string $groupSlug
      * @param WC_Product         $product
      * @param ProductModel       $model
-     * @return mixed
+     * @return ProductPriceItemModel[]
      */
     private function getBulkPrices(
         $items,
         CustomerGroupModel $customerGroup,
-        $groupSlug,
+        string $groupSlug,
         WC_Product $product,
         ProductModel $model
-    ): mixed {
+    ): array {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -225,10 +225,10 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceModel ...$jtlProductPrices
-     * @return array
+     * @return array<string, ProductPriceModel>
      * @throws \InvalidArgumentException
      */
-    protected function groupProductPrices(\jtl\Connector\Core\Model\ProductPrice ...$jtlProductPrices): array
+    protected function groupProductPrices(\Jtl\Connector\Core\Model\ProductPrice ...$jtlProductPrices): array
     {
         $groupedProductPrices = [];
 
@@ -276,7 +276,7 @@ class ProductPrice extends AbstractBaseController
         WC_Product $wcProduct,
         float $vat,
         string $productType,
-        \jtl\Connector\Core\Model\ProductPrice ...$productPrices
+        \Jtl\Connector\Core\Model\ProductPrice ...$productPrices
     ): void {
         Util::deleteB2Bcache();
 
@@ -288,7 +288,7 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param array      $groupedProductPrices
+     * @param array<int|string, ProductPriceModel>      $groupedProductPrices
      * @param float      $vat
      * @param string     $productType
      * @return void
@@ -335,6 +335,7 @@ class ProductPrice extends AbstractBaseController
             } elseif (
                 !\is_null($customerGroupMeta)
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && (\is_int($customerGroupId) || $customerGroupId instanceof \WP_Post || $customerGroupId === null)
             ) {
                 $customerGroup = \get_post($customerGroupId);
                 if (!$customerGroup instanceof \WP_Post) {

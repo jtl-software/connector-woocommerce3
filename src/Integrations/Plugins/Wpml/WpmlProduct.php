@@ -230,7 +230,7 @@ class WpmlProduct extends AbstractComponent
 
             //Add Manufacturer info to translated jtlProduct
             $jtlProductId = $jtlProduct->getId()->getEndpoint();
-            $jtlProduct->getId()->setEndpoint($wcProductId);
+            $jtlProduct->getId()->setEndpoint((string)$wcProductId);
 
             (new ProductManufacturerController($db, $util))->pushData($jtlProduct);
             //revert back to original not translated jtlProduct id

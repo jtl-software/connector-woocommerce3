@@ -379,7 +379,7 @@ class ProductController extends AbstractBaseController implements
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
-            (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
+            (new ProductMetaSeoController($this->db, $this->util))->pushData($newPostId, $tmpI18n);
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {

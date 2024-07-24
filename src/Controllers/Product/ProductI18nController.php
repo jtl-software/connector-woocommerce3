@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -56,7 +57,7 @@ class ProductI18nController extends AbstractBaseController
 
     /**
      * @param ProductI18nModel $i18n
-     * @param array            $tmpMeta
+     * @param array<string, string|string[]>            $tmpMeta
      * @return void
      */
     protected function setI18nSeoData(ProductI18nModel $i18n, array $tmpMeta): void
@@ -70,6 +71,7 @@ class ProductI18nController extends AbstractBaseController
     /**
      * @param WC_Product $product
      * @return string
+     * @throws InvalidArgumentException
      */
     private function name(WC_Product $product): string
     {
@@ -86,9 +88,21 @@ class ProductI18nController extends AbstractBaseController
                 case 'space_parent':
                     $parent = \wc_get_product($product->get_parent_id());
 
+                    if (!$parent instanceof \WC_Product) {
+                        throw new InvalidArgumentException(
+                            "Parent with ID {$product->get_parent_id()} not found."
+                        );
+                    }
+
                     return $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
                 case 'brackets_parent':
                     $parent = \wc_get_product($product->get_parent_id());
+
+                    if (!$parent instanceof \WC_Product) {
+                        throw new InvalidArgumentException(
+                            "Parent with ID {$product->get_parent_id()} not found."
+                        );
+                    }
 
                     return \sprintf(
                         '%s (%s)',

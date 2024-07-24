@@ -95,6 +95,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             $product->get_id()
                         );
                     }
+                    /** @var string $specialPrice */
                     $specialPrice = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
 
                     if (!empty($specialPrice)) {
@@ -515,7 +516,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     }
                                 }
                             } else {
-                                $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
+                                $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceMetaKey, true);
                                 \update_post_meta(
                                     (int)$productId,
                                     $priceMetaKey,
@@ -524,8 +525,6 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 );
                             }
                         }
-                    } else {
-                        continue;
                     }
                 }
             }
@@ -645,14 +644,14 @@ class ProductSpecialPriceController extends AbstractBaseController
                         );
                     }
 
-                    $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
+                    $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceMetaKey, true);
                 } elseif (\is_null($post) && $customerGroupId === CustomerGroupController::DEFAULT_GROUP) {
                     $salePriceMetaKey      = '_sale_price';
                     $salePriceDatesToKey   = '_sale_price_dates_to';
                     $salePriceDatesFromKey = '_sale_price_dates_from';
                     $priceMetaKey          = '_price';
                     $regularPriceKey       = '_regular_price';
-                    $regularPrice          = (float)\get_post_meta($productId, $regularPriceKey, true);
+                    $regularPrice          = (float)\get_post_meta((int)$productId, $regularPriceKey, true);
 
                     \update_post_meta(
                         (int)$productId,
@@ -685,7 +684,7 @@ class ProductSpecialPriceController extends AbstractBaseController
 
                 if (
                     $productType === ProductController::TYPE_CHILD
-                    & isset($COPpriceTypeMetaKey)
+                    && isset($COPpriceTypeMetaKey)
                     && isset($COPpriceMetaKey)
                 ) {
                     \update_post_meta(

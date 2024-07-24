@@ -26,8 +26,8 @@ class ProductDeliveryTimeController extends AbstractBaseController
         $time                               = $product->calculateHandlingTime();
         $germanizedDeliveryTimeTaxonomyName = 'product_delivery_time';
 
-        $this->removeDeliveryTimeTerm($productId);
-        $this->removeDeliveryTimeTerm($productId, $germanizedDeliveryTimeTaxonomyName);
+        $this->removeDeliveryTimeTerm((int)$productId);
+        $this->removeDeliveryTimeTerm((int)$productId, $germanizedDeliveryTimeTaxonomyName);
 
         if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
             //FUNCTION ATTRIBUTE BY JTL
@@ -195,6 +195,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                             '3.7.0'
                         )
                     ) {
+                        /** @var string $oldDeliveryTime */
                         $oldDeliveryTime = $this->util->getPostMeta(
                             $productId,
                             '_default_delivery_time',
@@ -213,14 +214,14 @@ class ProductDeliveryTimeController extends AbstractBaseController
     }
 
     /**
-     * @param $productId
-     * @param string    $taxonomyName
+     * @param int $productId
+     * @param string $taxonomyName
      * @return void
      */
-    private function removeDeliveryTimeTerm($productId, string $taxonomyName = 'product_delivery_times'): void
+    private function removeDeliveryTimeTerm(int $productId, string $taxonomyName = 'product_delivery_times'): void
     {
         $terms = \wp_get_object_terms($productId, $taxonomyName);
-        if (\is_array($terms) && !$terms instanceof WP_Error) {
+        if (!$terms instanceof WP_Error && \is_array($terms)) {
             if (\count($terms) > 0) {
                 /** @var \WP_Term $term */
                 foreach ($terms as $key => $term) {
@@ -238,7 +239,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                         '3.7.0'
                     )
                 ) {
-                    $this->util->deletePostMeta($productId, '_default_delivery_time');
+                    $this->util->deletePostMeta((string)$productId, '_default_delivery_time');
                 }
             }
         }
