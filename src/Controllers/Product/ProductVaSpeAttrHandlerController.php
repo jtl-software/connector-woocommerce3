@@ -7,16 +7,19 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductAttribute;
 use Jtl\Connector\Core\Model\ProductI18n;
-use jtl\Connector\Core\Model\ProductVariation;
+use Jtl\Connector\Core\Model\ProductSpecific;
+use Jtl\Connector\Core\Model\ProductVariation;
+use Jtl\Connector\Core\Model\ProductVariationValue;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
-use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
 use Jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
-use Jtl\Connector\Core\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -60,12 +63,14 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         VALUE_TRUE                    = 'true',
         VALUE_FALSE                   = 'false';
 
+    /** @var array<string, array<int, AbstractIdentity|ProductSpecific|ProductVariation|TranslatableAttribute>> $productData */
     private array $productData = [
         'productVariation'  => [],
         'productAttributes' => [],
         'productSpecifics'  => [],
     ];
 
+    /** @var ProductVariationValue[] $values  */
     private array $values = [];
 
     /**
@@ -84,7 +89,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param WC_Product   $product
      * @param ProductModel $model
      *
-     * @return array[]
+     * @return array<string, array<int, AbstractIdentity|ProductSpecific|ProductVariation|TranslatableAttribute>>
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -154,9 +159,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
                     $model,
                     $languageIso
                 );
-            if (! \is_null($tmp)) {
-                $this->productData['productVariation'] = $tmp;
-            }
+
+            $this->productData['productVariation'] = $tmp;
             // </editor-fold>
         }
 
@@ -380,7 +384,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      */
     private function getPayableFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
-        $value = \strcmp(\get_post_status($product->get_id()), 'private') !== 0
+        $value = \strcmp((string)\get_post_status($product->get_id()), 'private') !== 0
             ? self::VALUE_TRUE
             : self::VALUE_FALSE;
 
@@ -609,6 +613,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
+        /** @var string $value */
         $value = \get_post_meta($product->get_id(), '_suppress_shipping_notice', true);
 
         if (\strcmp($value, 'on') === 0) {
@@ -639,6 +644,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
+        /** @var string $info */
         $info = \get_post_meta($product->get_id(), '_alternative_shipping_information', true);
 
         $i18n = ( new ProductAttrI18nModel() )
@@ -654,19 +660,17 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product   $wcProduct
-     * @param ProductI18n  $productI18n
+     * @param WC_Product $wcProduct
+     * @param ProductI18n $productI18n
      * @return void
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \TypeError
+     * @throws \Exception
      */
     public function pushDataNew(ProductModel $product, WC_Product $wcProduct, ProductI18n $productI18n): void
     {
-        if ($wcProduct === false) {
-            return;
-        }
         //Identify Master = parent/simple
         $isMaster = $product->getMasterProductId()->getHost() === 0;
 
@@ -693,6 +697,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             $jtlSpecifics  = $this->generateSpecificData($product->getSpecifics());
 
             //handleAttributes
+            /** @var array<string, array<string, bool|int|null|string>> $productAttributes */
             $productAttributes = ( new ProductAttrController($this->db, $this->util) )->pushData(
                 $productId,
                 $product->getAttributes(),
@@ -704,6 +709,11 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
             //Get updated WC Product after deleting removed custom attributes
             $wcProduct = \wc_get_product($product->getId()->getEndpoint());
+
+            if (!$wcProduct instanceof \WC_Product) {
+                throw new \http\Exception\InvalidArgumentException("WC Product not found.");
+            }
+
             //Get updated attributes
             $wcProductAttributes = $wcProduct->get_attributes();
 
@@ -720,7 +730,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
             // handleVarSpecifics
             $productVariations = ( new ProductVariationController($this->db, $this->util) )->pushMasterData(
-                $productId,
+                (string)$productId,
                 $jtlVariations,
                 $currentAttributes
             );
@@ -780,16 +790,15 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param array $attributes
-     * @param array $variations
+     * @param array<string, WC_Product_Attribute> $attributes
+     * @param ProductVariation[] $variations
      *
-     * @return array
+     * @return array<string, array<string, bool|int|null|string>>
      */
     private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = []): array
     {
         $filteredAttributes = [];
-        /** @var ProductVariation $variation */
-        $jtlVariations = [];
+        $jtlVariations      = [];
         foreach ($variations as $variation) {
             foreach ($variation->getI18ns() as $productVariationI18n) {
                 if ($this->util->isWooCommerceLanguage($productVariationI18n->getLanguageISO())) {
@@ -835,18 +844,19 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param                  $curAttributes
+     * @param array<string, WC_Product_Attribute> $curAttributes
      * @param ProductAttrModel ...$jtlAttributes
-     * @return array
+     * @return array<string, array<string, bool|int|null|string>>
      * @throws TranslatableAttributeException
+     * @throws \http\Exception\InvalidArgumentException
      */
-    private function getVariationAttributes($curAttributes, ProductAttrModel ...$jtlAttributes): array
+    private function getVariationAttributes(array $curAttributes, ProductAttrModel ...$jtlAttributes): array
     {
         $filteredAttributes = [];
 
         /**
          * @var string               $slug
-         * @var WC_Product_Attribute $curAttributes
+         * @var WC_Product_Attribute $wcProductAttribute
          */
         foreach ($curAttributes as $slug => $wcProductAttribute) {
             if (! $wcProductAttribute->get_variation()) {
@@ -865,15 +875,14 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param array $pushedVariations
+     * @param ProductVariation[] $pushedVariations
      *
-     * @return array
+     * @return array<string, array<string, int|string>>
      */
     private function generateVariationSpecificData(string $wawiIsoLanguage, array $pushedVariations = []): array
     {
         $variationSpecificData = [];
         foreach ($pushedVariations as $variation) {
-            /** @var ProductVariationI18nModel $variationI18n */
             foreach ($variation->getI18ns() as $variationI18n) {
                 $taxonomyName = \wc_sanitize_taxonomy_name($variationI18n->getName());
                 $customSort   = false;
@@ -900,7 +909,6 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
                 }
 
                 foreach ($this->values as $vv) {
-                    /** @var ProductVariationValueI18nModel $valueI18n */
                     foreach ($vv->getI18ns() as $valueI18n) {
                         if ($wawiIsoLanguage !== $valueI18n->getLanguageISO()) {
                             continue;
@@ -931,9 +939,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param array $pushedSpecifics
+     * @param ProductSpecific[] $pushedSpecifics
      *
-     * @return array
+     * @return array<int, array<string, array<int, int>>>
      */
     private function generateSpecificData(array $pushedSpecifics = []): array
     {
@@ -955,11 +963,14 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     //ALL
 
     /**
+     * @param string $slug
+     * @param string $value
+     * @return Identity
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function getSpecificValueId(string $slug, string $value)
     {
-        $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value));
+        $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value)) ?? [];
 
         if (\count($val) === 0) {
             $result = ( new Identity() );
@@ -974,8 +985,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param array $newProductAttributes
-     * @param array $attributes
+     * @param array<string, array<string, bool|int|null|string>> $newProductAttributes
+     * @param array<string, array<string, bool|int|null|string>> $attributes
      * @param bool  $sort
      */
     private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false): void
@@ -1010,18 +1021,20 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     //VARIATIONSPECIFIC && SPECIFIC
 
     /**
-     * @param array $newWcProductAttributes
-     * @param array $jtlAttributes
+     * @param array<string, array<string, bool|int|null|string>> $newWcProductAttributes
+     * @param ProductAttribute[] $jtlAttributes
      *
-     * @return array
+     * @return array<string, array<string, bool|int|null|string>>
      */
     protected function removeUnknownAttributes(array $newWcProductAttributes, array $jtlAttributes): array
     {
         $defaultLanguage = $this->util->getWooCommerceLanguage();
         foreach ($newWcProductAttributes as $i => $wcAttribute) {
             if (! isset($wcAttribute['id']) && $wcAttribute['is_taxonomy'] === '') {
+                /** @var string $wcAttributeName */
+                $wcAttributeName = $wcAttribute['name'];
                 $attributeExists = ! \is_null(
-                    $this->util->findAttributeI18nByName($wcAttribute['name'], $defaultLanguage, ...$jtlAttributes)
+                    $this->util->findAttributeI18nByName($wcAttributeName, $defaultLanguage, ...$jtlAttributes)
                 );
                 if ($attributeExists === false) {
                     unset($newWcProductAttributes[ $i ]);

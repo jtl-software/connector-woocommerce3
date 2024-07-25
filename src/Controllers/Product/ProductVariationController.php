@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\ProductVariation as ProductVariationModel;
 use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
 use Jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
@@ -82,7 +84,7 @@ class ProductVariationController extends AbstractBaseController
      * @param WC_Product   $product
      * @param ProductModel $model
      * @param string       $languageIso
-     * @return array
+     * @return array<int, AbstractIdentity|ProductVariation>
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
@@ -232,7 +234,7 @@ class ProductVariationController extends AbstractBaseController
                     }
 
                     \wp_set_object_terms(
-                        $productId,
+                        (int)$productId,
                         $options,
                         $attributesFilteredVariationSpecifics[$taxonomy]['name'],
                         true
@@ -283,7 +285,7 @@ class ProductVariationController extends AbstractBaseController
                             $taxonomy,
                             $endpointValue['name']
                         )
-                    );
+                    ) ?? [];
 
                     if (\count($exValId) >= 1) {
                         if (isset($exValId[0]['term_id'])) {
@@ -331,7 +333,7 @@ class ProductVariationController extends AbstractBaseController
                 ];
 
                 \wp_set_object_terms(
-                    $productId,
+                    (int)$productId,
                     $assignedValueIds,
                     $attributesFilteredVariationSpecifics[$taxonomy]['name'],
                     true
@@ -344,17 +346,17 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param $productId
-     * @param $pushedVariations
-     * @return array
+     * @param int $productId
+     * @param ProductVariation[] $pushedVariations
+     * @return array<int, string>
+     * @throws InvalidArgumentException
      */
     public function pushChildData(
-        $productId,
-        $pushedVariations
+        int $productId,
+        array $pushedVariations
     ): array {
         $updatedAttributeKeys = [];
 
-        /** @var ProductVariationModel $variation */
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
@@ -385,7 +387,9 @@ class ProductVariationController extends AbstractBaseController
                             \str_replace('attribute_', '', $metaKey)
                         );
 
-                        $slug = $term !== false ? $term->slug : \wc_sanitize_taxonomy_name($i18n->getName());
+                        $slug = ($term instanceof \WP_Term)
+                            ? $term->slug
+                            : \wc_sanitize_taxonomy_name($i18n->getName());
 
                         \update_post_meta(
                             $productId,
