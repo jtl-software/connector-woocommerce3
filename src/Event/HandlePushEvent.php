@@ -46,6 +46,10 @@ class HandlePushEvent extends Event
         return $this->result;
     }
 
+    /**
+     * @param $result
+     * @return static
+     */
     public function setResult($result): static
     {
         $this->result = $result;

@@ -183,7 +183,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         if ($request->getAction() === 'pull') {
             /** @var array<QueryFilter> $requestParams */
             $requestParams = $request->getParams();
-            $event = new HandlePullEvent($request->getController(), $requestParams);
+            $event         = new HandlePullEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePullEvent::EVENT_NAME);
         } elseif ($request->getAction() === 'statistic') {
             $event = new HandleStatsEvent($request->getController());
@@ -191,7 +191,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         } elseif ($request->getAction() === 'push') {
             /** @var array<QueryFilter> $requestParams */
             $requestParams = $request->getParams();
-            $event = new HandlePushEvent($request->getController(), $requestParams);
+            $event         = new HandlePushEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePushEvent::EVENT_NAME);
         } else {
             $event = new HandleDeleteEvent($request->getController(), $request->getParams());

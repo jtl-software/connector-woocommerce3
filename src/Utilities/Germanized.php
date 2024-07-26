@@ -75,7 +75,7 @@ class Germanized
                 return $gzdProduct->has_unit_product();
             }
         }
-
+        /** @phpstan-ignore property.notFound */
         return $wcProduct->gzd_product->has_product_units();
     }
 
@@ -96,6 +96,7 @@ class Germanized
                 return $gzdProduct->get_unit();
             }
         }
+        /** @phpstan-ignore property.notFound */
         return $wcProduct->gzd_product->unit;
     }
 
@@ -116,6 +117,7 @@ class Germanized
                 return $gzdProduct->get_unit();
             }
         }
+        /** @phpstan-ignore property.notFound */
         return $wcProduct->gzd_product->unit_product;
     }
 
@@ -136,6 +138,7 @@ class Germanized
                 return $gzdProduct->get_unit_base();
             }
         }
+        /** @phpstan-ignore property.notFound */
         return $wcProduct->gzd_product->unit_base;
     }
 

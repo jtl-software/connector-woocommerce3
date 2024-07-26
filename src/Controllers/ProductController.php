@@ -17,9 +17,14 @@ use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductAttribute;
+use Jtl\Connector\Core\Model\ProductI18n;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use Jtl\Connector\Core\Model\ProductSpecific;
+use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
 use JtlWooCommerceConnector\Controllers\Product\ProductAdvancedCustomFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController;
@@ -201,11 +206,17 @@ class ProductController extends AbstractBaseController implements
                 $product instanceof \WC_Product_Variable
                 || $product instanceof \WC_Product_Variation
             ) {
-                $productModel->setVariations(...$productVariationSpecificAttribute['productVariation']);
+                /** @var ProductVariation[] $productVariation */
+                $productVariation = $productVariationSpecificAttribute['productVariation'];
+                $productModel->setVariations(...$productVariation);
             }
 
-            $productModel->setAttributes(...$productVariationSpecificAttribute['productAttributes'])
-                ->setSpecifics(...$productVariationSpecificAttribute['productSpecifics']);
+            /** @var ProductAttribute[] $productAttributes */
+            $productAttributes = $productVariationSpecificAttribute['productAttributes'];
+            /** @var ProductSpecific[] $productSpecific */
+            $productSpecific = $productVariationSpecificAttribute['productSpecifics'];
+            $productModel->setAttributes(...$productAttributes)
+                ->setSpecifics(...$productSpecific);
             if ($product->managing_stock()) {
                 $productModel->setStockLevel(
                     (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController(
@@ -505,6 +516,7 @@ class ProductController extends AbstractBaseController implements
                 $attrName = \strtolower(\trim($i18n->getName()));
 
                 if (\strcmp($attrName, ProductVaSpeAttrHandlerController::PRODUCT_TYPE_ATTR) === 0) {
+                    /** @var string $value */
                     $value = $i18n->getValue();
 
                     $allowedTypes = \wc_get_product_types();
@@ -659,13 +671,16 @@ class ProductController extends AbstractBaseController implements
         $tags = \array_map('trim', \explode(' ', $product->getKeywords()));
         \wp_set_post_terms($wcProduct->get_id(), \implode(',', $tags), 'product_tag', false);
 
+        /** @var string $termValue */
+        $termValue = \wc_clean($product->getShippingClassId()->getEndpoint());
+
         $shippingClass = \get_term_by(
             'id',
-            \wc_clean($product->getShippingClassId()->getEndpoint()),
+            $termValue,
             'product_shipping_class'
         );
 
-        if (!empty($shippingClass)) {
+        if ($shippingClass instanceof \WP_Term) {
             \wp_set_object_terms(
                 $wcProduct->get_id(),
                 $shippingClass->term_id,
@@ -701,15 +716,15 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
-     * @param $meta
+     * @param ProductI18n $meta
      * @return void
      * @throws Exception
      */
-    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
+    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, ProductI18nModel $meta): void
     {
         $productId = (int)$wcProduct->get_id();
 
-        $productTitle         = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
+        $productTitle         = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));
         $variation_post_title = \sprintf(\__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post([
             'ID' => $productId,
@@ -784,22 +799,22 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param DateTime $creationDate
      * @param bool     $gmt
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function getCreationDate(DateTime $creationDate, bool $gmt = false): ?string
+    private function getCreationDate(DateTime $creationDate, bool $gmt = false): string
     {
-        if (\is_null($creationDate)) {
-            return null;
-        }
-
         if ($gmt) {
             $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(
-                \date_interval_create_from_date_string(
-                    $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
-                )
+            $dateInterval = \date_interval_create_from_date_string(
+                $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
             );
+
+            if ($dateInterval === false) {
+                throw new Exception("Could not create date interval from date string.");
+            }
+
+            $creationDate->sub($dateInterval);
         }
 
         return $creationDate->format('Y-m-d H:i:s');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Event;
 
+use Jtl\Connector\Core\Model\QueryFilter;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleDeleteEvent extends Event
@@ -12,9 +13,13 @@ class HandleDeleteEvent extends Event
 
     protected $result;
     protected string $controller;
-    protected $entities;
+    protected array $entities;
 
-    public function __construct(string $controller, $entities)
+    /**
+     * @param string $controller
+     * @param QueryFilter[] $entities
+     */
+    public function __construct(string $controller, array $entities)
     {
         $this->controller = $controller;
         $this->entities   = $entities;
@@ -28,7 +33,10 @@ class HandleDeleteEvent extends Event
         return $this->controller;
     }
 
-    public function getEntities()
+    /**
+     * @return array|QueryFilter[]
+     */
+    public function getEntities(): array
     {
         return $this->entities;
     }
@@ -40,7 +48,7 @@ class HandleDeleteEvent extends Event
 
     /**
      * @param $result
-     * @return HandleDeleteEvent
+     * @return static
      */
     public function setResult($result): static
     {

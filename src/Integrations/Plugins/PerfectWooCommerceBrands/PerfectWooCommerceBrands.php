@@ -77,7 +77,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     /**
      * @param Manufacturer          $jtlManufacturer
      * @param ManufacturerI18nModel $manufacturerI18n
-     * @return array<>|false|WP_Error|\WP_Term
+     * @return array<string, int|null|string>|false|WP_Error|\WP_Term
      * @throws \Exception
      */
     public function saveManufacturer(
@@ -99,11 +99,11 @@ class PerfectWooCommerceBrands extends AbstractPlugin
             }
             $manufacturerTerm = $newManufacturerTerm;
 
-            if (!$manufacturerTerm instanceof \WP_Term) {
-                if (\is_array($manufacturerTerm) && \array_key_exists('term_id', $manufacturerTerm)) {
-                    $manufacturerTerm = \get_term_by('id', $manufacturerTerm['term_id'], 'pwb-brand');
-                }
+            if (\is_array($manufacturerTerm) && \array_key_exists('term_id', $manufacturerTerm)) {
+                /** @var false|WP_Term $manufacturerTerm */
+                $manufacturerTerm = \get_term_by('id', $manufacturerTerm['term_id'], 'pwb-brand');
             }
+
         } else {
             $this->updateManufacturer((int) $manufacturerTerm->term_id, $jtlManufacturer->getName(), $manufacturerI18n);
         }
@@ -112,9 +112,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
         if ($manufacturerTerm instanceof \WP_Term) {
             $jtlManufacturer->getId()->setEndpoint((string)$manufacturerTerm->term_id);
-            foreach ($jtlManufacturer->getI18ns() as $i18n) {
-                $i18n->getManufacturerId()->setEndpoint($manufacturerTerm->term_id);
-            }
 
             /** @var RankMathSeo $rankMathSeo */
             $rankMathSeo = $this->getPluginsManager()->get(RankMathSeo::class);
@@ -152,18 +149,20 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @param string $manufacturerName
-     * @return array|false|\WP_Term
+     * @return false|\WP_Term
      */
-    public function getManufacturerBySlug(string $manufacturerName): array|false|WP_Term
+    public function getManufacturerBySlug(string $manufacturerName): false|WP_Term
     {
-        return \get_term_by('slug', $manufacturerName, 'pwb-brand');
+        /** @var false|WP_Term $term */
+        $term = \get_term_by('slug', $manufacturerName, 'pwb-brand');
+        return $term;
     }
 
     /**
      * @param string                $slug
      * @param string                $manufacturerName
      * @param ManufacturerI18nModel $manufacturerI18n
-     * @return array|int[]|WP_Error
+     * @return array<string, int|string>|WP_Error
      */
     public function createManufacturer(
         string $slug,
@@ -184,7 +183,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      * @param int                   $termId
      * @param string                $manufacturerName
      * @param ManufacturerI18nModel $manufacturerI18
-     * @return array|WP_Error
+     * @return array<string, int|string>|WP_Error
      */
     public function updateManufacturer(
         int $termId,
@@ -199,13 +198,13 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @param int $limit
-     * @return array|null
+     * @return array<int, array<int, int|string>>
      * @throws InvalidArgumentException
      */
-    public function getManufacturers(int $limit): ?array
+    public function getManufacturers(int $limit): array
     {
         $sql = SqlHelper::manufacturerPull($limit);
-        return $this->getPluginsManager()->getDatabase()->query($sql);
+        return $this->getPluginsManager()->getDatabase()->query($sql) ?? [];
     }
 
     /**

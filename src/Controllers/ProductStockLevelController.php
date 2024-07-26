@@ -23,7 +23,7 @@ class ProductStockLevelController extends AbstractBaseController implements Push
         $productId = $model->getId()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
-        if ($wcProduct === false) {
+        if ($wcProduct === false || $wcProduct === null) {
             return $model;
         }
 

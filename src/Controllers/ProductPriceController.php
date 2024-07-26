@@ -24,11 +24,8 @@ class ProductPriceController extends ProductPrice implements PushInterface
     {
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 
-        if ($wcProduct !== false) {
+        if ($wcProduct !== false && $wcProduct !== null) {
             $vat = $model->getVat();
-            if (\is_null($vat)) {
-                $vat = $this->util->getTaxRateByTaxClass($wcProduct->get_tax_class());
-            }
 
             $wcProducts[] = $wcProduct;
 
