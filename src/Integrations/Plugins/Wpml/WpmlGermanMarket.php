@@ -17,7 +17,7 @@ class WpmlGermanMarket extends AbstractComponent
     /**
      * @param int    $termTaxonomyId
      * @param string $taxonomyName
-     * @return array
+     * @return MeasurementUnitI18n[]
      * @throws \Exception
      */
     public function getMeasurementUnitsTranslations(int $termTaxonomyId, string $taxonomyName): array

@@ -90,7 +90,7 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param int    $trid
      * @param string $languageCode
-     * @return array
+     * @return array|null
      */
     protected function findCategoryTranslation(int $trid, string $languageCode): array
     {
@@ -110,7 +110,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array
+     * @return array<int, array<int|string, bool|int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getCategories(int $limit): array
@@ -123,9 +123,9 @@ class WpmlCategory extends AbstractComponent
 
         $sql = \sprintf("SELECT 
             tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*
-            FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
+            FROM `{$wpmlPlugin->getWpDb()->terms}` t
                 LEFT JOIN 
-            `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
+            `{$wpmlPlugin->getWpDb()->term_taxonomy}` tt ON t.term_id = tt.term_id
                 LEFT JOIN
             `%sjtl_connector_category_level` cl ON tt.term_taxonomy_id = cl.category_id
                 LEFT JOIN
@@ -142,7 +142,7 @@ class WpmlCategory extends AbstractComponent
         LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $wpmlPlugin->getDefaultLanguage(), $limit);
 
 
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
+        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
     }
 
     /**
@@ -179,8 +179,8 @@ class WpmlCategory extends AbstractComponent
     }
 
     /**
-     * @param array|null $parentIds
-     * @param int        $level
+     * @param array<int, int>|null $parentIds
+     * @param int $level
      * @throws InvalidArgumentException
      */
     protected function fillCategoryLevelTable(?array $parentIds = null, int $level = 0): void
@@ -209,8 +209,8 @@ class WpmlCategory extends AbstractComponent
             \sprintf(
                 "
             SELECT tt.term_taxonomy_id, tt.term_id, tt.parent, IF(tm.meta_key IS NULL, 0, tm.meta_value) as sort
-            FROM `{$this->getCurrentPlugin()->getWpDb()->term_taxonomy}` tt
-            LEFT JOIN `{$this->getCurrentPlugin()->getWpDb()->terms}` t ON tt.term_id = t.term_id
+            FROM `{$wpmlPlugin->getWpDb()->term_taxonomy}` tt
+            LEFT JOIN `{$wpmlPlugin->getWpDb()->terms}` t ON tt.term_id = t.term_id
             LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id AND tm.meta_key = 'order'
             LEFT JOIN `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
             WHERE tt.taxonomy = '%s' {$where}

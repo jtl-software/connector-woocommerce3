@@ -18,6 +18,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Utilities\Util;
+use stdClass;
 use WC_Product_Variation;
 
 /**
@@ -50,7 +51,7 @@ class WpmlProduct extends AbstractComponent
         $trid                      = $wpmlPlugin->getElementTrid($wcBaseTranslationProductId, $type);
         $masterProductTranslations = [];
         if (!empty($masterProductId)) {
-            $masterProductTranslations = $this->getProductTranslationInfo($masterProductId);
+            $masterProductTranslations = $this->getProductTranslationInfo((int)$masterProductId);
         }
 
         $translationInfo = $this->getProductTranslationInfo($wcBaseTranslationProductId);
@@ -116,13 +117,13 @@ class WpmlProduct extends AbstractComponent
      * @param string      $languageIso
      * @param string      $defaultName
      * @param ProductI18n ...$i18ns
-     * @return ProductI18n|null
+     * @return ProductI18n
      */
     protected function getDefaultTranslation(
         string $languageIso,
         string $defaultName,
         ProductI18n ...$i18ns
-    ): ?ProductI18n {
+    ): ProductI18n {
         $translation = null;
 
         foreach ($i18ns as $i18n) {
@@ -142,13 +143,13 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param $translationInfo
-     * @param $masterProductTranslations
-     * @param $languageCode
-     * @param Product                   $jtlProduct
-     * @param $productI18n
-     * @param $masterProductId
-     * @param $trid
+     * @param stdClass[] $translationInfo
+     * @param stdClass[] $masterProductTranslations
+     * @param string $languageCode
+     * @param Product $jtlProduct
+     * @param ProductI18n $productI18n
+     * @param string $masterProductId
+     * @param int $trid
      * @throws InvalidArgumentException
      * @throws MustNotBeNullException
      * @throws TranslatableAttributeException
@@ -157,13 +158,13 @@ class WpmlProduct extends AbstractComponent
      * @throws Exception
      */
     protected function saveTranslation(
-        $translationInfo,
-        $masterProductTranslations,
-        $languageCode,
+        array $translationInfo,
+        array $masterProductTranslations,
+        string $languageCode,
         Product $jtlProduct,
-        $productI18n,
-        $masterProductId,
-        $trid
+        ProductI18n $productI18n,
+        string $masterProductId,
+        int $trid
     ): void {
         $db                = $this->getPluginsManager()->getDatabase();
         $util              = new Util($db);
@@ -191,13 +192,18 @@ class WpmlProduct extends AbstractComponent
         $wcProductId = $wooCommerceProduct
             ->saveProduct(
                 $wcProductId,
-                $masterProductId,
+                (string)$masterProductId,
                 $jtlProduct,
                 $productI18n
             );
 
         if (!\is_null($wcProductId)) {
             $wcProduct = \wc_get_product($wcProductId);
+
+            if (!$wcProduct instanceof \WC_Product) {
+                throw new \Psr\Log\InvalidArgumentException("Product with ID {$wcProductId} not found");
+            }
+
             $wcProduct->set_parent_id($masterProductId);
             $wcProduct->save();
 
@@ -247,7 +253,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param int|null $limit
-     * @return array
+     * @return array<int, int|string>
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function getProducts(?int $limit = null): array
@@ -290,7 +296,7 @@ class WpmlProduct extends AbstractComponent
 
         $result = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryList($query);
 
-        return \is_array($result) ? $result : [];
+        return $result;
     }
 
     /**
@@ -328,7 +334,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @return array
+     * @return array<int|string, \WC_Product>
      * @throws Exception
      */
     public function getWooCommerceProductTranslations(\WC_Product $wcProduct): array
@@ -392,7 +398,7 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param int    $productId
      * @param string $elementType
-     * @return array
+     * @return stdClass[]
      * @throws Exception
      */
     public function getProductTranslationInfo(int $productId, string $elementType = self::POST_TYPE): array

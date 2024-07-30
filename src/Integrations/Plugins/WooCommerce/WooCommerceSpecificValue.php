@@ -23,8 +23,8 @@ class WooCommerceSpecificValue extends AbstractComponent
      * @param string            $taxonomy
      * @param SpecificValue     $specificValue
      * @param SpecificValueI18n $specificValueI18n
-     * @param ?string              $slug
-     * @return SpecificValue|null
+     * @param ?string           $slug
+     * @return int|null
      * @throws \Exception
      */
     public function save(
@@ -38,12 +38,13 @@ class WooCommerceSpecificValue extends AbstractComponent
             'slug' => $slug ?? \wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
         ];
 
+        /** @var array<int, array<string, int|string>> $exValId */
         $exValId = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(
             SqlHelper::getSpecificValueIdBySlug(
                 $taxonomy,
                 $endpointValue['slug']
             )
-        );
+        ) ?? [];
 
         if (\count($exValId) >= 1) {
             if (isset($exValId[0]['term_id'])) {
@@ -58,6 +59,7 @@ class WooCommerceSpecificValue extends AbstractComponent
         $endValId = (int)$specificValue->getId()->getEndpoint();
 
         if (\is_null($exValId) && $endValId === 0) {
+            /** @var array<string, int|string>|\WP_Error $newTerm */
             $newTerm = \wp_insert_term(
                 $endpointValue['name'],
                 $taxonomy
@@ -79,6 +81,7 @@ class WooCommerceSpecificValue extends AbstractComponent
                 $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
+            /** @var array<string, int|string>|\WP_Error $termId */
             $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
             if ($wpml->canBeUsed()) {

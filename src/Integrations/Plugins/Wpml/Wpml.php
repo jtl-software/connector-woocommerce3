@@ -38,7 +38,7 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @return array
+     * @return array<int|string, array<string, string>>
      */
     public function getActiveLanguages(): array
     {
@@ -73,12 +73,7 @@ class Wpml extends AbstractPlugin
         $wpmlLanguageCode = \substr($wpmlLanguageCode, 0, 2);
         $language         = Util::mapLanguageIso($wpmlLanguageCode);
         // $language         = Language::convert($wpmlLanguageCode);
-        if (\is_null($language)) {
-            $this->logger->warning(
-                \sprintf("Cannot find corresponding language code %s", $wpmlLanguageCode)
-            );
-            $language = '';
-        }
+
         return $language;
     }
 
@@ -90,7 +85,7 @@ class Wpml extends AbstractPlugin
     public function convertLanguageToWpml(string $wawiLanguageCode): string
     {
         $language = Util::mapLanguageIso($wawiLanguageCode);
-        return $language ?? '';
+        return $language;
     }
 
     /**

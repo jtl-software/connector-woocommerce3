@@ -9,6 +9,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use Psr\Log\InvalidArgumentException;
 
 /**
@@ -20,7 +21,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 {
     /**
      * @param int $limit
-     * @return array
+     * @return array<int, array<int|string, bool|int|null|string>>
      * @throws InvalidArgumentException
      */
     public function getManufacturers(int $limit): array
@@ -53,7 +54,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             $wpmlPlugin->getDefaultLanguage()
         );
 
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
+        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
     }
 
     /**
@@ -73,7 +74,14 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 
         $elementType = 'tax_pwb-brand';
 
+        /** @var false|\WP_Error|\WP_Term $manufacturerTerm */
         $manufacturerTerm = \get_term_by('id', $mainManufacturerId, 'pwb-brand');
+
+        if (!$manufacturerTerm instanceof \WP_Term) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Manufacturer with ID {$mainManufacturerId} not found."
+            );
+        }
 
         $trid = $wpmlPlugin->getElementTrid($manufacturerTerm->term_taxonomy_id, $elementType);
 
@@ -102,7 +110,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             }
 
             if ($result instanceof \WP_Error) {
-                $this->logger->error($result);
+                $this->logger->error(ErrorFormatter::formatError($result));
             } else {
                 if (isset($result['term_id'])) {
                     $translatedManufacturerId = (int)$result['term_id'];
@@ -118,7 +126,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                     }
 
                     $wpmlPlugin->getSitepress()->set_element_language_details(
-                        $result['term_taxonomy_id'],
+                        (int)$result['term_taxonomy_id'],
                         $elementType,
                         $trid,
                         $languageCode

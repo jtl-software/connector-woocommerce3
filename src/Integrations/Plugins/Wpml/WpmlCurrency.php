@@ -62,7 +62,7 @@ class WpmlCurrency extends AbstractComponent
 
     /**
      * @param CurrencyModel ...$jtlCurrencies
-     * @return array
+     * @return array<string, array<string, array<int|string, int>|int|float|string>>
      * @throws InjectionException
      */
     public function setCurrencies(CurrencyModel ...$jtlCurrencies): array

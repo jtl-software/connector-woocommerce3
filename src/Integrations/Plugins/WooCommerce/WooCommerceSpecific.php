@@ -59,7 +59,7 @@ class WooCommerceSpecific extends AbstractComponent
             return null;
         }
 
-        $specific->getId()->setEndpoint($attributeId);
+        $specific->getId()->setEndpoint((string)$attributeId);
         return $specific;
     }
 }

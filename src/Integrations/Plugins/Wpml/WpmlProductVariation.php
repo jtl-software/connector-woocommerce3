@@ -52,7 +52,7 @@ class WpmlProductVariation extends AbstractComponent
                             ? $translatedLabels[$wpmlLanguageCode][$wcAttributeSlug]
                             : \wc_attribute_label($translatedAttribute->get_name())
                     )
-                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)));
+                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi((string)$wpmlLanguageCode)));
             }
         }
     }
@@ -78,7 +78,7 @@ class WpmlProductVariation extends AbstractComponent
                     foreach ($product->getI18ns() as $productI18n) {
                         if (
                             $productI18n->getLanguageISO()
-                            === $wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)
+                            === $wpmlPlugin->convertLanguageToWawi((string)$wpmlLanguageCode)
                         ) {
                             \update_post_meta(
                                 $translation->get_id(),
@@ -194,7 +194,7 @@ class WpmlProductVariation extends AbstractComponent
                 $translatedOptions = $translatedAttribute->get_options();
                 $variationValue->addI18n((new ProductVariationValueI18nModel())
                     ->setName($translatedOptions[$sort])
-                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode)));
+                    ->setLanguageISO($wpmlPlugin->convertLanguageToWawi((string)$wpmlLanguageCode)));
             }
         }
     }

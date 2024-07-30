@@ -47,17 +47,19 @@ class WpmlTermTranslation extends AbstractComponent
         $term = $this->getTermById($translatedTermId, $taxonomy);
         $this->enableGetTermAdjustId();
 
-        return ($term instanceof \WP_Term) ? $term->to_array() : (\is_array($term) ? $term : []);
+        return ($term instanceof \WP_Term) ? $term->to_array() : [];
     }
 
     /**
      * @param int    $translatedTermId
      * @param string $taxonomy
-     * @return array|false|\WP_Term
+     * @return false|\WP_Term
      */
-    protected function getTermById(int $translatedTermId, string $taxonomy): \WP_Term|bool|array
+    protected function getTermById(int $translatedTermId, string $taxonomy): \WP_Term|bool
     {
-        return \get_term_by('id', $translatedTermId, $taxonomy);
+        /** @var false|\WP_Term $term */
+        $term = \get_term_by('id', $translatedTermId, $taxonomy);
+        return $term;
     }
 
     /**

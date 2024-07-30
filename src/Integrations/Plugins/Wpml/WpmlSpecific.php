@@ -57,7 +57,7 @@ class WpmlSpecific extends AbstractComponent
             if ($translatedName !== $name) {
                 $specific->addI18n(
                     (new SpecificI18nModel())
-                        ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($languageCode))
+                        ->setLanguageISO($wpmlPlugin->convertLanguageToWawi((string)$languageCode))
                         ->setName($translatedName)
                 );
             }

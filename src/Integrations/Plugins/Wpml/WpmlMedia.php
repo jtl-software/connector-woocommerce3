@@ -36,18 +36,19 @@ class WpmlMedia extends AbstractComponent
         foreach ($translations as $wpmlLanguageCode => $translation) {
             $wawiIsoCode = $wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode);
 
+            /** @var int|false|string $altText */
             $altText = \get_post_meta($translation->element_id, '_wp_attachment_image_alt', true);
 
             $jtlImage->addI18n((new ImageI18n())
                 ->setId($jtlImage->getId())
-                ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
+                ->setAltText(\substr($altText !== false ? (string)$altText : '', 0, 254))
                 ->setLanguageISO($wawiIsoCode));
         }
     }
 
     /**
      * @param int $mediaId
-     * @return array
+     * @return \stdClass[]
      */
     public function getAttachmentTranslations(int $mediaId): array
     {
@@ -64,7 +65,7 @@ class WpmlMedia extends AbstractComponent
 
     /**
      * @param int   $attachmentId
-     * @param array $imageI18ns
+     * @param ImageI18n[] $imageI18ns
      * @throws \Exception
      */
     public function saveAttachmentTranslations(int $attachmentId, array $imageI18ns): void

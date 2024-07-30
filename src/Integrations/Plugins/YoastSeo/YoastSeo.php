@@ -159,7 +159,7 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param \WC_Product $product
-     * @return array
+     * @return array<string, array<int, string>>
      */
     public function findProductSeoData(\WC_Product $product): array
     {

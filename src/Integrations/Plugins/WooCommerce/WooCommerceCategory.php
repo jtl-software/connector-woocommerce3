@@ -45,7 +45,7 @@ class WooCommerceCategory extends AbstractComponent
         /** @var YoastSeo $yoastSeo */
         $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
-            $seoData = $yoastSeo->findCategorySeoData($data['category_id']);
+            $seoData = $yoastSeo->findCategorySeoData((int)$data['category_id']);
             if (!empty($seoData)) {
                 $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
                     ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $data['name'])
@@ -67,7 +67,7 @@ class WooCommerceCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array|null
+     * @return array<int, array<int, int|string>>|null
      * @throws InvalidArgumentException
      */
     public function getCategories(int $limit): ?array
@@ -81,14 +81,14 @@ class WooCommerceCategory extends AbstractComponent
      * @param CategoryI18nModel $categoryI18n
      * @param Identity          $parentCategoryId
      * @param int|null          $categoryId
-     * @return array
+     * @return array<int|string, int|string>|\WP_Term
      * @throws Exception
      */
     public function saveWooCommerceCategory(
         CategoryI18n $categoryI18n,
         Identity $parentCategoryId,
         ?int $categoryId = null
-    ): array {
+    ): array|\WP_Term {
         $categoryData = [
             'description' => $categoryI18n->getDescription(),
             'parent' => $parentCategoryId->getEndpoint(),
@@ -101,9 +101,8 @@ class WooCommerceCategory extends AbstractComponent
         if (empty($categoryId)) {
             $result = \wp_insert_term($categoryI18n->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
-            if (isset($categoryData['slug'])) {
-                $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
-            }
+            $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
+
             $wpml = $this->getCurrentPlugin()->getPluginsManager()->get(Wpml::class);
 
             /** @var WpmlTermTranslation $wpmlTermTranslation */
