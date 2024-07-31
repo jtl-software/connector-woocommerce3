@@ -85,6 +85,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
         } else {
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
+                /** @phpstan-ignore class.notFound */
                 $shipmentTrackingActions = AST_Pro_Actions::get_instance();
             }
         }

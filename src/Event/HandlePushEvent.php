@@ -11,8 +11,9 @@ class HandlePushEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.push';
 
-    protected $result;
+    protected mixed $result;
     protected string $controller;
+    /** @var QueryFilter[] */
     protected array $entities;
 
     /**
@@ -41,16 +42,19 @@ class HandlePushEvent extends Event
         return $this->entities;
     }
 
-    public function getResult()
+    /**
+     * @return mixed
+     */
+    public function getResult(): mixed
     {
         return $this->result;
     }
 
     /**
-     * @param $result
+     * @param mixed $result
      * @return static
      */
-    public function setResult($result): static
+    public function setResult(mixed $result): static
     {
         $this->result = $result;
         return $this;

@@ -40,7 +40,7 @@ class CrossSellingGroups extends AbstractBaseController
                 }
 
                 foreach ($languages as $languageCode => $language) {
-                    $wawiLanguageCode = $this->wpml->convertLanguageToWawi($languageCode);
+                    $wawiLanguageCode = $this->wpml->convertLanguageToWawi((string)$languageCode);
                     if (!\is_null($defaultI18n) && $languageCode !== $this->wpml->getDefaultLanguage()) {
                         $i18n = (new CrossSellingGroupI18n())
                             ->setLanguageISO($wawiLanguageCode)

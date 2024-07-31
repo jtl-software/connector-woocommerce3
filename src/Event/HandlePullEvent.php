@@ -11,7 +11,7 @@ class HandlePullEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.pull';
 
-    protected $result;
+    protected mixed $result;
     protected string $controller;
 
     /** @var QueryFilter[] $params */
@@ -43,16 +43,19 @@ class HandlePullEvent extends Event
         return $this->params;
     }
 
-    public function getResult()
+    /**
+     * @return mixed
+     */
+    public function getResult(): mixed
     {
         return $this->result;
     }
 
     /**
-     * @param $result
+     * @param mixed $result
      * @return static
      */
-    public function setResult($result): static
+    public function setResult(mixed $result): static
     {
         $this->result = $result;
         return $this;

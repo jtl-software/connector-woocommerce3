@@ -30,6 +30,9 @@ class ManufacturerController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
+    /**
+     * @var array<int, int>
+     */
     private static $idCache = [];
 
     /**

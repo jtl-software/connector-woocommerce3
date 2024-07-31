@@ -18,6 +18,7 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
      */
     public function pull(\WC_Order $order): CustomerOrderShippingAddressModel
     {
+        /** @phpstan-ignore method.notFound */
         $address = (new CustomerOrderShippingAddressModel())
             ->setId(new Identity(CustomerOrderController::SHIPPING_ID_PREFIX . $order->get_id()))
             ->setFirstName($order->get_shipping_first_name())

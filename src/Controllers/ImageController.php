@@ -48,7 +48,7 @@ class ImageController extends AbstractBaseController implements
     public const CATEGORY_IMAGE     = 'category';
     public const MANUFACTURER_IMAGE = 'manufacturer';
 
-    /** @var array<int, string> */
+    /** @var array<int, int|string> */
     private array $alreadyLinked = [];
 
     protected PrimaryKeyMapperInterface $primaryKeyMapper;
@@ -90,7 +90,7 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param array<int, array<string, array<int, int>|int|string>> $images
+     * @param array<int, array<string, bool|int|null|string>> $images
      * @param int $type
      * @param int $limit
      * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
@@ -100,7 +100,7 @@ class ImageController extends AbstractBaseController implements
     private function addNextImages(array $images, int $type, int $limit): array
     {
         $return = [];
-
+#@param array<int, array<string, array<int, int>|int|string>> $images
         $language = $this->util->getWooCommerceLanguage();
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
@@ -169,7 +169,7 @@ class ImageController extends AbstractBaseController implements
      *
      * @param int|null $limit The limit.
      *
-     * @return array<int, array<string, array<int, int>|int|string>> The image entities.
+     * @return array<int, array<string, bool|int|null|string>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
@@ -263,6 +263,7 @@ class ImageController extends AbstractBaseController implements
             )
         ) {
             if ($product->is_type('variation')) {
+                /** @var array<int, string> $images */
                 $images = \get_post_meta($product->get_id(), 'woo_variation_gallery_images', true);
                 if (!empty($images)) {
                     $attachmentIds = \array_merge($attachmentIds, $images);
@@ -279,7 +280,7 @@ class ImageController extends AbstractBaseController implements
      * @param array<int, int|string> $attachmentIds The image ids that should be checked.
      * @param int   $postId        The product which is owner of the images.
      *
-     * @return array<int, array<string, array<int, int>|int|string>> The filtered image data.
+     * @return array<int, array<string, int|null|string>> The filtered image data.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function addProductImagesForPost(array $attachmentIds, int $postId): array
@@ -291,7 +292,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param array<int, int|string> $attachmentIds
      * @param int $productId
-     * @return array<int, array<string, array<int, int>|int|string>>
+     * @return array<int, array<string, int|null|string>>
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function fetchProductAttachments(array $attachmentIds, int $productId): array
@@ -313,6 +314,7 @@ class ImageController extends AbstractBaseController implements
                 continue;
             }
 
+            /** @var array<string, int|null|string> $picture */
             $picture = \get_post((int)$attachmentId, \ARRAY_A);
 
             if (!\is_array($picture)) {
@@ -379,7 +381,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param string $query
-     * @return array
+     * @return array<int, array<string, bool|int|null|string>>
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \http\Exception\InvalidArgumentException
      */
@@ -387,6 +389,7 @@ class ImageController extends AbstractBaseController implements
     {
         $result = [];
 
+        /** @var array<int, array<string, int|null|string>> $images */
         $images = $this->db->query($query);
 
         if (!\is_array($images)) {
@@ -424,7 +427,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param string $query
-     * @return array
+     * @return array<int, array<string, bool|int|null|string>>
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function manufacturerImagePull(string $query): array
@@ -619,8 +622,12 @@ class ImageController extends AbstractBaseController implements
 
             $post = \wp_insert_attachment($attachment, $destination, (int)$image->getForeignKey()->getEndpoint());
 
-            if ($post instanceof \WP_Error) {
+            if (!\is_int($post)) {
                 $this->logger->error(ErrorFormatter::formatError($post));
+
+                return null;
+            } elseif ($post === 0) {
+                $this->logger->error("Attachment post id is 0. Image could not be saved.");
 
                 return null;
             }
@@ -803,7 +810,7 @@ class ImageController extends AbstractBaseController implements
             }
 
             $galleryImages   = $this->getGalleryImages($productId);
-            $galleryImages[] = (int)$attachmentId;
+            $galleryImages[] = $attachmentId;
             $galleryImages   = \implode(self::GALLERY_DIVIDER, \array_unique($galleryImages));
             $result          = \update_post_meta($productId, self::GALLERY_KEY, $galleryImages);
             if ($result === false) {
@@ -969,6 +976,7 @@ class ImageController extends AbstractBaseController implements
                     )
                 ) {
                     if ($wcProduct->get_type() === 'variation') {
+                        /** @var array<int, int|string> $newImages */
                         $newImages = $oldImages = \get_post_meta(
                             $wcProduct->get_id(),
                             'woo_variation_gallery_images',
@@ -1068,7 +1076,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $productId
-     * @return array
+     * @return array<int, int>
      */
     private function getGalleryImages(int $productId): array
     {

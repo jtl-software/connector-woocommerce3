@@ -299,7 +299,7 @@ class ProductAttrController extends AbstractBaseController
             $tmp = false;
 
             foreach ($pushedAttributes as $pushedAttribute) {
-                if ($attr->id == $pushedAttribute->getId()->getEndpoint()) {
+                if ($attr['id'] == $pushedAttribute->getId()->getEndpoint()) {
                     $tmp = true;
                 }
             }
@@ -380,6 +380,7 @@ class ProductAttrController extends AbstractBaseController
         /** @var string $value */
         $value = $i18n->getValue();
         if ((bool)Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES, false) === false) {
+            /** @var string $value */
             $value = $this->wcClean($value);
         }
 
@@ -390,7 +391,7 @@ class ProductAttrController extends AbstractBaseController
             'name' => $attributeName,
             'value' => $value,
             'isCustomProperty' => $attribute->getIsCustomProperty(),
-            'isVisible' => $attribute->getIsTranslated() || $attribute->getIsCustomProperty() ? 1 : 0,
+            'isVisible' => ($attribute->getIsTranslated() || $attribute->getIsCustomProperty()) ? 1 : 0,
         ], $attributes);
     }
 
@@ -422,8 +423,13 @@ class ProductAttrController extends AbstractBaseController
      */
     private function updateAttribute(string $slug, string $value, array &$attributes): void
     {
-        $values                     = \explode(',', $attributes[$slug]['value']);
-        $values[]                   = $this->wcClean($value);
+        /** @var string $attributeValue */
+        $attributeValue = $attributes[$slug]['value'];
+        $values         = \explode(',', $attributeValue);
+
+        /** @var string $wcCleanValue */
+        $wcCleanValue               = $this->wcClean($value);
+        $values[]                   = $wcCleanValue;
         $attributes[$slug]['value'] = \implode(' | ', $values);
     }
 
@@ -471,6 +477,7 @@ class ProductAttrController extends AbstractBaseController
         $existingProperties = $this->db->query($query);
 
         if ($existingProperties) {
+            /** @var array<int|string, array<string, bool|int|null|string>> $existingProperties */
             $existingProperties = \unserialize($existingProperties[0]['meta_value']);
 
             foreach ($existingProperties as $property) {
@@ -482,7 +489,7 @@ class ProductAttrController extends AbstractBaseController
 
         if ($missingProperties) {
             foreach ($missingProperties as $missingKey) {
-                unset($existingProperties[\str_replace(' ', '-', \strtolower($missingKey))]);
+                unset($existingProperties[\str_replace(' ', '-', \strtolower((string)$missingKey))]);
             }
 
             \update_post_meta($productId, '_product_attributes', $existingProperties);

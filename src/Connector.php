@@ -194,7 +194,9 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             $event         = new HandlePushEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePushEvent::EVENT_NAME);
         } else {
-            $event = new HandleDeleteEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event         = new HandleDeleteEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandleDeleteEvent::EVENT_NAME);
         }
 

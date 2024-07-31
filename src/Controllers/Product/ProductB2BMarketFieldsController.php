@@ -179,9 +179,11 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
                 if (\get_post((int)$item->getCustomerGroupId()->getEndpoint()) !== null) {
                     $customerGroup = \get_post((int)$item->getCustomerGroupId()->getEndpoint())->post_name;
                     $key           = 'bm_' . $customerGroup . '_group_prices';
+                    /** @var array<int, array<string, int|string>> $oldGroupPrice */
                     $oldGroupPrice = \get_post_meta($wcProduct->get_id(), $key, true);
                     $oldValue      = (float)$oldGroupPrice[0]['group_price'];
                     if ($oldValue !== $item->getPriceNet()) {
+                        /** @var array<int, array<string, int|string>> $postMeta */
                         $postMeta                   = \get_post_meta($wcProduct->get_id(), $key, true);
                         $postMeta[0]['group_price'] = (string)$item->getPriceNet();
                         \update_post_meta(
