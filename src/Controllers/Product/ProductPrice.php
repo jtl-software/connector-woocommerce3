@@ -61,7 +61,6 @@ class ProductPrice extends AbstractBaseController
                         ->setNetPrice($this->netPrice($product)));
             }
 
-            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
 
@@ -69,7 +68,6 @@ class ProductPrice extends AbstractBaseController
 
                 if (
                     $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
-                    && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
                     || (
                         $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
                         && SupportedPlugins::comparePluginVersion(
@@ -83,9 +81,11 @@ class ProductPrice extends AbstractBaseController
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
                 } else {
-                    $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
+                    $groupSlug = !\is_bool($groupController->getSlugById($customerGroupEndpointId))
+                        ? $groupController->getSlugById($customerGroupEndpointId)
+                        : '';
 
-                    $price = $this->getB2BMarketCustomerGroupPrice($model, $product, (string)$groupSlug);
+                    $price = $this->getB2BMarketCustomerGroupPrice($model, $product, $groupSlug);
 
                     if ($price === null) {
                         $price = $this->netPrice($product);
@@ -156,11 +156,12 @@ class ProductPrice extends AbstractBaseController
 
             $type = \get_post_meta($productIdForMeta, $typeKeyForMeta, true);
             if ($type === 'fix') {
+                /** @var false|string $price */
                 $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
             }
         }
 
-        return !\is_null($price) ? (float)$price : null;
+        return !\is_bool($price) ? (float)$price : null;
     }
 
 
@@ -335,7 +336,7 @@ class ProductPrice extends AbstractBaseController
             } elseif (
                 !\is_null($customerGroupMeta)
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
-                && (\is_int($customerGroupId) || $customerGroupId instanceof \WP_Post || $customerGroupId === null)
+                && \is_int($customerGroupId)
             ) {
                 $customerGroup = \get_post($customerGroupId);
                 if (!$customerGroup instanceof \WP_Post) {

@@ -47,7 +47,7 @@ class ProductMetaSeoController extends AbstractBaseController
     /**
      * @param WC_Product   $wcProduct
      * @param ProductModel $model
-     * @return array<int|string, array<int, string>|int|string>|null
+     * @return array<string, array<int, string>|string>|null
      */
     public function pullData(WC_Product $wcProduct, ProductModel $model): ?array
     {
@@ -66,6 +66,7 @@ class ProductMetaSeoController extends AbstractBaseController
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
+
             $values = $this->getSeoValues(
                 $wcProduct,
                 'rank_math_title',
@@ -122,7 +123,7 @@ class ProductMetaSeoController extends AbstractBaseController
      * @param string     $metaTitle
      * @param string     $metaDescription
      * @param string     $metaKeywords
-     * @return array<string, int|string>
+     * @return array<string, array<int, string>|string>
      */
     protected function getSeoValues(
         WC_Product $wcProduct,
@@ -130,10 +131,17 @@ class ProductMetaSeoController extends AbstractBaseController
         string $metaDescription,
         string $metaKeywords
     ): array {
+        /** @var array<int, string> $titleTag */
+        $titleTag = \get_post_meta($wcProduct->get_id(), $metaTitle);
+        /** @var array<int, string> $metaDesc */
+        $metaDesc = \get_post_meta($wcProduct->get_id(), $metaDescription);
+        /** @var array<int, string> $keyWords */
+        $keyWords = \get_post_meta($wcProduct->get_id(), $metaKeywords);
+
         return [
-            'titleTag' => \get_post_meta($wcProduct->get_id(), $metaTitle),
-            'metaDesc' => \get_post_meta($wcProduct->get_id(), $metaDescription),
-            'keywords' => \get_post_meta($wcProduct->get_id(), $metaKeywords),
+            'titleTag' => $titleTag,
+            'metaDesc' => $metaDesc,
+            'keywords' => $keyWords,
             'permlink' => $wcProduct->get_slug()
         ];
     }

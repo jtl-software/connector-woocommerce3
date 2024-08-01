@@ -58,7 +58,6 @@ class ProductSpecialPriceController extends AbstractBaseController
 
                 if (
                     $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
-                    && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
                     || (
                         $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
                         && SupportedPlugins::comparePluginVersion(
@@ -267,13 +266,16 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 \get_post_meta((int)$productId, $priceMetaKey, true)
                             );
                         } else {
-                            $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceKey, true);
-                            \update_post_meta(
-                                (int)$productId,
-                                $priceMetaKey,
-                                \wc_format_decimal($regularPrice, $pd),
-                                \get_post_meta((int)$productId, $priceMetaKey, true)
-                            );
+                            /** @var false|string $regularPrice */
+                            $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
+                            if (!\is_bool($regularPrice)) {
+                                \update_post_meta(
+                                    (int)$productId,
+                                    $priceMetaKey,
+                                    \wc_format_decimal((float)$regularPrice, $pd),
+                                    \get_post_meta((int)$productId, $priceMetaKey, true)
+                                );
+                            }
                         }
                     } elseif (\is_int((int)$endpoint)) {
                         if ($productType !== ProductController::TYPE_PARENT) {
@@ -516,13 +518,16 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     }
                                 }
                             } else {
-                                $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceMetaKey, true);
-                                \update_post_meta(
-                                    (int)$productId,
-                                    $priceMetaKey,
-                                    \wc_format_decimal($regularPrice, $pd),
-                                    \get_post_meta((int)$productId, $priceMetaKey, true)
-                                );
+                                /** @var false|string $regularPrice */
+                                $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
+                                if (!\is_bool($regularPrice)) {
+                                    \update_post_meta(
+                                        (int)$productId,
+                                        $priceMetaKey,
+                                        \wc_format_decimal($regularPrice, $pd),
+                                        \get_post_meta((int)$productId, $priceMetaKey, true)
+                                    );
+                                }
                             }
                         }
                     }
@@ -644,14 +649,16 @@ class ProductSpecialPriceController extends AbstractBaseController
                         );
                     }
 
-                    $regularPrice = (float)\get_post_meta((int)$productId, $regularPriceMetaKey, true);
+                    /** @var false|string $regularPrice */
+                    $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
                 } elseif (\is_null($post) && $customerGroupId === CustomerGroupController::DEFAULT_GROUP) {
                     $salePriceMetaKey      = '_sale_price';
                     $salePriceDatesToKey   = '_sale_price_dates_to';
                     $salePriceDatesFromKey = '_sale_price_dates_from';
                     $priceMetaKey          = '_price';
                     $regularPriceKey       = '_regular_price';
-                    $regularPrice          = (float)\get_post_meta((int)$productId, $regularPriceKey, true);
+                    /** @var false|string $regularPrice */
+                    $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
 
                     \update_post_meta(
                         (int)$productId,
@@ -675,22 +682,25 @@ class ProductSpecialPriceController extends AbstractBaseController
                     continue;
                 }
 
-                \update_post_meta(
-                    (int)$productId,
-                    $priceMetaKey,
-                    \wc_format_decimal($regularPrice, $pd),
-                    \get_post_meta((int)$productId, $priceMetaKey, true)
-                );
+                if (!\is_bool($regularPrice)) {
+                    \update_post_meta(
+                        (int)$productId,
+                        $priceMetaKey,
+                        \wc_format_decimal((float)$regularPrice, $pd),
+                        \get_post_meta((int)$productId, $priceMetaKey, true)
+                    );
+                }
 
                 if (
                     $productType === ProductController::TYPE_CHILD
                     && isset($COPpriceTypeMetaKey)
                     && isset($COPpriceMetaKey)
+                    && !\is_bool($regularPrice)
                 ) {
                     \update_post_meta(
                         (int)$masterProductId->getEndpoint(),
                         $COPpriceMetaKey,
-                        \wc_format_decimal($regularPrice, $pd),
+                        \wc_format_decimal((float)$regularPrice, $pd),
                         \get_post_meta((int)$masterProductId->getEndpoint(), $COPpriceMetaKey, true)
                     );
                     \update_post_meta(

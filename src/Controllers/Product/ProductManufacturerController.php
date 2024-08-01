@@ -65,9 +65,9 @@ class ProductManufacturerController extends AbstractBaseController
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
 
-            if (!$terms instanceof \Countable) {
+            if (!\is_array($terms)) {
                 throw new InvalidArgumentException(
-                    'Countable type expected. Got ' . \gettype($terms) . ' instead.'
+                    'Array type expected. Got ' . \gettype($terms) . ' instead.'
                 );
             }
 

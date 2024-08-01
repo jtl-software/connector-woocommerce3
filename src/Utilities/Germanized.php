@@ -83,9 +83,9 @@ class Germanized
      * Backward compatibility method
      *
      * @param \WC_Product $wcProduct
-     * @return mixed|null
+     * @return string|false|null
      */
-    public function getUnit(\WC_Product $wcProduct): mixed
+    public function getUnit(\WC_Product $wcProduct): string|false|null
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
@@ -93,20 +93,23 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                return $gzdProduct->get_unit();
+                /** @var false|null|string $gzdProductUnit */
+                $gzdProductUnit = $gzdProduct->get_unit();
+                return $gzdProductUnit;
             }
         }
-        /** @phpstan-ignore property.notFound */
-        return $wcProduct->gzd_product->unit;
+        /** @var false|null|string $gzdProductUnit */
+        $gzdProductUnit = $wcProduct->gzd_product->unit; /** @phpstan-ignore property.notFound */
+        return $gzdProductUnit;
     }
 
     /**
      * Backward compatibility method
      *
      * @param \WC_Product $wcProduct
-     * @return mixed|null
+     * @return false|string|null
      */
-    public function getUnitProduct(\WC_Product $wcProduct): mixed
+    public function getUnitProduct(\WC_Product $wcProduct): false|null|string
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
@@ -114,20 +117,23 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                return $gzdProduct->get_unit();
+                /** @var false|null|string $gzdUnitProduct */
+                $gzdUnitProduct = $gzdProduct->get_unit_product();
+                return $gzdUnitProduct;
             }
         }
-        /** @phpstan-ignore property.notFound */
-        return $wcProduct->gzd_product->unit_product;
+        /** @var false|null|string $gzdUnitProduct */
+        $gzdUnitProduct = $wcProduct->gzd_product->unit_product; /** @phpstan-ignore property.notFound */
+        return $gzdUnitProduct;
     }
 
     /**
      * Backward compatibility method
      *
      * @param \WC_Product $wcProduct
-     * @return mixed|null
+     * @return false|string|null
      */
-    public function getUnitBase(\WC_Product $wcProduct): mixed
+    public function getUnitBase(\WC_Product $wcProduct): false|null|string
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
@@ -135,11 +141,14 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                return $gzdProduct->get_unit_base();
+                /** @var false|null|string $gzdUnitProduct */
+                $gzdUnitBase = $gzdProduct->get_unit_base();
+                return $gzdUnitBase;
             }
         }
-        /** @phpstan-ignore property.notFound */
-        return $wcProduct->gzd_product->unit_base;
+        /** @var false|null|string $gzdUnitBase */
+        $gzdUnitBase = $wcProduct->gzd_product->unit_base; /** @phpstan-ignore property.notFound */
+        return $gzdUnitBase;
     }
 
     /**

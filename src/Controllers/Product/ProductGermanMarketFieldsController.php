@@ -42,9 +42,9 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
 
             $basePriceDivisor
-                = $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
-                / $metaData[$metaKeys['unitRegularMultiplikatorKey']];
-            $basePriceFactor  = $metaData[$metaKeys['priceKey']] / $basePriceDivisor;
+                = (int)$metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
+                / (int)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
+            $basePriceFactor  = (int)$metaData[$metaKeys['priceKey']] / $basePriceDivisor;
 
             $product
                 ->setConsiderBasePrice(true)
@@ -108,8 +108,9 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             }
             if (\count($meta->get_data()) > 0 && isset($meta->get_data()['key'])) {
                 if ($meta->get_data()['key'] === $metaKeys['unitRegularMultiplikatorKey']) {
+                    /** @var false|string $value */
                     $value = \get_post_meta($wcProduct->get_id(), $metaKeys['unitRegularMultiplikatorKey'], true);
-                    if (isset($value) && $value !== false) {
+                    if ($value !== false) {
                         $value  = (float)$value;
                         $result = $value > 0.00;
                     };
@@ -130,7 +131,12 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
         $result = [];
 
         foreach ($metaKeys as $metaKey => $meta) {
-            $result[$meta] = \get_post_meta($wcProduct->get_id(), $meta, true);
+            /** @var false|string $germanMarketMeta */
+            $germanMarketMeta = \get_post_meta($wcProduct->get_id(), $meta, true);
+
+            if ($germanMarketMeta) {
+                $result[$meta] = $germanMarketMeta;
+            }
         }
 
         return $result;
@@ -364,7 +370,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
         }
 
         $metaData = $this->getGermanMarketMeta(
-            \wc_get_product($productId),
+            $wcProduct,
             $metaKeys
         );
         \update_post_meta(

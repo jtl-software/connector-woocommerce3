@@ -37,7 +37,10 @@ class ProductI18nController extends AbstractBaseController
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO))
             && (new Germanized())->hasUnitProduct($product)
         ) {
-            $i18n->setMeasurementUnitName((new Germanized())->getUnit($product));
+            $measurementUnitName = (new Germanized())->getUnit($product);
+            if (\is_string($measurementUnitName)) {
+                $i18n->setMeasurementUnitName($measurementUnitName);
+            }
         }
 
         if (
@@ -47,8 +50,10 @@ class ProductI18nController extends AbstractBaseController
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             $tmpMeta = (new ProductMetaSeoController($this->db, $this->util))->pullData($product, $model);
+            #array<int|string, array<int, string>|int|string>|null
             if (\is_array($tmpMeta)) {
                 $this->setI18nSeoData($i18n, $tmpMeta);
+                #array<string, array<int, string>|string>
             }
         }
 
@@ -57,7 +62,7 @@ class ProductI18nController extends AbstractBaseController
 
     /**
      * @param ProductI18nModel $i18n
-     * @param array<string, string|string[]>            $tmpMeta
+     * @param array<string, string|string[]> $tmpMeta
      * @return void
      */
     protected function setI18nSeoData(ProductI18nModel $i18n, array $tmpMeta): void

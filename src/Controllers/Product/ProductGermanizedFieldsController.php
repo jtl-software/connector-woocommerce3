@@ -51,10 +51,10 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $plugin = \get_plugin_data(\WP_PLUGIN_DIR . '/woocommerce-germanized/woocommerce-germanized.php');
 
             if (\version_compare($plugin['Version'], '1.6.0') < 0) {
-                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit);
+                $unitObject = $units->get_unit_object($wcProduct->gzd_product->unit); /** @phpstan-ignore-line */
             } else {
                 $unit       = $germanizedUtils->getUnit($wcProduct);
-                $unitObject = \get_term_by('slug', $unit, 'product_unit');
+                $unitObject = \get_term_by('slug', (string)$unit, 'product_unit');
             }
 
             $code            = $germanizedUtils->parseUnit($unitObject->slug);
@@ -80,7 +80,8 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $foodMetaKey = $this->getGermanizedProFoodMetaKeys();
 
             foreach ($wcProduct->get_meta_data() as $metaData) {
-                $metaKey   = $metaData->get_data()['key'];
+                $metaKey = $metaData->get_data()['key'];
+                /** @var array<int, int|string> $metaValue */
                 $metaValue = $metaData->get_data()['value'];
 
                 if (\in_array($metaKey, $foodMetaKey) && !empty($metaValue)) {
@@ -102,6 +103,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                         'wc_gzd_pro_allergens'
                     );
                 } elseif ($metaKey === '_nutrient_ids' && !empty($metaValue)) {
+                    /** @var array<string, string> $values */
                     foreach ($metaData->get_data()['value'] as $nutrientId => $values) {
                         $nutrientSlug = $this->getNutrientTermData($nutrientId, 'getSlug');
 
@@ -136,6 +138,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function updateGermanizedAttributes(ProductModel &$product): void
     {
@@ -152,7 +155,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param $id
+     * @param int $id
      * @return void
      */
     private function updateGermanizedBasePriceAndUnits(ProductModel $product, int $id): void
@@ -163,14 +166,15 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             \update_post_meta($id, '_unit_base', $product->getBasePriceQuantity());
 
             if ($product->getBasePriceDivisor() != 0) {
-                $divisor      = $product->getBasePriceDivisor();
-                $currentPrice = (float)\get_post_meta($id, '_price', true);
-                $basePrice    = \round($currentPrice / $divisor, $pd);
+                $divisor = $product->getBasePriceDivisor();
+                /** @var false|string $currentPrice */
+                $currentPrice = \get_post_meta($id, '_price', true);
+                $basePrice    = \round((float)$currentPrice / $divisor, $pd);
 
                 \update_post_meta($id, '_unit_price', (float)$basePrice);
                 \update_post_meta($id, '_unit_price_regular', (float)$basePrice);
             }
-
+            /** @var false|string $salePrice */
             $salePrice = \get_post_meta($id, '_sale_price', true);
 
             if (! empty($salePrice)) {
@@ -283,13 +287,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param $product ProductModel
-     * @param $value
+     * @param array<int, int|string>|string $value
      * @param string $wawiAttributeKey
      * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
      */
-    private function setProductAttribute(ProductModel $product, $value, string $wawiAttributeKey): void
+    private function setProductAttribute(ProductModel $product, array|string $value, string $wawiAttributeKey): void
     {
         $i18n = (new ProductAttrI18nModel())
             ->setName($wawiAttributeKey)
