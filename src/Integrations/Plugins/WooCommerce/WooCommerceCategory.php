@@ -81,14 +81,14 @@ class WooCommerceCategory extends AbstractComponent
      * @param CategoryI18nModel $categoryI18n
      * @param Identity          $parentCategoryId
      * @param int|null          $categoryId
-     * @return array<int|string, int|string>|\WP_Term
+     * @return array<int|string, int|string>
      * @throws Exception
      */
     public function saveWooCommerceCategory(
         CategoryI18n $categoryI18n,
         Identity $parentCategoryId,
         ?int $categoryId = null
-    ): array|\WP_Term {
+    ): array {
         $categoryData = [
             'description' => $categoryI18n->getDescription(),
             'parent' => $parentCategoryId->getEndpoint(),
@@ -112,6 +112,7 @@ class WooCommerceCategory extends AbstractComponent
                 $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
+            /** @var array<int|string, int|string>|\WP_Error $result */
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
 
             if ($wpml->canBeUsed()) {

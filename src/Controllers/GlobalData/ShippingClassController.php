@@ -23,7 +23,7 @@ class ShippingClassController extends AbstractBaseController
 
         foreach (\WC()->shipping()->get_shipping_classes() as $shippingClass) {
             $shippingClasses[] = (new ShippingClassModel())
-                ->setId(new Identity($shippingClass->term_id))
+                ->setId(new Identity((string)$shippingClass->term_id))
                 ->setName($shippingClass->name);
         }
 

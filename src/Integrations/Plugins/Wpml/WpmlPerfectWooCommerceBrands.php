@@ -85,7 +85,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 
         $trid = $wpmlPlugin->getElementTrid($manufacturerTerm->term_taxonomy_id, $elementType);
 
-        $translation = $termTranslations->getTranslations($trid, $elementType);
+        $translation = $termTranslations->getTranslations((int)$trid, $elementType);
 
         /** @var PerfectWooCommerceBrands $perfectWooCommerceBrands */
         $perfectWooCommerceBrands = $wpmlPlugin->getPluginsManager()
@@ -128,7 +128,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                     $wpmlPlugin->getSitepress()->set_element_language_details(
                         (int)$result['term_taxonomy_id'],
                         $elementType,
-                        $trid,
+                        (int)$trid,
                         $languageCode
                     );
                 }
@@ -153,7 +153,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
 
         $translations = $wpmlTermTranslation
-            ->getTranslations($trid, $elementType, true);
+            ->getTranslations((int)$trid, $elementType, true);
 
         foreach ($translations as $translation) {
             \wp_delete_term($translation->term_id, 'pwb-brand');

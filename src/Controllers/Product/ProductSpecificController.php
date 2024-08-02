@@ -52,11 +52,11 @@ class ProductSpecificController extends AbstractBaseController
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
      * @param int $productId
-     * @param array<int|string, WC_Product_Attribute> $curAttributes
+     * @param array<string, WC_Product_Attribute> $curAttributes
      * @param array<int, array<string, array<int, int|string>>> $specificData
      * @param ProductSpecificModel[] $pushedJtlSpecifics
      * @param TranslatableAttribute[] $pushedJtlAttributes
-     * @return array<string, array<string, int|null|string>>
+     * @return array<string, array<string, bool|int|null|string>>
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
      * @throws \TypeError
@@ -86,7 +86,7 @@ class ProductSpecificController extends AbstractBaseController
          * @var WC_Product_Attribute $wcProductAttribute
          */
         foreach ($curAttributes as $slug => $wcProductAttribute) {
-            if (!\str_starts_with((string)$slug, 'pa_')) {
+            if (!\str_starts_with($slug, 'pa_')) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
                     'value'        => $this->util->findAttributeValue(
@@ -99,7 +99,7 @@ class ProductSpecificController extends AbstractBaseController
                     'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             } elseif (
-                \str_starts_with((string)$slug, 'pa_')
+                \str_starts_with($slug, 'pa_')
                 && \array_key_exists($wcProductAttribute->get_id(), $specificData)
             ) {
                 $cOldOptions = $wcProductAttribute->get_options();

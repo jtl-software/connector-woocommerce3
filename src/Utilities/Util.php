@@ -434,6 +434,7 @@ class Util extends WordpressUtils
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
             \is_callable([ 'BM_Helper', 'delete_b2b_transients' ])
         ) {
+            /** @phpstan-ignore staticMethod.notFound */
             \BM_Helper::delete_b2b_transients();
         }
     }

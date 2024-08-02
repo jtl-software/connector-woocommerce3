@@ -41,9 +41,10 @@ class Db implements LoggerAwareInterface
      * @param string $query     SQL query.
      * @param bool   $shouldLog Query should be written to log files.
      *
-     * @return array<int, array>|null Database query results
+     * @return array<string, bool|int|null|string>|null Database query results
      * @throws InvalidArgumentException
      */
+    /** @phpstan-ignore-next-line  */
     public function query(string $query, bool $shouldLog = true): ?array
     {
         $wpdb = $this->getWpDb();
@@ -52,7 +53,9 @@ class Db implements LoggerAwareInterface
             $this->logger->debug($query);
         }
 
-        return $wpdb->get_results($query, \ARRAY_A);
+        /** @var array<string, bool|int|null|string>|null $results */
+        $results = $wpdb->get_results($query, \ARRAY_A);
+        return $results;
     }
 
     /**

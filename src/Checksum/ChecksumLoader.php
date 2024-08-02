@@ -17,20 +17,27 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     protected Db $db;
 
+    /**
+     * @param Db $db
+     */
     public function __construct(Db $db)
     {
         $this->db     = $db;
         $this->logger = new NullLogger();
     }
 
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
 
     /**
-     * @param $endpointId
-     * @param $type
+     * @param string $endpointId
+     * @param int $type
      * @return string
      * @throws InvalidArgumentException
      */
@@ -50,9 +57,9 @@ class ChecksumLoader implements ChecksumLoaderInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $type
-     * @param $checksum
+     * @param string $endpointId
+     * @param int $type
+     * @param string $checksum
      * @return bool
      * @throws InvalidArgumentException
      */

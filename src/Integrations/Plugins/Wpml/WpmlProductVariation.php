@@ -152,7 +152,7 @@ class WpmlProductVariation extends AbstractComponent
         $elementType      = $term->taxonomy;
         $trid             = $wpmlPlugin->getElementTrid($term->term_taxonomy_id, 'tax_' . $elementType);
 
-        $translations = $termTranslations->getTranslations($trid, $elementType);
+        $translations = $termTranslations->getTranslations((int)$trid, $elementType);
         foreach ($translations as $wpmlLanguageCode => $translation) {
             $translatedTerm = $termTranslations->getTranslatedTerm($translation->element_id, $elementType);
 

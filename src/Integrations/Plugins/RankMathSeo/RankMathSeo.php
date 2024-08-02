@@ -31,7 +31,7 @@ class RankMathSeo extends AbstractPlugin
 
     /**
      * @param int $temId
-     * @return array|null
+     * @return array<int, array<string, string>>|null
      * @throws InvalidArgumentException
      */
     public function findManufacturerSeoData(int $temId): array|null

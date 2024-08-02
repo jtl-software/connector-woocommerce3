@@ -93,7 +93,7 @@ class WpmlCurrency extends AbstractComponent
                 'languages' => $languages
             ];
         }
-
+        /** @phpstan-ignore-next-line */
         $wcml->settings['currency_options'] = $wcmlCurrencies;
         $wcml->update_settings();
 

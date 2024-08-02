@@ -39,7 +39,7 @@ class WpmlTermTranslation extends AbstractComponent
     /**
      * @param int    $translatedTermId
      * @param string $taxonomy
-     * @return array
+     * @return array<string, string>
      */
     public function getTranslatedTerm(int $translatedTermId, string $taxonomy): array
     {

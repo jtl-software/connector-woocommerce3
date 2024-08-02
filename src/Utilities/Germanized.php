@@ -141,7 +141,7 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                /** @var false|null|string $gzdUnitProduct */
+                /** @var false|null|string $gzdUnitBase */
                 $gzdUnitBase = $gzdProduct->get_unit_base();
                 return $gzdUnitBase;
             }

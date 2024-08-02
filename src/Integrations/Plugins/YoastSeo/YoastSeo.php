@@ -19,7 +19,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
  */
 class YoastSeo extends AbstractPlugin
 {
-    /** @var bool|array<int, bool|string|null>|null */
+    /** @var array<string, array<int|string, array<string, string>>>|false */
     protected array|bool|null $wpSeoTaxonomyMeta;
 
     /**
@@ -52,7 +52,7 @@ class YoastSeo extends AbstractPlugin
         }
         $exists = false;
 
-        if (\is_array($taxonomySeo[$type]) and !empty($taxonomySeo[$type])) {
+        if (!empty($taxonomySeo[$type])) {
             foreach ($taxonomySeo[$type] as $catKey => $seoData) {
                 if ((int)$catKey === $taxonomyId) {
                     $exists                                       = true;
@@ -103,16 +103,16 @@ class YoastSeo extends AbstractPlugin
     /**
      * @param int    $termId
      * @param string $type
-     * @return array
+     * @return array<string, string>
      */
     protected function findSeoTranslationData(int $termId, string $type): array
     {
         $seoData     = [];
         $taxonomySeo = $this->getSeoTaxonomyMeta();
 
-        if (isset($taxonomySeo[$type]) && \is_array($taxonomySeo[$type])) {
+        if (isset($taxonomySeo[$type])) {
             foreach ($taxonomySeo[$type] as $elementId => $wpSeoData) {
-                if ($elementId === $termId) {
+                if ((int)$elementId === $termId) {
                     $seoData = $wpSeoData;
                     break;
                 }
@@ -141,7 +141,7 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param int $categoryId
-     * @return array
+     * @return array<string, string>
      */
     public function findCategorySeoData(int $categoryId): array
     {
@@ -150,7 +150,7 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param int $manufacturerId
-     * @return array
+     * @return array<string, string>
      */
     public function findManufacturerSeoData(int $manufacturerId): array
     {
@@ -159,7 +159,7 @@ class YoastSeo extends AbstractPlugin
 
     /**
      * @param \WC_Product $product
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, string>|string>
      */
     public function findProductSeoData(\WC_Product $product): array
     {
@@ -185,12 +185,14 @@ class YoastSeo extends AbstractPlugin
     }
 
     /**
-     * @return array<int, bool|string|null>|bool|null
+     * @return array<string, array<int|string, array<string, string>>>|false
      */
-    protected function getSeoTaxonomyMeta(): array|bool|null
+    protected function getSeoTaxonomyMeta(): array|bool
     {
         if (!isset($this->wpSeoTaxonomyMeta)) {
-            $this->wpSeoTaxonomyMeta = \get_option('wpseo_taxonomy_meta', []);
+            /** @var array<string, array<int|string, array<string, string>>>|false $wpseoTaxonomyMeta */
+            $wpseoTaxonomyMeta       = \get_option('wpseo_taxonomy_meta', []);
+            $this->wpSeoTaxonomyMeta = $wpseoTaxonomyMeta;
         }
         return $this->wpSeoTaxonomyMeta;
     }

@@ -38,11 +38,13 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @return array<int|string, array<string, string>>
+     * @return array<string, array<string, string>>
      */
     public function getActiveLanguages(): array
     {
-        return $this->getSitepress()->get_active_languages();
+        /** @var array<string, array<string, string>> $activeLanguages */
+        $activeLanguages = $this->getSitepress()->get_active_languages();
+        return $activeLanguages;
     }
 
     /**
@@ -151,11 +153,12 @@ class Wpml extends AbstractPlugin
     /**
      * @param int    $termId
      * @param string $elementType
-     * @return int
+     * @return bool|int|null|string
      */
-    public function getElementTrid(int $termId, string $elementType): int
+    public function getElementTrid(int $termId, string $elementType): bool|int|null|string
     {
-        $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+        /** @var bool|int|null|string $trid */
+        $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
 
         if ($trid === 0) {
             $this->getSitepress()->set_element_language_details(
@@ -165,7 +168,8 @@ class Wpml extends AbstractPlugin
                 $this->getDefaultLanguage()
             );
 
-            $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+            /** @var bool|int|null|string $trid */
+            $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
         }
 
         return $trid;

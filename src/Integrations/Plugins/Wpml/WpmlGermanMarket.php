@@ -31,7 +31,7 @@ class WpmlGermanMarket extends AbstractComponent
         /** @var WpmlTermTranslation $wpmlTermTranslation */
         $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
         $translations        = $wpmlTermTranslation
-            ->getTranslations($trid, 'tax_' . $taxonomyName, true);
+            ->getTranslations((int)$trid, 'tax_' . $taxonomyName, true);
 
         foreach ($translations as $languageCode => $translation) {
             $translated = $wpmlTermTranslation

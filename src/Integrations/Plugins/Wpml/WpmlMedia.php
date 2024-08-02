@@ -60,7 +60,7 @@ class WpmlMedia extends AbstractComponent
         $wpmlTermTranslation = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
 
         return $wpmlTermTranslation
-            ->getTranslations($trid, self::ELEMENT_TYPE);
+            ->getTranslations((int)$trid, self::ELEMENT_TYPE);
     }
 
     /**

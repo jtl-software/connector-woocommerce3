@@ -488,11 +488,12 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      */
     private function getPurchaseNoteFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
+        /** @var false|string $info */
         $info = \get_post_meta($product->get_id(), '_purchase_note', true);
 
         $i18n = ( new ProductAttrI18nModel() )
             ->setName(self::PURCHASE_NOTE_ATTR)
-            ->setValue((string) $info)
+            ->setValue((string)$info)
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
@@ -513,6 +514,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         string $languageIso = ''
     ): ProductAttrModel {
         $value  = self::VALUE_FALSE;
+        /** @var array<int, string> $status */
         $status = \get_post_meta($product->get_id(), 'fb_sync_status');
 
         if (\count($status) > 0 && \strcmp($status[0], '1') === 0) {
@@ -547,7 +549,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId(new Identity($product->get_id() . '_' . self::GZD_IS_SERVICE))
+            ->setId(new Identity($product->get_wc_product()->get_id() . '_' . self::GZD_IS_SERVICE))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -569,7 +571,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             ->setLanguageISO($languageIso);
 
         return ( new ProductAttrModel() )
-            ->setId(new Identity($product->get_id() . '_' . self::GZD_MIN_AGE))
+            ->setId(new Identity($product->get_wc_product()->get_id() . '_' . self::GZD_MIN_AGE))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }
@@ -583,6 +585,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      */
     private function getDigitalFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
+        /** @var array<int, string> $digital */
         $digital = \get_post_meta($product->get_id(), '_digital');
 
         if (\count($digital) > 0 && \strcmp($digital[0], 'yes') === 0) {
@@ -747,6 +750,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
                 return $value !== '';
             });
 
+            /** @var array<int, array<int, string>> $jtlOldProductSpecifics */
             $jtlOldProductSpecifics = \get_post_meta($wcProduct->get_id(), self::JTL_CURRENT_PRODUCT_SPECIFICS);
             \update_post_meta(
                 $wcProduct->get_id(),
@@ -995,8 +999,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             if (\array_key_exists($slug, $newProductAttributes)) {
                 if ($attr['name'] === $slug && $attr['name'] === $newProductAttributes[ $slug ]['name']) {
                     $isVariation = $attr['is_variation'] || $newProductAttributes[ $slug ]['is_variation'];
-                    $attrValues  = \explode(' ' . \WC_DELIMITER . ' ', $attr['value']);
-                    $oldValues   = \explode(' ' . \WC_DELIMITER . ' ', $newProductAttributes[ $slug ]['value']);
+                    $attrValues  = \explode(' ' . \WC_DELIMITER . ' ', (string)$attr['value']);
+                    $oldValues   = \explode(' ' . \WC_DELIMITER . ' ', (string)$newProductAttributes[ $slug ]['value']);
 
                     $values = \array_merge($attrValues, $oldValues);
 

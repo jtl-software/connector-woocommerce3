@@ -32,7 +32,7 @@ class WpmlSpecificValue extends AbstractComponent
         /** @var WpmlTermTranslation $wpmlTermTranslation */
         $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
         $translations        = $wpmlTermTranslation
-            ->getTranslations($trid, 'tax_' . $elementType, true);
+            ->getTranslations((int)$trid, 'tax_' . $elementType, true);
 
         foreach ($translations as $languageCode => $translation) {
             $specificValue->addI18n((new SpecificValueI18nModel())
@@ -61,7 +61,7 @@ class WpmlSpecificValue extends AbstractComponent
                 continue;
             }
 
-            $specificTranslation = $this->findSpecificValueTranslation($trid, $taxonomy, $languageCode);
+            $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
             if (isset($specificTranslation['term_taxonomy_id'])) {
                 $specificValue->getId()->setEndpoint($specificTranslation['term_taxonomy_id']);
             } else {
@@ -83,7 +83,7 @@ class WpmlSpecificValue extends AbstractComponent
                 $wpmlPlugin->getSitepress()->set_element_language_details(
                     $specificValueId,
                     $type,
-                    $trid,
+                    (int)$trid,
                     $languageCode
                 );
             }
@@ -94,7 +94,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @param int    $trid
      * @param string $taxonomy
      * @param string $languageCode
-     * @return array
+     * @return array<string, string>
      */
     public function findSpecificValueTranslation(int $trid, string $taxonomy, string $languageCode): array
     {

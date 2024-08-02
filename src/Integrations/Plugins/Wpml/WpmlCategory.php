@@ -28,7 +28,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param Category $jtlCategory
-     * @param array    $wooCommerceMainCategory
+     * @param array<string, int|string>    $wooCommerceMainCategory
      * @param Identity $parentCategoryId
      * @throws Exception
      */
@@ -80,7 +80,7 @@ class WpmlCategory extends AbstractComponent
                 $wpmlPlugin->getSitepress()->set_element_language_details(
                     (int) $result['term_taxonomy_id'],
                     self::PRODUCT_CATEGORY_TYPE,
-                    $trid,
+                    (int)$trid,
                     $languageCode
                 );
             }
@@ -90,7 +90,7 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param int    $trid
      * @param string $languageCode
-     * @return array|null
+     * @return array<string, bool|int|null|string>
      */
     protected function findCategoryTranslation(int $trid, string $languageCode): array
     {

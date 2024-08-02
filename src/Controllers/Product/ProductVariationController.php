@@ -88,7 +88,14 @@ class ProductVariationController extends AbstractBaseController
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
-        $parentProduct     = \wc_get_product($product->get_parent_id());
+        $parentProduct = \wc_get_product($product->get_parent_id());
+
+        if (!$parentProduct instanceof \WC_Product) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Parent product with ID {$product->get_parent_id()} not found."
+            );
+        }
+
         $productVariations = [];
         /**
          * @var string $slug
@@ -158,9 +165,9 @@ class ProductVariationController extends AbstractBaseController
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
      * @param string $productId
-     * @param array  $variationSpecificData
-     * @param array  $attributesFilteredVariationSpecifics
-     * @return array|null
+     * @param array<string, array<string, int|string>>  $variationSpecificData
+     * @param array<string, array<string, bool|int|null|string>>  $attributesFilteredVariationSpecifics
+     * @return array<string, array<string, bool|int|null|string>>|null
      * @throws InvalidArgumentException
      */
     public function pushMasterData(
@@ -172,7 +179,7 @@ class ProductVariationController extends AbstractBaseController
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandlerController($this->db, $this->util);
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy       = $this->createVariantSlug((string)$key);
+            $taxonomy       = $this->createVariantSlug($key);
             $specificID     = $this->db->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
             $specificExists = isset($specificID[0]['attribute_id']);
             $options        = [];
@@ -183,7 +190,7 @@ class ProductVariationController extends AbstractBaseController
 
             if ($specificExists) {
                 //Get existing values
-                $pushedValues = \explode(' ' . \WC_DELIMITER . ' ', $variationSpecific['value']);
+                $pushedValues = \explode(' ' . \WC_DELIMITER . ' ', (string)$variationSpecific['value']);
                 foreach ($pushedValues as $pushedValue) {
                     //check if value did not exists
                     $termId = (int)$productVaSpeAttrHandler
@@ -206,7 +213,7 @@ class ProductVariationController extends AbstractBaseController
 
                         $options = \explode(
                             ' ' . \WC_DELIMITER . ' ',
-                            $attributesFilteredVariationSpecifics[$taxonomy]['value']
+                            (string)$attributesFilteredVariationSpecifics[$taxonomy]['value']
                         );
 
                         if ((!\in_array($termId, $options))) {
@@ -236,7 +243,7 @@ class ProductVariationController extends AbstractBaseController
                     \wp_set_object_terms(
                         (int)$productId,
                         $options,
-                        $attributesFilteredVariationSpecifics[$taxonomy]['name'],
+                        (string)$attributesFilteredVariationSpecifics[$taxonomy]['name'],
                         true
                     );
                 }
@@ -253,7 +260,7 @@ class ProductVariationController extends AbstractBaseController
 
                 $options = \explode(
                     ' ' . \WC_DELIMITER . ' ',
-                    $variationSpecific['value']
+                    (string)$variationSpecific['value']
                 );
 
                 $attributeId = \wc_create_attribute($endpoint);
@@ -268,7 +275,7 @@ class ProductVariationController extends AbstractBaseController
                 }
 
                 //Register taxonomy for current request
-                \register_taxonomy($taxonomy, null);
+                \register_taxonomy($taxonomy, []);
 
                 $assignedValueIds = [];
 

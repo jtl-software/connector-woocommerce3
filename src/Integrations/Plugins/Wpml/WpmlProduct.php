@@ -70,7 +70,7 @@ class WpmlProduct extends AbstractComponent
                     $jtlProduct,
                     $productI18n,
                     $masterProductId,
-                    $trid
+                    (int)$trid
                 );
             }
         } else {
@@ -103,7 +103,7 @@ class WpmlProduct extends AbstractComponent
                                     $jtlProduct,
                                     $productI18n,
                                     $masterProductId,
-                                    $trid
+                                    (int)$trid
                                 );
                             }
                         }
@@ -411,7 +411,7 @@ class WpmlProduct extends AbstractComponent
 
         return $wpmlTermTranslation
             ->getTranslations(
-                $wpmlPlugin->getElementTrid($productId, $elementType),
+                (int)$wpmlPlugin->getElementTrid($productId, $elementType),
                 $elementType
             );
     }
