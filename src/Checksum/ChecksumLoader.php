@@ -37,7 +37,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @return string
      * @throws InvalidArgumentException
      */
@@ -58,7 +58,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @param string $checksum
      * @return bool
      * @throws InvalidArgumentException
@@ -80,7 +80,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @return bool
      * @throws InvalidArgumentException
      */
@@ -101,7 +101,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @return string
      */
     public function getChecksumRead(string $endpointId, int $type): string
@@ -122,7 +122,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @param string $checksum
      * @return string
      */
@@ -142,7 +142,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
     /**
      * @param string $endpointId
-     * @param int $type
+     * @param int    $type
      * @return string
      */
     public function getChecksumDelete(string $endpointId, int $type): string
