@@ -33,6 +33,7 @@ class ClassInitializationTest extends AbstractTestCase
      * @throws UnknownTypeException
      * @throws Exception
      * @throws ClassAlreadyExistsException
+     * @return void
      */
     public function testClassInitialization(): void
     {
@@ -61,7 +62,11 @@ class ClassInitializationTest extends AbstractTestCase
         }
     }
 
-    protected function findClasses(string $srcPath): array
+    /**
+     * @param string $srcPath
+     * @return bool|string[]
+     */
+    protected function findClasses(string $srcPath): bool|array
     {
         return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), \GLOB_BRACE);
     }

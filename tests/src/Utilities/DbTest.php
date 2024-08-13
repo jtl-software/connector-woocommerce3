@@ -22,6 +22,7 @@ use SebastianBergmann\RecursionContext\InvalidArgumentException;
 class DbTest extends AbstractTestCase
 {
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws OriginalConstructorInvocationRequiredException

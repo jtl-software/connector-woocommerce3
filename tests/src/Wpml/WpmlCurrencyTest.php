@@ -9,7 +9,12 @@ use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 use JtlWooCommerceConnector\Tests\TestCase;
+use Mockery\Exception\RuntimeException;
+use PHPUnit\Framework\Exception;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use woocommerce_wpml;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlCurrencyTest
@@ -20,6 +25,8 @@ class WpmlCurrencyTest extends TestCase
 {
     /**
      * @throws \phpmock\MockEnabledException
+     * @throws InjectionException
+     * @return void
      */
     public function testGetCurrencies(): void
     {
@@ -69,6 +76,15 @@ class WpmlCurrencyTest extends TestCase
         $this->assertEquals(true, $currencies[1]->getIsDefault());
     }
 
+    /**
+     * @throws RuntimeException
+     * @throws ExpectationFailedException
+     * @throws InjectionException
+     * @throws \ReflectionException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     * @return void
+     */
     public function testSetCurrencies(): void
     {
         $wcmlMock = \Mockery::mock(woocommerce_wpml::class);

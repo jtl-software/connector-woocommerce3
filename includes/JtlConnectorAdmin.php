@@ -21,6 +21,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 {
     private static bool $initiated = false;
 
+    /**
+     * @return void
+     */
     public function __construct()
     {
         if (! defined('ABSPATH')) {
@@ -220,12 +223,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function activate_category_tree(Db $db): void
+    private static function activate_category_tree(Db $db): void //phpcs:ignore
     {
         $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
@@ -260,8 +262,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function activate_checksum(string $prefix): void
+    private static function activate_checksum(string $prefix): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -339,7 +340,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param  Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function createManufacturerLinkingTable(Db $db): void
     {
@@ -399,12 +402,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @param string $prefix
-     * @param Db $db
+     * @param Db     $db
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function add_constraints_for_multi_linking_tables(string $prefix, Db $db): void
+    private static function add_constraints_for_multi_linking_tables(string $prefix, Db $db): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -505,6 +507,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param string $featuresJsonPath
      * @return void
      * @throws Exception
      */
@@ -552,10 +555,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Settings">
 
     /**
+     * @param  Db $db
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function init_hooks(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -1120,8 +1124,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtlwcc_show_wordpress_error(string $message): void
+    public static function jtlwcc_show_wordpress_error(string $message): void //phpcs:ignore
     {
         echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert">
                     <p><b>JTL-Connector:</b>&nbsp;' . $message . '</p>
@@ -2087,6 +2090,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         self::updateImageIdentities($db);
     }
 
+    /**
+     * @param  Db $db
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     protected static function updateImageIdentities(Db $db): void
     {
         $imageMapping = [
@@ -2469,8 +2477,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_date_field(array $field): void
+    public static function jtl_date_field(array $field): void //phpcs:ignore
     {
         $option_value = $field['default'];// get_option($field['id'], $field['default']);
 
@@ -2505,8 +2512,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function connector_password_field(array $field): void
+    public static function connector_password_field(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2554,8 +2560,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function connector_url_field(array $field): void
+    public static function connector_url_field(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2603,8 +2608,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function not_compatible_plugins_field(array $field): void
+    public static function not_compatible_plugins_field(array $field): void //phpcs:ignore
     {
         /** @var string $title */
         $title = $field['title'];
@@ -2636,8 +2640,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtlwcc_card(array $field): void
+    public static function jtlwcc_card(array $field): void //phpcs:ignore
     {
         ?>
         <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
@@ -2663,8 +2666,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function compatible_plugins_field(array $field): void
+    public static function compatible_plugins_field(array $field): void //phpcs:ignore
     {
         /** @var string $title */
         $title = $field['title'];
@@ -2705,8 +2707,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function paragraph_field(array $field): void
+    public static function paragraph_field(array $field): void //phpcs:ignore
     {
         /** @var string $title */
         $title = $field['title'];
@@ -2739,8 +2740,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function active_true_false_radio_btn(array $field): void
+    public static function active_true_false_radio_btn(array $field): void //phpcs:ignore
     {
         //phpcs:disable
         ?>
@@ -2789,8 +2789,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_connector_select(array $field): void
+    public static function jtl_connector_select(array $field): void //phpcs:ignore
     {
         /** @var string $title */
         $title = $field['title'];
@@ -2834,8 +2833,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_connector_multiselect(array $field): void
+    public static function jtl_connector_multiselect(array $field): void //phpcs:ignore
     {
         /** @var string $title */
         $title = $field['title'];
@@ -2876,8 +2874,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function dev_log_btn(array $field): void
+    public static function dev_log_btn(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2900,8 +2897,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_text_input(array $field): void
+    public static function jtl_text_input(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2934,8 +2930,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_number_input(array $field): void
+    public static function jtl_number_input(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2968,8 +2963,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_checkbox(array $field): void
+    public static function jtl_checkbox(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -3047,8 +3041,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function default_customer_group_not_updated(): void
+    public static function default_customer_group_not_updated(): void //phpcs:ignore
     {
         $message  = __(
             'The default customer is not set. Please update the B2B-Market 
@@ -3070,8 +3063,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function pull_customer_group_not_updated(): void
+    public static function pull_customer_group_not_updated(): void //phpcs:ignore
     {
         $message  = __(
             'The pull customer groups are not set. Please update the 

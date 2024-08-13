@@ -14,6 +14,7 @@ use PHPUnit\Framework\MockObject\ClassIsFinalException;
 use PHPUnit\Framework\MockObject\ClassIsReadonlyException;
 use PHPUnit\Framework\MockObject\DuplicateMethodException;
 use PHPUnit\Framework\MockObject\InvalidMethodNameException;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
 use PHPUnit\Framework\MockObject\ReflectionException;
 use PHPUnit\Framework\MockObject\RuntimeException;
@@ -30,9 +31,11 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param object $object
      * @param string $methodName
+     * @param mixed  ...$arguments
+     * @return mixed
      * @throws \ReflectionException
      */
-    protected function invokeMethodFromObject(object $object, string $methodName, ...$arguments)
+    protected function invokeMethodFromObject(object $object, string $methodName, mixed ...$arguments): mixed
     {
         $reflectionClass  = new \ReflectionClass($object);
         $reflectionMethod = $reflectionClass->getMethod($methodName);
@@ -43,10 +46,11 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param object $object
      * @param string $propertyName
+     * @param mixed  $value
      * @return void
      * @throws \ReflectionException
      */
-    protected function setPropertyValueFromObject(object $object, string $propertyName, $value): void
+    protected function setPropertyValueFromObject(object $object, string $propertyName, mixed $value): void
     {
         $reflectionClass    = new \ReflectionClass($object);
         $reflectionProperty = $reflectionClass->getProperty($propertyName);
@@ -55,19 +59,21 @@ abstract class AbstractTestCase extends TestCase
     }
 
     /**
-     * @throws InvalidMethodNameException
-     * @throws ClassIsFinalException
-     * @throws InvalidArgumentException
-     * @throws DuplicateMethodException
-     * @throws ClassIsReadonlyException
-     * @throws RuntimeException
+     * @param string[] $onlyMethods
+     * @return MockObject
      * @throws CannotUseOnlyMethodsException
-     * @throws ReflectionException
-     * @throws UnknownTypeException
-     * @throws OriginalConstructorInvocationRequiredException
      * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws InvalidArgumentException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws ReflectionException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
      */
-    protected function createDbMock(array $onlyMethods = [])
+    protected function createDbMock(array $onlyMethods = []): MockObject
     {
         return $this->getMockBuilder(Db::class)
             ->disableOriginalConstructor()
@@ -86,8 +92,9 @@ abstract class AbstractTestCase extends TestCase
      * @throws OriginalConstructorInvocationRequiredException
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
+     * @return MockObject
      */
-    protected function createContainerMock()
+    protected function createContainerMock(): MockObject
     {
         return $this->getMockBuilder(Container::class)
             ->getMock();
@@ -104,8 +111,9 @@ abstract class AbstractTestCase extends TestCase
      * @throws OriginalConstructorInvocationRequiredException
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
+     * @return MockObject
      */
-    protected function createUtilMock()
+    protected function createUtilMock(): MockObject
     {
         return $this->getMockBuilder(Util::class)
             ->disableOriginalConstructor()

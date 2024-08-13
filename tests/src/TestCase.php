@@ -11,6 +11,10 @@ namespace JtlWooCommerceConnector\Tests;
  */
 class TestCase extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * @return void
+     * @throws \Exception
+     */
     protected function tearDown(): void
     {
         \Mockery::close();

@@ -18,6 +18,7 @@ use PHPUnit\Framework\MockObject\RuntimeException;
 class B2BMarket extends AbstractTestCase
 {
     /**
+     * @return void
      * @throws \ReflectionException
      * @throws RuntimeException
      */

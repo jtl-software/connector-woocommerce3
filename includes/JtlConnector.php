@@ -13,6 +13,8 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
 {
     /**
      * @return void
+     * @throws \Noodlehaus\Exception\EmptyDirectoryException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function capture_request(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {

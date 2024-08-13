@@ -7,6 +7,10 @@ namespace JtlWooCommerceConnector\Tests\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Tests\TestCase;
+use Mockery\Exception\RuntimeException;
+use PHPUnit\Framework\Exception;
+use PHPUnit\Framework\ExpectationFailedException;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 /**
  * Class WpmlTermTranslationTest
@@ -16,7 +20,7 @@ use JtlWooCommerceConnector\Tests\TestCase;
 class WpmlTermTranslationTest extends TestCase
 {
     /**
-     * @return array
+     * @return array<int, array<int, array<string, array>|bool|int|string>>
      */
     public function existingTranslationsDataProvider(): array
     {
@@ -29,13 +33,19 @@ class WpmlTermTranslationTest extends TestCase
     /**
      * @dataProvider existingTranslationsDataProvider
      *
-     * @param array           $elementTranslations
-     * @param $defaultLanguage
-     * @param int             $expectedTranslationsReturned
+     * @param array<int, mixed> $elementTranslations
+     * @param bool              $defaultLanguage
+     * @param int               $expectedTranslationsReturned
+     * @return void
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws \ReflectionException
+     * @throws InvalidArgumentException
      */
     public function testGetAllExistingTranslations(
         array $elementTranslations,
-        $defaultLanguage,
+        bool $defaultLanguage,
         int $expectedTranslationsReturned
     ): void {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
@@ -50,7 +60,7 @@ class WpmlTermTranslationTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<int, mixed>
      */
     public function getTranslatedTermDataProvider(): array
     {
@@ -63,10 +73,11 @@ class WpmlTermTranslationTest extends TestCase
     /**
      * @dataProvider getTranslatedTermDataProvider
      *
-     * @param $getTermByIdReturnValue
-     * @param $expectedReturnValue
+     * @param int|string $getTermByIdReturnValue
+     * @param int|string $expectedReturnValue
+     * @return void
      */
-    public function testGetTranslatedTerm($getTermByIdReturnValue, $expectedReturnValue): void
+    public function testGetTranslatedTerm(int|string $getTermByIdReturnValue, int|string $expectedReturnValue): void
     {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
 

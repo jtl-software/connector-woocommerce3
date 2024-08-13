@@ -7,21 +7,24 @@ namespace JtlWooCommerceConnector\Tests\Utilities;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
+use phpmock\MockEnabledException;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 class UtilTest extends TestCase
 {
+    /** @var array<int, mixed> */
     protected array $mockedFunctions = [];
 
     /**
      * @dataProvider bulkPricesProvider
      *
-     * @param $bulkPricesInput
-     * @param $expectedOutput
+     * @param array<int, int|float|string>             $bulkPricesInput
+     * @param array<int, array<int, int|float|string>> $expectedOutput
+     * @return void
      */
-    public function testSetBulkPricesQuantityTo($bulkPricesInput, $expectedOutput): void
+    public function testSetBulkPricesQuantityTo(array $bulkPricesInput, array $expectedOutput): void
     {
         $bulkPrices = [];
         foreach ($bulkPricesInput as $quantityFrom) {
@@ -44,7 +47,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<int, array<int, array<int, array<int, string>|int|float|string>>>
      */
     public function bulkPricesProvider(): array
     {
@@ -84,6 +87,13 @@ class UtilTest extends TestCase
         ];
     }
 
+    /**
+     * @return void
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
+     * @throws MockEnabledException
+     */
     public function testFindVatId(): void
     {
         $expectedVatId = 'DE123456789';
@@ -112,6 +122,13 @@ class UtilTest extends TestCase
         $this->assertSame($expectedVatId, $foundVatId);
     }
 
+    /**
+     * @return void
+     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
+     * @throws MockEnabledException
+     */
     public function testFindVatIdNotFound(): void
     {
         $getMetaField = function ($id, $metaKey) {
@@ -137,6 +154,9 @@ class UtilTest extends TestCase
         $this->assertSame('', $foundVatId);
     }
 
+    /**
+     * @return void
+     */
     protected function tearDown(): void
     {
         foreach ($this->mockedFunctions as $function) {
@@ -147,10 +167,11 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @param $enabledPlugins
-     * @throws \phpmock\MockEnabledException
+     * @param mixed $enabledPlugins
+     * @return void
+     * @throws \phpmock\MockEnabledException|\InvalidArgumentException
      */
-    protected function enablePlugins($enabledPlugins): void
+    protected function enablePlugins(mixed $enabledPlugins): void
     {
         $builder    = new MockBuilder();
         $getPlugins = $builder->setNamespace('JtlWooCommerceConnector\Utilities')
@@ -177,6 +198,7 @@ class UtilTest extends TestCase
      *
      * @param float $number
      * @param int   $expectedPrecision
+     * @return void
      */
     public function testGetDecimalPrecision(float $number, int $expectedPrecision): void
     {
@@ -185,7 +207,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<int, array<int, int|float>>
      */
     public function getDecimalPrecisionDataProvider(): array
     {
@@ -204,6 +226,7 @@ class UtilTest extends TestCase
      * @dataProvider checkIfTrueDataProvider
      * @param string $value
      * @param bool   $expectedResult
+     * @return void
      */
     public function testCheckIfTrue(string $value, bool $expectedResult): void
     {
@@ -211,7 +234,7 @@ class UtilTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<int, array<int, bool|string>>
      */
     public function checkIfTrueDataProvider(): array
     {
@@ -230,9 +253,12 @@ class UtilTest extends TestCase
 
     /**
      * @dataProvider mapLanguageIsoDataProvider
-     * @throws InvalidArgumentException
-     * @throws \InvalidArgumentException
+     * @param string $locale
+     * @param string $expectedResult
+     * @return void
      * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function testMapLanguageIso(string $locale, string $expectedResult): void
     {
@@ -240,6 +266,9 @@ class UtilTest extends TestCase
         $this->assertEquals($expectedResult, $iso);
     }
 
+    /**
+     * @return array<int, array<int, string>>
+     */
     public function mapLanguageIsoDataProvider(): array
     {
         return [

@@ -11,6 +11,7 @@ use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
+use Mockery\Mock;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +19,7 @@ use ReflectionException;
 
 class ImageTest extends TestCase
 {
-    protected $getLocale;
+    protected \phpmock\Mock $getLocale;
 
     /**
      * @return void
@@ -48,14 +49,14 @@ class ImageTest extends TestCase
 
     /**
      * @dataProvider imageAltTextDataProvider
-     * @param ProductImage    $image
-     * @param $expectedAltText
+     * @param ProductImage $image
+     * @param string       $expectedAltText
      * @return void
      * @throws ReflectionException
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
-    public function testGetImageAltText(ProductImage $image, $expectedAltText): void
+    public function testGetImageAltText(ProductImage $image, string $expectedAltText): void
     {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
@@ -81,7 +82,7 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<int, array<int, ProductImage|string>>
      */
     public function imageAltTextDataProvider(): array
     {

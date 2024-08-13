@@ -48,6 +48,7 @@ try {
         }
     }
 } catch (\Exception $e) {
+    //loader failed
 }
 
 
