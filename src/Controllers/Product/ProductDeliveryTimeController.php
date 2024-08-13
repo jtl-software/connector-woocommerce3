@@ -214,7 +214,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int    $productId
      * @param string $taxonomyName
      * @return void
      */

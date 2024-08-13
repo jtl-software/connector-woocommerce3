@@ -93,8 +93,8 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param CustomerGroupPackagingQuantity|ProductModel $quantityObject
-     * @param WC_Product $wcProduct
-     * @param bool|string $groupSlug
+     * @param WC_Product                                  $wcProduct
+     * @param bool|string                                 $groupSlug
      * @return void
      */
     protected function updateMinimumQuantityMetaFields(

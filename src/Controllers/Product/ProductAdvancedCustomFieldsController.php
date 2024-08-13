@@ -120,8 +120,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param string $attributeKey
-     * @param int|string $attributeValue
+     * @param string       $attributeKey
+     * @param int|string   $attributeValue
      * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
@@ -142,7 +142,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param string $productId
+     * @param string   $productId
      * @param string[] $wawiAcfFields
      * @return void
      * @throws InvalidArgumentException

@@ -274,7 +274,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroupIdentity = new Identity();
 
-            /** @var bool|int|null|string $defaultCustomerGroupId */
+            /** @var bool|int|string|null $defaultCustomerGroupId */
             $defaultCustomerGroupId = Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP);
             $groups                 = $this->getB2BMarketCustomerGroups();
             foreach ($groups as $id => $name) {

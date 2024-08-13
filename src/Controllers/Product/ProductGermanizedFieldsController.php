@@ -37,7 +37,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException
@@ -155,7 +155,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param int $id
+     * @param int          $id
      * @return void
      */
     private function updateGermanizedBasePriceAndUnits(ProductModel $product, int $id): void
@@ -288,7 +288,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param $product ProductModel
      * @param array<int, int|string>|string $value
-     * @param string $wawiAttributeKey
+     * @param string                        $wawiAttributeKey
      * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
@@ -329,7 +329,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     /**
      * @param int|string $nutrientData
-     * @param string $flag
+     * @param string     $flag
      * @return string|null
      * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException

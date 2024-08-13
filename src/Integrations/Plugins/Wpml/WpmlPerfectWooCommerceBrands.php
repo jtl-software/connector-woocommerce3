@@ -21,7 +21,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 {
     /**
      * @param int $limit
-     * @return array<int, array<int|string, bool|int|null|string>>
+     * @return array<int, array<int|string, bool|int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getManufacturers(int $limit): array

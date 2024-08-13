@@ -167,14 +167,14 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceItemModel[] $items
-     * @param CustomerGroupModel $customerGroup
-     * @param string $groupSlug
-     * @param WC_Product         $product
-     * @param ProductModel       $model
+     * @param CustomerGroupModel      $customerGroup
+     * @param string                  $groupSlug
+     * @param WC_Product              $product
+     * @param ProductModel            $model
      * @return ProductPriceItemModel[]
      */
     private function getBulkPrices(
-        $items,
+        array $items,
         CustomerGroupModel $customerGroup,
         string $groupSlug,
         WC_Product $product,
@@ -288,10 +288,10 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param array<int|string, ProductPriceModel>      $groupedProductPrices
-     * @param float      $vat
-     * @param string     $productType
+     * @param WC_Product                           $wcProduct
+     * @param array<int|string, ProductPriceModel> $groupedProductPrices
+     * @param float                                $vat
+     * @param string                               $productType
      * @return void
      * @throws InvalidArgumentException
      */

@@ -116,7 +116,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
                 foreach ($order->get_meta_data() as $metaData) {
-                    /** @var bool|int|null|string $customCheckoutFields */
+                    /** @var bool|int|string|null $customCheckoutFields */
                     $customCheckoutFields = Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS);
 
                     if (
@@ -165,7 +165,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
-     * @param \WC_Order $order
+     * @param \WC_Order          $order
      * @param CustomerOrderModel $customerOrder
      * @return void
      * @throws \http\Exception\InvalidArgumentException
@@ -276,7 +276,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
-     * @param CustomerOrderModel $customerOrder
+     * @param CustomerOrderModel    $customerOrder
      * @param array<string, string> $dhlPreferredDeliveryOptions
      * @return void
      */

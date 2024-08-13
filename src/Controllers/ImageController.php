@@ -90,9 +90,9 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param array<int, array<string, bool|int|null|string>> $images
-     * @param int $type
-     * @param int $limit
+     * @param array<int, array<string, bool|int|string|null>> $images
+     * @param int                                             $type
+     * @param int                                             $limit
      * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
      * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
@@ -100,7 +100,7 @@ class ImageController extends AbstractBaseController implements
     private function addNextImages(array $images, int $type, int $limit): array
     {
         $return = [];
-#@param array<int, array<string, array<int, int>|int|string>> $images
+// @param array<int, array<string, array<int, int>|int|string>> $images
         $language = $this->util->getWooCommerceLanguage();
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
@@ -169,7 +169,7 @@ class ImageController extends AbstractBaseController implements
      *
      * @param int|null $limit The limit.
      *
-     * @return array<int, array<string, bool|int|null|string>> The image entities.
+     * @return array<int, array<string, bool|int|string|null>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
@@ -278,9 +278,9 @@ class ImageController extends AbstractBaseController implements
      * Filter out images that are already linked and get image information.
      *
      * @param array<int, int|string> $attachmentIds The image ids that should be checked.
-     * @param int   $postId        The product which is owner of the images.
+     * @param int                    $postId        The product which is owner of the images.
      *
-     * @return array<int, array<string, int|null|string>> The filtered image data.
+     * @return array<int, array<string, int|string|null>> The filtered image data.
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function addProductImagesForPost(array $attachmentIds, int $postId): array
@@ -291,8 +291,8 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param array<int, int|string> $attachmentIds
-     * @param int $productId
-     * @return array<int, array<string, int|null|string>>
+     * @param int                    $productId
+     * @return array<int, array<string, int|string|null>>
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function fetchProductAttachments(array $attachmentIds, int $productId): array
@@ -314,7 +314,7 @@ class ImageController extends AbstractBaseController implements
                 continue;
             }
 
-            /** @var array<string, int|null|string> $picture */
+            /** @var array<string, int|string|null> $picture */
             $picture = \get_post((int)$attachmentId, \ARRAY_A);
 
             if (!\is_array($picture)) {
@@ -340,7 +340,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param array<int, int|string> $productAttachments
-     * @param int $productId
+     * @param int                    $productId
      * @return array<int, int|string>
      */
     private function filterAlreadyLinkedProducts(array $productAttachments, int $productId): array
@@ -381,7 +381,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param string $query
-     * @return array<int, array<string, bool|int|null|string>>
+     * @return array<int, array<string, bool|int|string|null>>
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \http\Exception\InvalidArgumentException
      */
@@ -389,7 +389,7 @@ class ImageController extends AbstractBaseController implements
     {
         $result = [];
 
-        /** @var array<int, array<string, int|null|string>> $images */
+        /** @var array<int, array<string, int|string|null>> $images */
         $images = $this->db->query($query);
 
         if (!\is_array($images)) {
@@ -427,7 +427,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param string $query
-     * @return array<int, array<string, bool|int|null|string>>
+     * @return array<int, array<string, bool|int|string|null>>
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function manufacturerImagePull(string $query): array
@@ -900,7 +900,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractImage $image
-     * @param bool $realDelete
+     * @param bool          $realDelete
      * @return void
      * @throws RuntimeException
      * @throws DefinitionException
@@ -941,7 +941,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractImage $image
-     * @param bool $realDelete
+     * @param bool          $realDelete
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */

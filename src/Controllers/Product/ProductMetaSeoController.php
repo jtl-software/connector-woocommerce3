@@ -13,7 +13,7 @@ use WC_Product;
 class ProductMetaSeoController extends AbstractBaseController
 {
     /**
-     * @param int $newPostId
+     * @param int              $newPostId
      * @param ProductI18nModel $tmpMeta
      * @return void
      */
@@ -66,7 +66,6 @@ class ProductMetaSeoController extends AbstractBaseController
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
-
             $values = $this->getSeoValues(
                 $wcProduct,
                 'rank_math_title',

@@ -93,8 +93,8 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     }
 
     /**
-     * @param string $shippingMethodName
-     * @param array<int|string, array<string, string>>  $trackingProviders
+     * @param string                                   $shippingMethodName
+     * @param array<int|string, array<string, string>> $trackingProviders
      * @return string|null
      */
     private function findTrackingProviderSlug(string $shippingMethodName, array $trackingProviders): ?string

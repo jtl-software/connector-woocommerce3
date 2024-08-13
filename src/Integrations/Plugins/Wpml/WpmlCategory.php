@@ -27,9 +27,9 @@ class WpmlCategory extends AbstractComponent
         PRODUCT_CATEGORY_TYPE = 'tax_product_cat';
 
     /**
-     * @param Category $jtlCategory
-     * @param array<string, int|string>    $wooCommerceMainCategory
-     * @param Identity $parentCategoryId
+     * @param Category                  $jtlCategory
+     * @param array<string, int|string> $wooCommerceMainCategory
+     * @param Identity                  $parentCategoryId
      * @throws Exception
      */
     public function setCategoryTranslations(
@@ -90,7 +90,7 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param int    $trid
      * @param string $languageCode
-     * @return array<string, bool|int|null|string>
+     * @return array<string, bool|int|string|null>
      */
     protected function findCategoryTranslation(int $trid, string $languageCode): array
     {
@@ -180,7 +180,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param array<int, int>|null $parentIds
-     * @param int $level
+     * @param int                  $level
      * @throws InvalidArgumentException
      */
     protected function fillCategoryLevelTable(?array $parentIds = null, int $level = 0): void

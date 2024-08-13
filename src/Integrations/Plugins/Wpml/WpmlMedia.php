@@ -64,7 +64,7 @@ class WpmlMedia extends AbstractComponent
     }
 
     /**
-     * @param int   $attachmentId
+     * @param int         $attachmentId
      * @param ImageI18n[] $imageI18ns
      * @throws \Exception
      */

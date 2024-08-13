@@ -458,7 +458,7 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $product
+     * @param ProductModel     $product
      * @param ProductI18nModel $meta
      * @return void
      * @throws InvalidArgumentException
@@ -716,7 +716,7 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
-     * @param ProductI18n $meta
+     * @param ProductI18n  $meta
      * @return void
      * @throws Exception
      */

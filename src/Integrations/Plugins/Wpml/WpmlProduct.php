@@ -143,13 +143,13 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param stdClass[] $translationInfo
-     * @param stdClass[] $masterProductTranslations
-     * @param string $languageCode
-     * @param Product $jtlProduct
+     * @param stdClass[]  $translationInfo
+     * @param stdClass[]  $masterProductTranslations
+     * @param string      $languageCode
+     * @param Product     $jtlProduct
      * @param ProductI18n $productI18n
-     * @param string $masterProductId
-     * @param int $trid
+     * @param string      $masterProductId
+     * @param int         $trid
      * @throws InvalidArgumentException
      * @throws MustNotBeNullException
      * @throws TranslatableAttributeException

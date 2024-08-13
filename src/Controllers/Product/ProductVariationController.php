@@ -164,10 +164,10 @@ class ProductVariationController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param string $productId
-     * @param array<string, array<string, int|string>>  $variationSpecificData
-     * @param array<string, array<string, bool|int|null|string>>  $attributesFilteredVariationSpecifics
-     * @return array<string, array<string, bool|int|null|string>>|null
+     * @param string                                             $productId
+     * @param array<string, array<string, int|string>>           $variationSpecificData
+     * @param array<string, array<string, bool|int|string|null>> $attributesFilteredVariationSpecifics
+     * @return array<string, array<string, bool|int|string|null>>|null
      * @throws InvalidArgumentException
      */
     public function pushMasterData(
@@ -353,7 +353,7 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int                $productId
      * @param ProductVariation[] $pushedVariations
      * @return array<int, string>
      * @throws InvalidArgumentException

@@ -114,7 +114,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     /**
      * @param Application $application
-     * @param Request $request
+     * @param Request     $request
      * @return Response
      * @throws DependencyException
      * @throws NotFoundException

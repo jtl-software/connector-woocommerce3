@@ -78,7 +78,7 @@ class CustomerOrderItemController extends AbstractBaseController
     /**
      * Add the positions for products. Not that complicated.
      *
-     * @param WC_Order           $order
+     * @param WC_Order                 $order
      * @param CustomerOrderItemModel[] $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -178,7 +178,7 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order           $order
+     * @param WC_Order                 $order
      * @param CustomerOrderItemModel[] $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -222,7 +222,7 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
+     * @param WC_Order                 $order
      * @param CustomerOrderItemModel[] $customerOrderItems
      * @return void
      * @throws InvalidArgumentException
@@ -244,7 +244,7 @@ class CustomerOrderItemController extends AbstractBaseController
      *
      * @param \WC_Order_Item_Fee $feeItem
      * @param WC_Order           $order
-     * @param int|string|null $taxRateId
+     * @param int|string|null    $taxRateId
      * @return CustomerOrderItemModel
      */
     private function getSurchargeOrderItem(
@@ -264,10 +264,10 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
-     * @param string $type
+     * @param WC_Order                 $order
+     * @param string                   $type
      * @param CustomerOrderItemModel[] $customerOrderItems
-     * @param callable           $getItem
+     * @param callable                 $getItem
      * @return void
      * @throws InvalidArgumentException
      */
@@ -371,7 +371,7 @@ class CustomerOrderItemController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Order $order
+     * @param WC_Order                 $order
      * @param CustomerOrderItemModel[] $customerOrderItems
      * @return void
      */

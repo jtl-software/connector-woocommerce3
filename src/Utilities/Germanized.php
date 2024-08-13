@@ -93,12 +93,12 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                /** @var false|null|string $gzdProductUnit */
+                /** @var false|string|null $gzdProductUnit */
                 $gzdProductUnit = $gzdProduct->get_unit();
                 return $gzdProductUnit;
             }
         }
-        /** @var false|null|string $gzdProductUnit */
+        /** @var false|string|null $gzdProductUnit */
         $gzdProductUnit = $wcProduct->gzd_product->unit; /** @phpstan-ignore property.notFound */
         return $gzdProductUnit;
     }
@@ -117,12 +117,12 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                /** @var false|null|string $gzdUnitProduct */
+                /** @var false|string|null $gzdUnitProduct */
                 $gzdUnitProduct = $gzdProduct->get_unit_product();
                 return $gzdUnitProduct;
             }
         }
-        /** @var false|null|string $gzdUnitProduct */
+        /** @var false|string|null $gzdUnitProduct */
         $gzdUnitProduct = $wcProduct->gzd_product->unit_product; /** @phpstan-ignore property.notFound */
         return $gzdUnitProduct;
     }
@@ -141,12 +141,12 @@ class Germanized
             if (\is_bool($gzdProduct)) {
                 return false;
             } else {
-                /** @var false|null|string $gzdUnitBase */
+                /** @var false|string|null $gzdUnitBase */
                 $gzdUnitBase = $gzdProduct->get_unit_base();
                 return $gzdUnitBase;
             }
         }
-        /** @var false|null|string $gzdUnitBase */
+        /** @var false|string|null $gzdUnitBase */
         $gzdUnitBase = $wcProduct->gzd_product->unit_base; /** @phpstan-ignore property.notFound */
         return $gzdUnitBase;
     }

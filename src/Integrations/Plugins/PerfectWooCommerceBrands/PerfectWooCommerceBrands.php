@@ -77,7 +77,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     /**
      * @param Manufacturer          $jtlManufacturer
      * @param ManufacturerI18nModel $manufacturerI18n
-     * @return array<string, int|null|string>|false|WP_Error|\WP_Term
+     * @return array<string, int|string|null>|false|WP_Error|\WP_Term
      * @throws \Exception
      */
     public function saveManufacturer(
@@ -103,7 +103,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
                 /** @var false|WP_Term $manufacturerTerm */
                 $manufacturerTerm = \get_term_by('id', $manufacturerTerm['term_id'], 'pwb-brand');
             }
-
         } else {
             $this->updateManufacturer((int) $manufacturerTerm->term_id, $jtlManufacturer->getName(), $manufacturerI18n);
         }

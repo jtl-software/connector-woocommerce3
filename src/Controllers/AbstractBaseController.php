@@ -25,9 +25,6 @@ abstract class AbstractBaseController extends AbstractController implements Logg
 
     protected PluginsManager $pluginsManager;
 
-    /**
-     * @var Wpml $wpml
-     */
     protected Wpml $wpml;
 
     /**
@@ -79,8 +76,8 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param int $postId
-     * @param string $metaKey
+     * @param int                          $postId
+     * @param string                       $metaKey
      * @param string|array<string, string> $value
      * @return bool|int
      */
@@ -101,10 +98,10 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param int $objectId
+     * @param int      $objectId
      * @param string[] $terms
-     * @param string $taxonomy
-     * @param bool $append
+     * @param string   $taxonomy
+     * @param bool     $append
      * @return array<int, int|string>|\WP_Error
      */
     protected function wpSetObjectTerms(
@@ -117,9 +114,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param int $objectId
+     * @param int      $objectId
      * @param string[] $terms
-     * @param string $taxonomy
+     * @param string   $taxonomy
      * @return bool|\WP_Error
      */
     protected function wpRemoveObjectTerms(int $objectId, array|int|string $terms, string $taxonomy): bool|\WP_Error
@@ -140,11 +137,11 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param string $field
+     * @param string     $field
      * @param int|string $value
-     * @param string $taxonomy
-     * @param string $output
-     * @param string $filter
+     * @param string     $taxonomy
+     * @param string     $output
+     * @param string     $filter
      * @return \WP_Term|false
      */
     protected function getTermBy(
@@ -169,7 +166,7 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param int $postId
+     * @param int    $postId
      * @param string $metaKey
      * @return bool
      */

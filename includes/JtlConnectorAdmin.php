@@ -2430,7 +2430,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @param string[] $links
-     * @param string $file
+     * @param string   $file
      * @return string[]
      */
     public static function jtlconnector_plugin_row_meta(array $links, string $file ):array //phpcs:ignore
@@ -2465,7 +2465,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // </editor-fold>
 
     /**
-     * @param array<string, null|string> $field
+     * @param array<string, string|null> $field
      *
      * @return void
      */
@@ -2668,7 +2668,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         /** @var string $title */
         $title = $field['title'];
-        /** @var array<int, array<string, null|string>> $plugins */
+        /** @var array<int, array<string, string|null>> $plugins */
         $plugins = $field['plugins'];
         ?>
         <div class="form-group row">

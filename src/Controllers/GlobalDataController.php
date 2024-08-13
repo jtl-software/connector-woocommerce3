@@ -58,7 +58,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
             ));
         }
 
-        #if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
+        // if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
             // \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer
@@ -69,7 +69,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
             /*
                 \update_option('woocommerce_dimension_unit', 'cm', true);
             \update_option('woocommerce_weight_unit', 'kg', true);*/
-        #}
+        // }
 
         if (
             (

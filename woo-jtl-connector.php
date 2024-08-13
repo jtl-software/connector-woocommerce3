@@ -92,6 +92,9 @@ if (jtlwcc_rewriting_disabled()) {
     }
 }
 
+/**
+ * @return void
+ */
 function woo_jtl_connector_settings_javascript(): void
 {
     ?>
@@ -149,6 +152,10 @@ function woo_jtl_connector_settings_javascript(): void
     <?php
 }
 
+/**
+ * @return void
+ * @throws UnexpectedValueException
+ */
 function downloadJTLLogs(): void
 {
     $logDir   = CONNECTOR_DIR . '/var/log';
@@ -205,6 +212,10 @@ function downloadJTLLogs(): void
     //self::display_page();
 }
 
+/**
+ * @return void
+ * @throws UnexpectedValueException
+ */
 function clearJTLLogs(): void
 {
     $logDir   = CONNECTOR_DIR . '/var/log';
@@ -242,6 +253,7 @@ function clearJTLLogs(): void
 
 /**
  * @throws UnexpectedValueException
+ * @return void
  */
 function clearConnectorCache(): void
 {
@@ -275,6 +287,8 @@ function clearConnectorCache(): void
 }
 /**
  * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
+ *
+ * @return void
  */
 function jtlwcc_load_internationalization(): void
 {
@@ -283,6 +297,8 @@ function jtlwcc_load_internationalization(): void
 
 /**
  * Check the status of WC, connector and the WC version.
+ *
+ * @return void
  */
 function jtlwcc_validate_plugins(): void
 {
@@ -296,6 +312,8 @@ function jtlwcc_validate_plugins(): void
 
 /**
  * Deactivate the connector.
+ *
+ * @return void
  */
 function jtlwcc_deactivate_plugin(): void
 {
@@ -317,6 +335,8 @@ function jtlwcc_woocommerce_deactivated(): bool
 
 /**
  * Redirect action
+ *
+ * @return void
  */
 function woo_jtl_connector_menu_link(): void
 {
@@ -352,6 +372,8 @@ function jtlwcc_get_woocommerce_version(): string
 
 /**
  * Without rewriting a URL like jtlconnector cannot be used.
+ *
+ * @return bool
  */
 function jtlwcc_rewriting_disabled(): bool
 {
@@ -360,6 +382,9 @@ function jtlwcc_rewriting_disabled(): bool
     return empty($permalink_structure);
 }
 
+/**
+ * @return void
+ */
 function jtlwcc_woocommerce_not_activated(): void
 {
     jtlwcc_show_wordpress_error(
@@ -368,11 +393,17 @@ function jtlwcc_woocommerce_not_activated(): void
     );
 }
 
+/**
+ * @return void
+ */
 function jtlwcc_wrong_woocommerce_version(): void
 {
     jtlwcc_show_wordpress_error(__('At least WooCommerce 3.0 has to be installed.', JTLWCC_TEXT_DOMAIN));
 }
 
+/**
+ * @return void
+ */
 function jtlwcc_rewriting_not_activated(): void
 {
     jtlwcc_show_wordpress_error(__(
@@ -381,6 +412,11 @@ function jtlwcc_rewriting_not_activated(): void
     ));
 }
 
+/**
+ * @param string $message
+ * @param bool   $show_install_link
+ * @return void
+ */
 function jtlwcc_show_wordpress_error(string $message, bool $show_install_link = false): void
 {
     $link = $show_install_link

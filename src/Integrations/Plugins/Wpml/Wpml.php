@@ -153,11 +153,11 @@ class Wpml extends AbstractPlugin
     /**
      * @param int    $termId
      * @param string $elementType
-     * @return bool|int|null|string
+     * @return bool|int|string|null
      */
     public function getElementTrid(int $termId, string $elementType): bool|int|null|string
     {
-        /** @var bool|int|null|string $trid */
+        /** @var bool|int|string|null $trid */
         $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
 
         if ($trid === 0) {
@@ -168,7 +168,7 @@ class Wpml extends AbstractPlugin
                 $this->getDefaultLanguage()
             );
 
-            /** @var bool|int|null|string $trid */
+            /** @var bool|int|string|null $trid */
             $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
         }
 

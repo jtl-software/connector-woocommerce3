@@ -30,10 +30,8 @@ class ManufacturerController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    /**
-     * @var array<int, int>
-     */
-    private static $idCache = [];
+    /** @var array<int, int> */
+    private static array $idCache = [];
 
     /**
      * @param QueryFilter $query
@@ -123,7 +121,7 @@ class ManufacturerController extends AbstractBaseController implements
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
         ) {
-            /** @var array<string, array<int|string, array<string, null|string>>> $taxonomySeo */
+            /** @var array<string, array<int|string, array<string, string|null>>> $taxonomySeo */
             $taxonomySeo = \get_option('wpseo_taxonomy_meta');
             if (isset($taxonomySeo['pwb-brand'])) {
                 foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
@@ -203,9 +201,9 @@ class ManufacturerController extends AbstractBaseController implements
                 }
                 $term = $newTerm;
 
-                #if (!$term instanceof \WP_Term) {
-                #    $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
-                #}
+                // if (!$term instanceof \WP_Term) {
+                // $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
+                // }
             } elseif ($term instanceof \WP_Term) {
                 \wp_update_term($term->term_id, 'pwb-brand', [
                     'name' => $model->getName(),

@@ -23,8 +23,8 @@ class B2BMarket extends WordpressUtils
 
     /**
      * @param array<int, string> $customerGroupIds
-     * @param string $metaKey
-     * @param Category|Product ...$models
+     * @param string             $metaKey
+     * @param Category|Product   ...$models
      * @return void
      * @throws MustNotBeNullException
      * @throws \TypeError
@@ -66,7 +66,7 @@ class B2BMarket extends WordpressUtils
     }
 
     /**
-     * @param string $controller
+     * @param string           $controller
      * @param Category|Product ...$entities
      *
      * @return void

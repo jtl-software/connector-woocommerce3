@@ -19,10 +19,10 @@ class ProductSpecificController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel $model
-     * @param \WC_Product $product
+     * @param ProductModel         $model
+     * @param \WC_Product          $product
      * @param WC_Product_Attribute $attribute
-     * @param string $slug
+     * @param string               $slug
      * @return ProductSpecificModel[]
      * @throws \InvalidArgumentException
      */
@@ -51,12 +51,12 @@ class ProductSpecificController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param int $productId
-     * @param array<string, WC_Product_Attribute> $curAttributes
+     * @param int                                               $productId
+     * @param array<string, WC_Product_Attribute>               $curAttributes
      * @param array<int, array<string, array<int, int|string>>> $specificData
-     * @param ProductSpecificModel[] $pushedJtlSpecifics
-     * @param TranslatableAttribute[] $pushedJtlAttributes
-     * @return array<string, array<string, bool|int|null|string>>
+     * @param ProductSpecificModel[]                            $pushedJtlSpecifics
+     * @param TranslatableAttribute[]                           $pushedJtlAttributes
+     * @return array<string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
      * @throws \TypeError

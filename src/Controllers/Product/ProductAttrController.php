@@ -42,11 +42,11 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
-     * @param ProductAttribute[] $pushedAttributes
-     * @param array<int|string, array<string, bool|int|null|string>> $attributesFilteredVariationsAndSpecifics
-     * @param ProductModel $product
-     * @return array<int|string, array<string, bool|int|null|string>>
+     * @param int                                                    $productId
+     * @param ProductAttribute[]                                     $pushedAttributes
+     * @param array<int|string, array<string, bool|int|string|null>> $attributesFilteredVariationsAndSpecifics
+     * @param ProductModel                                           $product
+     * @return array<int|string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
      * @throws InvalidArgumentException
@@ -337,10 +337,10 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
-     * @param string $slug
-     * @param string $languageIso
+     * @param string                $slug
+     * @param string                $languageIso
      * @return ProductAttrModel
      * @throws TranslatableAttributeException
      * @throws \JsonException
@@ -369,9 +369,9 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param ProductAttrModel $attribute
-     * @param ProductAttrI18nModel $i18n
-     * @param array<int|string, array<string, bool|int|null|string>> $attributes
+     * @param ProductAttrModel                                       $attribute
+     * @param ProductAttrI18nModel                                   $i18n
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -396,9 +396,9 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param ProductAttrI18nModel $i18n
-     * @param array<string, bool|int|string> $data
-     * @param array<int|string, array<string, bool|int|null|string>> $attributes
+     * @param ProductAttrI18nModel                                   $i18n
+     * @param array<string, bool|int|string>                         $data
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -416,9 +416,9 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param string $slug
-     * @param string $value
-     * @param array<int|string, array<string, bool|int|null|string>> $attributes
+     * @param string                                                 $slug
+     * @param string                                                 $value
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      */
     private function updateAttribute(string $slug, string $value, array &$attributes): void
@@ -434,9 +434,9 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param string $slug
-     * @param array<string, bool|int|string> $data
-     * @param array<int|string, array<string, bool|int|null|string>> $attributes
+     * @param string                                                 $slug
+     * @param array<string, bool|int|string>                         $data
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      */
     private function createAttribute(string $slug, array $data, array &$attributes): void
@@ -452,7 +452,7 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int      $productId
      * @param string[] $sentCustomProperties
      * @return void
      * @throws InvalidArgumentException
@@ -477,7 +477,7 @@ class ProductAttrController extends AbstractBaseController
         $existingProperties = $this->db->query($query);
 
         if ($existingProperties) {
-            /** @var array<int|string, array<string, bool|int|null|string>> $existingProperties */
+            /** @var array<int|string, array<string, bool|int|string|null>> $existingProperties */
             $existingProperties = \unserialize($existingProperties[0]['meta_value']);
 
             foreach ($existingProperties as $property) {
@@ -519,7 +519,7 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int    $productId
      * @param string $metaKey
      * @param string $value
      * @return void
@@ -533,7 +533,7 @@ class ProductAttrController extends AbstractBaseController
 
     /**
      * @param string $value
-     * @param int $productId
+     * @param int    $productId
      * @return string
      */
     protected function updateProductVisibility(string $value, int $productId): string

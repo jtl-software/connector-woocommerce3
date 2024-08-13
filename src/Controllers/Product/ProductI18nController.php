@@ -50,10 +50,10 @@ class ProductI18nController extends AbstractBaseController
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             $tmpMeta = (new ProductMetaSeoController($this->db, $this->util))->pullData($product, $model);
-            #array<int|string, array<int, string>|int|string>|null
+            // array<int|string, array<int, string>|int|string>|null
             if (\is_array($tmpMeta)) {
                 $this->setI18nSeoData($i18n, $tmpMeta);
-                #array<string, array<int, string>|string>
+                // array<string, array<int, string>|string>
             }
         }
 
@@ -61,7 +61,7 @@ class ProductI18nController extends AbstractBaseController
     }
 
     /**
-     * @param ProductI18nModel $i18n
+     * @param ProductI18nModel               $i18n
      * @param array<string, string|string[]> $tmpMeta
      * @return void
      */

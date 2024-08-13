@@ -513,7 +513,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         WC_Product $product,
         string $languageIso = ''
     ): ProductAttrModel {
-        $value  = self::VALUE_FALSE;
+        $value = self::VALUE_FALSE;
         /** @var array<int, string> $status */
         $status = \get_post_meta($product->get_id(), 'fb_sync_status');
 
@@ -663,8 +663,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param ProductI18n $productI18n
+     * @param WC_Product   $wcProduct
+     * @param ProductI18n  $productI18n
      * @return void
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
@@ -700,7 +700,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             $jtlSpecifics  = $this->generateSpecificData($product->getSpecifics());
 
             //handleAttributes
-            /** @var array<string, array<string, bool|int|null|string>> $productAttributes */
+            /** @var array<string, array<string, bool|int|string|null>> $productAttributes */
             $productAttributes = ( new ProductAttrController($this->db, $this->util) )->pushData(
                 $productId,
                 $product->getAttributes(),
@@ -795,9 +795,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     /**
      * @param array<string, WC_Product_Attribute> $attributes
-     * @param ProductVariation[] $variations
+     * @param ProductVariation[]                  $variations
      *
-     * @return array<string, array<string, bool|int|null|string>>
+     * @return array<string, array<string, bool|int|string|null>>
      */
     private function getVariationAndSpecificAttributes(array &$attributes = [], array $variations = []): array
     {
@@ -849,8 +849,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
     /**
      * @param array<string, WC_Product_Attribute> $curAttributes
-     * @param ProductAttrModel ...$jtlAttributes
-     * @return array<string, array<string, bool|int|null|string>>
+     * @param ProductAttrModel                    ...$jtlAttributes
+     * @return array<string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
      * @throws \http\Exception\InvalidArgumentException
      */
@@ -972,7 +972,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @return Identity
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getSpecificValueId(string $slug, string $value)
+    public function getSpecificValueId(string $slug, string $value): Identity
     {
         $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value)) ?? [];
 
@@ -989,9 +989,9 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
-     * @param array<string, array<string, bool|int|null|string>> $newProductAttributes
-     * @param array<string, array<string, bool|int|null|string>> $attributes
-     * @param bool  $sort
+     * @param array<string, array<string, bool|int|string|null>> $newProductAttributes
+     * @param array<string, array<string, bool|int|string|null>> $attributes
+     * @param bool                                               $sort
      */
     private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false): void
     {
@@ -1025,10 +1025,10 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     //VARIATIONSPECIFIC && SPECIFIC
 
     /**
-     * @param array<string, array<string, bool|int|null|string>> $newWcProductAttributes
-     * @param ProductAttribute[] $jtlAttributes
+     * @param array<string, array<string, bool|int|string|null>> $newWcProductAttributes
+     * @param ProductAttribute[]                                 $jtlAttributes
      *
-     * @return array<string, array<string, bool|int|null|string>>
+     * @return array<string, array<string, bool|int|string|null>>
      */
     protected function removeUnknownAttributes(array $newWcProductAttributes, array $jtlAttributes): array
     {

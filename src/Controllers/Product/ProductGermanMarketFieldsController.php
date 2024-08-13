@@ -94,8 +94,8 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param array<string, string>      $metaKeys
+     * @param WC_Product            $wcProduct
+     * @param array<string, string> $metaKeys
      * @return bool
      */
     private function hasGermanMarketUnitPrice(WC_Product $wcProduct, array $metaKeys): bool
@@ -122,7 +122,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
+     * @param WC_Product            $wcProduct
      * @param array<string, string> $metaKeys
      * @return array<string, string>
      */
@@ -355,7 +355,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $product
+     * @param ProductModel          $product
      * @param array<string, string> $metaKeys
      * @return void
      * @throws \http\Exception\InvalidArgumentException

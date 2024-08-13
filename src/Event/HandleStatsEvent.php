@@ -41,7 +41,7 @@ class HandleStatsEvent extends Event
      * @param mixed $result
      * @return $this
      */
-    public function setResult($result): static
+    public function setResult(mixed $result): static
     {
         $this->result = $result;
         return $this;

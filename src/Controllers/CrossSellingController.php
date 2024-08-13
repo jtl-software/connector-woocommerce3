@@ -194,8 +194,8 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param int $productId
-     * @param string $key
+     * @param int                    $productId
+     * @param string                 $key
      * @param array<int, int|string> $value
      * @return void
      */
@@ -211,7 +211,7 @@ class CrossSellingController extends AbstractBaseController implements
 
     /**
      * @param CrossSellingModel $crossSelling
-     * @param string $crossSellingGroupEndpointId
+     * @param string            $crossSellingGroupEndpointId
      * @return int[]
      */
     private function getProductIds(CrossSellingModel $crossSelling, string $crossSellingGroupEndpointId): array
