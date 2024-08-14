@@ -25,6 +25,7 @@ class WpmlMedia extends AbstractComponent
     /**
      * @param int           $mediaId
      * @param AbstractImage $jtlImage
+     * @return void
      * @throws \Exception
      */
     public function getTranslations(int $mediaId, AbstractImage $jtlImage): void
@@ -66,6 +67,7 @@ class WpmlMedia extends AbstractComponent
     /**
      * @param int         $attachmentId
      * @param ImageI18n[] $imageI18ns
+     * @return void
      * @throws \Exception
      */
     public function saveAttachmentTranslations(int $attachmentId, array $imageI18ns): void

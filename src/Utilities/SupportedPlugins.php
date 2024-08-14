@@ -224,6 +224,10 @@ class SupportedPlugins
         );
     }
 
+    /**
+     * @param string ...$pluginNames
+     * @return bool
+     */
     public static function areAllActive(string ...$pluginNames): bool
     {
         $result = true;

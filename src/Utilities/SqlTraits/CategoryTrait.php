@@ -101,8 +101,8 @@ trait CategoryTrait
     }
 
     /**
-     * @param $categoryId
-     * @param $level
+     * @param int $categoryId
+     * @param int $level
      * @return string
      */
     public static function categoryTreePreOrder(int $categoryId, int $level): string
@@ -123,7 +123,7 @@ trait CategoryTrait
     }
 
     /**
-     * @param $limit
+     * @param int $limit
      * @return string
      */
     public static function categoryPull(int $limit): string

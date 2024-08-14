@@ -21,6 +21,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @param SpecificValue $specificValue
      * @param int           $mainSpecificValueId
      * @param string        $elementType
+     * @return void
      * @throws \Exception
      */
     public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType): void
@@ -45,6 +46,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @param string        $taxonomy
      * @param SpecificValue $specificValue
      * @param int           $mainSpecificValueId
+     * @return void
      * @throws \Exception
      */
     public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void

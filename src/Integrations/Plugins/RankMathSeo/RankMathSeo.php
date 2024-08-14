@@ -42,6 +42,8 @@ class RankMathSeo extends AbstractPlugin
     /**
      * @param \WC_Product $wcProduct
      * @param ProductI18n $jtlProductI18n
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
     public function setProductSeoData(\WC_Product $wcProduct, ProductI18n $jtlProductI18n): void
@@ -66,6 +68,8 @@ class RankMathSeo extends AbstractPlugin
     /**
      * @param int          $categoryId
      * @param CategoryI18n $categoryI18n
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
     public function setCategorySeoData(int $categoryId, CategoryI18n $categoryI18n): void
@@ -82,6 +86,8 @@ class RankMathSeo extends AbstractPlugin
     /**
      * @param int                           $taxonomyId
      * @param ManufacturerI18n|CategoryI18n $i18nModel
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
     public function updateWpSeoTaxonomyMeta(int $taxonomyId, ManufacturerI18n|CategoryI18n $i18nModel): void

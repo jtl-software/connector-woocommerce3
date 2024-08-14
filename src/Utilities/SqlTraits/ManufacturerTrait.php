@@ -13,8 +13,8 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait ManufacturerTrait
 {
-    /*
-        Public static function specificPull($limit)
+/*
+    Public static function specificPull($limit)
         {
             global $wpdb;
             $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -55,7 +55,7 @@ trait ManufacturerTrait
                     WHERE tt.taxonomy LIKE '{$specificName}'
                     ORDER BY tt.parent ASC;";
         }
-    */
+*/
 
     /**
      * @return string

@@ -15,6 +15,10 @@ class B2BMarket extends WordpressUtils
 {
     protected Util $util;
 
+    /**
+     * @param Db   $database
+     * @param Util $util
+     */
     public function __construct(Db $database, Util $util)
     {
         parent::__construct($database);

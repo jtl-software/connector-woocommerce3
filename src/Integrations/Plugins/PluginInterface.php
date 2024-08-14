@@ -41,6 +41,8 @@ interface PluginInterface
 
     /**
      * @param PluginsManager $pluginsManager
+     *
+     * @return void
      */
     public function setPluginsManager(PluginsManager $pluginsManager): void;
 

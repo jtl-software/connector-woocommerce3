@@ -26,6 +26,7 @@ class WpmlProductVariation extends AbstractComponent
      * @param WC_Product       $wcProduct
      * @param string           $wcAttributeSlug
      * @param ProductVariation $productVariation
+     * @return void
      * @throws Exception
      */
     public function getTranslations(
@@ -60,6 +61,7 @@ class WpmlProductVariation extends AbstractComponent
     /**
      * @param int     $productId
      * @param Product $product
+     * @return void
      * @throws Exception
      */
     public function updateMeta(int $productId, Product $product): void
@@ -140,6 +142,7 @@ class WpmlProductVariation extends AbstractComponent
     /**
      * @param ProductVariationValue $productVariationValue
      * @param \WP_Term              $term
+     * @return void
      * @throws Exception
      */
     public function getValueTranslations(ProductVariationValue $productVariationValue, \WP_Term $term): void
@@ -171,6 +174,7 @@ class WpmlProductVariation extends AbstractComponent
      * @param string                $slug
      * @param ProductVariationValue $variationValue
      * @param int                   $sort
+     * @return void
      * @throws Exception
      */
     public function getOptionTranslations(

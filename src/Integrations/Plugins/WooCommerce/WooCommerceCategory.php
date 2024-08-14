@@ -78,9 +78,9 @@ class WooCommerceCategory extends AbstractComponent
     }
 
     /**
-     * @param CategoryI18nModel $categoryI18n
-     * @param Identity          $parentCategoryId
-     * @param int|null          $categoryId
+     * @param CategoryI18n $categoryI18n
+     * @param Identity     $parentCategoryId
+     * @param int|null     $categoryId
      * @return array<int|string, int|string>
      * @throws Exception
      */

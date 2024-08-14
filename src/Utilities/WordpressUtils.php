@@ -13,6 +13,9 @@ abstract class WordpressUtils
 {
     protected Db $db;
 
+    /**
+     * @param Db $db
+     */
     public function __construct(Db $db)
     {
         $this->db = $db;

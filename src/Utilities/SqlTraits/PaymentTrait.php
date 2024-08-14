@@ -1,16 +1,10 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:46
- */
-
 declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use http\Exception\InvalidArgumentException;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -22,6 +16,7 @@ trait PaymentTrait
      * @param bool     $includeCompletedOrders
      * @param int|null $limit
      * @return string
+     * @throws InvalidArgumentException
      */
     public static function paymentCompletedPull(bool $includeCompletedOrders, ?int $limit = null): string
     {

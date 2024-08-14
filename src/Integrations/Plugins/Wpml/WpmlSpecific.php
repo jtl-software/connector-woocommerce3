@@ -44,6 +44,7 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific $specific
      * @param string   $name
+     * @return void
      * @throws Exception
      */
     public function getTranslations(Specific $specific, string $name): void
@@ -67,6 +68,7 @@ class WpmlSpecific extends AbstractComponent
     /**
      * @param Specific          $specific
      * @param SpecificI18nModel $defaultTranslation
+     * @return void
      * @throws InjectionException
      * @throws Exception
      */

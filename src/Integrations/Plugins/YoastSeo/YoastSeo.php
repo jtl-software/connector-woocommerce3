@@ -35,6 +35,8 @@ class YoastSeo extends AbstractPlugin
      * @param int                           $taxonomyId
      * @param CategoryI18n|ManufacturerI18n $i18nModel
      * @param string                        $type
+     *
+     * @return void
      */
     protected function updateWpSeoTaxonomyMeta(
         int $taxonomyId,
@@ -89,6 +91,8 @@ class YoastSeo extends AbstractPlugin
      * @param ProductI18n|CategoryI18n|ManufacturerI18n $i18n
      * @param int                                       $termId
      * @param string                                    $type
+     *
+     * @return void
      */
     public function setSeoData(ProductI18n|CategoryI18n|ManufacturerI18n $i18n, int $termId, string $type): void
     {
@@ -124,6 +128,7 @@ class YoastSeo extends AbstractPlugin
     /**
      * @param int          $categoryId
      * @param CategoryI18n $categoryI18n
+     * @return void
      */
     public function setCategorySeoData(int $categoryId, CategoryI18n $categoryI18n): void
     {
@@ -133,6 +138,7 @@ class YoastSeo extends AbstractPlugin
     /**
      * @param int              $manufacturerId
      * @param ManufacturerI18n $manufacturerI18n
+     * @return void
      */
     public function setManufacturerSeoData(int $manufacturerId, ManufacturerI18n $manufacturerI18n): void
     {

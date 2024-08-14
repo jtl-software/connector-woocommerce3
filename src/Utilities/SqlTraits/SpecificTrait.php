@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 10:55
- */
-
 declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
@@ -164,11 +157,11 @@ trait SpecificTrait
     }
 }
 
-    /*
-        SELECT t.term_id, t.name, tt.taxonomy, t.slug
-        FROM wp_terms t
-        LEFT JOIN wp_term_taxonomy tt ON t.term_id = tt.term_id
-        LEFT JOIN jtl_connector_link_specific l ON t.term_id = l.endpoint_id
-        WHERE l.host_id IS NULL AND tt.taxonomy LIKE 'pa_groesse'
-        ORDER BY tt.parent ASC;
-    */
+/*
+    SELECT t.term_id, t.name, tt.taxonomy, t.slug
+    FROM wp_terms t
+    LEFT JOIN wp_term_taxonomy tt ON t.term_id = tt.term_id
+    LEFT JOIN jtl_connector_link_specific l ON t.term_id = l.endpoint_id
+    WHERE l.host_id IS NULL AND tt.taxonomy LIKE 'pa_groesse'
+    ORDER BY tt.parent ASC;
+*/

@@ -86,6 +86,7 @@ class WooCommerceProduct extends AbstractComponent
      * @param DateTime $creationDate
      * @param bool     $gmt
      * @return string
+     * @throws InvalidArgumentException
      * @throws \Exception
      */
     private function getCreationDate(DateTime $creationDate, bool $gmt = false): string

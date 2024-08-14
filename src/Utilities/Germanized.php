@@ -22,6 +22,9 @@ class Germanized
         'cl' => 'cL',
     ];
 
+    /**
+     * Germanized constructor.
+     */
     public function __construct()
     {
         $this->salutations = [

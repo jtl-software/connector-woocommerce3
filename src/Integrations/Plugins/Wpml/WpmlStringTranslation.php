@@ -18,6 +18,7 @@ class WpmlStringTranslation extends AbstractComponent
      * @param string $sourceName
      * @param string $targetName
      * @param string $wawiIsoLanguage
+     * @return void
      * @throws InjectionException
      * @throws \Exception
      */
@@ -39,6 +40,7 @@ class WpmlStringTranslation extends AbstractComponent
      * @param string $taxonomy
      * @param string $name
      * @param string $wawiIsoLanguage
+     * @return void
      * @throws InjectionException
      * @throws \Exception
      */

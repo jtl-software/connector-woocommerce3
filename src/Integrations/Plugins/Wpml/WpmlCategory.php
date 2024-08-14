@@ -30,6 +30,7 @@ class WpmlCategory extends AbstractComponent
      * @param Category                  $jtlCategory
      * @param array<string, int|string> $wooCommerceMainCategory
      * @param Identity                  $parentCategoryId
+     * @return void
      * @throws Exception
      */
     public function setCategoryTranslations(
@@ -181,6 +182,7 @@ class WpmlCategory extends AbstractComponent
     /**
      * @param array<int, int>|null $parentIds
      * @param int                  $level
+     * @return void
      * @throws InvalidArgumentException
      */
     protected function fillCategoryLevelTable(?array $parentIds = null, int $level = 0): void
