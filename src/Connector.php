@@ -8,6 +8,7 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use http\Exception\InvalidArgumentException;
+use Jawira\CaseConverter\CaseConverterException;
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Application\Request;
 use Jtl\Connector\Core\Application\Response;
@@ -23,6 +24,7 @@ use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 use Jtl\Connector\Core\Event\BoolEvent;
 use Jtl\Connector\Core\Event\RpcEvent;
 use Jtl\Connector\Core\Exception\ApplicationException;
+use Jtl\Connector\Core\Exception\DefinitionException;
 use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Logger\LoggerService;
 use Jtl\Connector\Core\Model\Category;
@@ -56,7 +58,16 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     protected SqlHelper $sqlHelper;
 
     /**
+     * @param ConfigInterface $config
+     * @param Container       $container
+     * @param EventDispatcher $dispatcher
      * @return void
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @throws \InvalidArgumentException
+     * @throws CaseConverterException
+     * @throws DefinitionException
+     * @throws \LogicException
      * @throws \RuntimeException
      */
     public function initialize(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
@@ -203,6 +214,10 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return new Response($event->getResult());
     }
 
+    /**
+     * @return ChecksumLoaderInterface
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function getChecksumLoader(): ChecksumLoaderInterface
     {
         $checksumLoader = new ChecksumLoader($this->getDb());
@@ -211,6 +226,10 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return $checksumLoader;
     }
 
+    /**
+     * @return \Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function getPrimaryKeyMapper(): \Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface
     {
         $primaryKeyMapper = new PrimaryKeyMapper($this->getDb(), $this->getSqlHelper());
@@ -219,6 +238,9 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return $primaryKeyMapper;
     }
 
+    /**
+     * @return TokenValidatorInterface
+     */
     public function getTokenValidator(): TokenValidatorInterface
     {
         /** @var string $optionsToken */
@@ -226,24 +248,34 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return new TokenValidator($optionsToken);
     }
 
+    /**
+     * @return string
+     */
     public function getControllerNamespace(): string
     {
         return 'JtlWooCommerceConnector\Controllers';
     }
 
     /**
-     * @throws ParseException
+     * @return string
+     * @throws ParseException|InvalidArgumentException
      */
     public function getEndpointVersion(): string
     {
         return Config::getBuildVersion();
     }
 
+    /**
+     * @return string
+     */
     public function getPlatformVersion(): string
     {
         return '';
     }
 
+    /**
+     * @return string
+     */
     public function getPlatformName(): string
     {
         return 'WooCommerce';

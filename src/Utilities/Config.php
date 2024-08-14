@@ -123,7 +123,7 @@ class Config
 
     /**
      * @param string $name
-     * @param $value
+     * @param mixed  $value
      * @return bool
      */
     public static function set(string $name, mixed $value): bool

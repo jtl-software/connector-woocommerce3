@@ -22,6 +22,7 @@ class CustomerOrderItemTest extends AbstractTestCase
      * @param float $priceNet
      * @param float $priceGross
      * @param float $expectedVatRate
+     * @return void
      * @throws \ReflectionException
      */
     public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate): void
@@ -36,7 +37,7 @@ class CustomerOrderItemTest extends AbstractTestCase
     }
 
     /**
-     * @return array
+     * @return array<int, array<int, float|int>>
      */
     public function calculateVatDataProvider(): array
     {

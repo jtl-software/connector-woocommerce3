@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
  * Date: 07.11.2018
  * Time: 09:41
  */
+
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -174,7 +174,7 @@ trait CustomerTrait
     }
 
     /**
-     * @param $logger
+     * @param LoggerInterface|NullLogger $logger
      * @return string
      * @throws InvalidArgumentException
      */

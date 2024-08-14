@@ -33,23 +33,30 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
         $this->logger    = new NullLogger();
     }
 
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
 
+    /**
+     * @return SqlHelper
+     */
     public function getSqlHelper(): SqlHelper
     {
         return $this->sqlHelper;
     }
 
     /**
-     * @param $endpointId
-     * @param $type
+     * @param int    $type
+     * @param string $endpointId
      * @return int|null
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getHostId($type, $endpointId): ?int
+    public function getHostId(int $type, string $endpointId): ?int
     {
         $tableName = self::getTableName($type);
 
@@ -247,9 +254,12 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
                 return 'jtl_connector_link_crossselling';
             case IdentityType::CROSS_SELLING_GROUP:
                 return 'jtl_connector_link_crossselling_group';
+
             /*
-                case IdentityLinker::TYPE_CURRENCY:
-                 return 'jtl_connector_link_currency';*/
+             * case IdentityLinker::TYPE_CURRENCY:
+             * return 'jtl_connector_link_currency';
+             */
+
             case IdentityType::CUSTOMER:
                 return 'jtl_connector_link_customer';
             case IdentityType::CUSTOMER_GROUP:
@@ -262,14 +272,20 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             case IdentityType::CATEGORY_IMAGE:
             case IdentityType::PRODUCT_IMAGE:
                 return 'jtl_connector_link_image';
+
             /*
-                case IdentityLinker::TYPE_LANGUAGE:
-                return 'jtl_connector_link_language';*/
+             * case IdentityLinker::TYPE_LANGUAGE:
+             * return 'jtl_connector_link_language';
+             */
+
             case IdentityType::MANUFACTURER:
                 return 'jtl_connector_link_manufacturer';
+
             /*
-                case IdentityLinker::TYPE_MEASUREMENT_UNIT:
-                    return 'jtl_connector_link_measurement_unit';*/
+             * case IdentityLinker::TYPE_MEASUREMENT_UNIT:
+             * return 'jtl_connector_link_measurement_unit';
+             */
+
             case IdentityType::CUSTOMER_ORDER:
                 return 'jtl_connector_link_order';
             case IdentityType::PAYMENT:
@@ -278,9 +294,12 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
                 return 'jtl_connector_link_product';
             case IdentityType::SHIPPING_CLASS:
                 return 'jtl_connector_link_shipping_class';
+
             /*
-                case IdentityLinker::TYPE_SHIPPING_METHOD:
-                    return 'jtl_connector_link_shipping_method';*/
+             * case IdentityLinker::TYPE_SHIPPING_METHOD:
+             * return 'jtl_connector_link_shipping_method';
+             */
+
             case IdentityType::SPECIFIC:
                 return 'jtl_connector_link_specific';
             case IdentityType::SPECIFIC_VALUE:

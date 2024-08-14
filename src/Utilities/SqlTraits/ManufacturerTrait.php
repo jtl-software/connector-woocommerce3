@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
@@ -9,12 +7,14 @@ declare(strict_types=1);
  * Time: 10:55
  */
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait ManufacturerTrait
 {
     /*
-        public static function specificPull($limit)
+        Public static function specificPull($limit)
         {
             global $wpdb;
             $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -54,7 +54,8 @@ trait ManufacturerTrait
                       LEFT JOIN {$jclsv} lsv ON t.term_id = lsv.endpoint_id
                     WHERE tt.taxonomy LIKE '{$specificName}'
                     ORDER BY tt.parent ASC;";
-        }*/
+        }
+    */
 
     /**
      * @return string
@@ -118,8 +119,10 @@ trait ManufacturerTrait
             \join('","', $metaKeys)
         );
     }
-    /*
-        public static function getSpecificValueId($specificName, $specificValueName)
+}
+
+/*
+    Public static function getSpecificValueId($specificName, $specificValueName)
         {
           global $wpdb;
           $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
@@ -162,5 +165,5 @@ trait ManufacturerTrait
           $jcls = $wpdb->prefix . 'jtl_connector_link_specific_value';
 
           return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
-      }*/
-}
+      }
+*/

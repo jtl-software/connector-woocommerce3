@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Created by PhpStorm.
  * User: Jan Weskamp <jan.weskamp@jtl-software.com>
  * Date: 07.11.2018
  * Time: 09:44
  */
+
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -228,6 +228,10 @@ trait ImageTrait
         );
     }
 
+    /**
+     * @param int $productId
+     * @return string
+     */
     public static function imageDeleteLinks(int $productId): string
     {
         global $wpdb;

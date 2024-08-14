@@ -10,6 +10,7 @@ use JtlWooCommerceConnector\Authentication\TokenValidator;
 class TokenValidatorTest extends TestCase
 {
     /**
+     * @return void
      * @throws \Exception
      */
     public function testValidate(): void
@@ -19,6 +20,7 @@ class TokenValidatorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws \Exception
      */
     public function testValidateFailure(): void

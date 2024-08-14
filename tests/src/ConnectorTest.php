@@ -32,6 +32,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class ConnectorTest extends TestCase
 {
     /**
+     * @return void
      * @throws MethodCannotBeConfiguredException
      * @throws RuntimeException
      * @throws ClassIsFinalException
@@ -65,6 +66,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws MethodCannotBeConfiguredException
      * @throws RuntimeException
      * @throws ClassIsFinalException
@@ -103,6 +105,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -132,6 +135,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -153,6 +157,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -174,6 +179,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -195,6 +201,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException
@@ -214,6 +221,8 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @param string[] $onlyMethods
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException
@@ -235,6 +244,8 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @param string[] $onlyMethods
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException

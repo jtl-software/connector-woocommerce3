@@ -29,7 +29,8 @@ class Util extends WordpressUtils
     private string $locale;
 
     /**
-     * @throws InvalidArgumentException
+     * @param Db $db
+     * @throws InvalidArgumentException|\Exception
      */
     public function __construct(Db $db)
     {
@@ -38,6 +39,9 @@ class Util extends WordpressUtils
         $this->locale = $this->mapLanguageIso(get_locale());
     }
 
+    /**
+     * @return string
+     */
     public function getWooCommerceLanguage(): string
     {
         return $this->locale;
@@ -250,6 +254,7 @@ class Util extends WordpressUtils
 
     /**
      * @param int $productId
+     * @return void
      * @throws \http\Exception\InvalidArgumentException
      */
     public function addMasterProductToSync(int $productId): void
@@ -279,6 +284,7 @@ class Util extends WordpressUtils
     }
 
     /**
+     * @return void
      * @throws \http\Exception\InvalidArgumentException
      * @throws \Exception
      */
@@ -312,6 +318,10 @@ class Util extends WordpressUtils
         }
     }
 
+    /**
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function countCategories(): void
     {
         $offset = 0;
@@ -337,7 +347,8 @@ class Util extends WordpressUtils
     }
 
     /**
-     * ???
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function countProductTags(): void
     {
@@ -428,6 +439,9 @@ class Util extends WordpressUtils
         return isset($taxonomies[ $name ]) ? (int) $taxonomies[ $name ] : 0;
     }
 
+    /**
+     * @return void
+     */
     public static function deleteB2Bcache(): void
     {
         if (
@@ -524,6 +538,7 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function getManualPaymentTypes(): array
     {
@@ -580,6 +595,10 @@ class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
+    /**
+     * @param string $name
+     * @return string
+     */
     public function createVariantTaxonomyName(string $name): string
     {
         return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
@@ -625,6 +644,7 @@ class Util extends WordpressUtils
     /**
      * @param array<string, string> $dataSet
      * @param int                   $termId
+     * @return void
      */
     public function updateTermMeta(array $dataSet, int $termId): void
     {
