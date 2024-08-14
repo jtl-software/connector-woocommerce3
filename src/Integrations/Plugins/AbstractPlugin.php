@@ -22,6 +22,9 @@ abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
 
     protected PluginsManager $pluginsManager;
 
+    /**
+     * AbstractPlugin constructor.
+     */
     public function __construct()
     {
         $this->logger = new NullLogger();
@@ -86,6 +89,7 @@ abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
 
     /**
      * @param PluginsManager $pluginsManager
+     * @return void
      */
     public function setPluginsManager(PluginsManager $pluginsManager): void
     {

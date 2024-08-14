@@ -40,6 +40,11 @@ class CustomerOrderAddressController extends AbstractBaseController
         );
     }
 
+    /**
+     * @param AbstractOrderAddress $address
+     * @param WC_Order|null        $order
+     * @return void
+     */
     protected function createDefaultAddresses(AbstractOrderAddress $address, ?WC_Order $order = null): void
     {
         if (empty($address->getCity())) {

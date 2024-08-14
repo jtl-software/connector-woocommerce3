@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PushInterface;
@@ -20,7 +15,7 @@ use WC_Order;
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param StatusChangeModel $model
+     * @param AbstractModel $model
      * @return StatusChangeModel
      * @throws \WC_Data_Exception|InvalidArgumentException
      */

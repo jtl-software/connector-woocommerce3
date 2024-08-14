@@ -16,8 +16,9 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param DeliverNoteModel $model
+     * @param AbstractModel $model
      * @return AbstractModel
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel

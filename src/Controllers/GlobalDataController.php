@@ -27,6 +27,7 @@ use Psr\Log\InvalidArgumentException;
 class GlobalDataController extends AbstractBaseController implements PullInterface, PushInterface
 {
     /**
+     * @param QueryFilter $query
      * @return array<GlobalDataModel>
      * @throws Exception
      */
@@ -68,7 +69,9 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 
             /*
                 \update_option('woocommerce_dimension_unit', 'cm', true);
-            \update_option('woocommerce_weight_unit', 'kg', true);*/
+                \update_option('woocommerce_weight_unit', 'kg', true);
+            */
+
         // }
 
         if (
@@ -142,8 +145,8 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
     }
 
     /**
-     * @param GlobalDataModel $model
-     * @return GlobalDataModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception
      */

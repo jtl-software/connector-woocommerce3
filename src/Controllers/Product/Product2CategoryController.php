@@ -46,7 +46,7 @@ class Product2CategoryController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $model
+     * @param AbstractModel $model
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */

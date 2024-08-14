@@ -229,7 +229,7 @@ class ProductPrice extends AbstractBaseController
      * @return array<string, ProductPriceModel>
      * @throws \InvalidArgumentException
      */
-    protected function groupProductPrices(\Jtl\Connector\Core\Model\ProductPrice ...$jtlProductPrices): array
+    protected function groupProductPrices(ProductPriceModel ...$jtlProductPrices): array
     {
         $groupedProductPrices = [];
 
@@ -277,7 +277,7 @@ class ProductPrice extends AbstractBaseController
         WC_Product $wcProduct,
         float $vat,
         string $productType,
-        \Jtl\Connector\Core\Model\ProductPrice ...$productPrices
+        ProductPriceModel ...$productPrices
     ): void {
         Util::deleteB2Bcache();
 
@@ -293,7 +293,7 @@ class ProductPrice extends AbstractBaseController
      * @param float                                $vat
      * @param string                               $productType
      * @return void
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|\http\Exception\InvalidArgumentException
      */
     public function updateProductPrices(
         WC_Product $wcProduct,

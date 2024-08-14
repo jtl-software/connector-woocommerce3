@@ -70,6 +70,11 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
         return $address;
     }
 
+    /**
+     * @param CustomerOrderShippingAddressModel $address
+     * @param \WC_Order                         $order
+     * @return void
+     */
     private function useBillingAddress(CustomerOrderShippingAddressModel $address, \WC_Order $order): void
     {
         if (empty($address->getCity())) {
@@ -93,6 +98,10 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
         }
     }
 
+    /**
+     * @param CustomerOrderShippingAddressModel $address
+     * @return bool
+     */
     private function emptyAddressCheck(CustomerOrderShippingAddressModel $address): bool
     {
         if (

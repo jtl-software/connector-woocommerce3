@@ -169,7 +169,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param CustomerModel $model
+     * @param AbstractModel $model
      * @return AbstractModel
      * @throws InvalidArgumentException
      */

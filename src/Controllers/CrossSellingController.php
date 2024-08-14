@@ -117,7 +117,7 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param CrossSellingModel $model
+     * @param AbstractModel $model
      * @return CrossSellingModel
      */
     public function push(AbstractModel $model): AbstractModel
@@ -149,7 +149,7 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param CrossSellingModel $model
+     * @param AbstractModel $model
      * @return AbstractModel
      */
     public function delete(AbstractModel $model): AbstractModel
@@ -185,6 +185,7 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
      */

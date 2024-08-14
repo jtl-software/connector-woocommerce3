@@ -53,6 +53,12 @@ class ImageController extends AbstractBaseController implements
 
     protected PrimaryKeyMapperInterface $primaryKeyMapper;
 
+    /**
+     * @param Db                        $db
+     * @param Util                      $util
+     * @param PrimaryKeyMapperInterface $primaryKeyMapper
+     * @throws Exception
+     */
     public function __construct(Db $db, Util $util, PrimaryKeyMapperInterface $primaryKeyMapper)
     {
         parent::__construct($db, $util);
@@ -165,12 +171,10 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * Loop the products to get their images and validate and map them.
-     *
-     * @param int|null $limit The limit.
-     *
+     * @param int|null $limit
      * @return array<int, array<string, bool|int|string|null>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
     {
@@ -541,7 +545,7 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param AbstractImage $model
+     * @param AbstractModel $model
      * @return AbstractModel
      * @throws Exception
      */
@@ -567,7 +571,11 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param AbstractImage $image
      * @return int|null
-     * @throws Exception
+     * @throws DefinitionException
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \RuntimeException
+     * @throws \getid3_exception
+     * @throws \http\Exception\InvalidArgumentException
      */
     private function saveImage(AbstractImage $image): ?int
     {
@@ -655,7 +663,8 @@ class ImageController extends AbstractBaseController implements
      * @param int           $newEndpointId
      * @param AbstractImage $image
      * @return void
-     * @throws Exception
+     * @throws DefinitionException
+     * @throws \RuntimeException
      */
     protected function relinkImage(int $newEndpointId, AbstractImage $image): void
     {
@@ -752,7 +761,8 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param ProductImage $image
      * @return string|null
-     * @throws Exception
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     private function pushProductImage(ProductImage $image): ?string
     {
@@ -867,7 +877,7 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Delete">
     /**
-     * @param AbstractImage $model
+     * @param AbstractModel $model
      * @param bool          $realDelete
      * @return AbstractModel
      * @throws Exception
@@ -888,7 +898,7 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractImage $model
+     * @param AbstractModel $model
      * @return AbstractModel
      * @throws Exception
      */
@@ -1075,7 +1085,7 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $productId
+     * @param int $productId
      * @return array<int, int>
      */
     private function getGalleryImages(int $productId): array

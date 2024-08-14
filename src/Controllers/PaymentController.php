@@ -101,8 +101,8 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-     * @param PaymentModel $model
-     * @return PaymentModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws \WC_Data_Exception
      */
     public function push(AbstractModel $model): AbstractModel

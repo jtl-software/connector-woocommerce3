@@ -15,7 +15,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @param Product $model
+     * @param AbstractModel $model
      * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception

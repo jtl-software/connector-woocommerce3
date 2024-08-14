@@ -166,11 +166,11 @@ class ProductSpecificController extends AbstractBaseController
     }
 
     /**
-     * @param $slug
-     * @param $value
+     * @param string       $slug
+     * @param string       $value
      * @param ProductModel $result
      * @return ProductSpecificModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \Exception
      */
     private function buildProductSpecific(string $slug, string $value, ProductModel $result): ProductSpecificModel

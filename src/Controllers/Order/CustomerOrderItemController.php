@@ -200,7 +200,7 @@ class CustomerOrderItemController extends AbstractBaseController
      *
      * @param WC_Order_Item_Shipping $shippingItem
      * @param WC_Order               $order
-     * @param $taxRateId
+     * @param int|string|null        $taxRateId
      * @return CustomerOrderItemModel
      */
     private function getShippingOrderItem(

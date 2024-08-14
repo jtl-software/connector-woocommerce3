@@ -27,10 +27,11 @@ class ProductAttrController extends AbstractBaseController
     /**
      * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
-     * @param $slug
-     * @param $languageIso
+     * @param string                $slug
+     * @param string                $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \JsonException
      */
     public function pullData(
         \WC_Product $product,

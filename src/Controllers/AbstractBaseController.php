@@ -28,8 +28,8 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     protected Wpml $wpml;
 
     /**
-     * BaseController constructor.
-     *
+     * @param Db   $db
+     * @param Util $util
      * @throws \Exception
      */
     public function __construct(Db $db, Util $util)
@@ -66,6 +66,10 @@ abstract class AbstractBaseController extends AbstractController implements Logg
         return $this->pluginsManager;
     }
 
+    /**
+     * @param QueryFilter $query
+     * @return int
+     */
     public function statistic(QueryFilter $query): int
     {
         if (\method_exists($this, 'getStats')) {
@@ -87,9 +91,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param $postId
-     * @param $metaKey
-     * @param $value
+     * @param int    $postId
+     * @param string $metaKey
+     * @param string $value
      * @return bool|int
      */
     protected function addPostMeta(int $postId, string $metaKey, string $value): bool|int
@@ -114,9 +118,9 @@ abstract class AbstractBaseController extends AbstractController implements Logg
     }
 
     /**
-     * @param int      $objectId
-     * @param string[] $terms
-     * @param string   $taxonomy
+     * @param int                 $objectId
+     * @param int|string|string[] $terms
+     * @param string              $taxonomy
      * @return bool|\WP_Error
      */
     protected function wpRemoveObjectTerms(int $objectId, array|int|string $terms, string $taxonomy): bool|\WP_Error

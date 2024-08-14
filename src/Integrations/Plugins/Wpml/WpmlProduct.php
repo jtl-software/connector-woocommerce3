@@ -36,6 +36,7 @@ class WpmlProduct extends AbstractComponent
      * @param int     $wcBaseTranslationProductId
      * @param string  $masterProductId
      * @param Product $jtlProduct
+     * @return void
      * @throws Exception
      */
     public function setProductTranslations(
@@ -150,6 +151,7 @@ class WpmlProduct extends AbstractComponent
      * @param ProductI18n $productI18n
      * @param string      $masterProductId
      * @param int         $trid
+     * @return void
      * @throws InvalidArgumentException
      * @throws MustNotBeNullException
      * @throws TranslatableAttributeException
@@ -302,6 +304,7 @@ class WpmlProduct extends AbstractComponent
     /**
      * @param \WC_Product $wcProduct
      * @param Product     $jtlProduct
+     * @return void
      * @throws Exception
      */
     public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct): void

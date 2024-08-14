@@ -85,6 +85,7 @@ class ProductVariationController extends AbstractBaseController
      * @param ProductModel $model
      * @param string       $languageIso
      * @return array<int, AbstractIdentity|ProductVariation>
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
@@ -413,8 +414,9 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
+     * @param string $wawiLanguageIso
+     * @return bool
      * @throws InvalidArgumentException
-     * @throws \Exception
      */
     protected function skipNotDefaultLanguage(string $wawiLanguageIso): bool
     {

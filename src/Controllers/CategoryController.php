@@ -144,7 +144,7 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param CategoryModel $model
+     * @param AbstractModel $model
      * @return CategoryModel
      * @throws \Exception
      */
@@ -302,7 +302,7 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param CategoryModel $model
+     * @param AbstractModel $model
      * @return CategoryModel
      * @throws InvalidArgumentException
      */

@@ -18,13 +18,11 @@ use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductAttribute;
-use Jtl\Connector\Core\Model\ProductI18n;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use Jtl\Connector\Core\Model\ProductSpecific;
 use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
-use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
 use JtlWooCommerceConnector\Controllers\Product\ProductAdvancedCustomFieldsController;
 use JtlWooCommerceConnector\Controllers\Product\ProductB2BMarketFieldsController;
@@ -260,8 +258,8 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $model
-     * @return ProductModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws NonNumericValue
      * @throws NonStringUnitName
@@ -413,8 +411,8 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $model
-     * @return ProductModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws Exception
      */
     public function delete(AbstractModel $model): AbstractModel
@@ -501,6 +499,7 @@ class ProductController extends AbstractBaseController implements
      * @param WC_Product   $wcProduct
      * @return void
      * @throws TranslatableAttributeException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
@@ -714,14 +713,17 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $product
-     * @param WC_Product   $wcProduct
-     * @param ProductI18n  $meta
+     * @param ProductModel     $product
+     * @param WC_Product       $wcProduct
+     * @param ProductI18nModel $meta
      * @return void
      * @throws Exception
      */
-    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, ProductI18nModel $meta): void
-    {
+    public function updateVariationCombinationChild(
+        ProductModel $product,
+        WC_Product $wcProduct,
+        ProductI18nModel $meta
+    ): void {
         $productId = (int)$wcProduct->get_id();
 
         $productTitle         = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));

@@ -47,8 +47,8 @@ class CrossSellingGroup
     }
 
     /**
-     * @param $name
-     * @param Util $util
+     * @param string $name
+     * @param Util   $util
      * @return false|\Jtl\Connector\Core\Model\CrossSellingGroup
      */
     public static function getByWooCommerceName(

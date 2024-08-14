@@ -30,7 +30,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
-    public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
+    public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {
         $this->setGermanizedAttributes($product, $wcProduct);
     }
@@ -43,7 +43,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @throws TranslatableAttributeException
      * @throws \JsonException
      */
-    private function setGermanizedAttributes(ProductModel &$product, \WC_Product $wcProduct): void
+    private function setGermanizedAttributes(ProductModel &$product, WC_Product $wcProduct): void
     {
         $units           = new \WC_GZD_Units();
         $germanizedUtils = (new Germanized());
@@ -286,7 +286,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param $product ProductModel
+     * @param ProductModel                  $product
      * @param array<int, int|string>|string $value
      * @param string                        $wawiAttributeKey
      * @return void

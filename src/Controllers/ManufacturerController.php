@@ -105,10 +105,15 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
+     * @param ManufacturerModel $manufacturer
+     * @param string            $languageIso
+     * @param string            $description
+     * @param string            $termId
+     * @return ManufacturerI18nModel
      * @throws InvalidArgumentException
      */
     public function createManufacturerI18n(
-        Manufacturer $manufacturer,
+        ManufacturerModel $manufacturer,
         string $languageIso,
         string $description,
         string $termId
@@ -152,8 +157,8 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param ManufacturerModel $model
-     * @return ManufacturerModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
@@ -283,8 +288,9 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param Manufacturer $model
+     * @param AbstractModel $model
      * @return AbstractModel
+     * @throws InvalidArgumentException
      * @throws \Exception
      */
     public function delete(AbstractModel $model): AbstractModel
@@ -309,6 +315,8 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
+     * @param QueryFilter $query
+     * @return int
      * @throws InvalidArgumentException
      * @throws \Exception
      */

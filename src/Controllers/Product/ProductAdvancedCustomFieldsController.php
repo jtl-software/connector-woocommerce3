@@ -21,6 +21,14 @@ use Psr\Log\InvalidArgumentException;
  */
 class ProductAdvancedCustomFieldsController extends AbstractBaseController
 {
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product  $wcProduct
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \JsonException
+     */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
         // finde alle acf fields
@@ -39,6 +47,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param ProductModel $product
+     * @return void
      * @throws InvalidArgumentException
      * @throws TranslatableAttributeException
      */

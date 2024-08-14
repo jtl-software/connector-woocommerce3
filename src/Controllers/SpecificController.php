@@ -111,7 +111,7 @@ class SpecificController extends AbstractBaseController implements
     }
 
     /**
-     * @param SpecificModel $model
+     * @param AbstractModel $model
      * @return SpecificModel
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -322,8 +322,9 @@ class SpecificController extends AbstractBaseController implements
     }
 
     /**
-     * @param SpecificModel $model
-     * @throws \Exception
+     * @param AbstractModel $model
+     * @return AbstractModel
+     * @throws InvalidArgumentException
      */
     public function delete(AbstractModel $model): AbstractModel
     {

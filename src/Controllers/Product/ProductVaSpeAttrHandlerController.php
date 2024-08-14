@@ -74,6 +74,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     private array $values = [];
 
     /**
+     * @param Db   $db
+     * @param Util $util
      * @throws \Exception
      */
     public function __construct(Db $db, Util $util)
@@ -879,6 +881,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     }
 
     /**
+     * @param string             $wawiIsoLanguage
      * @param ProductVariation[] $pushedVariations
      *
      * @return array<string, array<string, int|string>>
@@ -992,6 +995,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param array<string, array<string, bool|int|string|null>> $newProductAttributes
      * @param array<string, array<string, bool|int|string|null>> $attributes
      * @param bool                                               $sort
+     * @return void
      */
     private function mergeAttributes(array &$newProductAttributes, array $attributes, bool $sort = false): void
     {
@@ -1049,6 +1053,11 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         return $newWcProductAttributes;
     }
 
+    /**
+     * @param ProductVariationValueModel $a
+     * @param ProductVariationValueModel $b
+     * @return int
+     */
     private function sortI18nValues(
         ProductVariationValueModel $a,
         ProductVariationValueModel $b

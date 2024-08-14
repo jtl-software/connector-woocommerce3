@@ -14,8 +14,8 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductStockLevelController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param Product $model
-     * @return Product
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
