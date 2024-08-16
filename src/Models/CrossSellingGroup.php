@@ -88,6 +88,7 @@ class CrossSellingGroup
     /**
      * @param string $columnName
      * @param string $value
+     *
      * @return false|int|string
      */
     protected static function findKeyByColumn(string $columnName, string $value): bool|int|string
