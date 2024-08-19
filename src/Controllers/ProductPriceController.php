@@ -16,6 +16,8 @@ class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
      * @param AbstractModel $model
+     * @phpstan-param Product $model
+     *
      * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception

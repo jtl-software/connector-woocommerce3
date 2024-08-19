@@ -180,7 +180,8 @@ class ProductVariationController extends AbstractBaseController
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandlerController($this->db, $this->util);
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy       = $this->createVariantSlug($key);
+            $taxonomy = $this->createVariantSlug($key);
+            /** @var array<int, array<string, int|string|null>> $specificID */
             $specificID     = $this->db->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
             $specificExists = isset($specificID[0]['attribute_id']);
             $options        = [];
@@ -288,6 +289,7 @@ class ProductVariationController extends AbstractBaseController
                         'slug' => $slug,
                     ];
 
+                    /** @var array<int, array<string, int|string|null>> $exValId */
                     $exValId = $this->db->query(
                         SqlHelper::getSpecificValueId(
                             $taxonomy,

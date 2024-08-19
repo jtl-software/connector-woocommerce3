@@ -105,7 +105,7 @@ class WpmlSpecific extends AbstractComponent
 
     /**
      * @param string $specificName
-     * @return array<int, array<string, string>>|null
+     * @return array<int, array<string, int|string>>|null
      * @throws InvalidArgumentException
      */
     public function getValues(string $specificName): ?array
@@ -118,7 +118,8 @@ class WpmlSpecific extends AbstractComponent
         $languageCode = $wpmlPlugin->getDefaultLanguage();
         $elementType  = 'tax_' . $specificName;
 
-        return $this->getPluginsManager()->getDatabase()->query(
+        /** @var array<int, array<string, int|string>>|null $values */
+        $values = $this->getPluginsManager()->getDatabase()->query(
             "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
@@ -131,6 +132,8 @@ class WpmlSpecific extends AbstractComponent
                 AND wpmlt.language_code = '{$languageCode}'
                 ORDER BY tt.parent ASC;"
         );
+
+        return $values;
     }
 
     /**

@@ -331,6 +331,7 @@ class Util extends WordpressUtils
             $result = $this->db->query(SqlHelper::categoryProductsCount($offset, $limit));
             $result = $result ?? [];
 
+            /** @var array<string, int|string> $category */
             foreach ($result as $category) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
                     (int)$category['term_taxonomy_id'],
@@ -359,6 +360,7 @@ class Util extends WordpressUtils
             $result = $this->db->query(SqlHelper::productTagsCount($offset, $limit));
             $result = $result ?? [];
 
+            /** @var array<string, int|string> $tag */
             foreach ($result as $tag) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
                     (int)$tag['term_taxonomy_id'],

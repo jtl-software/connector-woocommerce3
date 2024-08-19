@@ -197,13 +197,17 @@ class PerfectWooCommerceBrands extends AbstractPlugin
 
     /**
      * @param int $limit
-     * @return array<int, array<int, int|string>>
+     * @return array<int, array<string, int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getManufacturers(int $limit): array
     {
         $sql = SqlHelper::manufacturerPull($limit);
-        return $this->getPluginsManager()->getDatabase()->query($sql) ?? [];
+
+        /** @var array<int, array<string, int|string|null>> $manufacturers */
+        $manufacturers =  $this->getPluginsManager()->getDatabase()->query($sql) ?? [];
+
+        return $manufacturers;
     }
 
     /**

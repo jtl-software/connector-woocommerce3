@@ -51,6 +51,7 @@ class SpecificController extends AbstractBaseController implements
 
         $specificData = $this->db->query(SqlHelper::specificPull($query->getLimit())) ?? [[]];
 
+        /** @var array<string, string> $specificDataSet */
         foreach ($specificData as $specificDataSet) {
             $specific = (new SpecificModel())
                 ->setIsGlobal(true)
@@ -82,6 +83,7 @@ class SpecificController extends AbstractBaseController implements
                 ) ?? [];
             }
 
+            /** @var array<string, string> $specificValueDataSet */
             foreach ($specificValueData as $specificValueDataSet) {
                 $specificValue = (new SpecificValueModel())
                     ->setId(new Identity($specificValueDataSet['term_taxonomy_id']));
@@ -112,13 +114,14 @@ class SpecificController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel $model
+     *
      * @return SpecificModel
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
-        //WooFix
+        /** @var SpecificModel $model */
         $model->setType('string');
         $meta             = null;
         $defaultAvailable = false;
@@ -254,6 +257,7 @@ class SpecificController extends AbstractBaseController implements
                     'slug' => $slug,
                 ];
 
+                /** @var array<int, array<string, int|string|null>> $exValId */
                 $exValId = $this->db->query(
                     SqlHelper::getSpecificValueId($taxonomy, $endpointValue['name'])
                 ) ?? [];
@@ -328,6 +332,7 @@ class SpecificController extends AbstractBaseController implements
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var SpecificModel $model */
         $specificId = (int)$model->getId()->getEndpoint();
 
         if (!empty($specificId)) {
@@ -341,6 +346,8 @@ class SpecificController extends AbstractBaseController implements
             ) ?? [];
 
             $terms = [];
+
+            /** @var array<string, string> $specificValue */
             foreach ($specificValueData as $specificValue) {
                 $terms[] = $specificValue['slug'];
 
@@ -378,8 +385,9 @@ class SpecificController extends AbstractBaseController implements
             }
 
             if (!$isVariation) {
+                /** @var array<string, int|string> $value */
                 foreach ($specificValueData as $value) {
-                    \wp_delete_term($value['term_id'], $taxonomy);
+                    \wp_delete_term((int)$value['term_id'], $taxonomy);
                 }
 
                 \wc_delete_attribute($specificId);

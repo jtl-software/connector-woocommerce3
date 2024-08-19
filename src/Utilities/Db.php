@@ -44,7 +44,7 @@ class Db implements LoggerAwareInterface
      * @return array<string, bool|int|string|null>|null Database query results
      * @throws InvalidArgumentException
      */
-    public function query(string $query, bool $shouldLog = true): ?array /** @phpstan-ignore-line */
+    public function query(string $query, bool $shouldLog = true): ?array
     {
         $wpdb = $this->getWpDb();
 

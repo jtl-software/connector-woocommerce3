@@ -36,7 +36,12 @@ class RankMathSeo extends AbstractPlugin
      */
     public function findManufacturerSeoData(int $temId): array|null
     {
-        return $this->getPluginsManager()->getDatabase()->query(SqlHelper::pullRankMathSeoTermData($temId));
+        /** @var array<int, array<string, string>>|null $manufacturerSeoData*/
+        $manufacturerSeoData = $this->getPluginsManager()
+            ->getDatabase()
+            ->query(SqlHelper::pullRankMathSeoTermData($temId));
+
+        return $manufacturerSeoData;
     }
 
     /**

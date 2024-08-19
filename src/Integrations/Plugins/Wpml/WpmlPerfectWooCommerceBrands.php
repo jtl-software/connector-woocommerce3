@@ -21,7 +21,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 {
     /**
      * @param int $limit
-     * @return array<int, array<int|string, bool|int|string|null>>
+     * @return array<int, array<int|string, int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getManufacturers(int $limit): array
@@ -54,7 +54,10 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             $wpmlPlugin->getDefaultLanguage()
         );
 
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
+        /** @var array<int, array<int|string, int|string|null>> $manufacturers */
+        $manufacturers = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
+
+        return $manufacturers;
     }
 
     /**

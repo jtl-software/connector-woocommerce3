@@ -52,6 +52,7 @@ class Category
             $sort    = 0;
             $parents = [];
 
+            /** @var array<string, int|string> $category */
             foreach ($categories as $category) {
                 $categoryId       = (int) $category['term_id'];
                 $parentCategoryId = (int) $category['parent'];
@@ -81,6 +82,7 @@ class Category
     {
         if ($count === 0) {
             $categories = $this->db->query(SqlHelper::categoryTreePreOrderRoot());
+            /** @var array<string, int|string> $category */
             foreach ((array)$categories as $category) {
                 \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
@@ -88,11 +90,13 @@ class Category
         } else {
             $query      = SqlHelper::categoryTreePreOrder((int)$parent['category_id'], (int)$parent['level'] + 1);
             $categories = $this->db->query($query);
+            /** @var array<string, int|string> $category */
             foreach ((array)$categories as $category) {
                 \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
                 $this->saveCategoryLevelsAsPreOrder($category, $count);
             }
         }
+        /** @var array<string, int|string> $category */
         foreach ((array) $categories as $category) {
             \wc_set_term_order((int)$category['category_id'], ++$count, 'product_cat');
             self::saveCategoryLevelsAsPreOrder($category, $count);

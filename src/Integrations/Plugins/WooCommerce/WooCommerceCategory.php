@@ -67,14 +67,22 @@ class WooCommerceCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array<int, array<int, int|string>>|null
+     * @return array<int, array<int|string, int|string|null>>
      * @throws InvalidArgumentException
      */
-    public function getCategories(int $limit): ?array
+    public function getCategories(int $limit): array
     {
         (new \JtlWooCommerceConnector\Utilities\Category($this->getPluginsManager()->getDatabase()))
             ->fillCategoryLevelTable();
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(SqlHelper::categoryPull($limit));
+
+        /** @var array<int, array<int|string, int|string|null>> $categories */
+        $categories = $this->getCurrentPlugin()
+            ->getPluginsManager()
+            ->getDatabase()
+            ->query(SqlHelper::categoryPull($limit))
+            ?? [];
+
+        return $categories;
     }
 
     /**

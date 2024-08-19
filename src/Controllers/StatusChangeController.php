@@ -21,6 +21,7 @@ class StatusChangeController extends AbstractBaseController implements PushInter
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var StatusChangeModel $model */
         $customerOrderId = $model->getCustomerOrderId();
         $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
         $order           = \wc_get_order($endpointId);

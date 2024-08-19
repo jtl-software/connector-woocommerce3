@@ -111,7 +111,7 @@ class WpmlCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array<int, array<int|string, bool|int|string|null>>
+     * @return array<int, array<int|string, int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getCategories(int $limit): array
@@ -142,8 +142,10 @@ class WpmlCategory extends AbstractComponent
         ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
         LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $wpmlPlugin->getDefaultLanguage(), $limit);
 
+        /** @var array<int, array<int|string, int|string|null>> $categories */
+        $categories = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
 
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
+        return $categories;
     }
 
     /**
@@ -230,6 +232,7 @@ class WpmlCategory extends AbstractComponent
             $sort    = 0;
             $parents = [];
 
+            /** @var array<string, int|string|null> $category */
             foreach ($categories as $category) {
                 $categoryId       = (int)$category['term_id'];
                 $parentCategoryId = (int)$category['parent'];

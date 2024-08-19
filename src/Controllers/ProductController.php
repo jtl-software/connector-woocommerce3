@@ -16,6 +16,7 @@ use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductAttribute;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
@@ -259,6 +260,8 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel $model
+     * @phpstan-param Product $model
+     *
      * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws NonNumericValue
@@ -417,6 +420,7 @@ class ProductController extends AbstractBaseController implements
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var Product $model */
         $productId = (int)$model->getId()->getEndpoint();
 
         $wcProduct = \wc_get_product($productId);
@@ -829,6 +833,7 @@ class ProductController extends AbstractBaseController implements
      */
     public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {
+        /** @var array<int, array<string, string|null>> $foundTaxClasses */
         $foundTaxClasses = $this->db->query(SqlHelper::getTaxClassByTaxRates(...$jtlTaxRates));
         return $foundTaxClasses[0]['taxClassName'] ?? null;
     }
