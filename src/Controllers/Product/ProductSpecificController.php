@@ -160,9 +160,10 @@ class ProductSpecificController extends AbstractBaseController
     public function getSpecificId(string $slug): string
     {
         $name = \substr($slug, 3);
-        $val  = $this->db->query(SqlHelper::getSpecificId($name));
+        /** @var array<int, array<string, int|string>> $val */
+        $val = $this->db->query(SqlHelper::getSpecificId($name));
 
-        return $val[0]['attribute_id'] ?? '';
+        return $val[0]['attribute_id'] ? (string)$val[0]['attribute_id'] : '';
     }
 
     /**

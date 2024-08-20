@@ -977,6 +977,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      */
     public function getSpecificValueId(string $slug, string $value): Identity
     {
+        /** @var array<int, array<string, int|string>> $val */
         $val = $this->db->query(SqlHelper::getSpecificValueId($slug, $value)) ?? [];
 
         if (\count($val) === 0) {
@@ -984,8 +985,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         } else {
             $result = isset($val[0]['endpoint_id'])
                       && isset($val[0]['host_id'])
-                ? ( new Identity() )->setEndpoint($val[0]['endpoint_id'])->setHost($val[0]['host_id'])
-                : ( new Identity() )->setEndpoint($val[0]['term_id']);
+                ? ( new Identity() )->setEndpoint((string)$val[0]['endpoint_id'])->setHost((int)$val[0]['host_id'])
+                : ( new Identity() )->setEndpoint((string)$val[0]['term_id']);
         }
 
         return $result;

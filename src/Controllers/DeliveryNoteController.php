@@ -27,6 +27,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)
         ) {
+            /** @var DeliverNoteModel $model */
             $orderId = $model->getCustomerOrderId()->getEndpoint();
 
             $order = \wc_get_order($orderId);

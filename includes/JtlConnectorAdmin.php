@@ -1454,6 +1454,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return array<int, array<string, mixed>>
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     private static function getCustomersFields(): array
     {
@@ -1523,6 +1524,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $sql    = SqlHelper::customerGroupPull();
             $result = $db->query($sql) ?? [];
             $result = array_diff($result, [ 'guest' ]);
+            /** @var array<string, string> $role */
             foreach ($result as $role) {
                 $roles[ $role['post_name'] ] = translate_user_role($role['post_title']);
             }
@@ -1544,10 +1546,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $customerGroups = ( new CustomerGroupController($db, $util) )->pull();
             $options        = [];
 
-            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $key => $customerGroup) {
                 if (count($customerGroup->getI18ns()) > 0) {
-                    /** @var CustomerGroupI18nModel $i18n */
                     $i18n                                              = $customerGroup->getI18ns()[0];
                     $options[ $customerGroup->getId()->getEndpoint() ] = $i18n->getName();
                 }

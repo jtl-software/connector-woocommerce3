@@ -54,7 +54,8 @@ class MeasurementUnitController extends AbstractBaseController
     {
         $measurementUnits = [];
 
-        $sql      = SqlHelper::globalDataGMMUPullSpecific();
+        $sql = SqlHelper::globalDataGMMUPullSpecific();
+        /** @var array<int, array<string, int|string>> $specific */
         $specific = $this->db->query($sql) ?? [];
 
         if (\count($specific) <= 0) {
@@ -68,14 +69,15 @@ class MeasurementUnitController extends AbstractBaseController
             $specific['attribute_name']
         ))) ?? [];
 
+        /** @var array<string, int|string> $unit */
         foreach ($values as $unit) {
             $measurementUnit = (new MeasurementUnitModel())
-                ->setId(new Identity($unit['term_id']))
-                ->setCode($unit['name'])
-                ->setDisplayCode($unit['name'])
+                ->setId(new Identity((string)$unit['term_id']))
+                ->setCode((string)$unit['name'])
+                ->setDisplayCode((string)$unit['name'])
                 ->setI18ns(
                     (new MeasurementUnitI18n())
-                        ->setName($unit['description'])
+                        ->setName((string)$unit['description'])
                         ->setLanguageISO($this->util->getWooCommerceLanguage())
                 );
 
@@ -85,8 +87,8 @@ class MeasurementUnitController extends AbstractBaseController
                     ->getComponent(WpmlGermanMarket::class);
 
                 $translations = $wpmlGermanMarket->getMeasurementUnitsTranslations(
-                    $unit['term_taxonomy_id'],
-                    $specific['attribute_name']
+                    (int)$unit['term_taxonomy_id'],
+                    (string)$specific['attribute_name']
                 );
 
                 foreach ($translations as $translation) {

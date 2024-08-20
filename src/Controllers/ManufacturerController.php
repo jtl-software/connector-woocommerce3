@@ -55,6 +55,7 @@ class ManufacturerController extends AbstractBaseController implements
                 $manufacturerData = $this->db->query($sql) ?? [];
             }
 
+            /** @var array<string, string> $manufacturerDataSet */
             foreach ($manufacturerData as $manufacturerDataSet) {
                 $manufacturer = (new ManufacturerModel())
                     ->setId(new Identity($manufacturerDataSet['term_id']))
@@ -144,9 +145,10 @@ class ManufacturerController extends AbstractBaseController implements
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
-            $sql                 = SqlHelper::pullRankMathSeoTermData(
+            $sql = SqlHelper::pullRankMathSeoTermData(
                 (int)$manufacturer->getId()->getEndpoint()
             );
+            /** @var array<int, array<string, string>> $manufacturerSeoData */
             $manufacturerSeoData = $this->db->query($sql);
             if (\is_array($manufacturerSeoData)) {
                 $this->util->setI18nRankMathSeo($i18n, $manufacturerSeoData);
@@ -158,6 +160,8 @@ class ManufacturerController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel $model
+     * @phpstan-param Manufacturer $model
+     *
      * @return AbstractModel
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -166,6 +170,7 @@ class ManufacturerController extends AbstractBaseController implements
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $meta = (new ManufacturerI18nModel());
+
 
             foreach ($model->getI18ns() as $i18n) {
                 if ($this->wpml->canBeUsed()) {
@@ -296,6 +301,7 @@ class ManufacturerController extends AbstractBaseController implements
     public function delete(AbstractModel $model): AbstractModel
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+            /** @var Manufacturer $model */
             $manufacturerId = (int)$model->getId()->getEndpoint();
 
             if (!empty($manufacturerId)) {

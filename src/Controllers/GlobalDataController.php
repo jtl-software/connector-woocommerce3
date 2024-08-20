@@ -152,6 +152,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var GlobalDataModel $model */
         (new CurrencyController($this->db, $this->util))->push($model->getCurrencies());
         (new ShippingClassController($this->db, $this->util))->push($model->getShippingClasses());
 

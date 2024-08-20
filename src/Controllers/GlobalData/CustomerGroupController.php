@@ -56,18 +56,19 @@ class CustomerGroupController extends AbstractBaseController
             $result = $this->db->query($sql) ?? [];
 
             if (\count($result) > 0) {
+                /** @var array<string, int|string> $group */
                 foreach ($result as $group) {
                     if (Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS, true)) {
                         $allProductsKey = 'bm_all_products';
                         \update_post_meta(
-                            $group['ID'],
+                            (int)$group['ID'],
                             $allProductsKey,
                             'on',
-                            \get_post_meta($group['ID'], $allProductsKey, true)
+                            \get_post_meta((int)$group['ID'], $allProductsKey, true)
                         );
                     }
 
-                    $meta = \get_post_meta($group['ID']);
+                    $meta = \get_post_meta((int)$group['ID']);
 
                     if (!\is_array($meta)) {
                         throw new InvalidArgumentException(
@@ -82,11 +83,11 @@ class CustomerGroupController extends AbstractBaseController
                         ->setApplyNetPrice(
                             isset($meta['bm_vat_type'][0]) && $meta['bm_vat_type'][0] === 'off'
                         )
-                        ->setId(new Identity($group['ID']))
+                        ->setId(new Identity((string)$group['ID']))
                         ->setIsDefault($isDefaultGroup);
 
                     $i18n = (new CustomerGroupI18n())
-                        ->setName($group['post_title'])
+                        ->setName((string)$group['post_title'])
                         ->setLanguageISO($langIso);
 
                     $customerGroup->addI18n($i18n);

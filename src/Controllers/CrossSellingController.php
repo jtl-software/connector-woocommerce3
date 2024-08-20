@@ -8,6 +8,7 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\CrossSelling;
 use Jtl\Connector\Core\Model\CrossSelling as CrossSellingModel;
 use Jtl\Connector\Core\Model\CrossSellingItem;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -40,6 +41,7 @@ class CrossSellingController extends AbstractBaseController implements
     {
         $crossSelling = [];
 
+        /** @var array<int, array<string, int|string>> $results */
         $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit())) ?? [];
         $formattedResults = $this->formatResults($results);
 
@@ -122,6 +124,7 @@ class CrossSellingController extends AbstractBaseController implements
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
@@ -154,6 +157,7 @@ class CrossSellingController extends AbstractBaseController implements
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {

@@ -440,6 +440,7 @@ class ImageController extends AbstractBaseController implements
 
         $images = $this->db->query($query) ?? [];
 
+        /** @var array<string, int|string> $image */
         foreach ($images as $image) {
             $image['sort'] = 0;
             $result[]      = $image;
@@ -507,6 +508,7 @@ class ImageController extends AbstractBaseController implements
             $thumbnails = $this->db->query(SqlHelper::imageProductThumbnail()) ?? [];
         }
 
+        /** @var array<string, int|string> $thumbnail */
         foreach ($thumbnails as $thumbnail) {
             $images[(int)$thumbnail['ID']] = (int)$thumbnail['meta_value'];
             $count++;
@@ -523,10 +525,10 @@ class ImageController extends AbstractBaseController implements
             $productImagesMappings = $this->db->query(SqlHelper::imageProductGalleryStats()) ?? [];
         }
 
-
+        /** @var array<string, int|string> $productImagesMapping */
         foreach ($productImagesMappings as $productImagesMapping) {
             $productId       = (int)$productImagesMapping['ID'];
-            $galleryImageIds = \array_map('intval', \explode(',', $productImagesMapping['meta_value']));
+            $galleryImageIds = \array_map('intval', \explode(',', (string)$productImagesMapping['meta_value']));
             $galleryImageIds = \array_filter($galleryImageIds, function ($galleryId) {
                 return $galleryId !== 0;
             });
@@ -551,6 +553,7 @@ class ImageController extends AbstractBaseController implements
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var AbstractImage $model */
         $foreignKey = $model->getForeignKey()->getEndpoint();
 
         if (!empty($foreignKey)) {
@@ -884,6 +887,7 @@ class ImageController extends AbstractBaseController implements
      */
     public function deleteData(AbstractModel $model, bool $realDelete = true): AbstractModel
     {
+        /** @var AbstractImage $model */
         switch ($model->getRelationType()) {
             case self::PRODUCT_IMAGE:
                 $this->deleteProductImage($model, $realDelete);

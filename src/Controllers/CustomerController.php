@@ -176,6 +176,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     public function push(AbstractModel $model): AbstractModel
     {
         // Only registered customers data can be updated
+        /** @var Customer $model */
         if (!$model->getHasCustomerAccount()) {
             return $model;
         }

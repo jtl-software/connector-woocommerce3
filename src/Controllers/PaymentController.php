@@ -8,6 +8,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Payment as PaymentModel;
 use Jtl\Connector\Core\Model\QueryFilter;
@@ -107,6 +108,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var PaymentModel $model */
         $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());
 
         if (!$order instanceof \WC_Order) {

@@ -7,6 +7,7 @@ namespace JtlWooCommerceConnector\Controllers\Product;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\Product2Category as Product2CategoryModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -52,6 +53,7 @@ class Product2CategoryController extends AbstractBaseController
      */
     public function pushData(AbstractModel $model): void
     {
+        /** @var Product $model */
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 
         if (!$wcProduct instanceof WC_Product) {
