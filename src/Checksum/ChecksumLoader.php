@@ -41,7 +41,8 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return string
      * @throws InvalidArgumentException
      */
-    public function read(string $endpointId, int $type): string // phpcs:ignore
+    // phpcs:ignore
+    public function read(string $endpointId, int $type): string
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return '';
