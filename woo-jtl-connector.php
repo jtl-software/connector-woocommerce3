@@ -21,6 +21,7 @@ define('JTLWCC_WOOCOMMERCE_PLUGIN_FILE', 'woocommerce/woocommerce.php');
 define('JTLWCC_DS', DIRECTORY_SEPARATOR);
 define('JTLWCC_CONNECTOR_DIR', __DIR__);
 define('JTLWCC_EXT_CONNECTOR_PLUGIN_DIR', dirname(__DIR__) . '/' . JTLWCC_TEXT_DOMAIN . '-custom-plugins');
+/** @phpstan-ignore constant.notFound */
 define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAIN);
 define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);

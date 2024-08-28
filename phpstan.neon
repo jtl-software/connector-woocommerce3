@@ -10,4 +10,3 @@ parameters:
             - './var/*'
     ignoreErrors:
         - '#Constant WC_DELIMITER not found.#'
-        - '#Constant WP_PLUGIN_URL not found.#'
