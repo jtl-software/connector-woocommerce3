@@ -20,7 +20,6 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
      */
     public function pull(WC_Order $order): CustomerOrderBillingAddressModel
     {
-        /** @phpstan-ignore method.notFound */
         $address = (new CustomerOrderBillingAddressModel())
             ->setId(new Identity(CustomerOrderController::BILLING_ID_PREFIX . $order->get_id()))
             ->setFirstName($order->get_billing_first_name())

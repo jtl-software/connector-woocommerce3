@@ -34,9 +34,9 @@ class WpmlTermTranslationTest extends TestCase
      * @dataProvider existingTranslationsDataProvider
      *
      * @param array<int, mixed> $elementTranslations
-     * @param string $defaultLanguage
-     * @param bool $withoutDefaultTranslation
-     * @param int $expectedTranslationsReturned
+     * @param string            $defaultLanguage
+     * @param bool              $withoutDefaultTranslation
+     * @param int               $expectedTranslationsReturned
      * @return void
      * @throws Exception
      * @throws ExpectationFailedException

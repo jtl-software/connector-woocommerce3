@@ -41,7 +41,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return string
      * @throws InvalidArgumentException
      */
-    public function read($endpointId, $type): string
+    public function read(string $endpointId, int $type): string
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return '';
@@ -63,7 +63,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function write($endpointId, $type, $checksum): bool
+    public function write(string $endpointId, int $type, string $checksum): bool
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
@@ -84,7 +84,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function delete($endpointId, $type): bool
+    public function delete(string $endpointId, int $type): bool
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;

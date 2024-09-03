@@ -102,9 +102,9 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array<int, array<string, int|float|numeric-string>> $bulkPrices
+     * @param array<int, array<string, int|float|string>> $bulkPrices
      *
-     * @return array<int, array<string, numeric-string>>
+     * @return array<int, array<string, float|int|string>>
      */
     public static function setBulkPricesQuantityTo(array $bulkPrices): array
     {
