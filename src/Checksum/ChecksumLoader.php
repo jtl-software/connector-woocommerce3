@@ -41,7 +41,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return string
      * @throws InvalidArgumentException
      */
-    public function read($endpointId, $type): string /** @phpstan-ignore-line */
+    public function read($endpointId, $type): string
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return '';
@@ -63,7 +63,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function write( $endpointId, $type, $checksum): bool /** @phpstan-ignore-line */
+    public function write($endpointId, $type, $checksum): bool
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
@@ -84,7 +84,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function delete($endpointId, $type): bool /** @phpstan-ignore-line */
+    public function delete($endpointId, $type): bool
     {
         if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;

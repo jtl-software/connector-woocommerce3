@@ -25,8 +25,8 @@ class WpmlTermTranslationTest extends TestCase
     public function existingTranslationsDataProvider(): array
     {
         return [
-            [['en' => [], 'de' => []], false, 2],
-            [['en' => [], 'de' => []], 'en', 1]
+            [['en' => [], 'de' => []], 'en', false, 2],
+            [['en' => [], 'de' => []], 'en', true, 1]
         ];
     }
 
@@ -34,18 +34,20 @@ class WpmlTermTranslationTest extends TestCase
      * @dataProvider existingTranslationsDataProvider
      *
      * @param array<int, mixed> $elementTranslations
-     * @param bool              $defaultLanguage
-     * @param int               $expectedTranslationsReturned
+     * @param string $defaultLanguage
+     * @param bool $withoutDefaultTranslation
+     * @param int $expectedTranslationsReturned
      * @return void
-     * @throws RuntimeException
      * @throws Exception
      * @throws ExpectationFailedException
-     * @throws \ReflectionException
      * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws \ReflectionException
      */
     public function testGetAllExistingTranslations(
         array $elementTranslations,
-        bool $defaultLanguage,
+        string $defaultLanguage,
+        bool $withoutDefaultTranslation,
         int $expectedTranslationsReturned
     ): void {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
@@ -54,7 +56,7 @@ class WpmlTermTranslationTest extends TestCase
 
         $wpmlTermTranslationComponent = new WpmlTermTranslation();
         $wpmlTermTranslationComponent->setPlugin($wpmlPluginMock);
-        $translations = $wpmlTermTranslationComponent->getTranslations(1, 'foo', $defaultLanguage);
+        $translations = $wpmlTermTranslationComponent->getTranslations(1, 'foo', $withoutDefaultTranslation);
 
         $this->assertCount($expectedTranslationsReturned, $translations);
     }
@@ -65,7 +67,7 @@ class WpmlTermTranslationTest extends TestCase
     public function getTranslatedTermDataProvider(): array
     {
         return [
-            [[], []],
+            [ [], []],
             [false, []],
         ];
     }
@@ -73,11 +75,11 @@ class WpmlTermTranslationTest extends TestCase
     /**
      * @dataProvider getTranslatedTermDataProvider
      *
-     * @param int|string $getTermByIdReturnValue
-     * @param int|string $expectedReturnValue
+     * @param mixed $getTermByIdReturnValue
+     * @param mixed $expectedReturnValue
      * @return void
      */
-    public function testGetTranslatedTerm(int|string $getTermByIdReturnValue, int|string $expectedReturnValue): void
+    public function testGetTranslatedTerm(mixed $getTermByIdReturnValue, mixed $expectedReturnValue): void
     {
         $wpmlPluginMock = \Mockery::mock(Wpml::class);
 
@@ -85,7 +87,8 @@ class WpmlTermTranslationTest extends TestCase
             ->makePartial()->shouldAllowMockingProtectedMethods();
         $wpmlTermTranslationComponent->shouldReceive('disableGetTermAdjustId')->andReturn(true);
         $wpmlTermTranslationComponent->shouldReceive('enableGetTermAdjustId')->andReturn(true);
-        $wpmlTermTranslationComponent->shouldReceive('getTermById')->andReturn($getTermByIdReturnValue);
+        $wpmlTermTranslationComponent->shouldReceive('getTermById')
+            ->andReturn(empty($getTermByIdReturnValue) ? false : $getTermByIdReturnValue);
         $wpmlTermTranslationComponent->setPlugin($wpmlPluginMock);
         $translatedTerm = $wpmlTermTranslationComponent->getTranslatedTerm(1, 'foo');
 

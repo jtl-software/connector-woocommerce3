@@ -102,19 +102,19 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array<int, array<string, string>> $bulkPrices
+     * @param array<int, array<string, int|float|numeric-string>> $bulkPrices
      *
-     * @return array<int, array<string, string>>
+     * @return array<int, array<string, numeric-string>>
      */
     public static function setBulkPricesQuantityTo(array $bulkPrices): array
     {
         \usort($bulkPrices, function ($a, $b) {
-            return (int) $a['bulk_price_from'] > (int) $b['bulk_price_from'] ? 1 : 0;
+            return (float) $a['bulk_price_from'] > (float) $b['bulk_price_from'] ? 1 : 0;
         });
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
             if (isset($bulkPrices[ $i + 1 ])) {
-                $bulkPrice['bulk_price_to'] = (int)$bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
+                $bulkPrice['bulk_price_to'] = (float)$bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
             } else {
                 $bulkPrice['bulk_price_to'] = '';
             }
@@ -380,9 +380,13 @@ class Util extends WordpressUtils
      */
     public static function mapLanguageIso(string $locale): string
     {
-        $strPos = (\strpos($locale, '_', 4) !== false)
-            ? \strpos($locale, '_', 4)
-            : null;
+        if (\strpos($locale, '_') !== false) {
+            $strPos = (\strpos($locale, '_', 4) !== false)
+                ? \strpos($locale, '_', 4)
+                : null;
+        } else {
+            $strPos = null;
+        }
 
         if (\substr_count($locale, '_') == 2) {
             $locale = \substr(

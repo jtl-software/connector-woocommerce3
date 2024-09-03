@@ -11,7 +11,7 @@ class HandleDeleteEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.delete';
 
-    protected mixed $result;
+    protected mixed $result = null;
     protected string $controller;
     /** @var QueryFilter[]  */
     protected array $entities;
