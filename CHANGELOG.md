@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2690 - fix category push NullLogger
 
 ## 2.0.5 _2024-07-22_
 - CO-2649 - fix hardcoded database prefix
