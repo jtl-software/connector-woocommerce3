@@ -257,7 +257,7 @@ function clearJTLLogs(): void
  * @throws UnexpectedValueException
  * @return void
  */
-function clearConnectorCache(): void
+function clearConnectorCache($exit = true): void
 {
     $cacheDir = CONNECTOR_DIR . '/var/cache';
 
@@ -284,7 +284,9 @@ function clearConnectorCache(): void
 
         echo 'success';
 
-        wp_die();
+        if ($exit) {
+            wp_die();
+        }
     }
 }
 /**

@@ -44,7 +44,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
 
-        clearConnectorCache();
+        clearConnectorCache(false);
+
         $parsedFile = (array) Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml');
 
         if (jtlwcc_woocommerce_deactivated()) {
