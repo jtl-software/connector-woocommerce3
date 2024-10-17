@@ -141,6 +141,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, $id);
+        #$this->updateGermanizedGpsrData($product, $id);
 
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
@@ -265,6 +266,26 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             '_nutrient_reference_value',
         ];
     }
+
+/**    private function updateGermanizedGpsrData($product, $id): void
+    {
+        $gpsrManufacturerName = '';
+        $gpsrManufactuererTitelform = '';
+        $gpsrManufacturerAddress = '';
+        $gpsrManufacturerDescription = '';
+        $gpsrResponsibleDescription = '';
+
+        foreach ($product->getAttributes() as $attribute) {
+            foreach ($attribute->getI18ns() as $i18n) {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
+                    if (\str_contains($metaKey, '_manufacturer_name')) {
+                        $gpsrManufacturerName .= $i18n->getValue();
+                    } elseif ()
+                }
+            }
+        }
+    }
+**/
 
     /**
      * @param $product ProductModel
