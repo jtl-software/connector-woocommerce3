@@ -141,7 +141,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, $id);
-        #$this->updateGermanizedGpsrData($product, $id);
+        $this->updateGermanizedGpsrData($product, $id);
 
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
@@ -267,25 +267,148 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         ];
     }
 
-/**    private function updateGermanizedGpsrData($product, $id): void
+    private function updateGermanizedGpsrData($product): void
     {
         $gpsrManufacturerName = '';
         $gpsrManufactuererTitelform = '';
-        $gpsrManufacturerAddress = '';
-        $gpsrManufacturerDescription = '';
-        $gpsrResponsibleDescription = '';
+
+        $manData = [
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
+        $respData = [
+            'name' => '',
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
 
         foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $i18n) {
                 if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
-                    if (\str_contains($metaKey, '_manufacturer_name')) {
-                        $gpsrManufacturerName .= $i18n->getValue();
-                    } elseif ()
+                    switch ($i18n->getName()) {
+                        case 'gpsr_manufacturer_name':
+                            $gpsrManufacturerName       = $i18n->getValue();
+                            $gpsrManufactuererTitelform = \strtolower(
+                                \str_replace(' ', '', $i18n->getValue())
+                            ) . '-gpsr-titleform';
+                            break;
+                        case 'gpsr_manufacturer_street':
+                            $manData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_housenumber':
+                            $manData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_postalcode':
+                            $manData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_city':
+                            $manData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_state':
+                            $manData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_country':
+                            $manData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_email':
+                            $manData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_homepage':
+                            $manData['homepage'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_name':
+                            $respData['name'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_street':
+                            $respData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_housenumber':
+                            $respData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_postalcode':
+                            $respData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_city':
+                            $respData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_state':
+                            $respData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_country':
+                            $respData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_email':
+                            $respData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_homepage':
+                            $respData['homepage'] = $i18n->getValue();
+                            break;
+                    }
                 }
             }
         }
+
+        if ($gpsrManufacturerName === '') {
+            \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+            \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', '');
+
+            return;
+        }
+
+        $test = \get_term_by('slug', $gpsrManufactuererTitelform, 'product_manufacturer');
+        if (!$test) {
+            $newTerm = \wp_insert_term(
+                $gpsrManufacturerName,
+                'product_manufacturer',
+                [
+                    'description' => '',
+                    'slug' => $gpsrManufactuererTitelform,
+                    ]
+            );
+
+            $termId = $newTerm['term_id'];
+        } else {
+            $termId = $test->term_id;
+        }
+
+        $gpsrManufacturerAddress = $manData['street'] . ' ' . $manData['housenumber'] . "\n"
+            . $manData['postalcode'] . ' ' . $manData['city'] . "\n"
+            . $manData['state'] . ' ' . $manData['country'] . "\n"
+            . $manData['email'] . "\n"
+            . $manData['homepage'];
+
+        $gpsrResponsibleAddress = $respData['name'] . "\n"
+            . $respData['street'] . ' ' . $respData['housenumber'] . "\n"
+            . $respData['postalcode'] . ' ' . $respData['city'] . "\n"
+            . $respData['state'] . ' ' . $respData['country'] . "\n"
+            . $respData['email'] . "\n"
+            . $respData['homepage'];
+
+        \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
+        \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
+
+        #remove existing product to gpsr manufacturer link
+        \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+
+        #link product to gpsr manufacturer
+        \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
+        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufactuererTitelform);
+
+        $testZeile = 'string';
     }
-**/
+
 
     /**
      * @param $product ProductModel
