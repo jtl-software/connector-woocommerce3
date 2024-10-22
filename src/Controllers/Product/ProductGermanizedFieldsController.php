@@ -269,7 +269,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
     private function updateGermanizedGpsrData($product): void
     {
-        $gpsrManufacturerName = '';
+        $gpsrManufacturerName       = '';
         $gpsrManufactuererTitelform = '';
 
         $manData = [
@@ -282,6 +282,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             'email' => '',
             'homepage' => ''
         ];
+
         $respData = [
             'name' => '',
             'street' => '',
@@ -405,8 +406,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         #link product to gpsr manufacturer
         \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
         \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufactuererTitelform);
-
-        $testZeile = 'string';
     }
 
 
