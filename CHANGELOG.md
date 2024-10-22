@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2704 - add germanized gpsr push logic
 
 ## 2.0.6 _2024-10-08_
 - CO-2690 - fix category push NullLogger
