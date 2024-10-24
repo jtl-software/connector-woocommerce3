@@ -4,6 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 2.0.6.1 _2024-10-24_
+- HOTFIX Update release files
+
 ## 2.0.6 _2024-10-08_
 - CO-2690 - fix category push NullLogger
 - CO-2586 - fix special price without set date
