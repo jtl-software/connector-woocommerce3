@@ -124,6 +124,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
+     * @throws TranslatableAttributeException
      */
     public function pushData(ProductModel $product): void
     {
@@ -133,6 +134,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
+     * @throws TranslatableAttributeException
      */
     private function updateGermanizedAttributes(ProductModel &$product): void
     {
@@ -141,7 +143,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta($id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, $id);
-        $this->updateGermanizedGpsrData($product, $id);
+        $this->updateGermanizedGpsrData($product);
 
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
@@ -267,12 +269,17 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         ];
     }
 
-    private function updateGermanizedGpsrData($product): void
+    /**
+     * @param ProductModel $product
+     * @return void
+     * @throws TranslatableAttributeException
+     */
+    private function updateGermanizedGpsrData(ProductModel $product): void
     {
-        $gpsrManufacturerName       = '';
-        $gpsrManufactuererTitelform = '';
+        $gpsrManufacturerName      = '';
+        $gpsrManufacturerTitleform = '';
 
-        $manData = [
+        $manufacturerData = [
             'street' => '',
             'housenumber' => '',
             'postalcode' => '',
@@ -283,7 +290,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             'homepage' => ''
         ];
 
-        $respData = [
+        $responsiblePersonData = [
             'name' => '',
             'street' => '',
             'housenumber' => '',
@@ -300,61 +307,61 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     switch ($i18n->getName()) {
                         case 'gpsr_manufacturer_name':
-                            $gpsrManufacturerName       = $i18n->getValue();
-                            $gpsrManufactuererTitelform = \strtolower(
+                            $gpsrManufacturerName      = $i18n->getValue();
+                            $gpsrManufacturerTitleform = \strtolower(
                                 \str_replace(' ', '', $i18n->getValue())
                             ) . '-gpsr-titleform';
                             break;
                         case 'gpsr_manufacturer_street':
-                            $manData['street'] = $i18n->getValue();
+                            $manufacturerData['street'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_housenumber':
-                            $manData['housenumber'] = $i18n->getValue();
+                            $manufacturerData['housenumber'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_postalcode':
-                            $manData['postalcode'] = $i18n->getValue();
+                            $manufacturerData['postalcode'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_city':
-                            $manData['city'] = $i18n->getValue();
+                            $manufacturerData['city'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_state':
-                            $manData['state'] = $i18n->getValue();
+                            $manufacturerData['state'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_country':
-                            $manData['country'] = $i18n->getValue();
+                            $manufacturerData['country'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_email':
-                            $manData['email'] = $i18n->getValue();
+                            $manufacturerData['email'] = $i18n->getValue();
                             break;
                         case 'gpsr_manufacturer_homepage':
-                            $manData['homepage'] = $i18n->getValue();
+                            $manufacturerData['homepage'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_name':
-                            $respData['name'] = $i18n->getValue();
+                            $responsiblePersonData['name'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_street':
-                            $respData['street'] = $i18n->getValue();
+                            $responsiblePersonData['street'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_housenumber':
-                            $respData['housenumber'] = $i18n->getValue();
+                            $responsiblePersonData['housenumber'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_postalcode':
-                            $respData['postalcode'] = $i18n->getValue();
+                            $responsiblePersonData['postalcode'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_city':
-                            $respData['city'] = $i18n->getValue();
+                            $responsiblePersonData['city'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_state':
-                            $respData['state'] = $i18n->getValue();
+                            $responsiblePersonData['state'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_country':
-                            $respData['country'] = $i18n->getValue();
+                            $responsiblePersonData['country'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_email':
-                            $respData['email'] = $i18n->getValue();
+                            $responsiblePersonData['email'] = $i18n->getValue();
                             break;
                         case 'gpsr_responsibleperson_homepage':
-                            $respData['homepage'] = $i18n->getValue();
+                            $responsiblePersonData['homepage'] = $i18n->getValue();
                             break;
                     }
                 }
@@ -368,34 +375,34 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             return;
         }
 
-        $test = \get_term_by('slug', $gpsrManufactuererTitelform, 'product_manufacturer');
-        if (!$test) {
+        $existingTerm = \get_term_by('slug', $gpsrManufacturerTitleform, 'product_manufacturer');
+        if (!$existingTerm) {
             $newTerm = \wp_insert_term(
                 $gpsrManufacturerName,
                 'product_manufacturer',
                 [
                     'description' => '',
-                    'slug' => $gpsrManufactuererTitelform,
+                    'slug' => $gpsrManufacturerTitleform,
                     ]
             );
 
             $termId = $newTerm['term_id'];
         } else {
-            $termId = $test->term_id;
+            $termId = $existingTerm->term_id;
         }
 
-        $gpsrManufacturerAddress = $manData['street'] . ' ' . $manData['housenumber'] . "\n"
-            . $manData['postalcode'] . ' ' . $manData['city'] . "\n"
-            . $manData['state'] . ' ' . $manData['country'] . "\n"
-            . $manData['email'] . "\n"
-            . $manData['homepage'];
+        $gpsrManufacturerAddress = $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
+            . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
+            . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
+            . $manufacturerData['email'] . "\n"
+            . $manufacturerData['homepage'];
 
-        $gpsrResponsibleAddress = $respData['name'] . "\n"
-            . $respData['street'] . ' ' . $respData['housenumber'] . "\n"
-            . $respData['postalcode'] . ' ' . $respData['city'] . "\n"
-            . $respData['state'] . ' ' . $respData['country'] . "\n"
-            . $respData['email'] . "\n"
-            . $respData['homepage'];
+        $gpsrResponsibleAddress = $responsiblePersonData['name'] . "\n"
+            . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
+            . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"
+            . $responsiblePersonData['state'] . ' ' . $responsiblePersonData['country'] . "\n"
+            . $responsiblePersonData['email'] . "\n"
+            . $responsiblePersonData['homepage'];
 
         \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
         \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
@@ -405,7 +412,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
         #link product to gpsr manufacturer
         \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
-        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufactuererTitelform);
+        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
     }
 
 
