@@ -356,11 +356,15 @@ class ProductVariationController extends AbstractBaseController
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if (!$this->util->isWooCommerceLanguage($variationI18n->getLanguageISO())) {
+                    if ($this->skipNotDefaultLanguage($variationI18n->getLanguageISO())) {
                         continue;
                     }
 
                     foreach ($variationValue->getI18ns() as $i18n) {
+                        if ($this->skipNotDefaultLanguage($i18n->getLanguageISO())) {
+                            continue;
+                        }
+
                         $metaKey                =
                             'attribute_pa_' . \wc_sanitize_taxonomy_name(
                                 \substr(
@@ -373,10 +377,18 @@ class ProductVariationController extends AbstractBaseController
                             );
                         $updatedAttributeKeys[] = $metaKey;
 
+                        $term = \get_term_by(
+                            'name',
+                            $i18n->getName(),
+                            \str_replace('attribute_', '', $metaKey)
+                        );
+
+                        $slug = $term !== false ? $term->slug : \wc_sanitize_taxonomy_name($i18n->getName());
+
                         \update_post_meta(
                             $productId,
                             $metaKey,
-                            \wc_sanitize_taxonomy_name($i18n->getName())
+                            $slug
                         );
                     }
                     break;
@@ -384,17 +396,28 @@ class ProductVariationController extends AbstractBaseController
             }
         }
 
-        /*  $attributesToDelete = $this->database->queryList( SqlHelper::productVariationObsoletes(
-            $product->getId()->getEndpoint(),
-            $updatedAttributeKeys
-        ) );
-
-        foreach ( $attributesToDelete as $key ) {
-            \delete_post_meta( $product->getId()->getEndpoint(), $key );
-        }*/
-
         return $updatedAttributeKeys;
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    protected function skipNotDefaultLanguage(string $wawiLanguageIso): bool
+    {
+        if ($this->wpml->canBeUsed()) {
+            if ($this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage()) !== $wawiLanguageIso) {
+                return true;
+            }
+        } else {
+            if (!$this->util->isWooCommerceLanguage($wawiLanguageIso)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Methods">

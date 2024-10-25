@@ -20,6 +20,8 @@ use Jtl\Connector\Core\Model\ManufacturerImage;
 use Jtl\Connector\Core\Model\ProductImage;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
@@ -55,12 +57,12 @@ class ImageController extends AbstractBaseController implements
 
 
     // <editor-fold defaultstate="collapsed" desc="Pull">
-
     /**
      * @param QueryFilter $query
      * @return array
      * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
     public function pull(QueryFilter $query): array
     {
@@ -69,13 +71,13 @@ class ImageController extends AbstractBaseController implements
         $images        = $this->productImagePull($limit);
         $productImages = $this->addNextImages($images, IdentityType::PRODUCT_IMAGE, $limit);
 
-        $images         = $this->categoryImagePull($limit);
+        $images         = $this->categoryImagePullByQuery($this->getCategoryImagePullQuery($limit));
         $categoryImages = $this->addNextImages($images, IdentityType::CATEGORY_IMAGE, $limit);
 
         $combinedArray = \array_merge($productImages, $categoryImages);
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $images             = $this->manufacturerImagePull($limit);
+            $images             = $this->manufacturerImagePull($this->getManufacturerImagePullQuery($limit));
             $manufacturerImages = $this->addNextImages($images, IdentityType::MANUFACTURER_IMAGE, $limit);
             $combinedArray      = \array_merge($combinedArray, $manufacturerImages);
         }
@@ -94,6 +96,11 @@ class ImageController extends AbstractBaseController implements
     private function addNextImages($images, $type, &$limit): array
     {
         $return = [];
+
+        $language = $this->util->getWooCommerceLanguage();
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
+        }
 
         foreach ($images as $image) {
             $imgSrc = \wp_get_attachment_image_src($image['ID'], 'full');
@@ -115,7 +122,7 @@ class ImageController extends AbstractBaseController implements
             $model->setId(new Identity($image['id']))
                 ->setName((string)$image['post_name'])
                 ->setForeignKey(new Identity($image['parent']))
-                ->setRemoteUrl((string)isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
+                ->setRemoteUrl((string) isset($imgSrc[0]) ? $imgSrc[0] : $image['guid'])
                 ->setSort((int)$image['sort'])
                 ->setFilename((string)\wc_get_filename_from_url($image['guid']));
 
@@ -125,10 +132,16 @@ class ImageController extends AbstractBaseController implements
                 ->addI18n((new ImageI18n())
                     ->setId(new Identity($image['id']))
                     ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
-                    ->setLanguageISO($this->util->getWooCommerceLanguage()));
+                    ->setLanguageISO($language));
 
-                $return[] = $model;
-                $limit--;
+            if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+                $this->wpml
+                    ->getComponent(WpmlMedia::class)
+                    ->getTranslations($image['ID'], $model);
+            }
+
+            $return[] = $model;
+            $limit--;
         }
         return $return;
     }
@@ -320,22 +333,18 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param $limit
-     * @return array
-     * @throws \Psr\Log\InvalidArgumentException
+     * @return string
+     * @throws Exception
      */
-    private function categoryImagePull($limit): array
+    private function getCategoryImagePullQuery($limit): string
     {
-        $result = [];
-
-        $images = $this->db->query(SqlHelper::imageCategoryPull($limit));
-
-        foreach ($images as $image) {
-            $image['sort'] = 0;
-
-            $result[] = $image;
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $categoryImageQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull($limit);
+        } else {
+            $categoryImageQuery = SqlHelper::imageCategoryPull($limit);
         }
 
-        return $result;
+        return $categoryImageQuery;
     }
 
     /**
@@ -343,16 +352,50 @@ class ImageController extends AbstractBaseController implements
      * @return array
      * @throws \Psr\Log\InvalidArgumentException
      */
-    private function manufacturerImagePull($limit): array
+    private function categoryImagePullByQuery($query): array
     {
         $result = [];
 
-        $images = $this->db->query(SqlHelper::imageManufacturerPull($limit));
+        $images = $this->db->query($query);
 
         foreach ($images as $image) {
             $image['sort'] = 0;
+            $result[]      = $image;
+        }
 
-            $result[] = $image;
+        return $result;
+    }
+
+    /**
+     * @param $limit
+     * @return string
+     * @throws Exception
+     */
+    private function getManufacturerImagePullQuery($limit): string
+    {
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $manufacturerImagesQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull($limit);
+        } else {
+            $manufacturerImagesQuery = SqlHelper::imageManufacturerPull($limit);
+        }
+
+        return $manufacturerImagesQuery;
+    }
+
+    /**
+     * @param $limit
+     * @return array
+     * @throws \Psr\Log\InvalidArgumentException
+     */
+    private function manufacturerImagePull($query): array
+    {
+        $result = [];
+
+        $images = $this->db->query($query);
+
+        foreach ($images as $image) {
+            $image['sort'] = 0;
+            $result[]      = $image;
         }
 
         return $result;
@@ -364,15 +407,27 @@ class ImageController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return int
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
     public function statistic(QueryFilter $query): int
     {
         $imageCount  = $this->masterProductImageStats();
         $imageCount += \count($this->db->query(SqlHelper::imageVariationCombinationPull()));
-        $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()));
+
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $imageCategoryQuery = $this->wpml->getComponent(WpmlMedia::class)->imageCategoryPull();
+            $imageCount        += \count($this->db->query($imageCategoryQuery));
+        } else {
+            $imageCount += \count($this->db->query(SqlHelper::imageCategoryPull()));
+        }
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
+            if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+                $imageManufacturerQuery = $this->wpml->getComponent(WpmlMedia::class)->imageManufacturerPull();
+                $imageCount            += \count($this->db->query($imageManufacturerQuery));
+            } else {
+                $imageCount += \count($this->db->query(SqlHelper::imageManufacturerPull()));
+            }
         }
 
         return $imageCount;
@@ -381,6 +436,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @return int|null
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws Exception
      */
     private function masterProductImageStats(): ?int
     {
@@ -390,7 +446,13 @@ class ImageController extends AbstractBaseController implements
         $images = [];
 
         // Fetch unlinked product cover images
-        $thumbnails = $this->db->query(SqlHelper::imageProductThumbnail());
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $thumbnails = $this->db->query(
+                $this->wpml->getComponent(WpmlMedia::class)->getImageProductThumbnailSql()
+            );
+        } else {
+            $thumbnails = $this->db->query(SqlHelper::imageProductThumbnail());
+        }
 
         foreach ($thumbnails as $thumbnail) {
             $images[(int)$thumbnail['ID']] = (int)$thumbnail['meta_value'];
@@ -398,7 +460,14 @@ class ImageController extends AbstractBaseController implements
         }
 
         // Get all product gallery images
-        $productImagesMappings = $this->db->query(SqlHelper::imageProductGalleryStats());
+        if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
+            $productImagesMappings = $this->db->query(
+                $this->wpml->getComponent(WpmlMedia::class)->getImageProductGalleryStats()
+            );
+        } else {
+            $productImagesMappings = $this->db->query(SqlHelper::imageProductGalleryStats());
+        }
+
 
         foreach ($productImagesMappings as $productImagesMapping) {
             $productId       = (int)$productImagesMapping['ID'];
@@ -504,6 +573,10 @@ class ImageController extends AbstractBaseController implements
 
             if ($relinkImage) {
                 $this->relinkImage($post, $image);
+            }
+
+            if ($this->wpml->canWpmlMediaBeUsed()) {
+                $this->wpml->getComponent(WpmlMedia::class)->saveAttachmentTranslations($post, $image->getI18ns());
             }
         }
 
@@ -630,6 +703,20 @@ class ImageController extends AbstractBaseController implements
                 $this->logger->error(ErrorFormatter::formatError($result));
 
                 return null;
+            }
+
+            if ($this->wpml->canBeUsed()) {
+                $wpmlProductIds = $this->db->queryList(SqlHelper::getWpmlProductIds((int) $wcProduct->get_sku()));
+                $wpmlProductIds = \array_diff($wpmlProductIds, [$productId]);
+
+                foreach ($wpmlProductIds as $wpmlProductId) {
+                    $wpmlResult = \set_post_thumbnail($wpmlProductId, $attachmentId);
+                    if ($wpmlResult instanceof \WP_Error) {
+                        $this->logger->error(ErrorFormatter::formatError($wpmlResult));
+
+                        return null;
+                    }
+                }
             }
         } else {
             if (
@@ -799,6 +886,7 @@ class ImageController extends AbstractBaseController implements
         } else {
             if ($this->isCoverImage($image)) {
                 \delete_post_thumbnail($productId);
+                $this->db->query(SqlHelper::imageDeleteLinks($productId));
             } else {
                 if (
                     SupportedPlugins::isActive(

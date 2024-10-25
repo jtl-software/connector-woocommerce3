@@ -12,6 +12,8 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 
+use function Symfony\Component\String\s;
+
 trait PaymentTrait
 {
     /**
@@ -22,20 +24,48 @@ trait PaymentTrait
     public static function paymentCompletedPull($includeCompletedOrders, $limit = null): string
     {
         global $wpdb;
-        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
-        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
+        $jclo        = $wpdb->prefix . 'jtl_connector_link_order';
+        $since       = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
+        $hposEnabled = \get_option('woocommerce_custom_orders_table_enabled') === 'yes';
 
         if (\is_null($limit)) {
-            $select     = 'COUNT(DISTINCT(p.ID))';
+            $select     = $hposEnabled ? 'COUNT(DISTINCT(p.id))' : 'COUNT(DISTINCT(p.ID))';
             $limitQuery = '';
             $onlyLined  = '';
         } else {
-            $select     = 'DISTINCT(p.ID)';
+            $select     = $hposEnabled ? 'DISTINCT(p.id)' : 'DISTINCT(p.ID)';
             $limitQuery = 'LIMIT ' . $limit;
             $onlyLined  = 'AND o.endpoint_id IS NOT NULL';
         }
 
         $manualPaymentMethods = Util::getManualPaymentTypes();
+
+        if ($hposEnabled) {
+            return \sprintf(
+                "
+            SELECT %s
+            FROM %s p
+            LEFT JOIN %s l ON l.endpoint_id = p.id
+            LEFT JOIN %s o ON o.endpoint_id = p.id
+            WHERE l.host_id IS NULL AND
+                (%s p.status = 'wc-processing' AND p.payment_method NOT IN ('%s') OR
+                (p.status = 'wc-completed' AND p.payment_method IN ('%s')))
+            %s
+            %s
+            %s",
+                $select,
+                $wpdb->prefix . 'wc_orders',
+                $jclp,
+                $jclo,
+                $includeCompletedOrders ? "p.status = 'wc-completed' OR " : '',
+                \implode("','", $manualPaymentMethods),
+                \implode("','", $manualPaymentMethods),
+                (!empty($since) && \strtotime($since) !== false) ? "AND p.date_created_gmt > '{$since}'" : '',
+                $onlyLined,
+                $limitQuery
+            );
+        }
 
         // Usually processing means paid but exception for Cash on delivery
         $status = \sprintf(
@@ -57,7 +87,6 @@ trait PaymentTrait
             $status = "(p.post_status = 'wc-completed' OR {$status})";
         }
 
-        $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $where = (!empty($since) && \strtotime($since) !== false) ? "AND p.post_date > '{$since}'" : '';
 
         $sql = "

@@ -24,6 +24,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param ProductModel $model
      * @return array
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
     {
@@ -145,6 +146,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param string $productType
      * @return void
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pushData(ProductModel $product, WC_Product $wcProduct, string $productType): void
     {
@@ -253,7 +255,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 \wc_format_decimal($salePrice, $pd),
                                 \get_post_meta($productId, $priceMetaKey, true)
                             );
-                        } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                        } elseif (
+                            '' !== $salePrice
+                            && $dateFrom <= $current_time
+                            && ($current_time <= $dateTo || $dateTo == '')
+                        ) {
                             \update_post_meta(
                                 $productId,
                                 $priceMetaKey,
@@ -392,7 +398,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                                         );
                                     }
                                 }
-                            } elseif ('' !== $salePrice && $dateFrom <= $current_time && $current_time <= $dateTo) {
+                            } elseif (
+                                '' !== $salePrice
+                                && $dateFrom <= $current_time
+                                && ($current_time <= $dateTo || $dateTo == '')
+                            ) {
                                 \update_post_meta(
                                     $productId,
                                     $priceMetaKey,

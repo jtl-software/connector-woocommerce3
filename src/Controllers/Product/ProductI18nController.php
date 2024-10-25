@@ -2,7 +2,7 @@
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use InvalidArgumentException;
+use Exception;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -17,6 +17,7 @@ class ProductI18nController extends AbstractBaseController
      * @param WC_Product $product
      * @param ProductModel $model
      * @return ProductI18nModel
+     * @throws Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): ProductI18nModel
     {
@@ -40,6 +41,7 @@ class ProductI18nController extends AbstractBaseController
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
+            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             $tmpMeta = (new ProductMetaSeoController($this->db, $this->util))->pullData($product, $model);
             if (\is_array($tmpMeta)) {

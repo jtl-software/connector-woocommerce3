@@ -23,18 +23,25 @@ class SupportedPlugins
         PLUGIN_WOOF_WC_PRODUCT_FILTER                              = 'WOOF - WooCommerce Products Filter',
         PLUGIN_YOAST_SEO                                           = 'Yoast SEO',
         PLUGIN_YOAST_SEO_PREMIUM                                   = 'Yoast SEO Premium',
+        PLUGIN_YOAST_SEO_MULTILINGUAL                              = 'Yoast SEO Multilingual',
         PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE          = 'Advanced Shipment Tracking for WooCommerce',
         PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO                      = 'Advanced Shipment Tracking Pro',
         PLUGIN_DHL_FOR_WOOCOMMERCE                                 = 'DHL for WooCommerce',
         PLUGIN_BACKUPBUDDY                                         = 'BackupBuddy',
         PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE                          = 'UpdraftPlus - Backup/Restore',
         PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE                        = 'VR pay eCommerce - WooCommerce',
+        PLUGIN_WPML_MULTILINGUAL_CMS                               = 'WPML Multilingual CMS',
+        PLUGIN_WPML_STRING_TRANSLATION                             = 'WPML String Translation',
+        PLUGIN_WPML_MEDIA_TRANSLATION                              = 'WPML Media Translation',
+        PLUGIN_WOOCOMMERCE_MULTILUNGUAL                            = 'WooCommerce Multilingual & Multicurrency',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE                = 'WPC Product Quantity for WooCommerce',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM        = 'WPC Product Quantity for WooCommerce (Premium)',
         PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
             = 'Additional Variation Images Gallery for WooCommerce',
         PLUGIN_RANK_MATH_SEO                                       = 'Rank Math SEO',
+        PLUGIN_RANK_MATH_SEO_AI                                    = 'Rank Math SEO with AI Best SEO Tools',
         PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE               = 'Checkout Field Editor for WooCommerce',
+        PLUGIN_ADVANCED_CUSTOM_FIELDS                              = 'Advanced Custom Fields',
 
         //Incompatible
         PLUGIN_ANTISPAM_BEE              = 'Antispam Bee',
@@ -42,7 +49,6 @@ class SupportedPlugins
         PLUGIN_WORDFENCE                 = 'Wordfence Security – Firewall & Malware Scan',
         PLUGIN_THEME_WOODMART_CORE       = 'Woodmart Core',
         PLUGIN_WP_FASTEST_CACHE          = 'WP Fastest Cache',
-        PLUGIN_WP_MULTILANG              = 'WP Multilang',
         PLUGIN_WOODY_AD_SNIPPET          = 'Woody ad snippets (PHP snippets | Insert PHP)',
         PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET = 'Schema - All In One Schema Rich Snippets',
         PLUGIN_BACKWPUP                  = 'BackWPup';
@@ -64,17 +70,23 @@ class SupportedPlugins
         self::PLUGIN_WOOF_WC_PRODUCT_FILTER,
         self::PLUGIN_YOAST_SEO,
         self::PLUGIN_YOAST_SEO_PREMIUM,
+        self::PLUGIN_YOAST_SEO_MULTILINGUAL,
         self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE,
         self::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO,
         self::PLUGIN_DHL_FOR_WOOCOMMERCE,
         self::PLUGIN_UPDRAFTPLUS_BACKUP_RESTORE,
         self::PLUGIN_BACKUPBUDDY,
         self::PLUGIN_VR_PAY_ECOMMERCE_WOOCOMMERCE,
+        self::PLUGIN_WPML_MULTILINGUAL_CMS,
+        self::PLUGIN_WPML_STRING_TRANSLATION,
+        self::PLUGIN_WPML_MEDIA_TRANSLATION,
         self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE,
         self::PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM,
         self::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE,
         self::PLUGIN_RANK_MATH_SEO,
+        self::PLUGIN_RANK_MATH_SEO_AI,
         self::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE,
+        self::PLUGIN_ADVANCED_CUSTOM_FIELDS,
     ];
 
     public const INCOMPATIBLE_PLUGINS = [
@@ -82,7 +94,6 @@ class SupportedPlugins
         self::PLUGIN_CERBER_SECURITY,
         self::PLUGIN_WORDFENCE,
         self::PLUGIN_WP_FASTEST_CACHE,
-        self::PLUGIN_WP_MULTILANG,
         self::PLUGIN_THEME_WOODMART_CORE,
         self::PLUGIN_WOODY_AD_SNIPPET,
         self::PLUGIN_SCHEMA_ALL_IN_ONE_SNIPPET,
@@ -216,7 +227,16 @@ class SupportedPlugins
         );
     }
 
-    /**
+    public static function areAllActive(string ...$pluginNames): bool
+    {
+        $result = true;
+        foreach ($pluginNames as $pluginName) {
+            $result &= self::isActive($pluginName);
+        }
+        return (bool) $result;
+    }
+
+        /**
      * @param string $pluginName
      * @return string|null
      */

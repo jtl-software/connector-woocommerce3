@@ -6,26 +6,35 @@ use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Language as LanguageModel;
+use JtlWooCommerceConnector\Controllers\AbstractBaseController;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Utilities\Util;
 use WhiteCube\Lingua\Service;
 
-class LanguageController
+class LanguageController extends AbstractBaseController
 {
     /**
-     * @return LanguageModel
+     * @return LanguageModel[]
      * @throws InvalidArgumentException
      * @throws Exception
      */
-    public function pull(): LanguageModel
+    public function pull(): array
     {
-        $locale = \get_locale();
-
-        return (new LanguageModel())
+        $wpml = $this->getPluginsManager()->get(Wpml::class);
+        if ($wpml->canBeUsed()) {
+            return $wpml->getComponent(WpmlLanguage::class)->getLanguages();
+        } else {
+            $locale = \get_locale();
+            return [
+                (new LanguageModel())
             ->setId(new Identity(Util::mapLanguageIso($locale)))
             ->setNameGerman($this->nameGerman($locale))
             ->setNameEnglish($this->nameEnglish($locale))
             ->setLanguageISO(Util::mapLanguageIso($locale))
-            ->setIsDefault(true);
+            ->setIsDefault(true)
+            ];
+        }
     }
 
     /**

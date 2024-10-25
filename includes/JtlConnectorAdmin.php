@@ -2001,6 +2001,17 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             case '1.41.2':
             case '1.42.0':
             case '1.42.1':
+            case '1.42.2':
+            case '2.0.0':
+            case '2.0.1':
+            case '2.0.2':
+            case '2.0.3':
+            case '2.0.4':
+                self::updateImageIdentities($db);
+            // no break
+            case '2.0.5':
+            case '2.0.6':
+            case '2.0.6.1':
             default:
                 self::activate_linking();
         }
@@ -2011,7 +2022,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ));
         Config::set(Config::OPTIONS_INSTALLED_VERSION, Config::getBuildVersion());
         self::updateDeliveryTimeCalc();
-        self::updateImageIdentities($db);
     }
 
     protected static function updateImageIdentities(Db $db): void

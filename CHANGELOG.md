@@ -3,9 +3,46 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2507 - pass tracking url from jtl-wawi
+
+## 2.0.6.1 _2024-10-24_
+- HOTFIX Update release files
+
+## 2.0.6 _2024-10-08_
+- CO-2690 - fix category push NullLogger
+- CO-2586 - fix special price without set date
+
+## 2.0.5 _2024-07-22_
+- CO-2649 - fix hardcoded database prefix
+
+## 2.0.4 _2024-07-03_
+- CO-2632 - fix missing category iso code
+- CO-2643 - update image identities once
+
+## 2.0.3 _2024-06-11_
+- CO-2591 - cast taxRates to float
+- CO-2612 - add updated plugin name for rank math
+- CO-2607 - update log level according to config
+- CO-2606 - fix error message undefined array key
+- CO-2608 - consider variants with similar values
+
+## 2.0.2 _2024-05-22_
+- CO-2613 - remove call to specific value method
+
+## 2.0.1 _2024-05-15_
+- CO-2603 - add missing import and initialize logger
+
+## 2.0.0 _2024-05-14_
+- CO-2514 - prevent duplicate product images 
+- CO-2394 - delete removed custom attributes
+- CO-2460 - implement compatibility with germanized pro food 
+- CO-2582 - merge wpml with wc connector
+- CO-2440 - support advanced custom fields plugin for products
+
+## 1.42.2 _2024-02-14_
 - CO-2523 - get build version from config
 - CO-2527 - pass rank math data as string
-- CO-2507 - pass tracking url from jtl-wawi
+- CO-2536 - fix hpos payment
 
 ## 1.42.1 _2024-01-19_
 - CO-2528 - update operand type

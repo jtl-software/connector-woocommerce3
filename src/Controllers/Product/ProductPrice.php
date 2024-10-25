@@ -175,7 +175,7 @@ class ProductPrice extends AbstractBaseController
         $groupSlug,
         WC_Product $product,
         ProductModel $model
-    ) {
+    ): mixed {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -515,8 +515,13 @@ class ProductPrice extends AbstractBaseController
         $regularPrice = $this->getRegularPrice($item, $vat);
 
         if ($item->getQuantity() === 0) {
-            $salePrice    = \get_post_meta($productId, '_sale_price', true);
-            $decimalCount = \strlen(\explode('.', $regularPrice)[1]);
+            $salePrice = \get_post_meta($productId, '_sale_price', true);
+
+            $decimal = \explode('.', $regularPrice);
+
+            $decimalCount = \count($decimal) < 2
+                ? 2
+                : \strlen($decimal[1]);
 
             if (empty($salePrice) || $salePrice !== \get_post_meta($productId, '_price', true)) {
                 \update_post_meta(
