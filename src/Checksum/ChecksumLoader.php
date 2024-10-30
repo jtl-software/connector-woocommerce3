@@ -107,7 +107,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
                 AND type = %s;',
             $wpdb->prefix,
             'jtl_connector_product_checksum',
-            $endpointId,
+            \esc_sql($endpointId),
             $type
         );
     }
@@ -120,9 +120,9 @@ class ChecksumLoader implements ChecksumLoaderInterface
             "INSERT IGNORE INTO %s%s VALUES(%s,%s,'%s')",
             $wpdb->prefix,
             'jtl_connector_product_checksum',
-            $endpointId,
+            \esc_sql($endpointId),
             $type,
-            $checksum
+            \esc_sql($checksum)
         );
     }
 
@@ -136,7 +136,7 @@ class ChecksumLoader implements ChecksumLoaderInterface
                 WHERE `product_id` = %s
                 AND `type` = %s",
             $jcpc,
-            $endpointId,
+            \esc_sql($endpointId),
             $type
         );
     }

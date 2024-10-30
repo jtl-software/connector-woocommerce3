@@ -50,7 +50,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && \str_starts_with($i18n->getName(), 'wc_acf_')
                 ) {
-                    $meta_key        = \str_replace('wc_acf_', '', $i18n->getName());
+                    $meta_key        = \str_replace('wc_acf_', '', \esc_sql($i18n->getName()));
                     $meta_value      = $i18n->getValue();
                     $wawiAcfFields[] = $meta_key;
 
@@ -157,7 +157,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                 DELETE FROM {$wpdb->postmeta}
                 WHERE post_id = '%s'
                 AND meta_key IN (",
-                $productId,
+                \esc_sql($productId),
             );
 
             $firstIteration = true;

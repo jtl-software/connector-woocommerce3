@@ -22,7 +22,7 @@ trait CategoryTrait
             FROM `{$wpdb->term_taxonomy}` tt
             LEFT JOIN `{$wpdb->terms}` t ON tt.term_id = t.term_id
             LEFT JOIN `{$table}` tm ON tm.{$column} = tt.term_id AND tm.meta_key = 'order'
-            WHERE tt.taxonomy = '%s' {$where}
+            WHERE tt.taxonomy = '%s' {$wpdb->_escape($where)}
             ORDER BY tt.parent ASC, sort ASC, t.name ASC",
             CategoryUtil::TERM_TAXONOMY
         );

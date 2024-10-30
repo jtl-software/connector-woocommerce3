@@ -318,7 +318,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $whereColumn  = $selectColumn == 'slug' ? 'term_id' : 'slug';
 
         return $this->db->queryOne(
-            \sprintf('SELECT %s FROM %s WHERE %s = \'%s\'', $selectColumn, $tableName, $whereColumn, $nutrientData)
+            \sprintf(
+                'SELECT %s FROM %s WHERE %s = \'%s\'',
+                $selectColumn,
+                $tableName,
+                $whereColumn,
+                \esc_sql($nutrientData)
+            )
         );
     }
 }
