@@ -310,7 +310,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                             $gpsrManufacturerName      = $i18n->getValue();
                             $gpsrManufacturerTitleform = \strtolower(
                                 \str_replace(' ', '', $i18n->getValue())
-                            ) . '-gpsr-titleform';
+                            ) . '-gpsr';
                             break;
                         case 'gpsr_manufacturer_street':
                             $manufacturerData['street'] = $i18n->getValue();
@@ -404,8 +404,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             . $responsiblePersonData['email'] . "\n"
             . $responsiblePersonData['homepage'];
 
-        \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
-        \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
+        if (!empty(str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
+            \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
+        }
+
+        if (!empty(str_replace([' ', "\n"], '', $gpsrResponsibleAddress))) {
+            \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
+        }
 
         #remove existing product to gpsr manufacturer link
         \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
