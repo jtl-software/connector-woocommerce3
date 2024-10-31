@@ -95,7 +95,8 @@ trait SpecificTrait
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
                   LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
-                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}' AND t.name = '{$wpdb->_escape($specificValueName)}';
+                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
+                  AND t.name = '{$wpdb->_escape($specificValueName)}';
         ";
     }
 
@@ -113,7 +114,8 @@ trait SpecificTrait
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
                   LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
-                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}' AND t.slug = '{$wpdb->_escape($specificValueName)}';
+                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
+                  AND t.slug = '{$wpdb->_escape($specificValueName)}';
         ";
     }
 
