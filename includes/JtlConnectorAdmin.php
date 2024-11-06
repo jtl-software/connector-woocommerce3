@@ -2010,6 +2010,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 self::updateImageIdentities($db);
             // no break
             case '2.0.5':
+            case '2.0.6':
+            case '2.0.6.1':
             default:
                 self::activate_linking();
         }
