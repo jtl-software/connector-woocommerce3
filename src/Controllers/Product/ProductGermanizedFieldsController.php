@@ -404,11 +404,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             . $responsiblePersonData['email'] . "\n"
             . $responsiblePersonData['homepage'];
 
-        if (!empty(str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
+        if (!empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
             \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
         }
 
-        if (!empty(str_replace([' ', "\n"], '', $gpsrResponsibleAddress))) {
+        if (!empty(\str_replace([' ', "\n"], '', $gpsrResponsibleAddress))) {
             \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
         }
 
