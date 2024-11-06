@@ -112,7 +112,8 @@ class WpmlCategory extends AbstractComponent
 
         $tablePrefix = $this->getCurrentPlugin()->getWpDb()->prefix;
 
-        $sql = \sprintf("SELECT 
+        $sql = \sprintf(
+            "SELECT 
             tt.term_id as category_id, cl.sort, cl.level, tt.parent, tt.description, t.name, t.slug, tt.count, wpmlt.*
             FROM `{$this->getCurrentPlugin()->getWpDb()->terms}` t
                 LEFT JOIN 
@@ -130,7 +131,13 @@ class WpmlCategory extends AbstractComponent
                 AND l.host_id IS NULL
                 AND wpmlt.language_code = '%s'
         ORDER BY cl.level ASC , tt.parent ASC , cl.sort ASC
-        LIMIT %s", $tablePrefix, $tablePrefix, $tablePrefix, $this->getCurrentPlugin()->getDefaultLanguage(), $limit);
+        LIMIT %s",
+            $tablePrefix,
+            $tablePrefix,
+            $tablePrefix,
+            $this->getCurrentPlugin()->getDefaultLanguage(),
+            \esc_sql($limit)
+        );
 
 
         return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
