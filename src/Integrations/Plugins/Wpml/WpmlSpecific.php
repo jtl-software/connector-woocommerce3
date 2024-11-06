@@ -97,7 +97,7 @@ class WpmlSpecific extends AbstractComponent
         $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';
         $iclt         = $wpdb->prefix . 'icl_translations';
         $languageCode = $this->getCurrentPlugin()->getDefaultLanguage();
-        $elementType  = 'tax_' . $specificName;
+        $elementType  = 'tax_' . \esc_sql($specificName);
 
         return $this->getPluginsManager()->getDatabase()->query(
             "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description

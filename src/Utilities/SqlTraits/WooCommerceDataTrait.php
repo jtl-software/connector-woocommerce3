@@ -41,7 +41,7 @@ trait WooCommerceDataTrait
             SELECT tt.term_taxonomy_id, tt.term_id
             FROM {$wpdb->term_taxonomy} tt LEFT JOIN {$wpdb->term_relationships} tr 
                 ON tr.term_taxonomy_id = tt.term_taxonomy_id
-            WHERE  tr.object_id = {$productId} AND tt.taxonomy = '{$taxonomy}'";
+            WHERE  tr.object_id = {$productId} AND tt.taxonomy = '{$wpdb->_escape($taxonomy)}'";
     }
 
     /**
