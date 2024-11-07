@@ -1,40 +1,37 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Traits;
 
-use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductPrice as ProductPriceModel;
+use Jtl\Connector\Core\Model\ProductPriceItem as ProductPriceItemModel;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Util;
+use WC_Product;
 
 trait WawiProductPriceSchmuddelTrait
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param WC_Product $wcProduct
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function fixProductPriceForCustomerGroups(ProductModel &$product, \WC_Product $wcProduct): void
+    private function fixProductPriceForCustomerGroups(ProductModel $product, WC_Product $wcProduct): void
     {
         $pd              = \wc_get_price_decimals();
         $pushedPrices    = $product->getPrices();
         $defaultPrices   = null;
         $defaultPriceNet = 0;
         $prices          = [];
-        $vat             = Util::getInstance()->getTaxRateByTaxClass($wcProduct->get_tax_class());
+        $util            = new Util($this->db);
+        $vat             = $util->getTaxRateByTaxClass($wcProduct->get_tax_class());
 
         foreach ($pushedPrices as $pKey => $pValue) {
             if ($pValue->getCustomerGroupId()->getEndpoint() === '') {
                 if (\count($product->getPrices()) === 1) {
-                    $customerGroups = (new CustomerGroup())->pullData();
+                    $customerGroups = (new CustomerGroupController($this->db, $this->util))->pull();
 
                     /** @var CustomerGroupModel $customerGroup */
                     foreach ($customerGroups as $cKey => $customerGroup) {
@@ -85,6 +82,6 @@ trait WawiProductPriceSchmuddelTrait
             }
         }
 
-        $product->setPrices($prices);
+        $product->setPrices(...$prices);
     }
 }

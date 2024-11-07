@@ -1,69 +1,41 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
 use InvalidArgumentException;
-use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Core\Utilities\Language;
-use jtl\Connector\Core\Utilities\Singleton;
-use jtl\Connector\Model\DataModel;
-use jtl\Connector\Model\ProductAttr;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
-use jtl\Connector\Model\ProductAttrI18n;
-use jtl\Connector\Payment\PaymentTypes;
-use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroup;
-use JtlWooCommerceConnector\Controllers\Order\CustomerOrder;
+use Jtl\Connector\Core\Definition\PaymentType;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
+use Jtl\Connector\Core\Model\AbstractI18n;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
+use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
+use JtlWooCommerceConnector\Controllers\CustomerOrderController;
+use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
+use WhiteCube\Lingua\Service;
 
 /**
  * Class Util
  *
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Util extends WordpressUtils
+class Util extends WordpressUtils
 {
     public const TO_SYNC       = 'jtlconnector_master_products_to_sync';
     public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
     public const TO_SYNC_MOD   = 100;
 
     private $locale;
-    private $namespaceMapping;
 
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct()
+    public function __construct(Db $db)
     {
-        parent::__construct();
+        parent::__construct($db);
         //phpcs:ignore SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions
         $this->locale = $this->mapLanguageIso(get_locale());
-
-        $this->namespaceMapping = [
-            'CustomerOrder' => 'Order\\',
-            'GlobalData'    => 'GlobalData\\',
-            'Product'       => 'Product\\',
-        ];
     }
 
-    /**
-     * @param $controller
-     *
-     * @return string
-     */
-    public function getControllerNamespace($controller): string
-    {
-        if (isset($this->namespaceMapping[ $controller ])) {
-            return Constants::CONTROLLER_NAMESPACE . $this->namespaceMapping[ $controller ] . $controller;
-        }
-
-        return Constants::CONTROLLER_NAMESPACE . $controller;
-    }
-
-    public function getWooCommerceLanguage()
+    public function getWooCommerceLanguage(): string
     {
         return $this->locale;
     }
@@ -96,7 +68,7 @@ final class Util extends WordpressUtils
                 $countryIso = $order->get_shipping_country();
             }
 
-            if ($option === 'billing' || $option === 'shipping' && empty($country)) {
+            if ($option === 'billing' || $option === 'shipping') {
                 $countryIso = $order->get_billing_country();
             }
         }
@@ -121,7 +93,7 @@ final class Util extends WordpressUtils
     public static function setBulkPricesQuantityTo(array $bulkPrices): array
     {
         \usort($bulkPrices, function ($a, $b) {
-            return (int) $a['bulk_price_from'] > (int) $b['bulk_price_from'];
+            return (int) $a['bulk_price_from'] > (int) $b['bulk_price_from'] ? 1 : 0;
         });
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
@@ -159,9 +131,9 @@ final class Util extends WordpressUtils
     /**
      * @param $price
      * @param $pd
-     *
+     * @return mixed|string
      */
-    public static function getNetPriceCutted($price, $pd)
+    public static function getNetPriceCutted($price, $pd): mixed
     {
         $position = \strrpos((string) $price, '.');
 
@@ -241,17 +213,18 @@ final class Util extends WordpressUtils
      * @param $group
      *
      * @return bool
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function isValidCustomerGroup($group): bool
     {
-        $result = empty($group) || $group === CustomerGroup::DEFAULT_GROUP;
+        $result = empty($group) || $group === CustomerGroupController::DEFAULT_GROUP;
 
         if ($result) {
             return $result;
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
-            $customerGroups = Db::getInstance()->query(SqlHelper::customerGroupPull());
+            $customerGroups = $this->db->query(SqlHelper::customerGroupPull());
             foreach ($customerGroups as $cKey => $customerGroup) {
                 if (isset($customerGroup['ID']) && $customerGroup['ID'] === $group) {
                     $result = true;
@@ -310,14 +283,14 @@ final class Util extends WordpressUtils
         $limit  = 100;
 
         while (! empty($result)) {
-            $result = Db::getInstance()->query(SqlHelper::categoryProductsCount($offset, $limit));
+            $result = $this->db->query(SqlHelper::categoryProductsCount($offset, $limit));
 
             foreach ($result as $category) {
-                Db::getInstance()->query(SqlHelper::termTaxonomyCountUpdate(
+                $this->db->query(SqlHelper::termTaxonomyCountUpdate(
                     $category['term_taxonomy_id'],
                     $category['count']
                 ));
-                Db::getInstance()->query(SqlHelper::categoryMetaCountUpdate(
+                $this->db->query(SqlHelper::categoryMetaCountUpdate(
                     $category['term_id'],
                     $category['count']
                 ));
@@ -336,10 +309,10 @@ final class Util extends WordpressUtils
         $limit  = 100;
 
         while (! empty($result)) {
-            $result = Db::getInstance()->query(SqlHelper::productTagsCount($offset, $limit));
+            $result = $this->db->query(SqlHelper::productTagsCount($offset, $limit));
 
             foreach ($result as $tag) {
-                Db::getInstance()->query(SqlHelper::termTaxonomyCountUpdate(
+                $this->db->query(SqlHelper::termTaxonomyCountUpdate(
                     $tag['term_taxonomy_id'],
                     $tag['count']
                 ));
@@ -352,30 +325,21 @@ final class Util extends WordpressUtils
     /**
      * @param $locale
      *
-     * @throws InvalidArgumentException
+     * @return string
+     * @throws \Exception
      */
-    public function mapLanguageIso($locale)
+    public static function mapLanguageIso($locale): string
     {
-        $result = null;
-        try {
-            if (\strpos($locale, '_')) {
-                $result = Language::map(\substr($locale, 0, 5));
-            } else {
-                if (\count($locale) === 2) {
-                    $result = \is_null(Language::convert($locale)) ? null : $locale;
-                } elseif (\count($locale) === 3) {
-                    $result = Language::convert(null, $locale);
-                }
-            }
-        } catch (LanguageException $exception) {
-            //
+        if (\substr_count($locale, '_') == 2) {
+            $locale = \substr(
+                $locale,
+                0,
+                \strpos($locale, '_', 4)
+            );
         }
 
-        if (empty($result)) {
-            return $this->getWooCommerceLanguage();
-        } else {
-            return $result;
-        }
+        $language = Service::create($locale);
+        return $language->toISO_639_1();
     }
 
     /**
@@ -387,23 +351,23 @@ final class Util extends WordpressUtils
     {
         switch ($order->get_payment_method()) {
             case 'paypal_plus':
-                return PaymentTypes::TYPE_PAYPAL_PLUS;
+                return PaymentType::PAYPAL_PLUS;
             case 'express_checkout':
-                return PaymentTypes::TYPE_PAYPAL_EXPRESS;
+                return PaymentType::PAYPAL_EXPRESS;
             case 'paypal':
-                return PaymentTypes::TYPE_PAYPAL;
+                return PaymentType::PAYPAL;
             case 'cod':
-                return PaymentTypes::TYPE_CASH_ON_DELIVERY;
+                return PaymentType::CASH_ON_DELIVERY;
             case 'bacs':
-                return PaymentTypes::TYPE_BANK_TRANSFER;
+                return PaymentType::BANK_TRANSFER;
             case 'german_market_sepa_direct_debit':
             case 'direct-debit':
-                return PaymentTypes::TYPE_DIRECT_DEBIT;
+                return PaymentType::DIRECT_DEBIT;
             case 'invoice':
             case 'german_market_purchase_on_account':
-                return PaymentTypes::TYPE_INVOICE;
+                return PaymentType::INVOICE;
             case 'amazon_payments_advanced':
-                return PaymentTypes::TYPE_AMAPAY;
+                return PaymentType::AMAPAY;
             default:
                 return $order->get_payment_method_title();
         }
@@ -495,7 +459,7 @@ final class Util extends WordpressUtils
      */
     public static function includeCompletedOrders(): bool
     {
-        return Util::canPullOrderStatus(CustomerOrder::STATUS_COMPLETED);
+        return Util::canPullOrderStatus(CustomerOrderController::STATUS_COMPLETED);
     }
 
     /**
@@ -532,14 +496,6 @@ final class Util extends WordpressUtils
     }
 
     /**
-     * @return Singleton
-     */
-    public static function getInstance(): Singleton
-    {
-        return parent::getInstance();
-    }
-
-    /**
      * @return int
      */
     public static function getPriceDecimals(): int
@@ -565,24 +521,37 @@ final class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
+    public function createVariantTaxonomyName($name): string
+    {
+        return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
+            \substr(
+                \trim(
+                    $name
+                ),
+                0,
+                27
+            )
+        );
+    }
+
 
     /**
      * @param string      $attributeName
      * @param string      $languageIso
-     * @param ProductAttr ...$productAttributes
+     * @param TranslatableAttribute ...$productAttributes
      *
-     * @return ProductAttrI18n|null
+     * @return TranslatableAttributeI18n|null
      */
-    public static function findAttributeI18nByName(
+    public function findAttributeI18nByName(
         string $attributeName,
         string $languageIso,
-        ProductAttr ...$productAttributes
-    ): ?ProductAttrI18n {
+        TranslatableAttribute ...$productAttributes
+    ): ?TranslatableAttributeI18n {
         $attribute = null;
         foreach ($productAttributes as $productAttribute) {
             foreach ($productAttribute->getI18ns() as $productAttributeI18n) {
                 if (
-                    $productAttributeI18n->getLanguageISO() === $languageIso
+                    $productAttributeI18n->getLanguageIso() === $languageIso
                     && $attributeName === $productAttributeI18n->getName()
                 ) {
                     $attribute = $productAttributeI18n;
@@ -598,13 +567,13 @@ final class Util extends WordpressUtils
      * @param array $dataSet
      * @param int   $termId
      */
-    public static function updateTermMeta(array $dataSet, int $termId): void
+    public function updateTermMeta(array $dataSet, int $termId): void
     {
         foreach ($dataSet as $metaKey => $metaValue) {
             if (! empty($metaValue)) {
                 $oldTermMeta = \get_term_meta($termId, $metaKey, true);
                 if (empty($oldTermMeta)) {
-                    \add_term_meta($oldTermMeta, $metaKey, $metaKey);
+                    \add_term_meta($termId, $metaKey, $metaValue);
                 } else {
                     \update_term_meta($termId, $metaKey, $metaValue, $oldTermMeta);
                 }
@@ -613,49 +582,50 @@ final class Util extends WordpressUtils
     }
 
     /**
-     * @param DataModel $i18n
+     * @param AbstractI18n $i18n
      * @param array     $rankMathSeoData
      *
      * @return void
      */
-    public static function setI18nRankMathSeo(DataModel $i18n, array $rankMathSeoData): void
+    public function setI18nRankMathSeo(AbstractI18n $i18n, array $rankMathSeoData): void
     {
         foreach ($rankMathSeoData as $termMeta) {
             switch ($termMeta['meta_key']) {
                 case 'rank_math_title':
-                    $i18n->setTitleTag($termMeta['rank_math_title']);
+                    $i18n->setTitleTag((string) $termMeta['rank_math_title']);
                     break;
                 case 'rank_math_description':
-                    $i18n->setMetaDescription($termMeta['rank_math_description']);
+                    $i18n->setMetaDescription((string) $termMeta['rank_math_description']);
                     break;
                 case 'rank_math_focus_keyword':
-                    $i18n->setMetaKeywords($termMeta['rank_math_focus_keyword']);
+                    $i18n->setMetaKeywords((string) $termMeta['rank_math_focus_keyword']);
                     break;
             }
         }
     }
 
-    public static function getStates()
+    public function getStates(): bool|array
     {
         return \WC()->countries->get_states();
     }
 
     /**
      * @param \WC_Product_Attribute $wcProductAttribute
-     * @param ProductAttrModel      ...$jtlAttributes
+     * @param TranslatableAttribute      ...$jtlAttributes
      *
      * @return string
+     * @throws TranslatableAttributeException
      */
-    public static function findAttributeValue(
+    public function findAttributeValue(
         \WC_Product_Attribute $wcProductAttribute,
-        ProductAttrModel ...$jtlAttributes
+        TranslatableAttribute ...$jtlAttributes
     ): string {
         $value = \implode(' ' . \WC_DELIMITER . ' ', $wcProductAttribute->get_options());
         foreach ($jtlAttributes as $productAttr) {
             foreach ($productAttr->getI18ns() as $productAttrI18n) {
                 if (
                     $productAttrI18n->getName() === $wcProductAttribute->get_name()
-                    && Util::getInstance()->isWooCommerceLanguage($productAttrI18n->getLanguageISO())
+                    && $this->isWooCommerceLanguage($productAttrI18n->getLanguageIso())
                 ) {
                     $value = $productAttrI18n->getValue();
                     break 2;

@@ -3,9 +3,9 @@
 /**
  * Plugin Name: WooCommerce JTL-Connector
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
- * Version: 1.39.10
- * Requires PHP: 7.2
- * WC tested up to: 6.3
+ * Version: 2.0.6.1
+ * Requires PHP: 8.0
+ * WC tested up to: 8.2
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
  * License: GPL3
@@ -50,6 +50,12 @@ try {
 } catch (\Exception $e) {
 }
 
+
+add_action('before_woocommerce_init', function () {
+    if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
 add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
 
@@ -145,7 +151,7 @@ function woo_jtl_connector_settings_javascript()
 
 function downloadJTLLogs()
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/var/log';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
     $url      = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
 
@@ -201,7 +207,7 @@ function downloadJTLLogs()
 
 function clearJTLLogs()
 {
-    $logDir   = CONNECTOR_DIR . '/logs';
+    $logDir   = CONNECTOR_DIR . '/var/log';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
 
     if (file_exists($zip_file)) {
@@ -232,6 +238,39 @@ function clearJTLLogs()
     wp_die();
 }
 
+
+/**
+ * @throws UnexpectedValueException
+ */
+function clearConnectorCache(): void
+{
+    $cacheDir = CONNECTOR_DIR . '/var/cache';
+
+    if (is_dir($cacheDir)) {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($cacheDir),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $name => $file) {
+            if ($file->getFilename() === '.gitkeep') {
+                continue;
+            }
+
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
+
+        echo 'success';
+
+        wp_die();
+    }
+}
 /**
  * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
  */

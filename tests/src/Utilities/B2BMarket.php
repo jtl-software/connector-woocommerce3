@@ -2,9 +2,9 @@
 
 namespace src\Utilities;
 
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product;
-use jtl\Connector\Model\ProductInvisibility;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\ProductInvisibility;
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
 use PHPUnit\Framework\MockObject\RuntimeException;
 

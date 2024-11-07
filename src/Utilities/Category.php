@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Model\Category as CategoryModel;
+use Jtl\Connector\Core\Model\Category as CategoryModel;
+use Psr\Log\InvalidArgumentException;
 
 class Category
 {
@@ -15,13 +11,23 @@ class Category
     public const LEVEL_TABLE                 = 'jtl_connector_category_level';
     public const OPTION_CATEGORY_HAS_CHANGED = 'jtlconnector_category_has_changes';
 
-    public static function fillCategoryLevelTable(array $parentIds = null, $level = 0): void
+    protected Db $db;
+
+    public function __construct(Db $db)
+    {
+        $this->db = $db;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function fillCategoryLevelTable(array $parentIds = null, $level = 0): void
     {
         global $wpdb;
         $where = ' AND tt.parent = 0';
 
         if ($parentIds === null) {
-            Db::getInstance()->query(\sprintf(
+            $this->db->query(\sprintf(
                 'TRUNCATE TABLE `%s%s`',
                 $wpdb->prefix,
                 self::LEVEL_TABLE
@@ -32,7 +38,7 @@ class Category
 
         $parentIds = [];
 
-        $categories = Db::getInstance()->query(SqlHelper::categoryTreeGet($where));
+        $categories = $this->db->query(SqlHelper::categoryTreeGet($where));
 
         if (! empty($categories)) {
             $sort    = 0;
@@ -49,7 +55,7 @@ class Category
 
                 $parentIds[] = $categoryId;
 
-                Db::getInstance()->query(SqlHelper::categoryTreeAddIgnore($categoryId, $level, $sort++));
+                $this->db->query(SqlHelper::categoryTreeAddIgnore($categoryId, $level, $sort++));
             }
 
             self::fillCategoryLevelTable($parentIds, $level + 1);
@@ -60,14 +66,23 @@ class Category
      * @param array|null $parent
      * @param $count
      * @return void
+     * @throws InvalidArgumentException
      */
-    public static function saveCategoryLevelsAsPreOrder(array $parent = null, &$count = 0): void
+    public function saveCategoryLevelsAsPreOrder(array $parent = null, &$count = 0): void
     {
         if ($count === 0) {
-            $categories = Db::getInstance()->query(SqlHelper::categoryTreePreOrderRoot());
+            $categories = $this->db->query(SqlHelper::categoryTreePreOrderRoot());
+            foreach ((array)$categories as $category) {
+                \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
+                $this->saveCategoryLevelsAsPreOrder($category, $count);
+            }
         } else {
             $query      = SqlHelper::categoryTreePreOrder($parent['category_id'], $parent['level'] + 1);
-            $categories = Db::getInstance()->query($query);
+            $categories = $this->db->query($query);
+            foreach ((array)$categories as $category) {
+                \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
+                $this->saveCategoryLevelsAsPreOrder($category, $count);
+            }
         }
         foreach ((array) $categories as $category) {
             \wc_set_term_order($category['category_id'], ++$count, 'product_cat');
@@ -79,8 +94,9 @@ class Category
      * @param CategoryModel $category
      * @param $isNew
      * @return void
+     * @throws InvalidArgumentException
      */
-    public static function updateCategoryTree(CategoryModel $category, $isNew): void
+    public function updateCategoryTree(CategoryModel $category, $isNew): void
     {
         $id = $category->getId()->getEndpoint();
 
@@ -90,7 +106,7 @@ class Category
             $categoryTreeQuery = SqlHelper::categoryTreeUpdate($id, $category->getLevel(), $category->getSort());
         }
 
-        Db::getInstance()->query($categoryTreeQuery);
+        $this->db->query($categoryTreeQuery);
     }
 
     /**

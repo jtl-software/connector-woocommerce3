@@ -9,8 +9,6 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use JtlWooCommerceConnector\Controllers\Connector;
-use JtlWooCommerceConnector\Logger\DatabaseLogger;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -20,9 +18,10 @@ trait CustomerTrait
 {
     /**
      * @param $limit
+     * @param $logger
      * @return string
      */
-    public static function customerNotLinked($limit): string
+    public static function customerNotLinked($limit, $logger): string
     {
         if (
             Config::get(
@@ -32,7 +31,7 @@ trait CustomerTrait
         ) {
             return self::customerNotLinkedNoCondition($limit);
         } else {
-            return self::customerNotLinkedCondition($limit);
+            return self::customerNotLinkedCondition($limit, $logger);
         }
     }
 
@@ -79,7 +78,7 @@ trait CustomerTrait
      * @param $limit
      * @return string
      */
-    private static function customerNotLinkedCondition($limit): string
+    private static function customerNotLinkedCondition($limit, $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -112,16 +111,17 @@ trait CustomerTrait
             $wpdb->posts,
             $jclc,
             \join("','", $status),
-            self::getCustomerPullCondition(),
+            self::getCustomerPullCondition($logger),
             $limitQuery
         );
     }
 
     /**
      * @param $limit
+     * @param $logger
      * @return string
      */
-    public static function guestNotLinked($limit): string
+    public static function guestNotLinked($limit, $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -158,22 +158,21 @@ trait CustomerTrait
             $jclc,
             $guestPrefix,
             \join("','", $status),
-            self::getCustomerPullCondition(),
+            self::getCustomerPullCondition($logger),
             $limitQuery
         );
     }
 
     /**
+     * @param $logger
      * @return string
      */
-    private static function getCustomerPullCondition(): string
+    private static function getCustomerPullCondition($logger): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
 
-        DatabaseLogger::getInstance()->writeLog(
-            'Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)
-        );
+        $logger->debug('Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE));
 
         switch (Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE)) {
             case 'last_imported_order':

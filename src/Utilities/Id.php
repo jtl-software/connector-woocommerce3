@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @copyright 2010-2013 JTL-Software GmbH
- * @package   jtl\Connector\Shopware\Utilities
- */
-
 namespace JtlWooCommerceConnector\Utilities;
 
-use jtl\Connector\Linker\IdentityLinker;
+use Jtl\Connector\Core\Definition\IdentityType;
 
-final class Id
+class Id
 {
     public const SEPARATOR           = '_';
     public const PRODUCT_PREFIX      = 'p';
@@ -46,20 +41,26 @@ final class Id
     }
 
     /**
-     * @param $endpoint
+     * @param $endpointId
+     * @return array|null
      */
-    public static function unlinkProductImage($endpoint)
+    public static function unlinkImage($endpointId): ?array
     {
-        if (\strstr($endpoint, self::PRODUCT_PREFIX . self::SEPARATOR)) {
-            $parts = self::unlink($endpoint);
-            if (\count($parts) === 3) {
-                return \array_splice($parts, 1);
-            }
+        list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
 
-            return '';
+        if ($typePrefix === self::CATEGORY_PREFIX) {
+            return [$parts, IdentityType::CATEGORY_IMAGE];
         }
 
-        return '';
+        if ($typePrefix === self::PRODUCT_PREFIX) {
+            return [$parts, IdentityType::PRODUCT_IMAGE];
+        }
+
+        if ($typePrefix === self::MANUFACTURER_PREFIX) {
+            return [$parts, IdentityType::MANUFACTURER_IMAGE];
+        }
+
+        return null;
     }
 
     /**
@@ -73,8 +74,9 @@ final class Id
 
     /**
      * @param $endpoint
+     * @return mixed|string
      */
-    public static function unlinkCategoryImage($endpoint)
+    public static function unlinkCategoryImage($endpoint): mixed
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -94,33 +96,15 @@ final class Id
 
     /**
      * @param $endpoint
+     * @return mixed|string
      */
-    public static function unlinkManufacturerImage($endpoint)
+    public static function unlinkManufacturerImage($endpoint): mixed
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
         }
 
         return '';
-    }
-
-    /**
-     * @param $endpointId
-     * @return array|null
-     */
-    public static function unlinkImage($endpointId): ?array
-    {
-        list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
-
-        if ($typePrefix === self::CATEGORY_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_CATEGORY];
-        } elseif ($typePrefix === self::PRODUCT_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_PRODUCT];
-        } elseif ($typePrefix === self::MANUFACTURER_PREFIX) {
-            return [$parts, IdentityLinker::TYPE_MANUFACTURER];
-        }
-
-        return null;
     }
 
     /**

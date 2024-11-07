@@ -2,8 +2,9 @@
 
 namespace jtl\ProductCustomOptions;
 
-use jtl\Connector\Event\CustomerOrder\CustomerOrderAfterPullEvent;
+use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CustomerOrderListener
@@ -14,32 +15,31 @@ class CustomerOrderListener
     /**
      * @var array
      */
-    protected $customFieldNames = [];
+    protected mixed $customFieldNames = [];
 
     /**
-     * @var \wpdb
+     * @var Db
      */
-    protected \wpdb $wpdb;
+    protected Db $db;
 
     /**
      * CustomerOrderListener constructor.
      */
-    public function __construct()
+    public function __construct(Db $db)
     {
-        global $wpdb;
         $this->customFieldNames = \get_option(\THWEPOF_Utils::OPTION_KEY_NAME_TITLE_MAP, []);
-        $this->wpdb             = $wpdb;
+        $this->db               = $db;
     }
 
     /**
-     * @param CustomerOrderAfterPullEvent $event
+     * @param CustomerOrderEvent $event
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function onCustomerOrderAfterPull(CustomerOrderAfterPullEvent $event): void
+    public function onCustomerOrderAfterPull(CustomerOrderEvent $event): void
     {
         if (!empty($this->getCustomFieldNames())) {
-            $customerOrder      = $event->getCustomerOrder();
+            $customerOrder      = $event->getOrder();
             $customerOrderItems = $customerOrder->getItems();
             foreach ($customerOrderItems as $customerOrderItem) {
                 $orderItemId = $customerOrderItem->getId();
@@ -55,7 +55,7 @@ class CustomerOrderListener
                             'Extra Product Options',
                             $customProductOptionsInfo
                         );
-                        $customerOrderItem->setNote(\join(', ', $orderItemNotes));
+                        $customerOrderItem->setNote(\implode(', ', $orderItemNotes));
                     }
                 }
             }
@@ -65,6 +65,7 @@ class CustomerOrderListener
     /**
      * @param int $wcOrderItemId
      * @return string
+     * @throws InvalidArgumentException
      */
     public function getCustomProductOptions(int $wcOrderItemId): string
     {
@@ -73,12 +74,12 @@ class CustomerOrderListener
         $sql = \sprintf(
             'SELECT meta_key,meta_value FROM %swoocommerce_order_itemmeta 
                            WHERE order_item_id = %s AND meta_key IN (\'%s\')',
-            $this->wpdb->prefix,
+            $this->db->getWpDb()->prefix,
             $wcOrderItemId,
             \join("','", \array_keys($this->getCustomFieldNames()))
         );
 
-        $customOptions = Db::getInstance()->query($sql);
+        $customOptions = $this->db->query($sql);
         foreach ($customOptions as $customOption) {
             $label                  = !empty($this->customFieldNames[$customOption['meta_key']])
                 ? $this->customFieldNames[$customOption['meta_key']]

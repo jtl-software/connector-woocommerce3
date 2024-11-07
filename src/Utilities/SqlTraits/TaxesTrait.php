@@ -9,7 +9,7 @@
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use jtl\Connector\Model\TaxRate;
+use Jtl\Connector\Core\Model\TaxRate;
 
 trait TaxesTrait
 {
@@ -43,7 +43,7 @@ trait TaxesTrait
         foreach ($taxRates as $taxRate) {
             $conditions[] = \sprintf(
                 "(tax_rate_country = '%s' AND tax_rate='%s')",
-                $taxRate->getCountryIso(),
+                $wpdb->_escape($taxRate->getCountryIso()),
                 \number_format($taxRate->getRate(), 4)
             );
         }

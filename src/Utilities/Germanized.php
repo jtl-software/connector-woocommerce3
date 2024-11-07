@@ -1,19 +1,12 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
-
 namespace JtlWooCommerceConnector\Utilities;
-
-use jtl\Connector\Core\Utilities\Singleton;
 
 /**
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
  * @package JtlWooCommerceConnector\Utilities
  */
-final class Germanized extends Singleton
+class Germanized
 {
     /**
      * @var array Index used in database mapped to translated salutation.
@@ -55,18 +48,11 @@ final class Germanized extends Singleton
 
     /**
      * @param $code
+     * @return mixed|string
      */
     public function parseUnit($code)
     {
         return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
-    }
-
-    /**
-     * @return Singleton
-     */
-    public static function getInstance(): Singleton
-    {
-        return parent::getInstance();
     }
 
     /**
@@ -87,8 +73,9 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnit($wcProduct)
+    public function getUnit($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
@@ -100,8 +87,9 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnitProduct($wcProduct)
+    public function getUnitProduct($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
@@ -113,8 +101,9 @@ final class Germanized extends Singleton
      * Backward compatibility method
      *
      * @param $wcProduct
+     * @return mixed|null
      */
-    public function getUnitBase($wcProduct)
+    public function getUnitBase($wcProduct): mixed
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
             return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
