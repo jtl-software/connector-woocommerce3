@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.1.0 _2024-11-14_
 - CO-2305 - update sql queries
 - CO-2507 - pass tracking url from jtl-wawi
 - CO-2704 - add germanized gpsr push logic
