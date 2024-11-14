@@ -157,7 +157,7 @@ trait PrimaryKeyMappingTrait
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
-        return "DELETE FROM {$jcl} {$wpdb->_escape($where)}";
+        return "DELETE FROM {$jcl} {$where}";
     }
 
     /**
