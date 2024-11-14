@@ -4,7 +4,7 @@ variables:
   BASE_PHP_VERSION: '8.0'
 
 default:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
+  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   tags:
     - docker
   before_script:
@@ -38,7 +38,7 @@ test:unit:
     matrix:
       - BASE: 'php'
         VERSION: [ '8.0', '8.1', '8.2' ] # no image for 8.3 yet
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
+  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:
     - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
@@ -47,7 +47,7 @@ test:unit:
       junit: junit.xml
 
 build:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
+  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   stage: build
   variables:
     VERSION: dev
@@ -68,7 +68,7 @@ build:
       - dist/
 
 build:zip:
-  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
+  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
   stage: build
   variables:
     VERSION: dev
