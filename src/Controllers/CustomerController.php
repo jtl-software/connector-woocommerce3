@@ -188,6 +188,10 @@ class CustomerController extends AbstractBaseController implements PullInterface
             $wcCustomer->set_email($model->getEMail());
             $wcCustomer->set_billing_email($model->getEMail());
             $wcCustomer->set_billing_phone($model->getPhone());
+
+            $customerGroup = \get_post($model->getCustomerGroupId()->getEndpoint());
+            $wcCustomer->set_role($customerGroup->post_name);
+
             $wcCustomer->save();
 
             if (($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null) {
