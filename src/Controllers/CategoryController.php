@@ -290,7 +290,7 @@ class CategoryController extends AbstractBaseController implements
         }
 
         if (!empty($result)) {
-            $model->getId()->setEndpoint($result['term_id']);
+            $model->getId()->setEndpoint((string)$result['term_id']);
             self::$idCache[$model->getId()->getHost()] = $result['term_id'];
 
             (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
