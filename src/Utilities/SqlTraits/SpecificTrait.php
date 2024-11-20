@@ -39,7 +39,7 @@ trait SpecificTrait
                   LEFT JOIN {$jclsv} lsv
                   ON t.term_id = lsv.endpoint_id
                 WHERE lsv.host_id IS NULL
-                AND tt.taxonomy LIKE '{$specificName}'
+                AND tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
                 ORDER BY tt.parent ASC;";
     }
 
@@ -56,7 +56,7 @@ trait SpecificTrait
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
                   LEFT JOIN {$jclsv} lsv ON t.term_id = lsv.endpoint_id
-                WHERE tt.taxonomy LIKE '{$specificName}'
+                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
                 ORDER BY tt.parent ASC;";
     }
 
@@ -90,7 +90,8 @@ trait SpecificTrait
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
                   LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
-                WHERE tt.taxonomy LIKE '{$specificName}' AND t.name = '{$specificValueName}';
+                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
+                  AND t.name = '{$wpdb->_escape($specificValueName)}';
         ";
     }
 
@@ -108,7 +109,8 @@ trait SpecificTrait
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
                   LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
-                WHERE tt.taxonomy LIKE '{$specificName}' AND t.slug = '{$specificValueName}';
+                WHERE tt.taxonomy LIKE '{$wpdb->_escape($specificName)}'
+                  AND t.slug = '{$wpdb->_escape($specificValueName)}';
         ";
     }
 
@@ -126,7 +128,7 @@ trait SpecificTrait
         return "SELECT wat.attribute_id
                   FROM {$wat} wat
                   LEFT JOIN {$jcls} l ON wat.attribute_id = l.endpoint_id
-                WHERE wat.attribute_name LIKE '{$specificName}';
+                WHERE wat.attribute_name LIKE '{$wpdb->_escape($specificName)}';
         ";
     }
 

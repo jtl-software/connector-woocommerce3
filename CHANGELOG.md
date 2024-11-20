@@ -3,6 +3,29 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2713 - update b2b customer group
+
+## 2.1.0 _2024-11-14_
+- CO-2305 - update sql queries
+- CO-2507 - pass tracking url from jtl-wawi
+- CO-2704 - add germanized gpsr push logic
+- CO-2432 - consider german market plugin for delivery status calculation
+
+## 2.0.6.1 _2024-10-24_
+- HOTFIX Update release files
+
+## 2.0.6 _2024-10-08_
+- CO-2690 - fix category push NullLogger
+- CO-2586 - fix special price without set date
+
+## 2.0.5 _2024-07-22_
+- CO-2649 - fix hardcoded database prefix
+
+## 2.0.4 _2024-07-03_
+- CO-2632 - fix missing category iso code
+- CO-2643 - update image identities once
+
+## 2.0.3 _2024-06-11_
 - CO-2591 - cast taxRates to float
 - CO-2612 - add updated plugin name for rank math
 - CO-2607 - update log level according to config

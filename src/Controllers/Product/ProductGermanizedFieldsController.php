@@ -129,6 +129,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
+     * @throws TranslatableAttributeException
      */
     public function pushData(ProductModel $product): void
     {
@@ -147,6 +148,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \update_post_meta((int)$id, '_ts_mpn', (string)$product->getManufacturerNumber());
 
         $this->updateGermanizedBasePriceAndUnits($product, (int)$id);
+        $this->updateGermanizedGpsrData($product);
 
         if ($this->isGermanizedProFoodProduct($product)) {
             $this->updateGermanizedProFoodProductData($product);
@@ -286,6 +288,158 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param ProductModel $product
+     * @return void
+     * @throws TranslatableAttributeException
+     */
+    private function updateGermanizedGpsrData(ProductModel $product): void
+    {
+        $gpsrManufacturerName      = '';
+        $gpsrManufacturerTitleform = '';
+
+        $manufacturerData = [
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
+
+        $responsiblePersonData = [
+            'name' => '',
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
+
+        foreach ($product->getAttributes() as $attribute) {
+            foreach ($attribute->getI18ns() as $i18n) {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
+                    switch ($i18n->getName()) {
+                        case 'gpsr_manufacturer_name':
+                            $gpsrManufacturerName      = $i18n->getValue();
+                            $gpsrManufacturerTitleform = \strtolower(
+                                \str_replace(' ', '', $i18n->getValue())
+                            ) . '-gpsr';
+                            break;
+                        case 'gpsr_manufacturer_street':
+                            $manufacturerData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_housenumber':
+                            $manufacturerData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_postalcode':
+                            $manufacturerData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_city':
+                            $manufacturerData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_state':
+                            $manufacturerData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_country':
+                            $manufacturerData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_email':
+                            $manufacturerData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_homepage':
+                            $manufacturerData['homepage'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_name':
+                            $responsiblePersonData['name'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_street':
+                            $responsiblePersonData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_housenumber':
+                            $responsiblePersonData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_postalcode':
+                            $responsiblePersonData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_city':
+                            $responsiblePersonData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_state':
+                            $responsiblePersonData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_country':
+                            $responsiblePersonData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_email':
+                            $responsiblePersonData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_homepage':
+                            $responsiblePersonData['homepage'] = $i18n->getValue();
+                            break;
+                    }
+                }
+            }
+        }
+
+        if ($gpsrManufacturerName === '') {
+            \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+            \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', '');
+
+            return;
+        }
+
+        $existingTerm = \get_term_by('slug', $gpsrManufacturerTitleform, 'product_manufacturer');
+        if (!$existingTerm) {
+            $newTerm = \wp_insert_term(
+                $gpsrManufacturerName,
+                'product_manufacturer',
+                [
+                    'description' => '',
+                    'slug' => $gpsrManufacturerTitleform,
+                    ]
+            );
+
+            $termId = $newTerm['term_id'];
+        } else {
+            $termId = $existingTerm->term_id;
+        }
+
+        $gpsrManufacturerAddress = $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
+            . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
+            . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
+            . $manufacturerData['email'] . "\n"
+            . $manufacturerData['homepage'];
+
+        $gpsrResponsibleAddress = $responsiblePersonData['name'] . "\n"
+            . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
+            . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"
+            . $responsiblePersonData['state'] . ' ' . $responsiblePersonData['country'] . "\n"
+            . $responsiblePersonData['email'] . "\n"
+            . $responsiblePersonData['homepage'];
+
+        if (!empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
+            \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
+        }
+
+        if (!empty(\str_replace([' ', "\n"], '', $gpsrResponsibleAddress))) {
+            \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
+        }
+
+        #remove existing product to gpsr manufacturer link
+        \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+
+        #link product to gpsr manufacturer
+        \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
+        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
+    }
+
+
+    /**
      * @param ProductModel                  $product
      * @param array<int, int|string>|string $value
      * @param string                        $wawiAttributeKey
@@ -346,7 +500,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $whereColumn  = $selectColumn == 'slug' ? 'term_id' : 'slug';
 
         return $this->db->queryOne(
-            \sprintf('SELECT %s FROM %s WHERE %s = \'%s\'', $selectColumn, $tableName, $whereColumn, $nutrientData)
+            \sprintf(
+                'SELECT %s FROM %s WHERE %s = \'%s\'',
+                $selectColumn,
+                $tableName,
+                $whereColumn,
+                \esc_sql($nutrientData)
+            )
         );
     }
 }

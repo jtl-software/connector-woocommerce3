@@ -64,7 +64,7 @@ trait ProductTrait
             SELECT meta_key
             FROM {$wpdb->postmeta}
             WHERE meta_key LIKE 'attribute_%%' AND meta_key NOT IN ('%s') AND post_id = {$id}",
-            \implode("','", $updatedAttributeKeys)
+            \implode("','", $wpdb->_escape($updatedAttributeKeys))
         );
     }
 

@@ -18,7 +18,7 @@ trait PrimaryKeyMappingTrait
 
         return "SELECT host_id
                 FROM {$jcli}
-                WHERE endpoint_id = '{$endpointId}' AND `type` = {$type}";
+                WHERE endpoint_id = '{$wpdb->_escape($endpointId)}' AND `type` = {$type}";
     }
 
     /**
@@ -33,7 +33,7 @@ trait PrimaryKeyMappingTrait
 
         return "SELECT `host_id`
                 FROM {$jclc}
-                WHERE `endpoint_id` = '{$endpointId}' AND `is_guest` = {$isGuest}";
+                WHERE `endpoint_id` = '{$wpdb->_escape($endpointId)}' AND `is_guest` = {$isGuest}";
     }
 
     /**
@@ -44,11 +44,11 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingHostString(string $endpointId, ?string $tableName): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "SELECT host_id
                 FROM {$jcl}
-                WHERE endpoint_id = '{$endpointId}'";
+                WHERE endpoint_id = '{$wpdb->_escape($endpointId)}'";
     }
 
     /**
@@ -59,11 +59,11 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingHostInteger(string $endpointId, ?string $tableName): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "SELECT host_id
                 FROM {$jcl}
-                WHERE endpoint_id = {$endpointId}";
+                WHERE endpoint_id = {$wpdb->_escape($endpointId)}";
     }
 
     /**
@@ -75,11 +75,11 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingEndpoint(int $hostId, string $tableName, string $clause): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "SELECT endpoint_id
                 FROM {$jcl}
-                WHERE host_id = {$hostId} {$clause}";
+                WHERE host_id = {$hostId} {$wpdb->_escape($clause)}";
     }
 
     /**
@@ -94,7 +94,7 @@ trait PrimaryKeyMappingTrait
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';
 
         return "INSERT INTO {$jcli} (endpoint_id, host_id, `type`)
-                VALUES ('{$endpointId}', {$hostId}, {$type})";
+                VALUES ('{$wpdb->_escape($endpointId)}', {$hostId}, {$type})";
     }
 
     /**
@@ -109,7 +109,7 @@ trait PrimaryKeyMappingTrait
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
 
         return "INSERT INTO {$jclc} (endpoint_id, host_id, is_guest)
-                VALUES ('{$endpointId}', {$hostId}, {$isGuest})";
+                VALUES ('{$wpdb->_escape($endpointId)}', {$hostId}, {$isGuest})";
     }
 
     /**
@@ -121,10 +121,10 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingSaveInteger(string $endpointId, int $hostId, string $tableName): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "INSERT INTO {$jcl} (endpoint_id, host_id)
-                VALUES ({$endpointId}, {$hostId})";
+                VALUES ({$wpdb->_escape($endpointId)}, {$hostId})";
     }
 
     /**
@@ -136,10 +136,10 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingSaveString(string $endpointId, int $hostId, string $tableName): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "INSERT INTO {$jcl} (endpoint_id, host_id)
-                VALUES ('{$endpointId}', {$hostId})";
+                VALUES ('{$wpdb->_escape($endpointId)}', {$hostId})";
     }
 
     /**
@@ -150,7 +150,7 @@ trait PrimaryKeyMappingTrait
     public function primaryKeyMappingDelete(string $where, string $tableName): string
     {
         global $wpdb;
-        $jcl = $wpdb->prefix . $tableName;
+        $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "DELETE FROM {$jcl} {$where}";
     }

@@ -6,6 +6,7 @@ namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Class AbstractComponent
@@ -17,6 +18,15 @@ abstract class AbstractComponent implements ComponentInterface, LoggerAwareInter
     protected LoggerInterface $logger;
 
     protected PluginInterface $plugin;
+
+
+    /**
+     * @param LoggerInterface|null $logger
+     */
+    public function __construct(?LoggerInterface $logger = null)
+    {
+        $this->logger = $logger ?? new NullLogger();
+    }
 
     /**
      * @param LoggerInterface $logger
