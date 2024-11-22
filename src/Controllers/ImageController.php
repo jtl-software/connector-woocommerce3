@@ -683,16 +683,16 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param ProductImage $image
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function pushProductImage(ProductImage $image): ?string
+    private function pushProductImage(ProductImage $image): string
     {
         $productId = (int)$image->getForeignKey()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
         if (!$wcProduct instanceof WC_Product) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image);
@@ -702,7 +702,7 @@ class ImageController extends AbstractBaseController implements
             if ($result instanceof \WP_Error) {
                 $this->logger->error(ErrorFormatter::formatError($result));
 
-                return null;
+                return '';
             }
 
             if ($this->wpml->canBeUsed()) {
@@ -714,7 +714,7 @@ class ImageController extends AbstractBaseController implements
                     if ($wpmlResult instanceof \WP_Error) {
                         $this->logger->error(ErrorFormatter::formatError($wpmlResult));
 
-                        return null;
+                        return '';
                     }
                 }
             }
@@ -741,7 +741,7 @@ class ImageController extends AbstractBaseController implements
             if ($result instanceof \WP_Error) {
                 $this->logger->error(ErrorFormatter::formatError($result));
 
-                return null;
+                return '';
             }
         }
 
@@ -750,15 +750,15 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param CategoryImage $image
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function pushCategoryImage(CategoryImage $image): ?string
+    private function pushCategoryImage(CategoryImage $image): string
     {
         $categoryId = (int)$image->getForeignKey()->getEndpoint();
 
         if (!\term_exists($categoryId)) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image);
@@ -769,15 +769,15 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param ManufacturerImage $image
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function pushManufacturerImage(ManufacturerImage $image): ?string
+    private function pushManufacturerImage(ManufacturerImage $image): string
     {
         $termId = (int)$image->getForeignKey()->getEndpoint();
 
         if (!\term_exists($termId)) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image);
