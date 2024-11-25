@@ -389,6 +389,20 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     {
         $postId = $product->getId()->getEndpoint();
 
+        [$gpsrManufacturerAddress, $gpsrResponsibleAddress] = $this->createManufacturerAndResponsibleStrings($product);
+
+        \update_post_meta($postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
+        \update_post_meta($postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return string[]
+     * @throws \JsonException
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
+     */
+    private function createManufacturerAndResponsibleStrings(ProductModel $product): array
+    {
         $manufacturerData = [
             'name' => '',
             'street' => '',
@@ -498,7 +512,6 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             ? $gpsrResponsibleAddress
             : '';
 
-        \update_post_meta($postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
-        \update_post_meta($postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
+        return [$gpsrManufacturerAddress, $gpsrResponsibleAddress];
     }
 }
