@@ -8,7 +8,6 @@ use Exception;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Product;
-use Jtl\Connector\Core\Model\ProductStockLevel as ProductStockLevelModel;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 
 class ProductStockLevelController extends AbstractBaseController implements PushInterface
@@ -20,8 +19,8 @@ class ProductStockLevelController extends AbstractBaseController implements Push
      */
     public function push(AbstractModel $model): AbstractModel
     {
-        /** @var ProductStockLevelModel $model */
-        $productId = $model->getProductId()->getEndpoint();
+        /** @var Product $model */
+        $productId = $model->getId()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
         if ($wcProduct === false || $wcProduct === null) {
