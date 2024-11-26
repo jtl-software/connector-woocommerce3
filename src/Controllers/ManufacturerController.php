@@ -58,14 +58,14 @@ class ManufacturerController extends AbstractBaseController implements
             /** @var array<string, string> $manufacturerDataSet */
             foreach ($manufacturerData as $manufacturerDataSet) {
                 $manufacturer = (new ManufacturerModel())
-                    ->setId(new Identity($manufacturerDataSet['term_id']))
+                    ->setId(new Identity((string)$manufacturerDataSet['term_id']))
                     ->setName($manufacturerDataSet['name']);
 
                 $i18n = $this->createManufacturerI18n(
                     $manufacturer,
                     $this->util->getWooCommerceLanguage(),
                     $manufacturerDataSet['description'],
-                    $manufacturerDataSet['term_id']
+                    (string)$manufacturerDataSet['term_id']
                 );
 
                 $manufacturer->addI18n(

@@ -48,7 +48,7 @@ class ShippingClassController extends AbstractBaseController
                     continue;
                 }
 
-                $shippingClass->getId()->setEndpoint($result['term_id']);
+                $shippingClass->getId()->setEndpoint((string)$result['term_id']);
             } else {
                 if ($term instanceof \WP_Term) {
                     $shippingClass->getId()->setEndpoint((string)$term->term_id);

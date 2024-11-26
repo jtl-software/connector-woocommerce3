@@ -318,7 +318,7 @@ class SpecificController extends AbstractBaseController implements
                     $termId = $termId['term_id'];
                 }
 
-                $value->getId()->setEndpoint($termId);
+                $value->getId()->setEndpoint((string)$termId);
             }
         }
 
