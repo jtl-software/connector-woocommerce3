@@ -148,10 +148,11 @@ class ImageTest extends TestCase
 
         $imageController = new ImageController($db, $util, $primaryKeyMapper);
 
-        $controller  = new \ReflectionClass($imageController);
-        $getImageAlt = $controller->getMethod('getNextAvailableImageFilename');
+        $controller                    = new \ReflectionClass($imageController);
+        $getNextAvailableImageFilename = $controller->getMethod('getNextAvailableImageFilename');
+        $getNextAvailableImageFilename->setAccessible(true);
 
-        $result = $getImageAlt->invoke($imageController, $name, $extension, $uploadDir);
+        $result = $getNextAvailableImageFilename->invoke($imageController, $name, $extension, $uploadDir);
         $this->assertSame($expectedFileName, $result);
     }
 
