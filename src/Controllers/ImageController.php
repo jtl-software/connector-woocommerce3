@@ -530,8 +530,7 @@ class ImageController extends AbstractBaseController implements
 
         $attachment  = [];
         $relinkImage = false;
-
-        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        $fileName = $this->getNextAvailableImageFilename($fileInfo['filename'], $extension, $uploadDir['path']);
         if ($endpointId !== '') {
             $id         = Id::unlink($endpointId);
             $attachment = \get_post($id[0], \ARRAY_A) ?? [];
