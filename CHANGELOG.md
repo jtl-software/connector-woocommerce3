@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2713 - update b2b customer group
+- CO-2770 - fix double image upload
 
 ## 2.1.0 _2024-11-14_
 - CO-2305 - update sql queries
