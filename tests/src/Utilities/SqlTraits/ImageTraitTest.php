@@ -24,11 +24,12 @@ class ImageTraitTest extends TestCase
      */
     protected function setUp(): void
     {
-        require_once '/var/www/html/wordpress/wp-load.php';
-
         global $wpdb;
 
-        $wpdb         = $this->createMock(\wpdb::Class);
+        $wpdb = $this->getMockBuilder(\wpdb::class)
+            ->setMethods(['prefix'])
+            ->getMock();
+
         $wpdb->prefix = 'wp_';
     }
 
