@@ -277,35 +277,55 @@ class ProductSpecialPriceController extends AbstractBaseController
                         }
                     } elseif (\is_int((int)$endpoint)) {
                         if ($productType !== ProductController::TYPE_PARENT) {
-                            $customerGroup       = \get_post($endpoint);
-                            $priceMetaKey        = \sprintf(
-                                'bm_%s_price',
-                                $customerGroup->post_name
-                            );
+                            $customerGroup = \get_post($endpoint);
+                            $priceMetaKey  = null;
+                            if (
+                                SupportedPlugins::comparePluginVersion(
+                                    SupportedPlugins::PLUGIN_B2B_MARKET,
+                                    '<',
+                                    '1.0.8.0'
+                                )
+                            ) {
+                                $priceMetaKey = \sprintf(
+                                    'bm_%s_price',
+                                    $customerGroup->post_name
+                                );
+
+                                $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
+                                \update_post_meta(
+                                    $productId,
+                                    $metaKeyForCustomerGroupPriceType,
+                                    'fix',
+                                    \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                                );
+                            }
+
                             $regularPriceMetaKey = \sprintf(
                                 '_jtlwcc_bm_%s_regular_price',
                                 $customerGroup->post_name
                             );
 
-                            $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
-                            \update_post_meta(
-                                $productId,
-                                $metaKeyForCustomerGroupPriceType,
-                                'fix',
-                                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
-                            );
-
                             if ($productType === ProductController::TYPE_CHILD) {
-                                $COPpriceMetaKey          = \sprintf(
-                                    'bm_%s_%s_price',
-                                    $customerGroup->post_name,
-                                    $productId
-                                );
-                                $COPpriceTypeMetaKey      = \sprintf(
-                                    'bm_%s_%s_price_type',
-                                    $customerGroup->post_name,
-                                    $productId
-                                );
+                                $COPpriceMetaKey     = null;
+                                $COPpriceTypeMetaKey = null;
+                                if (
+                                    SupportedPlugins::comparePluginVersion(
+                                        SupportedPlugins::PLUGIN_B2B_MARKET,
+                                        '<',
+                                        '1.0.8.0'
+                                    )
+                                ) {
+                                    $COPpriceMetaKey     = \sprintf(
+                                        'bm_%s_%s_price',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                    $COPpriceTypeMetaKey = \sprintf(
+                                        'bm_%s_%s_price_type',
+                                        $customerGroup->post_name,
+                                        $productId
+                                    );
+                                }
                                 $COPsalePriceMetaKey      = \sprintf(
                                     '_jtlwcc_bm_%s_%s_sale_price',
                                     $customerGroup->post_name,
@@ -337,54 +357,58 @@ class ProductSpecialPriceController extends AbstractBaseController
                             }
 
                             if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
-                                \update_post_meta(
-                                    $productId,
-                                    $priceMetaKey,
-                                    \wc_format_decimal($salePrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
-                                );
+                                if (isset($priceMetaKey)) {
+                                    \update_post_meta(
+                                        $productId,
+                                        $priceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta($productId, $priceMetaKey, true)
+                                    );
+                                }
 
                                 if (
                                     $productType === ProductController::TYPE_CHILD
-                                    && isset($COPpriceMetaKey)
-                                    && isset($COPpriceTypeMetaKey)
-                                    && isset($COPsalePriceMetaKey)
                                 ) {
-                                    //Update price on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPpriceMetaKey,
-                                        \wc_format_decimal($salePrice, $pd),
-                                        \get_post_meta(
+                                    if (
+                                        isset($COPpriceMetaKey)
+                                        && isset($COPpriceTypeMetaKey)
+                                    ) {
+                                        //Update price on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPpriceMetaKey,
-                                            true
-                                        )
-                                    );
-                                    //Update price type on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPpriceTypeMetaKey,
-                                        'fix',
-                                        \get_post_meta(
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPpriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                        //Update price type on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPpriceTypeMetaKey,
-                                            true
-                                        )
-                                    );
-                                    //Update sale_price on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPsalePriceMetaKey,
-                                        \wc_format_decimal($salePrice, $pd),
-                                        \get_post_meta(
+                                            'fix',
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPpriceTypeMetaKey,
+                                                true
+                                            )
+                                        );
+                                    }
+                                    if (isset($COPsalePriceMetaKey)) {
+                                        //Update sale_price on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPsalePriceMetaKey,
-                                            true
-                                        )
-                                    );
-                                } else {
-                                    if (isset($salePriceMetaKey)) {
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPsalePriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                    } elseif (isset($salePriceMetaKey)) {
                                         //Update sale_price on product
                                         \update_post_meta(
                                             $productId,
@@ -403,76 +427,84 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 && $dateFrom <= $current_time
                                 && ($current_time <= $dateTo || $dateTo == '')
                             ) {
-                                \update_post_meta(
-                                    $productId,
-                                    $priceMetaKey,
-                                    \wc_format_decimal($salePrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
-                                );
+                                if (isset($priceMetaKey)) {
+                                    \update_post_meta(
+                                        $productId,
+                                        $priceMetaKey,
+                                        \wc_format_decimal($salePrice, $pd),
+                                        \get_post_meta($productId, $priceMetaKey, true)
+                                    );
+                                }
 
                                 if (
                                     $productType === ProductController::TYPE_CHILD
-                                    && isset($COPpriceMetaKey)
-                                    && isset($COPpriceTypeMetaKey)
-                                    && isset($COPsalePriceMetaKey)
-                                    && isset($COPsalePriceDatesToKey)
-                                    && isset($COPsalePriceDatesFromKey)
                                 ) {
-                                    //Update price on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPpriceMetaKey,
-                                        \wc_format_decimal($salePrice, $pd),
-                                        \get_post_meta(
+                                    if (
+                                        isset($COPpriceMetaKey)
+                                        && isset($COPpriceTypeMetaKey)
+                                    ) {
+                                        //Update price on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPpriceMetaKey,
-                                            true
-                                        )
-                                    );
-                                    //Update price type on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPpriceTypeMetaKey,
-                                        'fix',
-                                        \get_post_meta(
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPpriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                        //Update price type on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPpriceTypeMetaKey,
-                                            true
-                                        )
-                                    );
-                                    //Update sale_price on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPsalePriceMetaKey,
-                                        \wc_format_decimal($salePrice, $pd),
-                                        \get_post_meta(
+                                            'fix',
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPpriceTypeMetaKey,
+                                                true
+                                            )
+                                        );
+                                    }
+                                    if (
+                                        isset($COPsalePriceMetaKey)
+                                        && isset($COPsalePriceDatesToKey)
+                                        && isset($COPsalePriceDatesFromKey)
+                                    ) {
+                                        //Update sale_price on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPsalePriceMetaKey,
-                                            true
-                                        )
-                                    );
-                                    //Update sale_price_date_to on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPsalePriceDatesToKey,
-                                        $dateTo,
-                                        \get_post_meta(
+                                            \wc_format_decimal($salePrice, $pd),
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPsalePriceMetaKey,
+                                                true
+                                            )
+                                        );
+                                        //Update sale_price_date_to on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPsalePriceDatesToKey,
-                                            true
-                                        )
-                                    );
-                                    //Update sale_price_date_from on parent
-                                    \update_post_meta(
-                                        $masterProductId->getEndpoint(),
-                                        $COPsalePriceDatesFromKey,
-                                        $dateFrom,
-                                        \get_post_meta(
+                                            $dateTo,
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPsalePriceDatesToKey,
+                                                true
+                                            )
+                                        );
+                                        //Update sale_price_date_from on parent
+                                        \update_post_meta(
                                             $masterProductId->getEndpoint(),
                                             $COPsalePriceDatesFromKey,
-                                            true
-                                        )
-                                    );
+                                            $dateFrom,
+                                            \get_post_meta(
+                                                $masterProductId->getEndpoint(),
+                                                $COPsalePriceDatesFromKey,
+                                                true
+                                            )
+                                        );
+                                    }
                                 } else {
                                     if (
                                         isset($salePriceMetaKey)
@@ -516,12 +548,14 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 }
                             } else {
                                 $regularPrice = (float)\get_post_meta($productId, $regularPriceMetaKey, true);
-                                \update_post_meta(
-                                    $productId,
-                                    $priceMetaKey,
-                                    \wc_format_decimal($regularPrice, $pd),
-                                    \get_post_meta($productId, $priceMetaKey, true)
-                                );
+                                if (isset($priceMetaKey)) {
+                                    \update_post_meta(
+                                        $productId,
+                                        $priceMetaKey,
+                                        \wc_format_decimal($regularPrice, $pd),
+                                        \get_post_meta($productId, $priceMetaKey, true)
+                                    );
+                                }
                             }
                         }
                     } else {
@@ -555,35 +589,55 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $customerGroupId = $customerGroup->getId()->getEndpoint();
                 $post            = \get_post($customerGroupId);
                 if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
-                    //$post = \get_post($customerGroupId);
-                    $priceMetaKey        = \sprintf(
-                        'bm_%s_price',
-                        $post->post_name
-                    );
+                    $priceMetaKey = null;
+                    if (
+                        SupportedPlugins::comparePluginVersion(
+                            SupportedPlugins::PLUGIN_B2B_MARKET,
+                            '<',
+                            '1.0.8.0'
+                        )
+                    ) {
+                        $priceMetaKey = \sprintf(
+                            'bm_%s_price',
+                            $post->post_name
+                        );
+
+                        $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';//TODO2
+                        \update_post_meta(
+                            $productId,
+                            $metaKeyForCustomerGroupPriceType,
+                            'fix',
+                            \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                        );
+                    }
+
                     $regularPriceMetaKey = \sprintf(
                         '_jtlwcc_bm_%s_regular_price',
                         $post->post_name
                     );
 
-                    $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
-                    \update_post_meta(
-                        $productId,
-                        $metaKeyForCustomerGroupPriceType,
-                        'fix',
-                        \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
-                    );
 
                     if ($productType === ProductController::TYPE_CHILD) {
-                        $COPpriceMetaKey          = \sprintf(
-                            'bm_%s_%s_price',
-                            $post->post_name,
-                            $productId
-                        );
-                        $COPpriceTypeMetaKey      = \sprintf(
-                            'bm_%s_%s_price_type',
-                            $post->post_name,
-                            $productId
-                        );
+                        $COPpriceMetaKey     = null;
+                        $COPpriceTypeMetaKey = null;
+                        if (
+                            SupportedPlugins::comparePluginVersion(
+                                SupportedPlugins::PLUGIN_B2B_MARKET,
+                                '<',
+                                '1.0.8.0'
+                            )
+                        ) {
+                            $COPpriceMetaKey     = \sprintf(
+                                'bm_%s_%s_price',
+                                $post->post_name,
+                                $productId
+                            );
+                            $COPpriceTypeMetaKey = \sprintf(
+                                'bm_%s_%s_price_type',
+                                $post->post_name,
+                                $productId
+                            );
+                        }
                         $COPsalePriceMetaKey      = \sprintf(
                             '_jtlwcc_bm_%s_%s_sale_price',
                             $post->post_name,
@@ -676,30 +730,30 @@ class ProductSpecialPriceController extends AbstractBaseController
                     continue;
                 }
 
-                \update_post_meta(
+                \update_post_meta(//TODO2
                     $productId,
                     $priceMetaKey,
                     \wc_format_decimal($regularPrice, $pd),
                     \get_post_meta($productId, $priceMetaKey, true)
                 );
 
-                if (
-                    $productType === ProductController::TYPE_CHILD
-                    & isset($COPpriceTypeMetaKey)
-                    && isset($COPpriceMetaKey)
-                ) {
-                    \update_post_meta(
-                        $masterProductId->getEndpoint(),
-                        $COPpriceMetaKey,
-                        \wc_format_decimal($regularPrice, $pd),
-                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceMetaKey, true)
-                    );
-                    \update_post_meta(
-                        $masterProductId->getEndpoint(),
-                        $COPpriceTypeMetaKey,
-                        'fix',
-                        \get_post_meta($masterProductId->getEndpoint(), $COPpriceTypeMetaKey, true)
-                    );
+                if ($productType === ProductController::TYPE_CHILD) {
+                    if (isset($COPpriceMetaKey)) {
+                        \update_post_meta(
+                            $masterProductId->getEndpoint(),
+                            $COPpriceMetaKey,
+                            \wc_format_decimal($regularPrice, $pd),
+                            \get_post_meta($masterProductId->getEndpoint(), $COPpriceMetaKey, true)
+                        );
+                    }
+                    if (isset($COPpriceTypeMetaKey)) {
+                        \update_post_meta(
+                            $masterProductId->getEndpoint(),
+                            $COPpriceTypeMetaKey,
+                            'fix',
+                            \get_post_meta($masterProductId->getEndpoint(), $COPpriceTypeMetaKey, true)
+                        );
+                    }
                 }
             }
         }
