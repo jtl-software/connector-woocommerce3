@@ -203,6 +203,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     public function pushData(ProductModel $product): void
     {
         $this->updateGermanMarketPPU($product);
+        $this->updateGermanMarketGpsrData($product);
     }
 
     /**
@@ -376,5 +377,141 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             0,
             $metaData[$metaKeys['usedCustomPPUKey']]
         );
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return void
+     * @throws \JsonException
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
+     */
+    private function updateGermanMarketGpsrData(ProductModel $product): void
+    {
+        $postId = $product->getId()->getEndpoint();
+
+        [$gpsrManufacturerAddress, $gpsrResponsibleAddress] = $this->createManufacturerAndResponsibleStrings($product);
+
+        \update_post_meta($postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
+        \update_post_meta($postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return string[]
+     * @throws \JsonException
+     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
+     */
+    private function createManufacturerAndResponsibleStrings(ProductModel $product): array
+    {
+        $manufacturerData = [
+            'name' => '',
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
+
+        $responsiblePersonData = [
+            'name' => '',
+            'street' => '',
+            'housenumber' => '',
+            'postalcode' => '',
+            'city' => '',
+            'state' => '',
+            'country' => '',
+            'email' => '',
+            'homepage' => ''
+        ];
+
+        foreach ($product->getAttributes() as $attribute) {
+            foreach ($attribute->getI18ns() as $i18n) {
+                if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
+                    switch ($i18n->getName()) {
+                        case 'gpsr_manufacturer_name':
+                            $manufacturerData['name'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_street':
+                            $manufacturerData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_housenumber':
+                            $manufacturerData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_postalcode':
+                            $manufacturerData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_city':
+                            $manufacturerData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_state':
+                            $manufacturerData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_country':
+                            $manufacturerData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_email':
+                            $manufacturerData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_manufacturer_homepage':
+                            $manufacturerData['homepage'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_name':
+                            $responsiblePersonData['name'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_street':
+                            $responsiblePersonData['street'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_housenumber':
+                            $responsiblePersonData['housenumber'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_postalcode':
+                            $responsiblePersonData['postalcode'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_city':
+                            $responsiblePersonData['city'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_state':
+                            $responsiblePersonData['state'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_country':
+                            $responsiblePersonData['country'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_email':
+                            $responsiblePersonData['email'] = $i18n->getValue();
+                            break;
+                        case 'gpsr_responsibleperson_homepage':
+                            $responsiblePersonData['homepage'] = $i18n->getValue();
+                            break;
+                    }
+                }
+            }
+        }
+
+        $gpsrManufacturerAddress = $manufacturerData['name'] . "\n"
+            . $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
+            . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
+            . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
+            . $manufacturerData['email'] . "\n"
+            . $manufacturerData['homepage'];
+
+        $gpsrResponsibleAddress = $responsiblePersonData['name'] . "\n"
+            . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
+            . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"
+            . $responsiblePersonData['state'] . ' ' . $responsiblePersonData['country'] . "\n"
+            . $responsiblePersonData['email'] . "\n"
+            . $responsiblePersonData['homepage'];
+
+        $gpsrManufacturerAddress = !empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))
+            ? $gpsrManufacturerAddress
+            : '';
+
+        $gpsrResponsibleAddress = !empty(\str_replace([' ', "\n"], '', $gpsrResponsibleAddress))
+            ? $gpsrResponsibleAddress
+            : '';
+
+        return [$gpsrManufacturerAddress, $gpsrResponsibleAddress];
     }
 }
