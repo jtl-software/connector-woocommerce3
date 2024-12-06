@@ -602,7 +602,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             $post->post_name
                         );
 
-                        $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';//TODO2
+                        $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
                         \update_post_meta(
                             $productId,
                             $metaKeyForCustomerGroupPriceType,
@@ -730,7 +730,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                     continue;
                 }
 
-                \update_post_meta(//TODO2
+                \update_post_meta(
                     $productId,
                     $priceMetaKey,
                     \wc_format_decimal($regularPrice, $pd),
