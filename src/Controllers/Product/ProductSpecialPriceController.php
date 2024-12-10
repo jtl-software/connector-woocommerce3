@@ -628,14 +628,13 @@ class ProductSpecialPriceController extends AbstractBaseController
         Identity $masterProductId,
         string $productType,
         int $pd
-    ): void
-    {
+    ): void {
         /** @var CustomerGroupModel $customerGroup */
         foreach ($customerGroups as $groupKey => $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
             $post            = \get_post($customerGroupId);
             if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
-                $priceMetaKey = $this->setPostMetaKey($productId, $post);
+                $priceMetaKey = $this->setPostMetaKey($productId, $post->post_name);
 
                 $regularPriceMetaKey = \sprintf(
                     '_jtlwcc_bm_%s_regular_price',
@@ -772,12 +771,11 @@ class ProductSpecialPriceController extends AbstractBaseController
      */
     public function setPostMetaKey(
         string $productId,
-        ?\WP_Post $post
+        string $postName
     ): ?string {
         $priceMetaKey = null;
-
         if (
-            SupportedPlugins::comparePluginVersion(
+            $this->comparePluginVersionWrapper(
                 SupportedPlugins::PLUGIN_B2B_MARKET,
                 '<',
                 '1.0.8.0'
@@ -785,7 +783,7 @@ class ProductSpecialPriceController extends AbstractBaseController
         ) {
             $priceMetaKey = \sprintf(
                 'bm_%s_price',
-                $post->post_name
+                $postName
             );
 
             $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
@@ -829,5 +827,16 @@ class ProductSpecialPriceController extends AbstractBaseController
         }
 
         return [$COPpriceMetaKey, $COPpriceTypeMetaKey];
+    }
+
+    /**
+     * @param string $pluginName
+     * @param string $operator
+     * @param string $version
+     * @return bool
+     */
+    protected function comparePluginVersionWrapper(string $pluginName, string $operator, string $version): bool
+    {
+        return SupportedPlugins::comparePluginVersion($pluginName, $operator, $version);
     }
 }
