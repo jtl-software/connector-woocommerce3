@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.2.0 _2024-12-10_
 - CO-2713 - update b2b customer group
 - CO-2363 - distinguish between image title and image filename
 - CO-2778 - update gpsr fields for german market
