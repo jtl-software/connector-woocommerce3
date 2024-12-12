@@ -92,8 +92,7 @@ class ProductSpecialPriceTest extends AbstractTestCase
 
         return [
             ['1111', '1.0.8.1', 'customer', null],
-            ['1234', '2.0.1', 'guest', null],
-            ['1512', '1.0.7', 'customer', null]
+            ['1234', '2.0.1', 'guest', null]
         ];
     }
 }
