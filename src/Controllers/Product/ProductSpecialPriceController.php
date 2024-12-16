@@ -775,7 +775,7 @@ class ProductSpecialPriceController extends AbstractBaseController
     ): ?string {
         $priceMetaKey = null;
         if (
-            $this->comparePluginVersionWrapper(
+            $this->comparePluginVersion(
                 SupportedPlugins::PLUGIN_B2B_MARKET,
                 '<',
                 '1.0.8.0'
