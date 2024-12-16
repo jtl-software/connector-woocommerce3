@@ -835,7 +835,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param string $version
      * @return bool
      */
-    protected function comparePluginVersionWrapper(string $pluginName, string $operator, string $version): bool
+    protected function comparePluginVersion(string $pluginName, string $operator, string $version): bool
     {
         return SupportedPlugins::comparePluginVersion($pluginName, $operator, $version);
     }

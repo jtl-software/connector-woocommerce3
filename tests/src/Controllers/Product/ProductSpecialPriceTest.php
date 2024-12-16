@@ -60,7 +60,7 @@ class ProductSpecialPriceTest extends AbstractTestCase
 
         $productSpecialPriceController = $this->getMockBuilder(ProductSpecialPriceController::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['comparePluginVersionWrapper'])
+            ->onlyMethods(['comparePluginVersion'])
             ->getMock();
 
         $pluginVersionSmaller = false;
@@ -69,7 +69,7 @@ class ProductSpecialPriceTest extends AbstractTestCase
             $pluginVersionSmaller = true;
         }
 
-        $productSpecialPriceController->method('comparePluginVersionWrapper')
+        $productSpecialPriceController->method('comparePluginVersion')
             ->willReturn($pluginVersionSmaller);
 
         $reflection = new \ReflectionClass($productSpecialPriceController);
