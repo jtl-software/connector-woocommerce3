@@ -723,8 +723,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $salePriceDatesFromKey = '_sale_price_dates_from';
                 $priceMetaKey          = '_price';
                 $regularPriceKey       = '_regular_price';
+
                 /** @var false|string $regularPrice */
-                $regularPrice          = \get_post_meta((int)$productId, $regularPriceKey, true);
+                $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
 
                 \update_post_meta(
                     (int)$productId,
