@@ -1,15 +1,13 @@
 <?php
 
-/**
- * @author    Jan Weskamp <jan.weskamp@jtl-software.com>
- * @copyright 2010-2013 JTL-Software GmbH
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
+use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
 use Psr\Log\InvalidArgumentException;
 use WC_Order;
@@ -17,13 +15,16 @@ use WC_Order;
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param StatusChangeModel $model
+     * @param AbstractModel $model
      * @return StatusChangeModel
      * @throws \WC_Data_Exception|InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {
-        $order = \wc_get_order($model->getCustomerOrderId()->getEndpoint());
+        /** @var StatusChangeModel $model */
+        $customerOrderId = $model->getCustomerOrderId();
+        $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
+        $order           = \wc_get_order($endpointId);
 
         if ($order instanceof WC_Order) {
             if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
@@ -54,8 +55,10 @@ class StatusChangeController extends AbstractBaseController implements PushInter
     protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange): void
     {
         global $wpdb;
-        $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
-        $endpointId  = $statusChange->getCustomerOrderId()->getEndpoint();
+        $jclp            = $wpdb->prefix . 'jtl_connector_link_payment';
+        $customerOrderId = $statusChange->getCustomerOrderId();
+        $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : "0";
+
         $paymentLink = $this->db->queryOne(\sprintf(
             'SELECT * FROM %s WHERE `endpoint_id` = %s',
             $jclp,
@@ -73,7 +76,7 @@ class StatusChangeController extends AbstractBaseController implements PushInter
 
     /**
      * @param StatusChangeModel $statusChange
-     * @param WC_Order $wcOrder
+     * @param WC_Order          $wcOrder
      * @return string|null
      */
     private function mapStatus(StatusChangeModel $statusChange, WC_Order $wcOrder): ?string

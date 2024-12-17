@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
@@ -21,10 +23,11 @@ class ProductPrice extends AbstractBaseController
     public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
-     * @return array
+     * @return ProductPriceModel[]
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
     {
@@ -33,8 +36,8 @@ class ProductPrice extends AbstractBaseController
 
         if (!SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $prices[] = (new ProductPriceModel())
-                ->setId(new Identity($product->get_id()))
-                ->setProductId(new Identity($product->get_id()))
+                ->setId(new Identity((string)$product->get_id()))
+                ->setProductId(new Identity((string)$product->get_id()))
                 ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
                 ->addItem((new ProductPriceItemModel())
                     ->setQuantity(1)
@@ -50,15 +53,14 @@ class ProductPrice extends AbstractBaseController
                 )
             ) {
                 $prices[] = (new ProductPriceModel())
-                    ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
+                    ->setProductId(new Identity((string)$product->get_id()))
                     ->setCustomerGroupId(new Identity(""))
                     ->addItem((new ProductPriceItemModel())
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product)));
             }
 
-            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
 
@@ -66,7 +68,6 @@ class ProductPrice extends AbstractBaseController
 
                 if (
                     $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
-                    && !SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
                     || (
                         $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
                         && SupportedPlugins::comparePluginVersion(
@@ -80,7 +81,9 @@ class ProductPrice extends AbstractBaseController
                         ->setQuantity(1)
                         ->setNetPrice($this->netPrice($product));
                 } else {
-                    $groupSlug = $groupController->getSlugById($customerGroupEndpointId);
+                    $groupSlug = !\is_bool($groupController->getSlugById($customerGroupEndpointId))
+                        ? $groupController->getSlugById($customerGroupEndpointId)
+                        : '';
 
                     $price = $this->getB2BMarketCustomerGroupPrice($model, $product, $groupSlug);
 
@@ -96,8 +99,8 @@ class ProductPrice extends AbstractBaseController
                 }
 
                 $prices[] = (new ProductPriceModel())
-                    ->setId(new Identity($product->get_id()))
-                    ->setProductId(new Identity($product->get_id()))
+                    ->setId(new Identity((string)$product->get_id()))
+                    ->setProductId(new Identity((string)$product->get_id()))
                     ->setCustomerGroupId($customerGroup->getId())
                     ->setItems(...$items);
             }
@@ -108,8 +111,8 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductModel $model
-     * @param WC_Product $wcProduct
-     * @param string $groupSlug
+     * @param WC_Product   $wcProduct
+     * @param string       $groupSlug
      * @return float|null
      */
     protected function getB2BMarketCustomerGroupPrice(
@@ -153,29 +156,30 @@ class ProductPrice extends AbstractBaseController
 
             $type = \get_post_meta($productIdForMeta, $typeKeyForMeta, true);
             if ($type === 'fix') {
+                /** @var false|string $price */
                 $price = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
             }
         }
 
-        return !\is_null($price) ? (float)$price : null;
+        return !\is_bool($price) ? (float)$price : null;
     }
 
 
     /**
-     * @param $items
-     * @param CustomerGroupModel $customerGroup
-     * @param $groupSlug
-     * @param WC_Product $product
-     * @param ProductModel $model
-     * @return mixed
+     * @param ProductPriceItemModel[] $items
+     * @param CustomerGroupModel      $customerGroup
+     * @param string                  $groupSlug
+     * @param WC_Product              $product
+     * @param ProductModel            $model
+     * @return ProductPriceItemModel[]
      */
     private function getBulkPrices(
-        $items,
+        array $items,
         CustomerGroupModel $customerGroup,
-        $groupSlug,
+        string $groupSlug,
         WC_Product $product,
         ProductModel $model
-    ): mixed {
+    ): array {
         if (\in_array($product->get_type(), ['simple', 'variable'])) {
             $metaKey       = \sprintf('bm_%s_bulk_prices', $groupSlug);
             $metaProductId = $product->get_id();
@@ -222,10 +226,10 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceModel ...$jtlProductPrices
-     * @return array
+     * @return array<string, ProductPriceModel>
      * @throws \InvalidArgumentException
      */
-    protected function groupProductPrices(\jtl\Connector\Core\Model\ProductPrice ...$jtlProductPrices): array
+    protected function groupProductPrices(ProductPriceModel ...$jtlProductPrices): array
     {
         $groupedProductPrices = [];
 
@@ -239,7 +243,7 @@ class ProductPrice extends AbstractBaseController
                     '1.0.3'
                 )
             ) {
-                if ((string)$endpoint === Config::get('jtlconnector_default_customer_group')) {
+                if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                     $groupedProductPrices[CustomerGroupController::DEFAULT_GROUP] = (new ProductPriceModel())
                         ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
                         ->setProductId($price->getProductId())
@@ -262,9 +266,9 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param float $vat
-     * @param string $productType
+     * @param WC_Product        $wcProduct
+     * @param float             $vat
+     * @param string            $productType
      * @param ProductPriceModel ...$productPrices
      * @return void
      * @throws \InvalidArgumentException
@@ -273,7 +277,7 @@ class ProductPrice extends AbstractBaseController
         WC_Product $wcProduct,
         float $vat,
         string $productType,
-        \jtl\Connector\Core\Model\ProductPrice ...$productPrices
+        ProductPriceModel ...$productPrices
     ): void {
         Util::deleteB2Bcache();
 
@@ -284,12 +288,12 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param array $groupedProductPrices
-     * @param float $vat
-     * @param string $productType
+     * @param WC_Product                           $wcProduct
+     * @param array<int|string, ProductPriceModel> $groupedProductPrices
+     * @param float                                $vat
+     * @param string                               $productType
      * @return void
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|\http\Exception\InvalidArgumentException
      */
     public function updateProductPrices(
         WC_Product $wcProduct,
@@ -332,9 +336,14 @@ class ProductPrice extends AbstractBaseController
             } elseif (
                 !\is_null($customerGroupMeta)
                 && SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
+                && \is_int($customerGroupId)
             ) {
                 $customerGroup = \get_post($customerGroupId);
-                $bulkPrices    = [];
+                if (!$customerGroup instanceof \WP_Post) {
+                    throw new \http\Exception\InvalidArgumentException("Customer group not found");
+                }
+
+                $bulkPrices = [];
 
                 foreach ($productPrice->getItems() as $item) {
                     $regularPrice = $this->getRegularPrice($item, $vat, $pd);
@@ -401,10 +410,10 @@ class ProductPrice extends AbstractBaseController
     }
 
     /**
-     * @param \WP_Post $customerGroup
-     * @param string $productType
+     * @param \WP_Post   $customerGroup
+     * @param string     $productType
      * @param WC_Product $wcProduct
-     * @param float $regularPrice
+     * @param float      $regularPrice
      * @return void
      */
     public function updateB2BMarketCustomerGroupPrice(
@@ -506,8 +515,8 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceItemModel $item
-     * @param int $productId
-     * @param float $vat
+     * @param int                   $productId
+     * @param float                 $vat
      * @return void
      */
     protected function updateDefaultProductPrice(ProductPriceItemModel $item, int $productId, float $vat): void
@@ -517,7 +526,7 @@ class ProductPrice extends AbstractBaseController
         if ($item->getQuantity() === 0) {
             $salePrice = \get_post_meta($productId, '_sale_price', true);
 
-            $decimal = \explode('.', $regularPrice);
+            $decimal = \explode('.', (string)$regularPrice);
 
             $decimalCount = \count($decimal) < 2
                 ? 2
@@ -543,11 +552,11 @@ class ProductPrice extends AbstractBaseController
 
     /**
      * @param ProductPriceItemModel $item
-     * @param float $vat
-     * @param int|null $pd
+     * @param float                 $vat
+     * @param int|null              $pd
      * @return float
      */
-    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, int $pd = null): float
+    protected function getRegularPrice(ProductPriceItemModel $item, float $vat, ?int $pd = null): float
     {
         if ($this->isWcPricesIncludeTax()) {
             $regularPrice = $item->getNetPrice() * (1 + $vat / 100);

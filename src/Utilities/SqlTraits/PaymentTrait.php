@@ -1,14 +1,10 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:46
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use http\Exception\InvalidArgumentException;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -17,15 +13,18 @@ use function Symfony\Component\String\s;
 trait PaymentTrait
 {
     /**
-     * @param @deprecated $includeCompletedOrders
-     * @param null $limit
+     * @param bool     $includeCompletedOrders
+     * @param int|null $limit
      * @return string
+     * @throws InvalidArgumentException
      */
-    public static function paymentCompletedPull($includeCompletedOrders, $limit = null): string
+    public static function paymentCompletedPull(bool $includeCompletedOrders, ?int $limit = null): string
     {
         global $wpdb;
-        $jclp        = $wpdb->prefix . 'jtl_connector_link_payment';
-        $jclo        = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
+        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+
+        /** @var string $since */
         $since       = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
         $hposEnabled = \get_option('woocommerce_custom_orders_table_enabled') === 'yes';
 

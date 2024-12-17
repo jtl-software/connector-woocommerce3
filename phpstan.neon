@@ -1,0 +1,12 @@
+parameters:
+    bootstrapFiles:
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    scanDirectories:
+        - ./stubs
+    excludePaths:
+        analyse:
+            - '*/vendor/*'
+            - '*/tests/*'
+            - './var/*'
+    ignoreErrors:
+        - '#Constant WC_DELIMITER not found.#'

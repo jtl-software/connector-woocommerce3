@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -13,7 +15,7 @@ class ShippingClassController extends AbstractBaseController
     public const TERM_TAXONOMY = 'product_shipping_class';
 
     /**
-     * @return array
+     * @return array<int, ShippingClassModel>
      */
     public function pull(): array
     {
@@ -21,7 +23,7 @@ class ShippingClassController extends AbstractBaseController
 
         foreach (\WC()->shipping()->get_shipping_classes() as $shippingClass) {
             $shippingClasses[] = (new ShippingClassModel())
-                ->setId(new Identity($shippingClass->term_id))
+                ->setId(new Identity((string)$shippingClass->term_id))
                 ->setName($shippingClass->name);
         }
 
@@ -29,8 +31,8 @@ class ShippingClassController extends AbstractBaseController
     }
 
     /**
-     * @param array $shippingClasses
-     * @return array
+     * @param ShippingClassModel[] $shippingClasses
+     * @return ShippingClassModel[]
      * @throws InvalidArgumentException
      */
     public function push(array $shippingClasses): array
@@ -46,9 +48,11 @@ class ShippingClassController extends AbstractBaseController
                     continue;
                 }
 
-                $shippingClass->getId()->setEndpoint($result['term_id']);
+                $shippingClass->getId()->setEndpoint((string)$result['term_id']);
             } else {
-                $shippingClass->getId()->setEndpoint($term->term_id);
+                if ($term instanceof \WP_Term) {
+                    $shippingClass->getId()->setEndpoint((string)$term->term_id);
+                }
             }
         }
 

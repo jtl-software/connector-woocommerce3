@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use Psr\Log\InvalidArgumentException;
@@ -10,14 +12,9 @@ use wpdb;
 
 class Db implements LoggerAwareInterface
 {
-    /**
-     * @var wpdb
-     */
     protected wpdb $wpDb;
 
-    /**
-     * @var LoggerInterface
-     */
+    /** @var LoggerInterface */
     protected LoggerInterface|NullLogger $logger;
 
     /**
@@ -38,14 +35,13 @@ class Db implements LoggerAwareInterface
         $this->logger = $logger;
     }
 
-
     /**
      * Run a plain SQL query on the database.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
-     * @return array|null Database query results
+     * @return array<string, bool|int|string|null>|null Database query results
      * @throws InvalidArgumentException
      */
     public function query(string $query, bool $shouldLog = true): ?array
@@ -56,16 +52,18 @@ class Db implements LoggerAwareInterface
             $this->logger->debug($query);
         }
 
-        return $wpdb->get_results($query, \ARRAY_A);
+        /** @var array<string, bool|int|string|null>|null $results */
+        $results = $wpdb->get_results($query, \ARRAY_A);
+        return $results;
     }
 
     /**
      * Run a SQL query which should only return one value.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
-     * @return null|string Found value or null.
+     * @return string|null Found value or null.
      * @throws InvalidArgumentException
      */
     public function queryOne(string $query, bool $shouldLog = true): ?string
@@ -82,10 +80,10 @@ class Db implements LoggerAwareInterface
     /**
      * Run a SQL query which should return a list of single values.
      *
-     * @param string $query SQL query.
-     * @param bool $shouldLog Query should be written to log files.
+     * @param string $query     SQL query.
+     * @param bool   $shouldLog Query should be written to log files.
      *
-     * @return array The array of values
+     * @return array<int, int|string> The array of values
      * @throws InvalidArgumentException
      */
     public function queryList(string $query, bool $shouldLog = true): array
@@ -98,6 +96,7 @@ class Db implements LoggerAwareInterface
             $this->logger->debug($query);
         }
 
+        /** @var array<int, array<int, int|string>> $result */
         $result = $wpdb->get_results($query, \ARRAY_N);
 
         if (!empty($result)) {
@@ -121,12 +120,12 @@ class Db implements LoggerAwareInterface
 
 
     /**
-     * @param $table
-     * @param $constraint
+     * @param string $table
+     * @param string $constraint
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function checkIfFKExists($table, $constraint): bool
+    public function checkIfFKExists(string $table, string $constraint): bool
     {
         $sql  = "
                SELECT COUNT(*)

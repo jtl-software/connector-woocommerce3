@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -12,6 +14,7 @@ use JtlWooCommerceConnector\Utilities\Id;
 
 /**
  * Class WpmlMedia
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlMedia extends AbstractComponent
@@ -20,54 +23,65 @@ class WpmlMedia extends AbstractComponent
         ELEMENT_TYPE = 'post_attachment';
 
     /**
-     * @param int $mediaId
+     * @param int           $mediaId
      * @param AbstractImage $jtlImage
+     * @return void
+     * @throws \Exception
      */
     public function getTranslations(int $mediaId, AbstractImage $jtlImage): void
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
         $translations = $this->getAttachmentTranslations($mediaId);
 
         foreach ($translations as $wpmlLanguageCode => $translation) {
-            $wawiIsoCode = $this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode);
+            $wawiIsoCode = $wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode);
 
+            /** @var int|false|string $altText */
             $altText = \get_post_meta($translation->element_id, '_wp_attachment_image_alt', true);
 
             $jtlImage->addI18n((new ImageI18n())
                 ->setId($jtlImage->getId())
-                ->setAltText((string)\substr($altText !== false ? $altText : '', 0, 254))
+                ->setAltText(\substr($altText !== false ? (string)$altText : '', 0, 254))
                 ->setLanguageISO($wawiIsoCode));
         }
     }
 
     /**
      * @param int $mediaId
-     * @return array
+     * @return \stdClass[]
      */
     public function getAttachmentTranslations(int $mediaId): array
     {
-        $trid = $this->getCurrentPlugin()->getElementTrid($mediaId, self::ELEMENT_TYPE);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $trid       = $wpmlPlugin->getElementTrid($mediaId, self::ELEMENT_TYPE);
 
-        return $this
-            ->getCurrentPlugin()
-            ->getComponent(WpmlTermTranslation::class)
-            ->getTranslations($trid, self::ELEMENT_TYPE);
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
+
+        return $wpmlTermTranslation
+            ->getTranslations((int)$trid, self::ELEMENT_TYPE);
     }
 
     /**
-     * @param int $attachmentId
-     * @param array $imageI18ns
+     * @param int         $attachmentId
+     * @param ImageI18n[] $imageI18ns
+     * @return void
+     * @throws \Exception
      */
     public function saveAttachmentTranslations(int $attachmentId, array $imageI18ns): void
     {
-        $translations  = $this->getAttachmentTranslations($attachmentId);
-        $currentPlugin = $this->getCurrentPlugin();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $translations = $this->getAttachmentTranslations($attachmentId);
 
         /** @var ImageI18n $i18n */
         foreach ($imageI18ns as $i18n) {
-            if ($currentPlugin->isDefaultLanguage($i18n->getLanguageISO()) || empty($i18n->getAltText())) {
+            if ($wpmlPlugin->isDefaultLanguage($i18n->getLanguageISO()) || empty($i18n->getAltText())) {
                 continue;
             }
-            $wpmlLanguage = $currentPlugin->convertLanguageToWpml($i18n->getLanguageISO());
+            $wpmlLanguage = $wpmlPlugin->convertLanguageToWpml($i18n->getLanguageISO());
             if (isset($translations[$wpmlLanguage])) {
                 $translation = $translations[$wpmlLanguage];
                 \update_post_meta($translation->element_id, '_wp_attachment_image_alt', $i18n->getAltText());
@@ -80,9 +94,11 @@ class WpmlMedia extends AbstractComponent
      */
     public function getImageProductThumbnailSql(): string
     {
-        $wpdb  = $this->getCurrentPlugin()->getWpDb();
-        $jcli  = $wpdb->prefix . 'jtl_connector_link_image';
-        $wpmlt = $wpdb->prefix . 'icl_translations';
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $wpdb       = $wpmlPlugin->getWpDb();
+        $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
+        $wpmlt      = $wpdb->prefix . 'icl_translations';
 
         $sql = \sprintf(
             "
@@ -104,7 +120,7 @@ class WpmlMedia extends AbstractComponent
             Id::SEPARATOR,
             IdentityType::PRODUCT,
             ImageCtrl::PRODUCT_THUMBNAIL,
-            $this->getCurrentPlugin()->getDefaultLanguage()
+            $wpmlPlugin->getDefaultLanguage()
         );
 
         return $sql;
@@ -115,8 +131,10 @@ class WpmlMedia extends AbstractComponent
      */
     public function getImageProductGalleryStats(): string
     {
-        $wpdb  = $this->getCurrentPlugin()->getWpDb();
-        $wpmlt = $wpdb->prefix . 'icl_translations';
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $wpdb       = $wpmlPlugin->getWpDb();
+        $wpmlt      = $wpdb->prefix . 'icl_translations';
 
         $sql = \sprintf(
             "
@@ -131,7 +149,7 @@ class WpmlMedia extends AbstractComponent
             AND p.post_status IN ('future', 'draft', 'publish', 'inherit', 'private')
             AND pm.meta_key = '%s' 
             AND pm.meta_value != 0",
-            $this->getCurrentPlugin()->getDefaultLanguage(),
+            $wpmlPlugin->getDefaultLanguage(),
             ImageCtrl::GALLERY_KEY
         );
 
@@ -142,7 +160,7 @@ class WpmlMedia extends AbstractComponent
      * @param int|null $limit
      * @return string
      */
-    public function imageCategoryPull(int $limit = null): string
+    public function imageCategoryPull(?int $limit = null): string
     {
         return $this->buildImageQueryPull(
             Id::CATEGORY_PREFIX,
@@ -157,7 +175,7 @@ class WpmlMedia extends AbstractComponent
      * @param int|null $limit
      * @return string
      */
-    public function imageManufacturerPull(int $limit = null): string
+    public function imageManufacturerPull(?int $limit = null): string
     {
         return $this->buildImageQueryPull(
             Id::MANUFACTURER_PREFIX,
@@ -169,10 +187,10 @@ class WpmlMedia extends AbstractComponent
     }
 
     /**
-     * @param string $prefix
-     * @param string $taxonomy
-     * @param string $metaKey
-     * @param int $identityType
+     * @param string   $prefix
+     * @param string   $taxonomy
+     * @param string   $metaKey
+     * @param int      $identityType
      * @param int|null $limit
      * @return string
      */
@@ -181,9 +199,11 @@ class WpmlMedia extends AbstractComponent
         string $taxonomy = 'pwb-brand',
         string $metaKey = ImageCtrl::MANUFACTURER_KEY,
         int $identityType = IdentityType::MANUFACTURER,
-        int $limit = null
+        ?int $limit = null
     ): string {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $wpdb       = $wpmlPlugin->getWpDb();
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
         $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
@@ -211,7 +231,7 @@ class WpmlMedia extends AbstractComponent
             $taxonomy,
             $metaKey,
             self::ELEMENT_TYPE,
-            $this->getCurrentPlugin()->getDefaultLanguage()
+            $wpmlPlugin->getDefaultLanguage()
         );
 
         return $sql;

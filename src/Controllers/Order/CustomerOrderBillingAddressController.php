@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderBillingAddress as CustomerOrderBillingAddressModel;
@@ -40,8 +42,9 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
+            /** @var int|string $index */
             $index = \get_post_meta($order->get_id(), '_billing_title', true);
-            $address->setSalutation((new Germanized())->parseIndexToSalutation($index));
+            $address->setSalutation((new Germanized())->parseIndexToSalutation((string)$index));
         }
 
         return $address;

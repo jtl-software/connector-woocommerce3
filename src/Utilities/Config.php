@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class Config
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 class Config
@@ -119,10 +123,10 @@ class Config
 
     /**
      * @param string $name
-     * @param $value
+     * @param mixed  $value
      * @return bool
      */
-    public static function set(string $name, $value): bool
+    public static function set(string $name, mixed $value): bool
     {
         $allowedKeys                                    = self::JTLWCC_CONFIG;
         $allowedKeys[Config::OPTIONS_INSTALLED_VERSION] = 'string';
@@ -151,10 +155,11 @@ class Config
     }
 
     /**
-     * @param string $name
-     * @param null $defaultValue
+     * @param string     $name
+     * @param mixed|null $defaultValue
+     * @return false|mixed|null
      */
-    public static function get(string $name, $defaultValue = null)
+    public static function get(string $name, mixed $defaultValue = null): mixed
     {
         return \get_option($name, $defaultValue);
     }
@@ -171,10 +176,19 @@ class Config
     /**
      * @return string
      * @throws ParseException
+     * @throws InvalidArgumentException
      */
     public static function getBuildVersion(): string
     {
-        return (string)\trim(Yaml::parseFile(\JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['version']);
+        $buildConfig = Yaml::parseFile(\JTLWCC_CONNECTOR_DIR . '/build-config.yaml');
+
+        if (!\is_array($buildConfig)) {
+            throw new InvalidArgumentException(
+                "Expected buildConfig to be an array, got " . \gettype($buildConfig)
+            );
+        }
+
+        return \trim($buildConfig['version']);
     }
 
     /**
@@ -186,7 +200,12 @@ class Config
         return self::writeCoreConfigFile(self::OPTIONS_DEVELOPER_LOGGING, $value);
     }
 
-    public static function writeCoreConfigFile(string $key, $value): bool
+    /**
+     * @param string $key
+     * @param bool   $value
+     * @return bool
+     */
+    public static function writeCoreConfigFile(string $key, bool $value): bool
     {
         $file = \CONNECTOR_DIR . '/config/config.json';
 
@@ -194,7 +213,7 @@ class Config
         if (!\file_exists($file)) {
             \file_put_contents($file, \json_encode($config));
         } else {
-            $config = \json_decode(\file_get_contents($file));
+            $config = \json_decode((string)\file_get_contents($file));
             if (!$config instanceof \stdClass) {
                 $config = new \stdClass();
             }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\GermanMarket;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
@@ -7,6 +9,7 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 
 /**
  * Class GermanMarket
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\GermanMarket
  */
 class GermanMarket extends AbstractPlugin
@@ -20,9 +23,9 @@ class GermanMarket extends AbstractPlugin
     }
 
     /**
-     *
+     * @return void
      */
-    public function setAutoOptions()
+    public function setAutoOptions(): void
     {
         //LIEFERZEITEN
         \update_option('woocommerce_global_lieferzeit', '-1', true);

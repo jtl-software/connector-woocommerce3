@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -14,14 +17,15 @@ use JtlWooCommerceConnector\Utilities\Config;
 
 /**
  * Class WooCommerceProduct
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceProduct extends AbstractComponent
 {
     /**
-     * @param int $wcProductId
-     * @param string $masterProductId
-     * @param Product $product
+     * @param int              $wcProductId
+     * @param string           $masterProductId
+     * @param Product          $product
      * @param ProductI18nModel $defaultI18n
      * @return int|null
      * @throws \Exception
@@ -80,21 +84,26 @@ class WooCommerceProduct extends AbstractComponent
 
     /**
      * @param DateTime $creationDate
-     * @param bool $gmt
-     * @return string|null
+     * @param bool     $gmt
+     * @return string
+     * @throws InvalidArgumentException
      * @throws \Exception
      */
-    private function getCreationDate(DateTime $creationDate, $gmt = false): ?string
+    private function getCreationDate(DateTime $creationDate, bool $gmt = false): string
     {
-        if (\is_null($creationDate)) {
-            return null;
-        }
-
         if ($gmt) {
-            $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(\date_interval_create_from_date_string(
+            $shopTimeZone     = new \DateTimeZone(\wc_timezone_string());
+            $dateTimeInterval = \date_interval_create_from_date_string(
                 $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
-            ));
+            );
+
+            if (!$dateTimeInterval instanceof \DateInterval) {
+                throw new InvalidArgumentException(
+                    'Could not create DateInterval. Got ' . \gettype($dateTimeInterval) . ' instead.'
+                );
+            }
+
+            $creationDate->sub($dateTimeInterval);
         }
 
         return $creationDate->format('Y-m-d H:i:s');
@@ -102,8 +111,8 @@ class WooCommerceProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @param Product $jtlProduct
-     * @param string $languageIso
+     * @param Product     $jtlProduct
+     * @param string      $languageIso
      * @return ProductI18nModel
      * @throws \Exception
      */
@@ -116,9 +125,12 @@ class WooCommerceProduct extends AbstractComponent
             ->setShortDescription(\html_entity_decode($wcProduct->get_short_description()))
             ->setUrlPath($wcProduct->get_slug());
 
+        /** @var Germanized $germanized */
         $germanized = $this->getPluginsManager()->get(Germanized::class);
         if ($germanized->canBeUsed() && $germanized->hasUnitProduct($wcProduct)) {
-            $i18n->setMeasurementUnitName($germanized->getUnit($wcProduct));
+            /** @var string $germanizedUnit */
+            $germanizedUnit = $germanized->getUnit($wcProduct);
+            $i18n->setMeasurementUnitName($germanizedUnit);
         }
 
         /** @var RankMathSeo $rankMathSeo */
@@ -127,7 +139,7 @@ class WooCommerceProduct extends AbstractComponent
         $yoastSeo = $this->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
             $tmpMeta = $yoastSeo->findProductSeoData($wcProduct);
-            if (!empty($tmpMeta) && \count($tmpMeta) > 0) {
+            if (\count($tmpMeta) > 0) {
                 $i18n->setMetaDescription(\is_array($tmpMeta['metaDesc']) ? '' : $tmpMeta['metaDesc'])
                     ->setMetaKeywords(\is_array($tmpMeta['keywords']) ? '' : $tmpMeta['keywords'])
                     ->setTitleTag(\is_array($tmpMeta['titleTag']) ? '' : $tmpMeta['titleTag'])
@@ -154,15 +166,27 @@ class WooCommerceProduct extends AbstractComponent
                     $name = $product->get_name() . ' ' . \wc_get_formatted_variation($product, true);
                     break;
                 case 'brackets':
-                    $name = \sprintf('%s (%s)', $product->get_name(), \wc_get_formatted_variation($product, true));
+                    $name = \sprintf(
+                        '%s (%s)',
+                        $product->get_name(),
+                        \wc_get_formatted_variation($product, true)
+                    );
                     break;
                 case 'space_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    $name   = $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true);
+                    $name   = ($parent instanceof \WC_Product)
+                        ? $parent->get_title() . ' ' . \wc_get_formatted_variation($product, true)
+                        : '';
                     break;
                 case 'brackets_parent':
                     $parent = \wc_get_product($product->get_parent_id());
-                    $name   = \sprintf('%s (%s)', $parent->get_title(), \wc_get_formatted_variation($product, true));
+                    $name   = ($parent instanceof \WC_Product)
+                        ? \sprintf(
+                            '%s (%s)',
+                            $parent->get_title(),
+                            \wc_get_formatted_variation($product, true)
+                        )
+                        : '';
                     break;
             }
         }

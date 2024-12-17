@@ -1,22 +1,17 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 10:54
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait PrimaryKeyMappingTrait
 {
     /**
-     * @param $endpointId
-     * @param $type
+     * @param string $endpointId
+     * @param int    $type
      * @return string
      */
-    public static function primaryKeyMappingHostImage($endpointId, $type): string
+    public static function primaryKeyMappingHostImage(string $endpointId, int $type): string
     {
         global $wpdb;
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';
@@ -27,11 +22,11 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $isGuest
+     * @param string $endpointId
+     * @param int    $isGuest
      * @return string
      */
-    public static function primaryKeyMappingHostCustomer($endpointId, $isGuest): string
+    public static function primaryKeyMappingHostCustomer(string $endpointId, int $isGuest): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -42,11 +37,11 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $tableName
+     * @param string      $endpointId
+     * @param string|null $tableName
      * @return string
      */
-    public static function primaryKeyMappingHostString($endpointId, $tableName): string
+    public static function primaryKeyMappingHostString(string $endpointId, ?string $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -57,11 +52,11 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $tableName
+     * @param string      $endpointId
+     * @param string|null $tableName
      * @return string
      */
-    public static function primaryKeyMappingHostInteger($endpointId, $tableName): string
+    public static function primaryKeyMappingHostInteger(string $endpointId, ?string $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -72,12 +67,12 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $hostId
-     * @param $tableName
-     * @param $clause
+     * @param int    $hostId
+     * @param string $tableName
+     * @param string $clause
      * @return string
      */
-    public static function primaryKeyMappingEndpoint($hostId, $tableName, $clause): string
+    public static function primaryKeyMappingEndpoint(int $hostId, string $tableName, string $clause): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -88,12 +83,12 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $type
+     * @param string $endpointId
+     * @param int    $hostId
+     * @param int    $type
      * @return string
      */
-    public static function primaryKeyMappingSaveImage($endpointId, $hostId, $type): string
+    public static function primaryKeyMappingSaveImage(string $endpointId, int $hostId, int $type): string
     {
         global $wpdb;
         $jcli = $wpdb->prefix . 'jtl_connector_link_image';
@@ -103,12 +98,12 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $isGuest
+     * @param string $endpointId
+     * @param int    $hostId
+     * @param int    $isGuest
      * @return string
      */
-    public static function primaryKeyMappingSaveCustomer($endpointId, $hostId, $isGuest): string
+    public static function primaryKeyMappingSaveCustomer(string $endpointId, int $hostId, int $isGuest): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -118,12 +113,12 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $tableName
+     * @param string $endpointId
+     * @param int    $hostId
+     * @param string $tableName
      * @return string
      */
-    public static function primaryKeyMappingSaveInteger($endpointId, $hostId, $tableName): string
+    public static function primaryKeyMappingSaveInteger(string $endpointId, int $hostId, string $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -133,12 +128,12 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $endpointId
-     * @param $hostId
-     * @param $tableName
+     * @param string $endpointId
+     * @param int    $hostId
+     * @param string $tableName
      * @return string
      */
-    public static function primaryKeyMappingSaveString($endpointId, $hostId, $tableName): string
+    public static function primaryKeyMappingSaveString(string $endpointId, int $hostId, string $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -148,11 +143,11 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @param $where
-     * @param $tableName
+     * @param string $where
+     * @param string $tableName
      * @return string
      */
-    public function primaryKeyMappingDelete($where, $tableName): string
+    public function primaryKeyMappingDelete(string $where, string $tableName): string
     {
         global $wpdb;
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
@@ -161,7 +156,7 @@ trait PrimaryKeyMappingTrait
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public static function primaryKeyMappingClear(): array
     {

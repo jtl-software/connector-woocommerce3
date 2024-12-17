@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -8,7 +10,7 @@ use Jtl\Connector\Core\Model\ProductType as ProductTypeModel;
 class ProductTypeController
 {
     /**
-     * @return array
+     * @return array<int, ProductTypeModel>
      */
     public function pull(): array
     {

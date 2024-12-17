@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
-use jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
+use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\GlobalData as GlobalDataModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\GlobalData\CrossSellingGroups;
@@ -25,6 +27,7 @@ use Psr\Log\InvalidArgumentException;
 class GlobalDataController extends AbstractBaseController implements PullInterface, PushInterface
 {
     /**
+     * @param QueryFilter $query
      * @return array<GlobalDataModel>
      * @throws Exception
      */
@@ -41,7 +44,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 
         $hasDefaultCustomerGroup = false;
         foreach ((new CustomerGroupController($this->db, $this->util))->pull() as $group) {
-            /** @var $group CustomerGroupModel */
+            /** @var CustomerGroupModel $group */
             if ($group->getIsDefault() === true) {
                 $hasDefaultCustomerGroup = true;
             }
@@ -56,17 +59,20 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
             ));
         }
 
-        if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
+        // if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
-            //   \update_option('woocommerce_prices_include_tax', 'no', true);
+            // \update_option('woocommerce_prices_include_tax', 'no', true);
             //Preise im Shop mit hinterlegter Steuer
             // \update_option('woocommerce_tax_display_shop', 'incl', true);   //MOVED PROD PUSH
             //Preise im Cart mit hinterlegter Steuer
             //\update_option('woocommerce_tax_display_cart', 'incl', true);
 
-            /*\update_option('woocommerce_dimension_unit', 'cm', true);
-            \update_option('woocommerce_weight_unit', 'kg', true);*/
-        }
+            /*
+                \update_option('woocommerce_dimension_unit', 'cm', true);
+                \update_option('woocommerce_weight_unit', 'kg', true);
+            */
+
+        // }
 
         if (
             (
@@ -139,13 +145,14 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
     }
 
     /**
-     * @param GlobalDataModel $model
-     * @return GlobalDataModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var GlobalDataModel $model */
         (new CurrencyController($this->db, $this->util))->push($model->getCurrencies());
         (new ShippingClassController($this->db, $this->util))->push($model->getShippingClasses());
 

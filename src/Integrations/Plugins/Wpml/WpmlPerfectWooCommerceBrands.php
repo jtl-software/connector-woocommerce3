@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\Manufacturer;
@@ -7,22 +9,26 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
+use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WpmlPerfectWooCommerceBrands
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlPerfectWooCommerceBrands extends AbstractComponent
 {
     /**
      * @param int $limit
-     * @return array
+     * @return array<int, array<int|string, int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getManufacturers(int $limit): array
     {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $wpdb       = $wpmlPlugin->getWpDb();
 
         $jclm         = $wpdb->prefix . 'jtl_connector_link_manufacturer';
         $translations = $wpdb->prefix . 'icl_translations';
@@ -45,14 +51,20 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             $jclm,
             $translations,
             'pwb-brand',
-            $this->getCurrentPlugin()->getDefaultLanguage()
+            $wpmlPlugin->getDefaultLanguage()
         );
 
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql);
+        /** @var array<int, array<int|string, int|string|null>> $manufacturers */
+        $manufacturers = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query($sql) ?? [];
+
+        return $manufacturers;
     }
 
     /**
      * @param Manufacturer $jtlManufacturer
+     * @return void
+     * @throws \InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      * @throws \Exception
      */
     public function saveTranslations(Manufacturer $jtlManufacturer): void
@@ -60,22 +72,34 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         \remove_filter('pre_term_description', 'wp_filter_kses');
         $mainManufacturerId = (int)$jtlManufacturer->getId()->getEndpoint();
 
-        $termTranslations = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WpmlTermTranslation $termTranslations */
+        $termTranslations = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
 
         $elementType = 'tax_pwb-brand';
 
+        /** @var false|\WP_Error|\WP_Term $manufacturerTerm */
         $manufacturerTerm = \get_term_by('id', $mainManufacturerId, 'pwb-brand');
 
-        $trid = $this->getCurrentPlugin()->getElementTrid($manufacturerTerm->term_taxonomy_id, $elementType);
+        if (!$manufacturerTerm instanceof \WP_Term) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Manufacturer with ID {$mainManufacturerId} not found."
+            );
+        }
 
-        $translation = $termTranslations->getTranslations($trid, $elementType);
+        $trid = $wpmlPlugin->getElementTrid($manufacturerTerm->term_taxonomy_id, $elementType);
 
-        $perfectWooCommerceBrands = $this->getCurrentPlugin()->getPluginsManager()
+        $translation = $termTranslations->getTranslations((int)$trid, $elementType);
+
+        /** @var PerfectWooCommerceBrands $perfectWooCommerceBrands */
+        $perfectWooCommerceBrands = $wpmlPlugin->getPluginsManager()
             ->get(PerfectWooCommerceBrands::class);
 
         foreach ($jtlManufacturer->getI18ns() as $manufacturerI18n) {
-            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($manufacturerI18n->getLanguageISO());
-            if ($languageCode === $this->getCurrentPlugin()->getDefaultLanguage()) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($manufacturerI18n->getLanguageISO());
+            if ($languageCode === $wpmlPlugin->getDefaultLanguage()) {
                 continue;
             }
 
@@ -92,7 +116,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             }
 
             if ($result instanceof \WP_Error) {
-                $this->logger->error($result);
+                $this->logger->error(ErrorFormatter::formatError($result));
             } else {
                 if (isset($result['term_id'])) {
                     $translatedManufacturerId = (int)$result['term_id'];
@@ -107,10 +131,10 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                         $rankMathSeo->updateWpSeoTaxonomyMeta($translatedManufacturerId, $manufacturerI18n);
                     }
 
-                    $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
-                        $result['term_taxonomy_id'],
+                    $wpmlPlugin->getSitepress()->set_element_language_details(
+                        (int)$result['term_taxonomy_id'],
                         $elementType,
-                        $trid,
+                        (int)$trid,
                         $languageCode
                     );
                 }
@@ -121,16 +145,22 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 
     /**
      * @param int $manufacturerId
+     * @return void
+     * @throws \Exception
      */
     public function deleteTranslations(int $manufacturerId): void
     {
         $elementType = 'tax_pwb-brand';
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
 
-        $trid = $this->getCurrentPlugin()->getElementTrid($manufacturerId, $elementType);
+        $trid = $wpmlPlugin->getElementTrid($manufacturerId, $elementType);
 
-        $translations = $this->getCurrentPlugin()
-            ->getComponent(WpmlTermTranslation::class)
-            ->getTranslations($trid, $elementType, true);
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
+
+        $translations = $wpmlTermTranslation
+            ->getTranslations((int)$trid, $elementType, true);
 
         foreach ($translations as $translation) {
             \wp_delete_term($translation->term_id, 'pwb-brand');
@@ -143,8 +173,10 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
      */
     public function getStats(): int
     {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
-        $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $wpdb       = $wpmlPlugin->getWpDb();
+        $jclm       = $wpdb->prefix . 'jtl_connector_link_manufacturer';
 
         $sql = \sprintf(
             "
@@ -160,7 +192,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
             $jclm,
             $wpdb->prefix,
             'pwb-brand',
-            $this->getCurrentPlugin()->getDefaultLanguage()
+            $wpmlPlugin->getDefaultLanguage()
         );
 
         return (int)$this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryOne($sql);

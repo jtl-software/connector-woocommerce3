@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Models;
 
+use Jtl\Connector\Core\Model\CrossSelling;
 use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
 use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Models
  */
 class CrossSellingGroup
@@ -15,9 +19,7 @@ class CrossSellingGroup
     public const TYPE_CROSS_SELL = "1";
     public const TYPE_UP_SELL    = "2";
 
-    /**
-     * @var array
-     */
+    /** @var array<int, array<string, string>> */
     protected static array $groups = [
         [
             'endpointId' => self::TYPE_CROSS_SELL,
@@ -32,7 +34,8 @@ class CrossSellingGroup
     ];
 
     /**
-     * @return array
+     * @param Util $util
+     * @return array<int, \Jtl\Connector\Core\Model\CrossSellingGroup>
      */
     public static function all(Util $util): array
     {
@@ -44,12 +47,14 @@ class CrossSellingGroup
     }
 
     /**
-     * @param $name
-     * @param $util
+     * @param string $name
+     * @param Util   $util
      * @return false|\Jtl\Connector\Core\Model\CrossSellingGroup
      */
-    public static function getByWooCommerceName($name, $util)
-    {
+    public static function getByWooCommerceName(
+        string $name,
+        Util $util
+    ): bool|\Jtl\Connector\Core\Model\CrossSellingGroup {
         $key = self::findKeyByColumn('woo_commerce_name', $name);
 
         if ($key === false) {
@@ -62,8 +67,8 @@ class CrossSellingGroup
     }
 
     /**
-     * @param array $groupData
-     * @param Util $util
+     * @param array<string, string> $groupData
+     * @param Util                  $util
      * @return \Jtl\Connector\Core\Model\CrossSellingGroup
      */
     protected static function createFromArray(array $groupData, Util $util): \Jtl\Connector\Core\Model\CrossSellingGroup
@@ -81,11 +86,12 @@ class CrossSellingGroup
     }
 
     /**
-     * @param $columnName
-     * @param $value
+     * @param string $columnName
+     * @param string $value
+     *
      * @return false|int|string
      */
-    protected static function findKeyByColumn($columnName, $value): bool|int|string
+    protected static function findKeyByColumn(string $columnName, string $value): bool|int|string
     {
         return \array_search($value, \array_column(self::$groups, $columnName));
     }

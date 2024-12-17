@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Exception;
 use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -10,16 +13,21 @@ use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlSpecific
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlSpecific extends AbstractComponent
 {
     /**
      * @return int
+     * @throws InvalidArgumentException
      */
     public function getStats(): int
     {
-        $wpdb = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        $wpdb = $wpmlPlugin->getWpDb();
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
         $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
 
@@ -35,18 +43,22 @@ class WpmlSpecific extends AbstractComponent
 
     /**
      * @param Specific $specific
-     * @param string $name
+     * @param string   $name
+     * @return void
+     * @throws Exception
      */
     public function getTranslations(Specific $specific, string $name): void
     {
-        $languages = $this->getCurrentPlugin()->getActiveLanguages();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $languages  = $wpmlPlugin->getActiveLanguages();
 
         foreach ($languages as $languageCode => $language) {
             $translatedName = \apply_filters('wpml_translate_single_string', $name, 'WordPress', $name, $languageCode);
             if ($translatedName !== $name) {
                 $specific->addI18n(
                     (new SpecificI18nModel())
-                        ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($languageCode))
+                        ->setLanguageISO($wpmlPlugin->convertLanguageToWawi((string)$languageCode))
                         ->setName($translatedName)
                 );
             }
@@ -54,15 +66,20 @@ class WpmlSpecific extends AbstractComponent
     }
 
     /**
-     * @param Specific $specific
+     * @param Specific          $specific
      * @param SpecificI18nModel $defaultTranslation
+     * @return void
      * @throws InjectionException
+     * @throws Exception
      */
     public function setTranslations(Specific $specific, SpecificI18nModel $defaultTranslation): void
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
         foreach ($specific->getI18ns() as $specificI18n) {
-            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificI18n->getLanguageISO());
-            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($specificI18n->getLanguageISO());
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
             }
 
@@ -88,18 +105,21 @@ class WpmlSpecific extends AbstractComponent
 
     /**
      * @param string $specificName
-     * @return array|null
+     * @return array<int, array<string, int|string>>|null
      * @throws InvalidArgumentException
      */
     public function getValues(string $specificName): ?array
     {
-        $wpdb         = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin   = $this->getCurrentPlugin();
+        $wpdb         = $wpmlPlugin->getWpDb();
         $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';
         $iclt         = $wpdb->prefix . 'icl_translations';
-        $languageCode = $this->getCurrentPlugin()->getDefaultLanguage();
+        $languageCode = $wpmlPlugin->getDefaultLanguage();
         $elementType  = 'tax_' . \esc_sql($specificName);
 
-        return $this->getPluginsManager()->getDatabase()->query(
+        /** @var array<int, array<string, int|string>>|null $values */
+        $values = $this->getPluginsManager()->getDatabase()->query(
             "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
                 FROM {$wpdb->terms} t
                   LEFT JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
@@ -112,6 +132,8 @@ class WpmlSpecific extends AbstractComponent
                 AND wpmlt.language_code = '{$languageCode}'
                 ORDER BY tt.parent ASC;"
         );
+
+        return $values;
     }
 
     /**
@@ -120,7 +142,9 @@ class WpmlSpecific extends AbstractComponent
      */
     public function isTranslatable(string $specificName): bool
     {
-        $attributes = $this->getCurrentPlugin()->getWcml()->get_setting('attributes_settings');
-        return (isset($attributes[$specificName]) && (int)$attributes[$specificName] === 1) ? true : false;
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $attributes = $wpmlPlugin->getWcml()->get_setting('attributes_settings');
+        return isset($attributes[$specificName]) && (int)$attributes[$specificName] === 1;
     }
 }

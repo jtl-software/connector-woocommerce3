@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
     use Jtl\Connector\Core\Model\ProductI18n;
@@ -13,7 +15,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         /**
          * @dataProvider hasWcAttributePrefixDataProvider
          * @param string $attributeName
-         * @param bool $expectedResult
+         * @param bool   $expectedResult
          * @return void
          * @throws \ReflectionException
          */
@@ -27,6 +29,9 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
             $this->assertEquals($expectedResult, $result);
         }
 
+        /**
+         * @return array<int, array<int, bool|string>>
+         */
         public function hasWcAttributePrefixDataProvider(): array
         {
             return [
@@ -54,6 +59,9 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
             $this->assertEquals($expectedAttributeName, $result);
         }
 
+        /**
+         * @return array<int, string[]>
+         */
         public function convertLegacyAttributeNameDataProvider(): array
         {
             return [
@@ -66,8 +74,8 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
         /**
          * @dataProvider updateProductVisibilityDataProvider
-         * @param string $visibilityType
-         * @param array $expectedVisibilityArray
+         * @param string   $visibilityType
+         * @param string[] $expectedVisibilityArray
          * @return void
          * @throws \ReflectionException
          * @throws RuntimeException
@@ -105,6 +113,9 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
             );
         }
 
+        /**
+         * @return array<int, array<int, array<int, string>|string>>
+         */
         public function updateProductVisibilityDataProvider(): array
         {
             return [
@@ -147,6 +158,10 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
 namespace {
     if (!\function_exists('wc_sanitize_taxonomy_name')) {
+        /**
+         * @param string $name
+         * @return string
+         */
         function wc_sanitize_taxonomy_name(string $name): string
         {
             return $name;

@@ -1,19 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
-use jtl\Connector\Core\Model\CrossSellingGroupI18n;
+use Jtl\Connector\Core\Model\CrossSellingGroupI18n;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Models\CrossSellingGroup;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Controllers\GlobalData
  */
 class CrossSellingGroups extends AbstractBaseController
 {
     /**
-     * @return array
+     * @return \Jtl\Connector\Core\Model\CrossSellingGroup[]
+     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function pull(): array
     {
@@ -34,7 +40,7 @@ class CrossSellingGroups extends AbstractBaseController
                 }
 
                 foreach ($languages as $languageCode => $language) {
-                    $wawiLanguageCode = $this->wpml->convertLanguageToWawi($languageCode);
+                    $wawiLanguageCode = $this->wpml->convertLanguageToWawi((string)$languageCode);
                     if (!\is_null($defaultI18n) && $languageCode !== $this->wpml->getDefaultLanguage()) {
                         $i18n = (new CrossSellingGroupI18n())
                             ->setLanguageISO($wawiLanguageCode)

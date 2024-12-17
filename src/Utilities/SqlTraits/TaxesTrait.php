@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 10:55
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -14,10 +9,10 @@ use Jtl\Connector\Core\Model\TaxRate;
 trait TaxesTrait
 {
     /**
-     * @param $rate
+     * @param float $rate
      * @return string
      */
-    public static function taxClassByRate($rate): string
+    public static function taxClassByRate(float $rate): string
     {
         global $wpdb;
         $wtr = $wpdb->prefix . 'woocommerce_tax_rates';
@@ -60,10 +55,10 @@ trait TaxesTrait
     }
 
     /**
-     * @param $taxRateId
+     * @param int|string $taxRateId
      * @return string
      */
-    public static function taxRateById($taxRateId): string
+    public static function taxRateById(int|string $taxRateId): string
     {
         global $wpdb;
         $wtr = $wpdb->prefix . 'woocommerce_tax_rates';

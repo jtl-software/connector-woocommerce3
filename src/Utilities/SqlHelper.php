@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use JtlWooCommerceConnector\Utilities\SqlTraits\CategoryTrait;

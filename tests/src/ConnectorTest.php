@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests;
 
 use Jtl\Connector\Core\Application\Application;
@@ -30,6 +32,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 class ConnectorTest extends TestCase
 {
     /**
+     * @return void
      * @throws MethodCannotBeConfiguredException
      * @throws RuntimeException
      * @throws ClassIsFinalException
@@ -63,6 +66,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws MethodCannotBeConfiguredException
      * @throws RuntimeException
      * @throws ClassIsFinalException
@@ -89,7 +93,7 @@ class ConnectorTest extends TestCase
         $application = $this->createApplicationMock(['getEventDispatcher']);
         $application->method('getEventDispatcher')->willReturn($dispatcher = new EventDispatcher());
 
-        $dispatcher->addListener(CanHandleEvent::EVENT_NAME, function (CanHandleEvent $event) {
+        $dispatcher->addListener(CanHandleEvent::EVENT_NAME, function (CanHandleEvent $event): void {
             $event->setCanHandle(true);
         });
 
@@ -101,6 +105,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -130,6 +135,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -151,6 +157,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -172,6 +179,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws InvalidMethodNameException
      * @throws RuntimeException
      * @throws CannotUseOnlyMethodsException
@@ -193,6 +201,7 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException
@@ -212,6 +221,8 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @param string[] $onlyMethods
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException
@@ -233,6 +244,8 @@ class ConnectorTest extends TestCase
     }
 
     /**
+     * @param string[] $onlyMethods
+     * @return MockObject
      * @throws InvalidMethodNameException
      * @throws ClassIsFinalException
      * @throws InvalidArgumentException

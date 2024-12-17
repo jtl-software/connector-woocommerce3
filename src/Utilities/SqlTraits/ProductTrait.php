@@ -7,15 +7,17 @@
  * Time: 10:55
  */
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait ProductTrait
 {
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function productPull($limit = null): string
+    public static function productPull(?int  $limit = null): string
     {
         global $wpdb;
         $jclp = $wpdb->prefix . 'jtl_connector_link_product';
@@ -49,11 +51,11 @@ trait ProductTrait
     }
 
     /**
-     * @param $id
-     * @param $updatedAttributeKeys
+     * @param int      $id
+     * @param string[] $updatedAttributeKeys
      * @return string
      */
-    public static function productVariationObsoletes($id, $updatedAttributeKeys): string
+    public static function productVariationObsoletes(int $id, array $updatedAttributeKeys): string
     {
         global $wpdb;
 

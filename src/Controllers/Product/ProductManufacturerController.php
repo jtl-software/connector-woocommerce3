@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -25,7 +28,7 @@ class ProductManufacturerController extends AbstractBaseController
                 return;
             }
             if ($term instanceof \WP_Term) {
-                \wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
+                \wp_set_object_terms((int)$productId, $term->term_id, $term->taxonomy, true);
             }
         } else {
             $this->removeManufacturerTerm($productId);
@@ -38,13 +41,13 @@ class ProductManufacturerController extends AbstractBaseController
      */
     private function removeManufacturerTerm(string $productId): void
     {
-        $terms = \wp_get_object_terms($productId, 'pwb-brand');
+        $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
 
         if (\is_array($terms) && \count($terms) > 0) {
             /** @var \WP_Term $term */
             foreach ($terms as $key => $term) {
                 if ($term instanceof \WP_Term) {
-                    \wp_remove_object_terms($productId, $term->term_id, 'pwb-brand');
+                    \wp_remove_object_terms((int)$productId, $term->term_id, 'pwb-brand');
                 }
             }
         }
@@ -53,18 +56,25 @@ class ProductManufacturerController extends AbstractBaseController
     /**
      * @param ProductModel $model
      * @return Identity|null
+     * @throws InvalidArgumentException
      */
     public function pullData(ProductModel $model): ?Identity
     {
         $productId      = $model->getId()->getEndpoint();
         $manufacturerId = null;
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-            $terms = \wp_get_object_terms($productId, 'pwb-brand');
+            $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
+
+            if (!\is_array($terms)) {
+                throw new InvalidArgumentException(
+                    'Array type expected. Got ' . \gettype($terms) . ' instead.'
+                );
+            }
 
             if (\count($terms) > 0) {
                 /** @var \WP_Term $term */
                 $term           = $terms[0];
-                $manufacturerId = (new Identity())->setEndpoint($term->term_id);
+                $manufacturerId = (new Identity())->setEndpoint((string)$term->term_id);
             }
         }
 

@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 10:55
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -14,11 +9,11 @@ use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 trait WooCommerceDataTrait
 {
     /**
-     * @param $productId
-     * @param $termTaxonomyId
+     * @param int $productId
+     * @param int $termTaxonomyId
      * @return string
      */
-    public static function findTermTaxonomyRelation($productId, $termTaxonomyId): string
+    public static function findTermTaxonomyRelation(int $productId, int $termTaxonomyId): string
     {
         global $wpdb;
 
@@ -29,11 +24,11 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param $productId
-     * @param $taxonomy
+     * @param int    $productId
+     * @param string $taxonomy
      * @return string
      */
-    public static function findTermsForProduct($productId, $taxonomy): string
+    public static function findTermsForProduct(int $productId, string $taxonomy): string
     {
         global $wpdb;
 
@@ -45,11 +40,11 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param $offset
-     * @param $limit
+     * @param int $offset
+     * @param int $limit
      * @return string
      */
-    public static function categoryProductsCount($offset, $limit): string
+    public static function categoryProductsCount(int $offset, int $limit): string
     {
         global $wpdb;
 
@@ -64,11 +59,11 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param $termTaxonomyId
-     * @param $count
+     * @param int $termTaxonomyId
+     * @param int $count
      * @return string
      */
-    public static function termTaxonomyCountUpdate($termTaxonomyId, $count): string
+    public static function termTaxonomyCountUpdate(int $termTaxonomyId, int $count): string
     {
         global $wpdb;
 
@@ -76,11 +71,11 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param $termId
-     * @param $count
+     * @param int $termId
+     * @param int $count
      * @return string
      */
-    public static function categoryMetaCountUpdate($termId, $count): string
+    public static function categoryMetaCountUpdate(int $termId, int $count): string
     {
         list( $table, $column ) = CategoryUtil::getTermMetaData();
 
@@ -91,11 +86,11 @@ trait WooCommerceDataTrait
     }
 
     /**
-     * @param $offset
-     * @param $limit
+     * @param int $offset
+     * @param int $limit
      * @return string
      */
-    public static function productTagsCount($offset, $limit): string
+    public static function productTagsCount(int $offset, int $limit): string
     {
         global $wpdb;
 

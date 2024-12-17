@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
 use Jtl\Connector\Core\Model\SpecificValue;
@@ -12,35 +14,37 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 
 /**
  * Class WooCommerceSpecificValue
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceSpecificValue extends AbstractComponent
 {
     /**
-     * @param string $taxonomy
-     * @param SpecificValue $specificValue
+     * @param string            $taxonomy
+     * @param SpecificValue     $specificValue
      * @param SpecificValueI18n $specificValueI18n
-     * @param null $slug
-     * @return SpecificValue|null
+     * @param string            $slug
+     * @return int|null
      * @throws \Exception
      */
     public function save(
         string $taxonomy,
         SpecificValue $specificValue,
         SpecificValueI18n $specificValueI18n,
-        $slug = null
+        ?string $slug = null
     ): ?int {
         $endpointValue = [
             'name' => $specificValueI18n->getValue(),
             'slug' => $slug ?? \wc_sanitize_taxonomy_name($specificValueI18n->getValue()),
         ];
 
+        /** @var array<int, array<string, int|string>> $exValId */
         $exValId = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(
             SqlHelper::getSpecificValueIdBySlug(
                 $taxonomy,
                 $endpointValue['slug']
             )
-        );
+        ) ?? [];
 
         if (\count($exValId) >= 1) {
             if (isset($exValId[0]['term_id'])) {
@@ -55,6 +59,7 @@ class WooCommerceSpecificValue extends AbstractComponent
         $endValId = (int)$specificValue->getId()->getEndpoint();
 
         if (\is_null($exValId) && $endValId === 0) {
+            /** @var array<string, int|string>|\WP_Error $newTerm */
             $newTerm = \wp_insert_term(
                 $endpointValue['name'],
                 $taxonomy
@@ -68,14 +73,19 @@ class WooCommerceSpecificValue extends AbstractComponent
             $termId = $newTerm['term_id'];
         } elseif (\is_null($exValId) && $endValId !== 0) {
             $wpml = $this->getPluginsManager()->get(Wpml::class);
+
+            /** @var WpmlTermTranslation $wpmlTermTranslation */
+            $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
+            /** @var array<string, int|string>|\WP_Error $termId */
             $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         } else {
             $termId = $exValId;

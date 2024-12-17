@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
 use InvalidArgumentException;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
+use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n;
-use JtlWooCommerceConnector\Controllers\Product\ProductDeliveryTimeController;
 use JtlWooCommerceConnector\Controllers\Product\ProductManufacturerController;
 use JtlWooCommerceConnector\Controllers\Product\ProductMetaSeoController;
 use JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController;
@@ -15,10 +18,12 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
 use JtlWooCommerceConnector\Utilities\Util;
+use stdClass;
 use WC_Product_Variation;
 
 /**
  * Class WpmlProduct
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlProduct extends AbstractComponent
@@ -28,9 +33,10 @@ class WpmlProduct extends AbstractComponent
         POST_TYPE_VARIATION = 'post_product_variation';
 
     /**
-     * @param int $wcBaseTranslationProductId
-     * @param string $masterProductId
+     * @param int     $wcBaseTranslationProductId
+     * @param string  $masterProductId
      * @param Product $jtlProduct
+     * @return void
      * @throws Exception
      */
     public function setProductTranslations(
@@ -40,12 +46,13 @@ class WpmlProduct extends AbstractComponent
     ): void {
         $type = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
 
+        /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();
 
         $trid                      = $wpmlPlugin->getElementTrid($wcBaseTranslationProductId, $type);
         $masterProductTranslations = [];
         if (!empty($masterProductId)) {
-            $masterProductTranslations = $this->getProductTranslationInfo($masterProductId);
+            $masterProductTranslations = $this->getProductTranslationInfo((int)$masterProductId);
         }
 
         $translationInfo = $this->getProductTranslationInfo($wcBaseTranslationProductId);
@@ -64,7 +71,7 @@ class WpmlProduct extends AbstractComponent
                     $jtlProduct,
                     $productI18n,
                     $masterProductId,
-                    $trid
+                    (int)$trid
                 );
             }
         } else {
@@ -97,7 +104,7 @@ class WpmlProduct extends AbstractComponent
                                     $jtlProduct,
                                     $productI18n,
                                     $masterProductId,
-                                    $trid
+                                    (int)$trid
                                 );
                             }
                         }
@@ -108,16 +115,16 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param string $languageIso
-     * @param string $defaultName
+     * @param string      $languageIso
+     * @param string      $defaultName
      * @param ProductI18n ...$i18ns
-     * @return ProductI18n|null
+     * @return ProductI18n
      */
     protected function getDefaultTranslation(
         string $languageIso,
         string $defaultName,
         ProductI18n ...$i18ns
-    ): ?ProductI18n {
+    ): ProductI18n {
         $translation = null;
 
         foreach ($i18ns as $i18n) {
@@ -137,28 +144,32 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param $translationInfo
-     * @param $masterProductTranslations
-     * @param $languageCode
-     * @param $jtlProduct
-     * @param $productI18n
-     * @param $masterProductId
-     * @param $trid
+     * @param stdClass[]  $translationInfo
+     * @param stdClass[]  $masterProductTranslations
+     * @param string      $languageCode
+     * @param Product     $jtlProduct
+     * @param ProductI18n $productI18n
+     * @param string      $masterProductId
+     * @param int         $trid
+     * @return void
      * @throws InvalidArgumentException
+     * @throws MustNotBeNullException
+     * @throws TranslatableAttributeException
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \TypeError
      * @throws Exception
      */
     protected function saveTranslation(
-        $translationInfo,
-        $masterProductTranslations,
-        $languageCode,
+        array $translationInfo,
+        array $masterProductTranslations,
+        string $languageCode,
         Product $jtlProduct,
-        $productI18n,
-        $masterProductId,
-        $trid
+        ProductI18n $productI18n,
+        string $masterProductId,
+        int $trid
     ): void {
         $db                = $this->getPluginsManager()->getDatabase();
         $util              = new Util($db);
-        $wpmlPlugin        = $this->getCurrentPlugin();
         $productController = (new \JtlWooCommerceConnector\Controllers\ProductController($db, $util));
         $type              = empty($masterProductId) ? self::POST_TYPE : self::POST_TYPE_VARIATION;
 
@@ -171,19 +182,30 @@ class WpmlProduct extends AbstractComponent
             return;
         }
 
-        $wcProductId = $wpmlPlugin
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WooCommerceProduct $wooCommerceProduct */
+        $wooCommerceProduct = $wpmlPlugin
             ->getPluginsManager()
             ->get(WooCommerce::class)
-            ->getComponent(WooCommerceProduct::class)
+            ->getComponent(WooCommerceProduct::class);
+
+        $wcProductId = $wooCommerceProduct
             ->saveProduct(
                 $wcProductId,
-                $masterProductId,
+                (string)$masterProductId,
                 $jtlProduct,
                 $productI18n
             );
 
         if (!\is_null($wcProductId)) {
             $wcProduct = \wc_get_product($wcProductId);
+
+            if (!$wcProduct instanceof \WC_Product) {
+                throw new \Psr\Log\InvalidArgumentException("Product with ID {$wcProductId} not found");
+            }
+
             $wcProduct->set_parent_id($masterProductId);
             $wcProduct->save();
 
@@ -197,9 +219,9 @@ class WpmlProduct extends AbstractComponent
                     \add_filter('content_save_pre', 'wp_filter_post_kses');
                     \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-                    $wpmlPlugin
-                        ->getComponent(WpmlProductVariation::class)
-                        ->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
+                    /** @var WpmlProductVariation $wpmlProductVariation */
+                    $wpmlProductVariation = $wpmlPlugin->getComponent(WpmlProductVariation::class);
+                    $wpmlProductVariation->setChildTranslation($wcProduct, $jtlProduct->getVariations(), $languageCode);
 
                     $productStockLevel->pushDataChild($jtlProduct);
                     break;
@@ -214,11 +236,9 @@ class WpmlProduct extends AbstractComponent
 
             (new ProductMetaSeoController($db, $util))->pushData($wcProductId, $productI18n);
 
-            #(new ProductDeliveryTimeController($db, $util))->pushData($jtlProduct, $wcProduct);
-
             //Add Manufacturer info to translated jtlProduct
             $jtlProductId = $jtlProduct->getId()->getEndpoint();
-            $jtlProduct->getId()->setEndpoint($wcProductId);
+            $jtlProduct->getId()->setEndpoint((string)$wcProductId);
 
             (new ProductManufacturerController($db, $util))->pushData($jtlProduct);
             //revert back to original not translated jtlProduct id
@@ -235,15 +255,17 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param int|null $limit
-     * @return array
+     * @return array<int, int|string>
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getProducts(int $limit = null): array
+    public function getProducts(?int $limit = null): array
     {
-        $wpdb            = $this->getCurrentPlugin()->getWpDb();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin      = $this->getCurrentPlugin();
+        $wpdb            = $wpmlPlugin->getWpDb();
         $jclp            = $wpdb->prefix . 'jtl_connector_link_product';
         $translations    = $wpdb->prefix . 'icl_translations';
-        $defaultLanguage = $this->getCurrentPlugin()->getDefaultLanguage();
+        $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
         $query      = "SELECT p.ID
@@ -276,27 +298,33 @@ class WpmlProduct extends AbstractComponent
 
         $result = $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->queryList($query);
 
-        return \is_array($result) ? $result : [];
+        return $result;
     }
 
     /**
      * @param \WC_Product $wcProduct
-     * @param Product $jtlProduct
+     * @param Product     $jtlProduct
+     * @return void
      * @throws Exception
      */
     public function getTranslations(\WC_Product $wcProduct, Product $jtlProduct): void
     {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin            = $this->getCurrentPlugin();
         $wcProductTranslations = $this->getProductTranslationInfo((int)$wcProduct->get_id());
 
         foreach ($wcProductTranslations as $wpmlLanguageCode => $wpmlTranslationInfo) {
             $wcProductTranslation = \wc_get_product($wpmlTranslationInfo->element_id);
-            $languageIso          = $this->getCurrentPlugin()->convertLanguageToWawi($wpmlLanguageCode);
+            $languageIso          = $wpmlPlugin->convertLanguageToWawi($wpmlLanguageCode);
 
             if ($wcProductTranslation instanceof \WC_Product) {
-                $i18n = $this->getCurrentPlugin()
+                /** @var WooCommerceProduct $wooCommerceProduct */
+                $wooCommerceProduct = $wpmlPlugin
                     ->getPluginsManager()
                     ->get(WooCommerce::class)
-                    ->getComponent(WooCommerceProduct::class)
+                    ->getComponent(WooCommerceProduct::class);
+
+                $i18n = $wooCommerceProduct
                     ->getI18ns(
                         $wcProductTranslation,
                         $jtlProduct,
@@ -309,7 +337,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @return array
+     * @return array<int|string, \WC_Product>
      * @throws Exception
      */
     public function getWooCommerceProductTranslations(\WC_Product $wcProduct): array
@@ -328,7 +356,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param \WC_Product $wcProduct
-     * @param string $slug
+     * @param string      $slug
      * @return \WC_Product_Attribute|null
      */
     public function getWooCommerceProductTranslatedAttributeBySlug(
@@ -350,7 +378,7 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param WC_Product_Variation $wcProduct
-     * @param string $slug
+     * @param string               $slug
      * @return string|null
      */
     public function getWooCommerceProductTranslatedAttributeValueBySlug(
@@ -371,18 +399,22 @@ class WpmlProduct extends AbstractComponent
     }
 
     /**
-     * @param int $productId
+     * @param int    $productId
      * @param string $elementType
-     * @return array
+     * @return stdClass[]
      * @throws Exception
      */
     public function getProductTranslationInfo(int $productId, string $elementType = self::POST_TYPE): array
     {
-        return $this
-            ->getCurrentPlugin()
-            ->getComponent(WpmlTermTranslation::class)
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
+
+        return $wpmlTermTranslation
             ->getTranslations(
-                $this->getCurrentPlugin()->getElementTrid($productId, $elementType),
+                (int)$wpmlPlugin->getElementTrid($productId, $elementType),
                 $elementType
             );
     }

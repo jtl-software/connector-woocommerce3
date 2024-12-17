@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Order;
 
 use Jtl\Connector\Core\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
@@ -48,14 +50,18 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
+            /** @var string $index */
             $index = \get_post_meta($order->get_id(), '_shipping_title', true);
             $address->setSalutation((new Germanized())->parseIndexToSalutation($index));
 
+            /** @var string $dhlPostNumber */
             $dhlPostNumber = $order->get_meta('_shipping_parcelshop_post_number', true);
             if (empty($dhlPostNumber)) {
+                /** @var string $dhlPostNumber */
                 $dhlPostNumber = $order->get_meta('_shipping_dhl_postnumber', true);
             }
         } elseif (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
+            /** @var string $dhlPostNumber */
             $dhlPostNumber = $order->get_meta('_shipping_dhl_postnum', true);
         }
 
@@ -66,6 +72,11 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
         return $address;
     }
 
+    /**
+     * @param CustomerOrderShippingAddressModel $address
+     * @param \WC_Order                         $order
+     * @return void
+     */
     private function useBillingAddress(CustomerOrderShippingAddressModel $address, \WC_Order $order): void
     {
         if (empty($address->getCity())) {
@@ -89,6 +100,10 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
         }
     }
 
+    /**
+     * @param CustomerOrderShippingAddressModel $address
+     * @return bool
+     */
     private function emptyAddressCheck(CustomerOrderShippingAddressModel $address): bool
     {
         if (

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Exception\MissingRequirementException;
 use Jtl\Connector\Core\System\Check;
@@ -19,6 +21,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 {
     private static bool $initiated = false;
 
+    /**
+     * @return void
+     */
     public function __construct()
     {
         if (! defined('ABSPATH')) {
@@ -39,15 +44,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
 
-        clearConnectorCache();
+        clearConnectorCache(false);
+
+        $parsedFile = (array) Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml');
 
         if (jtlwcc_woocommerce_deactivated()) {
             jtlwcc_deactivate_plugin();
             add_action('admin_notices', 'jtlwcc_woocommerce_not_activated');
         } elseif (
+            \array_key_exists('min_wc_version', $parsedFile) &&
             version_compare(
                 $version,
-                trim(Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml')['min_wc_version']),
+                trim($parsedFile['min_wc_version']),
                 '<'
             )
         ) {
@@ -160,7 +168,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 } else {
                     $wpdb->query(sprintf($createQuery, $prefix . $table));
                 }
-            } elseif ($oldExists && ! $newExists) {
+                /** @phpstan-ignore booleanNot.alwaysTrue */
+            } elseif ($oldExists && !$newExists) {
                 if (strcmp($table, 'category_level') === 0 || strcmp($table, 'product_checksum') === 0) {
                     $tmp    = $prefix;
                     $prefix = substr($prefix, 0, - 5);
@@ -179,7 +188,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     private static function getOldDatabaseTables(): array
     {
@@ -199,12 +208,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param $oldName
-     * @param $newName
+     * @param string $oldName
+     * @param string $newName
      *
      * @return void
      */
-    private static function renameTable($oldName, $newName): void
+    private static function renameTable(string $oldName, string $newName): void
     {
         global $wpdb;
 
@@ -215,12 +224,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function activate_category_tree(Db $db): void
+    private static function activate_category_tree(Db $db): void //phpcs:ignore
     {
         $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
@@ -251,12 +259,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param $prefix
+     * @param string $prefix
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function activate_checksum($prefix): void
+    private static function activate_checksum(string $prefix): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -334,7 +341,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param  Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     private static function createManufacturerLinkingTable(Db $db): void
     {
@@ -393,12 +402,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // </editor-fold>
 
     /**
-     * @param $prefix
-     * @param $db
+     * @param string $prefix
+     * @param Db     $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    private static function add_constraints_for_multi_linking_tables($prefix, $db): void
+    private static function add_constraints_for_multi_linking_tables(string $prefix, Db $db): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -482,7 +491,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function create_password(): string //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (function_exists('com_create_guid') === true) {
-            return trim(com_create_guid(), '{}');
+            return trim((string) com_create_guid(), '{}');
         }
 
         return sprintf(
@@ -499,13 +508,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param string $featuresJsonPath
      * @return void
      * @throws Exception
      */
     public static function loadFeaturesJson(string $featuresJsonPath): void
     {
         $features = Config::get(Config::OPTIONS_FEATURES_JSON);
-        if (! empty($features)) {
+        if (! empty($features) && is_string($features)) {
             $featuresJson = json_decode($features, true);
             if (is_array($featuresJson)) {
                 $saveResult = file_put_contents($featuresJsonPath, json_encode($featuresJson, JSON_PRETTY_PRINT));
@@ -514,7 +524,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 }
             }
         } else {
-            $features = json_decode(file_get_contents($featuresJsonPath), true);
+            $features = json_decode((string) file_get_contents($featuresJsonPath), true);
             Config::set(Config::OPTIONS_FEATURES_JSON, json_encode($features));
         }
     }
@@ -546,10 +556,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Settings">
 
     /**
+     * @param  Db $db
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function init_hooks(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -665,90 +676,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ]
         );
 
-        //NEW PAGE
-        add_action('admin_menu', 'woo_jtl_connector_add_admin_menu');
-        add_action('admin_enqueue_scripts', 'woo_jtl_connector_loadCssAndJs');
-
-        /**
-         * @return void
-         */
-        function woo_jtl_connector_add_admin_menu(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        {
-            add_menu_page(
-                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
-                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector',
-                null,
-                null,
-                '55.5'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Information', JTLWCC_TEXT_DOMAIN),
-                __('Information', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-information',
-                'woo_jtl_connector_information_page'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Advanced', JTLWCC_TEXT_DOMAIN),
-                __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-advanced',
-                'woo_jtl_connector_advanced_page'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Delivery times', JTLWCC_TEXT_DOMAIN),
-                __('Delivery times', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-delivery-time',
-                'woo_jtl_connector_delivery_time_page'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Customer orders', JTLWCC_TEXT_DOMAIN),
-                __('Customer orders', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-customer-order',
-                'woo_jtl_connector_customer_order_page'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Customers', JTLWCC_TEXT_DOMAIN),
-                __('Customers', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-customers',
-                'woo_jtl_connector_customers_page'
-            );
-
-            add_submenu_page(
-                'woo-jtl-connector',
-                __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
-                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
-                'manage_woocommerce',
-                'woo-jtl-connector-developer-settings',
-                'woo_jtl_connector_developer_settings_page'
-            );
-
-            remove_submenu_page('woo-jtl-connector', 'woo-jtl-connector');
-        }
-
-        /**
-         * @param $hook
-         *
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_loadCssAndJs($hook): void
-        {
+        $wooJtlConnectorLoadCssAndJs = function ($hook): void {
             // your-slug => The slug name to refer to this menu used in "add_submenu_page"
             // tools_page => refers to Tools top menu, so it's a Tools' sub-menu page
             if (! str_starts_with($hook, 'jtl-connector_page_woo-')) {
@@ -770,78 +698,208 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 '',
                 true
             );
-        }
+        };
 
-        /**
-         * @return void
-         */
-        function woo_jtl_connector_information_page(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        {
-            JtlConnectorAdmin::displayPageNew('information_page', __('Connector information', JTLWCC_TEXT_DOMAIN));
-        }
+        $wooJtlConnectorAddAdminMenu = function (): void {
 
-        /**
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_advanced_page(): void
-        {
-            JtlConnectorAdmin::displayPageNew('advanced_page', __('Advanced Settings', JTLWCC_TEXT_DOMAIN), true);
-        }
+            $wooJtlConnectorInformationPage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'information_page',
+                    __('Connector information', JTLWCC_TEXT_DOMAIN)
+                );
+            };
 
-        /**
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_delivery_time_page(): void
-        {
-            JtlConnectorAdmin::displayPageNew('delivery_time_page', __('Delivery time', JTLWCC_TEXT_DOMAIN), true);
-        }
+            $wooJtlConnectorAdvancedPage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'advanced_page',
+                    __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
+                    true
+                );
+            };
 
-        /**
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_customer_order_page(): void
-        {
-            JtlConnectorAdmin::displayPageNew('customer_order_page', __('Customer order', JTLWCC_TEXT_DOMAIN), true);
-        }
+            $wooJtlConnectorDeliveryTimePage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'delivery_time_page',
+                    __('Delivery time', JTLWCC_TEXT_DOMAIN),
+                    true
+                );
+            };
 
-        /**
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_customers_page(): void
-        {
-            JtlConnectorAdmin::displayPageNew('customers_page', __('Customers', JTLWCC_TEXT_DOMAIN), true);
-        }
+            $wooJtlConnectorCustomerOrderPage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'customer_order_page',
+                    __('Customer order', JTLWCC_TEXT_DOMAIN),
+                    true
+                );
+            };
 
-        /**
-         * @return void
-         */
-        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-        function woo_jtl_connector_developer_settings_page(): void
-        {
-            JtlConnectorAdmin::displayPageNew(
-                'developer_settings_page',
-                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
-                true
+            $wooJtlConnectorCustomersPage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'customers_page',
+                    __('Customers', JTLWCC_TEXT_DOMAIN),
+                    true
+                );
+            };
+
+            $wooJtlConnectorDeveloperSettingsPage = function (): void {
+                JtlConnectorAdmin::displayPageNew(
+                    'developer_settings_page',
+                    __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                    true
+                );
+            };
+
+            add_menu_page(
+                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector',
+                function (): void {
+                },
+                '',
+                55.5
             );
-        }
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Information', JTLWCC_TEXT_DOMAIN),
+                __('Information', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-information',
+                function () use ($wooJtlConnectorInformationPage): void {
+                    $wooJtlConnectorInformationPage();
+                }
+            );
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Advanced', JTLWCC_TEXT_DOMAIN),
+                __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-advanced',
+                function () use ($wooJtlConnectorAdvancedPage): void {
+                    $wooJtlConnectorAdvancedPage();
+                }
+            );
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Delivery times', JTLWCC_TEXT_DOMAIN),
+                __('Delivery times', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-delivery-time',
+                function () use ($wooJtlConnectorDeliveryTimePage): void {
+                    $wooJtlConnectorDeliveryTimePage();
+                }
+            );
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Customer orders', JTLWCC_TEXT_DOMAIN),
+                __('Customer orders', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-customer-order',
+                function () use ($wooJtlConnectorCustomerOrderPage): void {
+                    $wooJtlConnectorCustomerOrderPage();
+                }
+            );
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Customers', JTLWCC_TEXT_DOMAIN),
+                __('Customers', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-customers',
+                function () use ($wooJtlConnectorCustomersPage): void {
+                    $wooJtlConnectorCustomersPage();
+                }
+            );
+
+            add_submenu_page(
+                'woo-jtl-connector',
+                __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
+                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                'manage_woocommerce',
+                'woo-jtl-connector-developer-settings',
+                function () use ($wooJtlConnectorDeveloperSettingsPage): void {
+                    $wooJtlConnectorDeveloperSettingsPage();
+                }
+            );
+
+            remove_submenu_page('woo-jtl-connector', 'woo-jtl-connector');
+        };
+
+        //NEW PAGE
+        add_action('admin_menu', function () use ($wooJtlConnectorAddAdminMenu): void {
+            $wooJtlConnectorAddAdminMenu();
+        });
+        add_action('admin_enqueue_scripts', function ($hook) use ($wooJtlConnectorLoadCssAndJs): void {
+            $wooJtlConnectorLoadCssAndJs($hook);
+        });
+
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_add_admin_menu(): void
+
+        // /**
+        // * @param string|null $hook
+        // *
+        // * @return void
+        // */
+        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_loadCssAndJs(?string $hook): void
+
+        // /**
+        // * @return void
+        // */
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_information_page(): void
+
+        // /**
+        // * @return void
+        // */
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_advanced_page(): void
+
+        // /**
+        // * @return void
+        // */
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_delivery_time_page(): void
+
+        // /**
+        // * @return void
+        // */
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_customer_order_page(): void
+
+        // /**
+        // * @return void
+        // */
+        #//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_customers_page(): void
+
+        // /**
+        // * @return void
+        // */
+        //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+        // function woo_jtl_connector_developer_settings_page(): void
 
         self::update($db);
     }
 
     /**
-     * @param        $page
+     * @param string $page
      * @param string $title
      * @param bool   $submit
      *
      * @return void
      * @throws InvalidArgumentException
      */
-    public static function displayPageNew($page, string $title = 'Connector information', bool $submit = false): void
-    {
+    public static function displayPageNew(
+        ?string $page,
+        string $title = 'Connector information',
+        bool $submit = false
+    ): void {
         $options = null;
         if (is_null($page)) {
             return;
@@ -923,7 +981,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     private static function getInformationFields(): array
     {
@@ -1006,7 +1064,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ];
 
         //Add extend plugin informations
-        if (count(SupportedPlugins::getSupported()) > 0) {
+        if (\count(SupportedPlugins::getSupported()) > 0) {
             $fields[] = [
                 'title'   => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
                 'type'    => 'compatible_plugins_field',
@@ -1048,23 +1106,26 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function notCompatiblePluginsError(): void
     {
         //Show error if unsupported plugins are in use
-        if (count(SupportedPlugins::getNotSupportedButActive()) > 0) {
-            self::jtlwcc_show_wordpress_error(
-                sprintf(
-                    __('The listed plugins can cause problems when using the connector: %s', JTLWCC_TEXT_DOMAIN),
-                    SupportedPlugins::getNotSupportedButActive(true)
-                )
-            );
+        $notSupportedButActive = SupportedPlugins::getNotSupportedButActive();
+        if (is_array($notSupportedButActive) && count($notSupportedButActive) > 0) {
+            $notSupportedButActiveAsString = SupportedPlugins::getNotSupportedButActive(true);
+            if (\is_string($notSupportedButActiveAsString)) {
+                self::jtlwcc_show_wordpress_error(
+                    sprintf(
+                        __('The listed plugins can cause problems when using the connector: %s', JTLWCC_TEXT_DOMAIN),
+                        $notSupportedButActiveAsString
+                    )
+                );
+            }
         }
     }
 
     /**
-     * @param $message
+     * @param string $message
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtlwcc_show_wordpress_error($message): void
+    public static function jtlwcc_show_wordpress_error(string $message): void //phpcs:ignore
     {
         echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert">
                     <p><b>JTL-Connector:</b>&nbsp;' . $message . '</p>
@@ -1072,7 +1133,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     private static function getAdvancedFields(): array
     {
@@ -1177,7 +1238,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     private static function getDeliveryTimeFields(): array
     {
@@ -1278,7 +1339,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     private static function getCustomerOrderFields(): array
     {
@@ -1342,7 +1403,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $paymentGateways = [];
         if (WC()->payment_gateways() instanceof WC_Payment_Gateways) {
-            $paymentGateways = WC()->payment_gateways->payment_gateways();
+            $paymentGateways = WC()->payment_gateways()->payment_gateways();
             $paymentGateways = array_combine(array_keys($paymentGateways), array_column($paymentGateways, 'title'));
         }
 
@@ -1392,8 +1453,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      * @throws InvalidArgumentException
+     * @throws Exception
      */
     private static function getCustomersFields(): array
     {
@@ -1461,8 +1523,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $util   = new Util($db);
             $roles  = [];
             $sql    = SqlHelper::customerGroupPull();
-            $result = $db->query($sql);
+            $result = $db->query($sql) ?? [];
             $result = array_diff($result, [ 'guest' ]);
+            /** @var array<string, string> $role */
             foreach ($result as $role) {
                 $roles[ $role['post_name'] ] = translate_user_role($role['post_title']);
             }
@@ -1484,10 +1547,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $customerGroups = ( new CustomerGroupController($db, $util) )->pull();
             $options        = [];
 
-            /** @var CustomerGroupModel $customerGroup */
             foreach ($customerGroups as $key => $customerGroup) {
                 if (count($customerGroup->getI18ns()) > 0) {
-                    /** @var CustomerGroupI18nModel $i18n */
                     $i18n                                              = $customerGroup->getI18ns()[0];
                     $options[ $customerGroup->getId()->getEndpoint() ] = $i18n->getName();
                 }
@@ -1513,7 +1574,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     private static function getDeveloperSettingsFields(): array
     {
@@ -1656,16 +1717,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
                 'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
             ];
-//            $fields[] = [
-//                'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
-//                'type' => 'jtlwcc_card',
-//                'color' => 'border-info',
-//                'text-color' => 'text-info',
-//                'center' => false,
-//                'text' => __('Similar plugins, like the <b>not compatible
-//                              plugins</b> which are listed here, might be incompatible too!',
-//                    JTLWCC_TEXT_DOMAIN),
-//            ];
+// $fields[] = [
+// 'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+// 'type' => 'jtlwcc_card',
+// 'color' => 'border-info',
+// 'text-color' => 'text-info',
+// 'center' => false,
+// 'text' => __('Similar plugins, like the <b>not compatible
+// plugins</b> which are listed here, might be incompatible too!',
+// JTLWCC_TEXT_DOMAIN),
+// ];
         }
 
         //Add sectionend
@@ -1678,7 +1739,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     // <editor-fold defaultstate="collapsed" desc="CustomOutputFields">
 
-    private static function displayNanvigation($page): void
+    /**
+     * @param string $page
+     * @return void
+     */
+    private static function displayNanvigation(string $page): void
     {
         //phpcs:disable
         ?>
@@ -1754,12 +1819,20 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     private static function update(Db $db): void
     {
         $wpdb = $db->getWpDb();
 
         $installed_version = Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
+
+        if (!\is_string($installed_version)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected installed_version to be a string, got " . gettype($installed_version) . "instead."
+            );
+        }
+
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
 
         switch ($installed_version) {
@@ -2026,6 +2099,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         self::updateDeliveryTimeCalc();
     }
 
+    /**
+     * @param  Db $db
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     protected static function updateImageIdentities(Db $db): void
     {
         $imageMapping = [
@@ -2069,6 +2147,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $result = true;
         $wpdb->query('START TRANSACTION');
 
+        /** @phpstan-ignore booleanAnd.leftAlwaysTrue */
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_customer'));
         $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
@@ -2094,16 +2173,21 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         } else {
             $wpdb->query('ROLLBACK');
             Config::set(Config::OPTIONS_UPDATE_FAILED, 'yes');
-            add_action('admin_notices', 'update_failed');
+            add_action('admin_notices', function (): void {
+                self::jtlwcc_show_wordpress_error(__(
+                    'The linking table migration was not successful. Please use the forum for help.',
+                    JTLWCC_TEXT_DOMAIN
+                ));
+            });
         }
     }
 
     /**
-     * @param $type
+     * @param int $type
      *
      * @return string|null
      */
-    private static function get_table_name( $type ): ?string//phpcs:ignore
+    private static function get_table_name(int $type ): ?string//phpcs:ignore
     {
         switch ($type) {
             case IdentityType::CATEGORY:
@@ -2126,9 +2210,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
+     * @param Db $db
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
-    private static function update_multi_linking_endpoint_types($db): void //phpcs:ignore
+    private static function update_multi_linking_endpoint_types(Db $db): void //phpcs:ignore
     {
         global $wpdb;
 
@@ -2298,12 +2384,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         if (is_multisite()) {
             $sites = get_sites();
-
             foreach ($sites as $site) {
-                switch_to_blog($site->blog_id);
+                switch_to_blog((int) $site->blog_id);
                 if (in_array(Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC), [ "1", "0" ], true)) {
                     update_blog_option(
-                        $site->blog_id,
+                        (int) $site->blog_id,
                         'jtlconnector_use_deliverytime_calc',
                         Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC)
                             ? 'delivery_time_calc'
@@ -2338,7 +2423,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $sql                     = SqlHelper::customerGroupPull();
             $b2bMarketCustomerGroups = (new Db($wpdb))->query($sql);
             if (
-                count($b2bMarketCustomerGroups) > 0
+                is_array($b2bMarketCustomerGroups)
+                && count($b2bMarketCustomerGroups) > 0
                 && ! in_array($defaultCustomerGroup, array_column($b2bMarketCustomerGroups, 'ID'))
             ) {
                 add_action('admin_notices', [ self::class, 'default_customer_group_not_updated' ]);
@@ -2359,9 +2445,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         }
     }
 
-    public static function jtlconnector_plugin_row_meta( $links, $file )//phpcs:ignore
+    /**
+     * @param string[] $links
+     * @param string   $file
+     * @return string[]
+     */
+    public static function jtlconnector_plugin_row_meta(array $links, string $file ):array //phpcs:ignore
     {
-        if (str_contains($file, 'woo-jtl-connector.php')) {
+        if (\str_contains($file, 'woo-jtl-connector.php')) {
             $url       = esc_url('https://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
                 '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
@@ -2372,7 +2463,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         return $links;
     }
 
-    public static function settings_link( $links = [] )//phpcs:ignore
+    /**
+     * @param string[] $links
+     * @return string[]
+     */
+    public static function settings_link(array $links = [] ): array //phpcs:ignore
     {
         $settings_link = '<a href="admin.php?page=woo-jtl-connector-information">' . __(
             'Settings',
@@ -2387,12 +2482,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // </editor-fold>
 
     /**
-     * @param array $field
+     * @param array<string, string|null> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_date_field(array $field): void
+    public static function jtl_date_field(array $field): void //phpcs:ignore
     {
         $option_value = $field['default'];// get_option($field['id'], $field['default']);
 
@@ -2403,7 +2497,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             <div class="col-12">
                 <input class="form-control" type="date"
                        value="<?= isset($field['value'])
-                                  && ! is_null($field['value'])
                                   && $field['value'] !== '' ? $field['value'] : $option_value ?>"
                        id="<?= $field['id'] ?>"
                        name="<?= $field['id'] ?>">
@@ -2424,12 +2517,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function connector_password_field(array $field): void
+    public static function connector_password_field(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2473,12 +2565,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function connector_url_field(array $field): void
+    public static function connector_url_field(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2522,21 +2613,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool|array<int, string>> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function not_compatible_plugins_field(array $field): void
+    public static function not_compatible_plugins_field(array $field): void //phpcs:ignore
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var array<string, string> $plugins */
+        $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
-                if (count($field['plugins']) > 0) {
-                    foreach ($field['plugins'] as $key => $value) {
+                if (count($plugins) > 0) {
+                    foreach ($plugins as $key => $value) {
                         //phpcs:disable
                         ?>
                         <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>"><?php print $value; ?></li> <?php
@@ -2551,12 +2645,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtlwcc_card(array $field): void
+    public static function jtlwcc_card(array $field): void //phpcs:ignore
     {
         ?>
         <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
@@ -2578,21 +2671,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool|array<int, array<string, string|bool>>> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function compatible_plugins_field(array $field): void
+    public static function compatible_plugins_field(array $field): void //phpcs:ignore
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var array<int, array<string, string|null>> $plugins */
+        $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $field['title']; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
-                if (count($field['plugins']) > 0) {
-                    foreach ($field['plugins'] as $key => $value) {
+                if (count($plugins) > 0) {
+                    foreach ($plugins as $key => $value) {
                         //phpcs:disable
                         ?>
                         <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>">
@@ -2616,20 +2712,21 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function paragraph_field(array $field): void
+    public static function paragraph_field(array $field): void //phpcs:ignore
     {
+        /** @var string $title */
+        $title = $field['title'];
         ?>
         <div class="form-group row">
-            <label for="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>"
-                   class="col-12 col-form-label"><?= $field['title'] ?></label>
+            <label for="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
+                   class="col-12 col-form-label"><?= $title ?></label>
             <div class="col-12">
                 <input type="text" readonly class="form-control-plaintext"
-                       id="statictext_<?= wc_sanitize_taxonomy_name($field['title']) ?>"
+                       id="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
                        value="<?= $field['desc'] ?>">
                 <?php
                 if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
@@ -2648,12 +2745,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.0">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function active_true_false_radio_btn(array $field): void
+    public static function active_true_false_radio_btn(array $field): void //phpcs:ignore
     {
         //phpcs:disable
         ?>
@@ -2698,17 +2794,22 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool|array<string, string>> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_connector_select(array $field): void
+    public static function jtl_connector_select(array $field): void //phpcs:ignore
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var string $id */
+        $id = $field['id'];
+        /** @var string $helpBlock */
+        $helpBlock = $field['helpBlock'];
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select required class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>">
+            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
+            <select required class="form-control custom-select col-12 ml-3" name="<?= $id ?>">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) {
@@ -2721,10 +2822,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 ?>
             </select>
             <?php
-            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+            if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $helpBlock ?>
                 </small>
                 <?php
             }
@@ -2737,31 +2838,38 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.3.2">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool|array<int|string, string>> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_connector_multiselect(array $field): void
+    public static function jtl_connector_multiselect(array $field): void //phpcs:ignore
     {
+        /** @var string $title */
+        $title = $field['title'];
+        /** @var string $id */
+        $id = $field['id'];
+        /** @var string $helpBlock */
+        $helpBlock = $field['helpBlock'];
+        /** @var array<int, string> $statusValues */
+        $statusValues = $field['value'];
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $field['id'] ?>[]">
+            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
+            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $id ?>[]">
                 <?php
                 if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
                     foreach ($field['options'] as $key => $ovalue) { ?>
-                        <option value="<?php print $key; ?>" <?php if (in_array($key, $field['value'])) {
+                        <option value="<?php print $key; ?>" <?php if (in_array($key, $statusValues)) {
                             print 'selected="selected"';
                                        } ?>><?php print $ovalue; ?> </option>
                     <?php }
                 } ?>
             </select>
             <?php
-            if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+            if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
+                    <?= $helpBlock ?>
                 </small>
                 <?php
             }
@@ -2771,12 +2879,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function dev_log_btn(array $field): void
+    public static function dev_log_btn(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2795,12 +2902,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.5.0">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_text_input(array $field): void
+    public static function jtl_text_input(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2829,12 +2935,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.6.0">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_number_input(array $field): void
+    public static function jtl_number_input(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2863,12 +2968,11 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     // <editor-fold defaultstate="collapsed" desc="Update 1.7.1">
 
     /**
-     * @param array $field
+     * @param array<string, string|bool> $field
      *
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function jtl_checkbox(array $field): void
+    public static function jtl_checkbox(array $field): void //phpcs:ignore
     {
         ?>
         <div class="form-group row">
@@ -2946,8 +3050,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function default_customer_group_not_updated(): void
+    public static function default_customer_group_not_updated(): void //phpcs:ignore
     {
         $message  = __(
             'The default customer is not set. Please update the B2B-Market 
@@ -2969,8 +3072,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     /**
      * @return void
      */
-    //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    public static function pull_customer_group_not_updated(): void
+    public static function pull_customer_group_not_updated(): void //phpcs:ignore
     {
         $message  = __(
             'The pull customer groups are not set. Please update the 

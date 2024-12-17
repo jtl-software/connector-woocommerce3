@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
@@ -17,7 +19,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -28,7 +30,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -40,9 +42,9 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
 
             $basePriceDivisor
-                = $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
-                / $metaData[$metaKeys['unitRegularMultiplikatorKey']];
-            $basePriceFactor  = $metaData[$metaKeys['priceKey']] / $basePriceDivisor;
+                = (int)$metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
+                / (int)$metaData[$metaKeys['unitRegularMultiplikatorKey']];
+            $basePriceFactor  = (int)$metaData[$metaKeys['priceKey']] / $basePriceDivisor;
 
             $product
                 ->setConsiderBasePrice(true)
@@ -58,7 +60,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
     /**
      * @param bool $isMaster
-     * @return string[]
+     * @return array<string, string>
      */
     private function getGermanMarketMetaKeys(bool $isMaster = false): array
     {
@@ -92,8 +94,8 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param array $metaKeys
+     * @param WC_Product            $wcProduct
+     * @param array<string, string> $metaKeys
      * @return bool
      */
     private function hasGermanMarketUnitPrice(WC_Product $wcProduct, array $metaKeys): bool
@@ -106,8 +108,9 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             }
             if (\count($meta->get_data()) > 0 && isset($meta->get_data()['key'])) {
                 if ($meta->get_data()['key'] === $metaKeys['unitRegularMultiplikatorKey']) {
+                    /** @var false|string $value */
                     $value = \get_post_meta($wcProduct->get_id(), $metaKeys['unitRegularMultiplikatorKey'], true);
-                    if (isset($value) && $value !== false) {
+                    if ($value !== false) {
                         $value  = (float)$value;
                         $result = $value > 0.00;
                     };
@@ -119,16 +122,21 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
-     * @param array $metaKeys
-     * @return array
+     * @param WC_Product            $wcProduct
+     * @param array<string, string> $metaKeys
+     * @return array<string, string>
      */
     private function getGermanMarketMeta(WC_Product $wcProduct, array $metaKeys): array
     {
         $result = [];
 
         foreach ($metaKeys as $metaKey => $meta) {
-            $result[$meta] = \get_post_meta($wcProduct->get_id(), $meta, true);
+            /** @var false|string $germanMarketMeta */
+            $germanMarketMeta = \get_post_meta($wcProduct->get_id(), $meta, true);
+
+            if ($germanMarketMeta) {
+                $result[$meta] = $germanMarketMeta;
+            }
         }
 
         return $result;
@@ -225,7 +233,13 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             }
 
             $productId = $product->getId()->getEndpoint();
-            $metaData  = $this->getGermanMarketMeta(\wc_get_product($productId), $metaKeys);
+            $wcProduct = \wc_get_product($productId);
+
+            if (!$wcProduct instanceof WC_Product) {
+                throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+            }
+
+            $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
 
             $basePriceUnitCode = \strtolower($product->getBasePriceUnitCode());
             $basePriceQuantity = $product->getBasePriceQuantity();
@@ -236,7 +250,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $ppuType = $this->identifyGermanMarketMetaGroup($basePriceUnitCode);
 
             $basePrice    = null;
-            $currentPrice = \get_post_meta($productId, '_price', true);
+            $currentPrice = \get_post_meta((int)$productId, '_price', true);
             $baseUnit     = null;
 
             switch ($ppuType) {
@@ -312,25 +326,25 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
                 $usedCustomPPU                     = $metaKeys['usedCustomPPUKey'];
 
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitCodeKey,
                     $baseUnit,
                     $metaData[$unitCodeKey]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitMultiplikatorKey,
                     $basePriceQuantity,
                     $metaData[$unitMultiplikatorKey]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $unitRegularAutoPPUProductQuantity,
                     $measurementQuantity,
                     $metaData[$unitRegularAutoPPUProductQuantity]
                 );
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     $usedCustomPPU,
                     1,
                     $metaData[$usedCustomPPU]
@@ -342,37 +356,44 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $product
-     * @param array $metaKeys
+     * @param ProductModel          $product
+     * @param array<string, string> $metaKeys
      * @return void
+     * @throws \http\Exception\InvalidArgumentException
      */
     private function clearPPU(ProductModel $product, array $metaKeys): void
     {
         $productId = $product->getId()->getEndpoint();
-        $metaData  = $this->getGermanMarketMeta(
-            \wc_get_product($productId),
+        $wcProduct = \wc_get_product($productId);
+
+        if (!$wcProduct instanceof WC_Product) {
+            throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+        }
+
+        $metaData = $this->getGermanMarketMeta(
+            $wcProduct,
             $metaKeys
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularUnitKey'],
             '',
             $metaData[$metaKeys['unitRegularUnitKey']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularMultiplikatorKey'],
             '',
             $metaData[$metaKeys['unitRegularMultiplikatorKey']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['unitRegularAutoPPUProductQuantity'],
             '',
             $metaData[$metaKeys['unitRegularAutoPPUProductQuantity']]
         );
         \update_post_meta(
-            $productId,
+            (int)$productId,
             $metaKeys['usedCustomPPUKey'],
             0,
             $metaData[$metaKeys['usedCustomPPUKey']]

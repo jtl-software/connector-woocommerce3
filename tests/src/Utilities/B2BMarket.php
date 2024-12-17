@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace src\Utilities;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -10,15 +12,17 @@ use PHPUnit\Framework\MockObject\RuntimeException;
 
 /**
  * Class B2BMarket
+ *
  * @package src\Utilities
  */
 class B2BMarket extends AbstractTestCase
 {
     /**
+     * @return void
      * @throws \ReflectionException
      * @throws RuntimeException
      */
-    public function testSetB2BCustomerGroupBlacklist()
+    public function testSetB2BCustomerGroupBlacklist(): void
     {
         $b2bMock = $this->getMockBuilder(\JtlWooCommerceConnector\Utilities\B2BMarket::class)
             ->addMethods(['getPostMeta', 'updatePostMeta', 'deletePostMeta'])

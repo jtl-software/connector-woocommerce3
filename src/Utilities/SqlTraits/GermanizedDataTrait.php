@@ -7,6 +7,8 @@
  * Time: 10:56
  */
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait GermanizedDataTrait
@@ -26,10 +28,10 @@ trait GermanizedDataTrait
     }
 
     /**
-     * @param $status
+     * @param string $status
      * @return string
      */
-    public static function deliveryStatusByText($status): string
+    public static function deliveryStatusByText(string $status): string
     {
         global $wpdb;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\GlobalData;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -13,7 +15,7 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 class MeasurementUnitController extends AbstractBaseController
 {
     /**
-     * @return array
+     * @return array<int, MeasurementUnitModel>
      * @throws \InvalidArgumentException
      */
     public function pullGermanizedData(): array
@@ -25,9 +27,10 @@ class MeasurementUnitController extends AbstractBaseController
             $defaultLanguage = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
         }
 
+        /** @var array<int, array<string, string>> $result */
         $result = $this->db->query(SqlHelper::globalDataGermanizedMeasurementUnitPull());
 
-        foreach ((array)$result as $row) {
+        foreach ($result as $row) {
             $measurementUnits[] = (new MeasurementUnitModel())
                 ->setId(new Identity($row['id']))
                 ->setCode((new Germanized())->parseUnit($row['code']))
@@ -43,7 +46,7 @@ class MeasurementUnitController extends AbstractBaseController
     }
 
     /**
-     * @return array
+     * @return array<int, MeasurementUnitModel>
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
@@ -51,8 +54,9 @@ class MeasurementUnitController extends AbstractBaseController
     {
         $measurementUnits = [];
 
-        $sql      = SqlHelper::globalDataGMMUPullSpecific();
-        $specific = $this->db->query($sql);
+        $sql = SqlHelper::globalDataGMMUPullSpecific();
+        /** @var array<int, array<string, int|string>> $specific */
+        $specific = $this->db->query($sql) ?? [];
 
         if (\count($specific) <= 0) {
             return $measurementUnits;
@@ -63,23 +67,29 @@ class MeasurementUnitController extends AbstractBaseController
         $values = $this->db->query(SqlHelper::specificValuePull(\sprintf(
             'pa_%s',
             $specific['attribute_name']
-        )));
+        ))) ?? [];
 
+        /** @var array<string, int|string> $unit */
         foreach ($values as $unit) {
             $measurementUnit = (new MeasurementUnitModel())
-                ->setId(new Identity($unit['term_id']))
-                ->setCode($unit['name'])
-                ->setDisplayCode($unit['name'])
+                ->setId(new Identity((string)$unit['term_id']))
+                ->setCode((string)$unit['name'])
+                ->setDisplayCode((string)$unit['name'])
                 ->setI18ns(
                     (new MeasurementUnitI18n())
-                        ->setName($unit['description'])
+                        ->setName((string)$unit['description'])
                         ->setLanguageISO($this->util->getWooCommerceLanguage())
                 );
 
             if ($this->wpml->canBeUsed()) {
-                $translations = $this->wpml
-                    ->getComponent(WpmlGermanMarket::class)
-                    ->getMeasurementUnitsTranslations($unit['term_taxonomy_id'], $specific['attribute_name']);
+                /** @var WpmlGermanMarket $wpmlGermanMarket */
+                $wpmlGermanMarket = $this->wpml
+                    ->getComponent(WpmlGermanMarket::class);
+
+                $translations = $wpmlGermanMarket->getMeasurementUnitsTranslations(
+                    (int)$unit['term_taxonomy_id'],
+                    (string)$specific['attribute_name']
+                );
 
                 foreach ($translations as $translation) {
                     $measurementUnit->addI18n($translation);

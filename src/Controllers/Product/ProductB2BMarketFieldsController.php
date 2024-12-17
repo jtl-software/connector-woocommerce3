@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use InvalidArgumentException;
+use Jtl\Connector\Core\Model\CustomerGroupPackagingQuantity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
@@ -13,7 +16,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
@@ -23,11 +26,12 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function setRRPProperty(ProductModel &$product, WC_Product $wcProduct): void
     {
+        /** @var string $rrp */
         $rrp = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
         if ($rrp !== '' && !empty($rrp)) {
             $product->setRecommendedRetailPrice((float)$rrp);
@@ -54,7 +58,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws InvalidArgumentException
      */
@@ -88,13 +92,16 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
     }
 
     /**
-     * @param $quantityObject
-     * @param WC_Product $wcProduct
-     * @param $groupSlug
+     * @param CustomerGroupPackagingQuantity|ProductModel $quantityObject
+     * @param WC_Product                                  $wcProduct
+     * @param bool|string                                 $groupSlug
      * @return void
      */
-    protected function updateMinimumQuantityMetaFields($quantityObject, WC_Product $wcProduct, $groupSlug): void
-    {
+    protected function updateMinimumQuantityMetaFields(
+        CustomerGroupPackagingQuantity|ProductModel $quantityObject,
+        WC_Product $wcProduct,
+        bool|string $groupSlug
+    ): void {
         $minQuantityKey = \sprintf("bm_%s_min_quantity", $groupSlug);
         \update_post_meta(
             $wcProduct->get_id(),
@@ -113,7 +120,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function updateRRP(ProductModel $product, WC_Product $wcProduct): void
@@ -125,7 +132,9 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
         $isNewFormat = (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)
             && \version_compare($version, '1.0.4', '>='));
 
-        $oldValue = (float)\get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+        /** @var string $oldValue */
+        $oldValue = \get_post_meta($wcProduct->get_id(), 'bm_rrp', true);
+        $oldValue = (float)$oldValue;
         if ($rrp !== 0.) {
             if ($rrp !== $oldValue) {
                 if ($product->getMasterProductId()->getHost() !== 0 && !$isNewFormat) {
@@ -157,7 +166,7 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      */
     private function updateSpecialPrices(ProductModel $product, WC_Product $wcProduct): void
@@ -167,12 +176,14 @@ class ProductB2BMarketFieldsController extends AbstractBaseController
         foreach ($jtlSpecialPrices as $jtlSpecialPrice) {
             $items = $jtlSpecialPrice->getItems();
             foreach ($items as $item) {
-                if (\get_post($item->getCustomerGroupId()->getEndpoint()) !== null) {
-                    $customerGroup = \get_post($item->getCustomerGroupId()->getEndpoint())->post_name;
+                if (\get_post((int)$item->getCustomerGroupId()->getEndpoint()) !== null) {
+                    $customerGroup = \get_post((int)$item->getCustomerGroupId()->getEndpoint())->post_name;
                     $key           = 'bm_' . $customerGroup . '_group_prices';
+                    /** @var array<int, array<string, int|string>> $oldGroupPrice */
                     $oldGroupPrice = \get_post_meta($wcProduct->get_id(), $key, true);
                     $oldValue      = (float)$oldGroupPrice[0]['group_price'];
                     if ($oldValue !== $item->getPriceNet()) {
+                        /** @var array<int, array<string, int|string>> $postMeta */
                         $postMeta                   = \get_post_meta($wcProduct->get_id(), $key, true);
                         $postMeta[0]['group_price'] = (string)$item->getPriceNet();
                         \update_post_meta(

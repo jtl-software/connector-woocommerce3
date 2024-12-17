@@ -1,36 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
-use JtlWooCommerceConnector\Integrations\IntegrationsManager;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
-use JtlWooCommerceConnector\Utilities\Db;
-use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
  * Class AbstractPlugin
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
 {
-    /**
-     * @var ComponentInterface[]
-     */
-    protected $components = [];
+    /** @var ComponentInterface[] */
+    protected array $components = [];
 
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
-    /**
-     * @var PluginsManager
-     */
-    protected $pluginsManager;
+    protected PluginsManager $pluginsManager;
 
+    /**
+     * AbstractPlugin constructor.
+     */
     public function __construct()
     {
         $this->logger = new NullLogger();
@@ -95,6 +89,7 @@ abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
 
     /**
      * @param PluginsManager $pluginsManager
+     * @return void
      */
     public function setPluginsManager(PluginsManager $pluginsManager): void
     {

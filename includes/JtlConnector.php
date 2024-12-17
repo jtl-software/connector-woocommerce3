@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
+use Jtl\Connector\Core\Utilities\Validator\Validate;
 use JtlWooCommerceConnector\Connector;
 use Psr\Log\LogLevel;
 
@@ -10,6 +13,8 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
 {
     /**
      * @return void
+     * @throws \Noodlehaus\Exception\EmptyDirectoryException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function capture_request(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -35,6 +40,13 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             }
 
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
+
+            if (!\is_string($features)) {
+                throw new \http\Exception\InvalidArgumentException(
+                    "Expected features to be a string but got " . \gettype($features) . " instead."
+                );
+            }
+
             if (!file_exists($features)) {
                 copy(sprintf('%s.example', $features), $features);
             }

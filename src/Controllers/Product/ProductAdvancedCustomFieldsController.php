@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -19,15 +21,24 @@ use Psr\Log\InvalidArgumentException;
  */
 class ProductAdvancedCustomFieldsController extends AbstractBaseController
 {
+    /**
+     * @param ProductModel $product
+     * @param \WC_Product  $wcProduct
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \JsonException
+     */
     public function pullData(ProductModel &$product, \WC_Product $wcProduct): void
     {
-        #finde alle acf fields
+        // finde alle acf fields
         $acfFields = $this->getAllAcfExcerpts();
 
         foreach ($wcProduct->get_meta_data() as $metaData) {
             $metaKey = $metaData->get_data()['key'];
             if (\in_array($metaKey, $acfFields)) {
-                $attributeKey   = 'wc_acf_' . $metaKey;
+                $attributeKey = 'wc_acf_' . $metaKey;
+                /** @var int|string $attributeValue */
                 $attributeValue = $metaData->get_data()['value'];
 
                 $this->setWawiAcfAttribute($product, $attributeKey, $attributeValue);
@@ -36,6 +47,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param ProductModel $product
+     * @return void
      * @throws InvalidArgumentException
      * @throws TranslatableAttributeException
      */
@@ -50,6 +63,7 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                     $this->util->isWooCommerceLanguage($i18n->getLanguageIso())
                     && \str_starts_with($i18n->getName(), 'wc_acf_')
                 ) {
+                    /** @var string $meta_key */
                     $meta_key        = \str_replace('wc_acf_', '', \esc_sql($i18n->getName()));
                     $meta_value      = $i18n->getValue();
                     $wawiAcfFields[] = $meta_key;
@@ -60,8 +74,8 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
                         continue;
                     }
 
-                    \update_post_meta($productId, $meta_key, $meta_value);
-                    \update_post_meta($productId, '_' . $meta_key, $acfFieldPostName);
+                    \update_post_meta((int)$productId, $meta_key, $meta_value);
+                    \update_post_meta((int)$productId, '_' . $meta_key, $acfFieldPostName);
                 }
             }
         }
@@ -69,6 +83,10 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
         $this->deleteRemovedAttributes($productId, $wawiAcfFields);
     }
 
+    /**
+     * @return array<int, int|string>
+     * @throws InvalidArgumentException
+     */
     private function getAllAcfExcerpts(): array
     {
         global $wpdb;
@@ -87,9 +105,9 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
-* @param string $excerpt
-* @return string|null
-* @throws InvalidArgumentException
+     * @param string $excerpt
+     * @return string|null
+     * @throws InvalidArgumentException
      */
     private function getAcfFieldPostName(string $excerpt): ?string
     {
@@ -111,16 +129,21 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
     }
 
     /**
+     * @param ProductModel $product
+     * @param string       $attributeKey
+     * @param int|string   $attributeValue
+     * @return void
      * @throws TranslatableAttributeException
      * @throws \JsonException
      */
-    private function setWawiAcfAttribute($product, $attributeKey, $attributeValue): void
+    private function setWawiAcfAttribute(ProductModel $product, string $attributeKey, int|string $attributeValue): void
     {
         $i18n = (new TranslatableAttributeI18n())
             ->setName($attributeKey)
             ->setValue($attributeValue)
             ->setLanguageIso($this->util->getWooCommerceLanguage());
 
+        /** @var ProductAttribute $attribute */
         $attribute = (new ProductAttribute())
             ->setId(new Identity($product->getId()->getEndpoint() . '_' . $attributeKey))
             ->setI18ns($i18n);
@@ -128,7 +151,13 @@ class ProductAdvancedCustomFieldsController extends AbstractBaseController
         $product->addAttribute($attribute);
     }
 
-    private function deleteRemovedAttributes($productId, $wawiAcfFields)
+    /**
+     * @param string   $productId
+     * @param string[] $wawiAcfFields
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    private function deleteRemovedAttributes(string $productId, array $wawiAcfFields): void
     {
         global $wpdb;
 

@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use Psr\Log\InvalidArgumentException;
 
 class ProductAttrController extends AbstractBaseController
 {
@@ -20,36 +25,40 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
-     * @param $slug
-     * @param $languageIso
+     * @param string                $slug
+     * @param string                $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \JsonException
      */
     public function pullData(
         \WC_Product $product,
         \WC_Product_Attribute $attribute,
-        $slug,
-        $languageIso
+        string $slug,
+        string $languageIso
     ): ProductAttrModel {
         return $this->buildAttribute($product, $attribute, $slug, $languageIso);
     }
 
     /**
-     * @param $productId
-     * @param $pushedAttributes
-     * @param $attributesFilteredVariationsAndSpecifics
-     * @param ProductModel $product
+     * @param int                                                    $productId
+     * @param ProductAttribute[]                                     $pushedAttributes
+     * @param array<int|string, array<string, bool|int|string|null>> $attributesFilteredVariationsAndSpecifics
+     * @param ProductModel                                           $product
+     * @return array<int|string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
-     * @throws \Exception
+     * @throws MustNotBeNullException
+     * @throws InvalidArgumentException
+     * @throws \TypeError
      */
     public function pushData(
-        $productId,
-        $pushedAttributes,
-        $attributesFilteredVariationsAndSpecifics,
+        int $productId,
+        array $pushedAttributes,
+        array $attributesFilteredVariationsAndSpecifics,
         ProductModel $product
-    ) {
+    ): array {
         //FUNCTION ATTRIBUTES BY JTL
         $virtual        = false;
         $downloadable   = false;
@@ -68,7 +77,6 @@ class ProductAttrController extends AbstractBaseController
         //GERMANIZED PRO
         $food = false;
 
-        /** @var  ProductAttrModel $pushedAttribute */
         foreach ($pushedAttributes as $key => $pushedAttribute) {
             foreach ($pushedAttribute->getI18ns() as $i18n) {
                 if (!$this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
@@ -81,29 +89,32 @@ class ProductAttrController extends AbstractBaseController
 
                 $attrName = $this->convertLegacyAttributeName($attrName);
 
-                if ($this->hasWcAttributePrefix($attrName)) {
+                if ($this->hasWcAttributePrefix($attrName) === 1) {
+                    /** @var string $i18nValue */
+                    $i18nValue = $i18n->getValue();
+
                     if (
                         SupportedPlugins::isActive(SupportedPlugins::PLUGIN_FB_FOR_WOO)
                         && $attrName === ProductVaSpeAttrHandlerController::FACEBOOK_SYNC_STATUS_ATTR
                     ) {
-                        $value = $this->util->isTrue($i18n->getValue()) ? '1' : '';
+                        $value = $this->util->isTrue($i18nValue) ? '1' : '';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 3), $value);
                         $fbStatusCode = true;
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_IS_SERVICE) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                             $this->addOrUpdateMetaField($productId, '_service', $value);
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
-                            $this->addOrUpdateMetaField($productId, '_min_age', $i18n->getValue());
+                            $this->addOrUpdateMetaField($productId, '_min_age', $i18nValue);
                         }
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_IS_FOOD) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                             $this->addOrUpdateMetaField($productId, '_is_food', $value);
                             $food = true;
                         }
@@ -111,13 +122,13 @@ class ProductAttrController extends AbstractBaseController
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
                         if ($attrName === ProductVaSpeAttrHandlerController::GM_DIGITAL_ATTR) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                            $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                             $this->addOrUpdateMetaField($productId, \substr($attrName, 5), $value);
                             $digital = true;
                         }
 
                         if ($attrName === ProductVaSpeAttrHandlerController::GM_SUPPRESS_SHIPPPING_NOTICE) {
-                            $value = $this->util->isTrue($i18n->getValue()) ? 'on' : '';
+                            $value = $this->util->isTrue($i18nValue) ? 'on' : '';
                             if ($value) {
                                 $this->addOrUpdateMetaField($productId, \substr($attrName, 5), $value);
                             }
@@ -125,7 +136,7 @@ class ProductAttrController extends AbstractBaseController
                         }
 
                         if ($attrName === ProductVaSpeAttrHandlerController::GM_ALT_DELIVERY_NOTE_ATTR) {
-                            $value = \trim($i18n->getValue());
+                            $value = \trim($i18nValue);
                             $this->addOrUpdateMetaField($productId, '_alternative_shipping_information', $value);
                             $altDeliveryNote = true;
                         }
@@ -139,7 +150,7 @@ class ProductAttrController extends AbstractBaseController
                             $term = $this->getTermBy(
                                 'slug',
                                 $this->wcSanitizeTaxonomyName(
-                                    \substr(\trim($i18n->getValue()), 0, 27)
+                                    \substr(\trim($i18nValue), 0, 27)
                                 ),
                                 'pa_' . $attrName
                             );
@@ -158,7 +169,7 @@ class ProductAttrController extends AbstractBaseController
 
                         $term = $this->getTermBy(
                             'slug',
-                            $this->wcSanitizeTaxonomyName(\substr(\trim($i18n->getValue()), 0, 27)),
+                            $this->wcSanitizeTaxonomyName(\substr(\trim($i18nValue), 0, 27)),
                             'pa_' . $attrName
                         );
 
@@ -168,32 +179,32 @@ class ProductAttrController extends AbstractBaseController
                     }
 
                     if ($attrName === ProductVaSpeAttrHandlerController::PURCHASE_NOTE_ATTR) {
-                        $value = \trim($i18n->getValue());
+                        $value = \trim($i18nValue);
                         $this->addOrUpdateMetaField($productId, '_purchase_note', $value);
                         $purchaseNote = true;
                     }
 
                     if ($attrName === ProductVaSpeAttrHandlerController::DOWNLOADABLE_ATTR) {
-                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $downloadable = true;
                     }
 
                     if ($attrName === ProductVaSpeAttrHandlerController::PURCHASE_ONLY_ONE_ATTR) {
-                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $soldIndividual = true;
                     }
 
                     if ($attrName === ProductVaSpeAttrHandlerController::VIRTUAL_ATTR) {
-                        $value = $this->util->isTrue($i18n->getValue()) ? 'yes' : 'no';
+                        $value = $this->util->isTrue($i18nValue) ? 'yes' : 'no';
                         $this->addOrUpdateMetaField($productId, \substr($attrName, 2), $value);
                         $virtual = true;
                     }
 
                     if (
                         ($attrName === ProductVaSpeAttrHandlerController::PAYABLE_ATTR)
-                        && $this->util->isTrue($i18n->getValue()) === false
+                        && $this->util->isTrue($i18nValue) === false
                     ) {
                         $this->wpUpdatePost(['ID' => $productId, 'post_status' => 'private']);
                         $payable = true;
@@ -201,7 +212,7 @@ class ProductAttrController extends AbstractBaseController
 
                     if (
                         ($attrName === ProductVaSpeAttrHandlerController::NOSEARCH_ATTR)
-                        && $this->util->isTrue($i18n->getValue())
+                        && $this->util->isTrue($i18nValue)
                     ) {
                         $this->updatePostMeta($productId, '_visibility', 'catalog');
 
@@ -210,7 +221,7 @@ class ProductAttrController extends AbstractBaseController
                     }
 
                     if ($attrName === ProductVaSpeAttrHandlerController::VISIBILITY) {
-                        $this->updateProductVisibility($i18n->getValue(), $productId);
+                        $this->updateProductVisibility($i18nValue, $productId);
                         $nosearch = true;
                     }
 
@@ -275,7 +286,11 @@ class ProductAttrController extends AbstractBaseController
 
         if (!$payable) {
             $wcProduct = \wc_get_product($productId);
-            $wcProduct->set_status('publish');
+            if ($wcProduct instanceof \WC_Product) {
+                $wcProduct->set_status('publish');
+            } else {
+                $this->logger->warning('Wc product not found for productId ' . $productId);
+            }
         }
 
         foreach ($attributesFilteredVariationsAndSpecifics as $key => $attr) {
@@ -285,7 +300,7 @@ class ProductAttrController extends AbstractBaseController
             $tmp = false;
 
             foreach ($pushedAttributes as $pushedAttribute) {
-                if ($attr->id == $pushedAttribute->getId()->getEndpoint()) {
+                if ($attr['id'] == $pushedAttribute->getId()->getEndpoint()) {
                     $tmp = true;
                 }
             }
@@ -297,7 +312,6 @@ class ProductAttrController extends AbstractBaseController
 
         $sentCustomProperties = [];
 
-        /** @var ProductAttrModel $attribute */
         foreach ($pushedAttributes as $attribute) {
             if (
                 !(bool)Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES)
@@ -324,18 +338,19 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param \WC_Product $product
+     * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
-     * @param $slug
-     * @param $languageIso
+     * @param string                $slug
+     * @param string                $languageIso
      * @return ProductAttrModel
-     * @throws \InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \JsonException
      */
     private function buildAttribute(
         \WC_Product $product,
         \WC_Product_Attribute $attribute,
-        $slug,
-        $languageIso
+        string $slug,
+        string $languageIso
     ): ProductAttrModel {
         $productAttribute = $product->get_attribute($attribute->get_name());
         $isTax            = $attribute->is_taxonomy();
@@ -355,31 +370,36 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param ProductAttrModel $attribute
-     * @param ProductAttrI18nModel $i18n
-     * @param array $attributes
+     * @param ProductAttrModel                                       $attribute
+     * @param ProductAttrI18nModel                                   $i18n
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
     private function saveAttribute(ProductAttrModel $attribute, ProductAttrI18nModel $i18n, array &$attributes): void
     {
+        /** @var string $value */
         $value = $i18n->getValue();
         if ((bool)Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES, false) === false) {
+            /** @var string $value */
             $value = $this->wcClean($value);
         }
 
+        /** @var string $attributeName */
+        $attributeName = $this->wcClean($i18n->getName());
+
         $this->createOrUpdateExistingAttribute($i18n, [
-            'name' => $this->wcClean($i18n->getName()),
+            'name' => $attributeName,
             'value' => $value,
             'isCustomProperty' => $attribute->getIsCustomProperty(),
-            'isVisible' => $attribute->getIsTranslated() || $attribute->getIsCustomProperty() ? 1 : 0,
+            'isVisible' => ($attribute->getIsTranslated() || $attribute->getIsCustomProperty()) ? 1 : 0,
         ], $attributes);
     }
 
     /**
-     * @param ProductAttrI18nModel $i18n
-     * @param array $data
-     * @param array $attributes
+     * @param ProductAttrI18nModel                                   $i18n
+     * @param array<string, bool|int|string>                         $data
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      * @throws TranslatableAttributeException
      */
@@ -388,32 +408,39 @@ class ProductAttrController extends AbstractBaseController
         $slug = $this->wcSanitizeTaxonomyName($i18n->getName());
 
         if (isset($attributes[$slug])) {
-            $this->updateAttribute($slug, $i18n->getValue(), $attributes);
+            /** @var string $value */
+            $value = $i18n->getValue();
+            $this->updateAttribute($slug, $value, $attributes);
         } else {
             $this->createAttribute($slug, $data, $attributes);
         }
     }
 
     /**
-     * @param $slug
-     * @param $value
-     * @param array $attributes
+     * @param string                                                 $slug
+     * @param string                                                 $value
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      */
-    private function updateAttribute($slug, $value, array &$attributes): void
+    private function updateAttribute(string $slug, string $value, array &$attributes): void
     {
-        $values                     = \explode(',', $attributes[$slug]['value']);
-        $values[]                   = $this->wcClean($value);
+        /** @var string $attributeValue */
+        $attributeValue = $attributes[$slug]['value'];
+        $values         = \explode(',', $attributeValue);
+
+        /** @var string $wcCleanValue */
+        $wcCleanValue               = $this->wcClean($value);
+        $values[]                   = $wcCleanValue;
         $attributes[$slug]['value'] = \implode(' | ', $values);
     }
 
     /**
-     * @param $slug
-     * @param array $data
-     * @param array $attributes
+     * @param string                                                 $slug
+     * @param array<string, bool|int|string>                         $data
+     * @param array<int|string, array<string, bool|int|string|null>> $attributes
      * @return void
      */
-    private function createAttribute($slug, array $data, array &$attributes): void
+    private function createAttribute(string $slug, array $data, array &$attributes): void
     {
         $attributes[$slug] = [
             'name' => $data['name'],
@@ -425,7 +452,13 @@ class ProductAttrController extends AbstractBaseController
         ];
     }
 
-    private function deleteRemovedCustomProperties($productId, $sentCustomProperties): void
+    /**
+     * @param int      $productId
+     * @param string[] $sentCustomProperties
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    private function deleteRemovedCustomProperties(int $productId, array $sentCustomProperties): void
     {
         global $wpdb;
 
@@ -438,10 +471,14 @@ class ProductAttrController extends AbstractBaseController
             $productId
         );
 
+        /** @var string[] $existingPropertyNames */
         $existingPropertyNames = [];
-        $existingProperties    = $this->db->query($query);
+
+        /** @var array<int, array<string, string>> $existingProperties */
+        $existingProperties = $this->db->query($query);
 
         if ($existingProperties) {
+            /** @var array<int|string, array<string, bool|int|string|null>> $existingProperties */
             $existingProperties = \unserialize($existingProperties[0]['meta_value']);
 
             foreach ($existingProperties as $property) {
@@ -453,7 +490,7 @@ class ProductAttrController extends AbstractBaseController
 
         if ($missingProperties) {
             foreach ($missingProperties as $missingKey) {
-                unset($existingProperties[\str_replace(' ', '-', \strtolower($missingKey))]);
+                unset($existingProperties[\str_replace(' ', '-', \strtolower((string)$missingKey))]);
             }
 
             \update_post_meta($productId, '_product_attributes', $existingProperties);
@@ -462,9 +499,9 @@ class ProductAttrController extends AbstractBaseController
 
     /**
      * @param string $attrName
-     * @return bool
+     * @return false|int
      */
-    protected function hasWcAttributePrefix(string $attrName): bool
+    protected function hasWcAttributePrefix(string $attrName): false|int
     {
         return \preg_match('/^(wc_)[a-zA-Z0-9-\_]+$/', $attrName);
     }
@@ -483,12 +520,12 @@ class ProductAttrController extends AbstractBaseController
     }
 
     /**
-     * @param $productId
+     * @param int    $productId
      * @param string $metaKey
      * @param string $value
      * @return void
      */
-    protected function addOrUpdateMetaField($productId, string $metaKey, string $value): void
+    protected function addOrUpdateMetaField(int $productId, string $metaKey, string $value): void
     {
         if (!$this->addPostMeta($productId, $metaKey, $value)) {
             $this->updatePostMeta($productId, $metaKey, $value);
@@ -497,10 +534,10 @@ class ProductAttrController extends AbstractBaseController
 
     /**
      * @param string $value
-     * @param $productId
+     * @param int    $productId
      * @return string
      */
-    protected function updateProductVisibility(string $value, $productId): string
+    protected function updateProductVisibility(string $value, int $productId): string
     {
         $excludeFromCatalog = 'exclude-from-catalog';
         $excludeFromSearch  = 'exclude-from-search';

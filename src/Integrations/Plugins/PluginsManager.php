@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 use JtlWooCommerceConnector\Integrations\Plugins\Germanized\Germanized;
@@ -29,22 +31,19 @@ use JtlWooCommerceConnector\Utilities\Db;
 
 /**
  * Class PluginsManager
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 class PluginsManager
 {
-    /**
-     * @var array
-     */
-    protected $pluginsList = [];
+    /** @var array<string, PluginInterface> */
+    protected array $pluginsList = [];
 
-    /**
-     * @var Db
-     */
-    protected $database;
+    protected Db $database;
 
     /**
      * PluginsManager constructor.
+     *
      * @param Db $database
      */
     public function __construct(Db $database)

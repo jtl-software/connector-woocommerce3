@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
@@ -15,18 +19,18 @@ class ProductSpecificController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel $model
-     * @param \WC_Product $product
+     * @param ProductModel         $model
+     * @param \WC_Product          $product
      * @param WC_Product_Attribute $attribute
-     * @param $slug
-     * @return array
+     * @param string               $slug
+     * @return ProductSpecificModel[]
      * @throws \InvalidArgumentException
      */
     public function pullData(
         ProductModel $model,
         \WC_Product $product,
         WC_Product_Attribute $attribute,
-        $slug
+        string $slug
     ): array {
         $name             = $attribute->get_name();
         $productAttribute = $product->get_attribute($name);
@@ -47,24 +51,26 @@ class ProductSpecificController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param $productId
-     * @param $curAttributes
-     * @param array $specificData
-     * @param array $pushedJtlSpecifics
-     * @param array $pushedJtlAttributes
-     * @return array
+     * @param int                                               $productId
+     * @param array<string, WC_Product_Attribute>               $curAttributes
+     * @param array<int, array<string, array<int, int|string>>> $specificData
+     * @param ProductSpecificModel[]                            $pushedJtlSpecifics
+     * @param TranslatableAttribute[]                           $pushedJtlAttributes
+     * @return array<string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
+     * @throws MustNotBeNullException
+     * @throws \TypeError
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pushData(
-        $productId,
-        $curAttributes,
+        int $productId,
+        array $curAttributes,
         array $specificData = [],
         array $pushedJtlSpecifics = [],
         array $pushedJtlAttributes = []
     ): array {
         $newSpecifics = [];
 
-        /** @var ProductSpecificModel $specific */
         foreach ($pushedJtlSpecifics as $specific) {
             $endpointId      = $specific->getId()->getEndpoint();
             $specificValueId = $specific->getSpecificValueId()->getEndpoint();
@@ -112,7 +118,7 @@ class ProductSpecificController extends AbstractBaseController
                     if ($wcProductAttribute->get_variation()) {
                         continue;
                     }
-                    \wp_remove_object_terms($productId, $value, $slug);
+                    \wp_remove_object_terms($productId, $value, (string)$slug);
                 }
             }
         }
@@ -129,7 +135,7 @@ class ProductSpecificController extends AbstractBaseController
             ];
             $values              = [];
 
-            if (isset($specific) && \count($specific['options']) > 0) {
+            if (\count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
                     $term = \get_term_by('id', $valId, $slug);
                     if ($term instanceof \WP_Term) {
@@ -147,27 +153,28 @@ class ProductSpecificController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Methods">
     /**
-     * @param $slug
+     * @param string $slug
      * @return string
      * @throws InvalidArgumentException
      */
-    public function getSpecificId($slug): string
+    public function getSpecificId(string $slug): string
     {
         $name = \substr($slug, 3);
-        $val  = $this->db->query(SqlHelper::getSpecificId($name));
+        /** @var array<int, array<string, int|string>> $val */
+        $val = $this->db->query(SqlHelper::getSpecificId($name));
 
-        return $val[0]['attribute_id'] ?? '';
+        return $val[0]['attribute_id'] ? (string)$val[0]['attribute_id'] : '';
     }
 
     /**
-     * @param $slug
-     * @param $value
+     * @param string       $slug
+     * @param string       $value
      * @param ProductModel $result
      * @return ProductSpecificModel
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \Exception
      */
-    private function buildProductSpecific($slug, $value, ProductModel $result): ProductSpecificModel
+    private function buildProductSpecific(string $slug, string $value, ProductModel $result): ProductSpecificModel
     {
         $parent     = (new ProductVaSpeAttrHandlerController($this->db, $this->util));
         $valueId    = $parent->getSpecificValueId($slug, $value);

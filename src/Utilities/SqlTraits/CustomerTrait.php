@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:41
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -13,15 +8,19 @@ use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\InvalidArgumentException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 trait CustomerTrait
 {
     /**
-     * @param $limit
-     * @param $logger
+     * @param int|null                   $limit
+     * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    public static function customerNotLinked($limit, $logger): string
+    public static function customerNotLinked(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         if (
             Config::get(
@@ -36,10 +35,10 @@ trait CustomerTrait
     }
 
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    private static function customerNotLinkedNoCondition($limit): string
+    private static function customerNotLinkedNoCondition(?int $limit): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -61,6 +60,7 @@ trait CustomerTrait
                 '>'
             )
         ) {
+            /** @var string[] $pullGroups */
             $pullGroups = Config::get(Config::OPTIONS_PULL_CUSTOMER_GROUPS, []);
         }
 
@@ -75,10 +75,12 @@ trait CustomerTrait
     }
 
     /**
-     * @param $limit
+     * @param int|null                   $limit
+     * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    private static function customerNotLinkedCondition($limit, $logger): string
+    private static function customerNotLinkedCondition(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -117,11 +119,12 @@ trait CustomerTrait
     }
 
     /**
-     * @param $limit
-     * @param $logger
+     * @param int|null                   $limit
+     * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    public static function guestNotLinked($limit, $logger): string
+    public static function guestNotLinked(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
         $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
@@ -164,10 +167,11 @@ trait CustomerTrait
     }
 
     /**
-     * @param $logger
+     * @param LoggerInterface|NullLogger $logger
      * @return string
+     * @throws InvalidArgumentException
      */
-    private static function getCustomerPullCondition($logger): string
+    private static function getCustomerPullCondition(LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
@@ -179,6 +183,7 @@ trait CustomerTrait
                 $whereQuery = \sprintf('AND p.id > (SELECT IF(max(endpoint_id),max(endpoint_id),0) from %s)', $jclo);
                 break;
             case 'fixed_date':
+                /** @var string $since */
                 $since      = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
                 $whereQuery = (!empty($since) && \strtotime($since) !== false)
                     ? \sprintf('AND p.post_modified > \'%s\'', $since)

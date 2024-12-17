@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder as CustomerOrderModel;
 use Jtl\Connector\Core\Model\CustomerOrderPaymentInfo;
 use Jtl\Connector\Core\Model\Identity;
@@ -44,7 +47,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
     /**
      * @param QueryFilter $query
-     * @return array<int|CustomerOrderController>
+     * @return AbstractModel[]
      * @throws InvalidArgumentException
      * @throws \WC_Data_Exception
      * @throws \Exception
@@ -67,13 +70,13 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $totalSum = $total - $totalTax;
 
             $customerOrder = (new CustomerOrderModel())
-                ->setId(new Identity($order->get_id()))
+                ->setId(new Identity((string)$order->get_id()))
                 ->setCreationDate($order->get_date_created())
                 ->setCurrencyIso($order->get_currency())
                 ->setNote($order->get_customer_note())
                 ->setCustomerId($order->get_customer_id() === 0
                     ? new Identity(Id::link([Id::GUEST_PREFIX, $order->get_id()]))
-                    : new Identity($order->get_customer_id()))
+                    : new Identity((string)$order->get_customer_id()))
                 ->setOrderNumber($order->get_order_number())
                 ->setShippingMethodName($order->get_shipping_method())
                 ->setPaymentModuleCode($this->util->mapPaymentModuleCode($order))
@@ -88,7 +91,10 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                     (new CustomerOrderShippingAddressController($this->db, $this->util))->pull($order)
                 );
 
-            if ($this->wpml->canBeUsed() && !empty($wpmlLanguage = $order->get_meta('wpml_language'))) {
+            /** @var string $wpmlLanguage */
+            $wpmlLanguage = $order->get_meta('wpml_language');
+
+            if ($this->wpml->canBeUsed() && !empty($wpmlLanguage)) {
                 $customerOrder->setLanguageISO($this->wpml->convertLanguageToWawi($wpmlLanguage));
             }
 
@@ -97,22 +103,26 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             }
 
             if ($customerOrder->getPaymentModuleCode() === PaymentType::AMAPAY) {
+                /** @var bool|int|string $amazonChargePermissionId */
                 $amazonChargePermissionId = $order->get_meta('amazon_charge_permission_id');
                 if (!empty($amazonChargePermissionId)) {
                     $customerOrder->addAttribute(
                         (new KeyValueAttribute())
                             ->setKey('AmazonPay-Referenz')
-                            ->setValue($amazonChargePermissionId)
+                            ->setValue((string)$amazonChargePermissionId)
                     );
                 }
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
                 foreach ($order->get_meta_data() as $metaData) {
+                    /** @var bool|int|string|null $customCheckoutFields */
+                    $customCheckoutFields = Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS);
+
                     if (
                         \in_array(
                             $metaData->get_data()['key'],
-                            \explode(',', Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS))
+                            \explode(',', (string)$customCheckoutFields)
                         )
                     ) {
                         $customerOrder->addAttribute(
@@ -141,7 +151,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_DHL_FOR_WOOCOMMERCE)) {
-                $dhlPreferredDeliveryOptions = \get_post_meta($orderId, '_pr_shipment_dhl_label_items', true);
+                $dhlPreferredDeliveryOptions = \get_post_meta((int)$orderId, '_pr_shipment_dhl_label_items', true);
 
                 if (\is_array($dhlPreferredDeliveryOptions)) {
                     $this->setPreferredDeliveryOptions($customerOrder, $dhlPreferredDeliveryOptions);
@@ -155,9 +165,10 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
-     * @param \WC_Order $order
+     * @param \WC_Order          $order
      * @param CustomerOrderModel $customerOrder
      * @return void
+     * @throws \http\Exception\InvalidArgumentException
      */
     protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
@@ -166,20 +177,37 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
         if ($instructionType === PaymentController::PAY_UPON_INVOICE) {
             $payPalPlusSettings = \get_option('woocommerce_paypal_plus_settings', []);
 
+            if (!\is_array($payPalPlusSettings)) {
+                throw new \http\Exception\InvalidArgumentException(
+                    "payPalSettings expected to be an array but got " . \gettype($payPalPlusSettings)
+                );
+            }
+
             $pui = $payPalPlusSettings['pay_upon_invoice_instructions'] ?? '';
             if (empty($pui)) {
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
+
+                if (!\is_array($orderMetaData)) {
+                    throw new \http\Exception\InvalidArgumentException(
+                        "orderMetaData expected to be an array but got " . \gettype($orderMetaData)
+                    );
+                }
+
                 if (
                     !empty($orderMetaData)
                     && $orderMetaData['instruction_type'] === PaymentController::PAY_UPON_INVOICE
                 ) {
+                    /** @var array<string, string>|string $bankData */
                     $bankData = $orderMetaData['recipient_banking_instruction'] ?? '';
+                    /** @var string $paymentDueDate */
+                    $paymentDueDate = $order->get_meta('payment_due_date') ?? '';
+
                     if (!empty($bankData)) {
                         $pui = (\sprintf(
                             'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
                             \number_format((float)$order->get_total(), 2),
                             $customerOrder->getCurrencyIso(),
-                            $order->get_meta('payment_due_date') ?? '',
+                            $paymentDueDate,
                             \sprintf(
                                 'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
                                 $bankData['account_holder_name'] ?? '',
@@ -225,16 +253,20 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
         if ($customerOrder->getPaymentModuleCode() === PaymentType::DIRECT_DEBIT) {
             $orderId = $customerOrder->getId()->getEndpoint();
 
-            $bic  = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_bic', true));
-            $iban = $directDebitGateway->maybe_decrypt(\get_post_meta($orderId, '_direct_debit_iban', true));
+            $bic  = $directDebitGateway->maybe_decrypt(\get_post_meta((int)$orderId, '_direct_debit_bic', true));
+            $iban = $directDebitGateway->maybe_decrypt(\get_post_meta((int)$orderId, '_direct_debit_iban', true));
+
+            /** @var string $directDebitHolder */
+            $directDebitHolder = \get_post_meta((int)$orderId, '_direct_debit_holder', true);
 
             $paymentInfo = (new CustomerOrderPaymentInfo())
                 ->setBic($bic)
                 ->setIban($iban)
-                ->setAccountHolder(\get_post_meta($orderId, '_direct_debit_holder', true));
+                ->setAccountHolder($directDebitHolder);
 
             $customerOrder->setPaymentInfo($paymentInfo);
         } elseif ($customerOrder->getPaymentModuleCode() === PaymentType::INVOICE) {
+            /** @var array<string, string> $settings */
             $settings = \get_option('woocommerce_invoice_settings');
 
             if (!empty($settings) && isset($settings['instructions'])) {
@@ -244,8 +276,8 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     }
 
     /**
-     * @param CustomerOrderModel $customerOrder
-     * @param array $dhlPreferredDeliveryOptions
+     * @param CustomerOrderModel    $customerOrder
+     * @param array<string, string> $dhlPreferredDeliveryOptions
      * @return void
      */
     protected function setPreferredDeliveryOptions(
@@ -303,10 +335,12 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                         );
                     }
 
+                    $shippingAdress = $customerOrder->getShippingAddress();
+
                     $addressAddition = \sprintf(
                         '%s %s',
-                        $customerOrder->getShippingAddress()->getZipCode(),
-                        $customerOrder->getShippingAddress()->getCity()
+                        $shippingAdress ? $shippingAdress->getZipCode() : '',
+                        $shippingAdress ? $shippingAdress->getCity() : ''
                     );
 
                     if (isset($parts[1])) {
@@ -359,17 +393,26 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param CustomerOrderModel $customerOrder
      * @return void
      */
-    protected function setGermanMarketPaymentInfo(CustomerOrderModel &$customerOrder): void
+    protected function setGermanMarketPaymentInfo(CustomerOrderModel $customerOrder): void
     {
         $orderId = $customerOrder->getId()->getEndpoint();
 
         if ($customerOrder->getPaymentModuleCode() === PaymentType::DIRECT_DEBIT) {
-            $instance      = new \WGM_Gateway_Sepa_Direct_Debit();
-            $gmSettings    = $instance->settings;
-            $bic           = \get_post_meta($orderId, '_german_market_sepa_bic', true);
-            $iban          = \get_post_meta($orderId, '_german_market_sepa_iban', true);
-            $accountHolder = \get_post_meta($orderId, '_german_market_sepa_holder', true);
-            $settingsKeys  = [
+            $instance = new \WGM_Gateway_Sepa_Direct_Debit();
+
+            /** @var array<string, string> $gmSettings */
+            $gmSettings = $instance->settings;
+
+            /** @var string $bic */
+            $bic = \get_post_meta((int)$orderId, '_german_market_sepa_bic', true);
+
+            /** @var string $iban */
+            $iban = \get_post_meta((int)$orderId, '_german_market_sepa_iban', true);
+
+            /** @var string $accountHolder */
+            $accountHolder = \get_post_meta((int)$orderId, '_german_market_sepa_holder', true);
+
+            $settingsKeys = [
                 '[creditor_information]',
                 '[creditor_identifier]',
                 '[creditor_account_holder]',
@@ -386,11 +429,15 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                 '[account_bic]',
                 '[amount]',
             ];
-            $pui           = \array_key_exists('direct_debit_mandate', $gmSettings)
+
+            $pui = \array_key_exists('direct_debit_mandate', $gmSettings)
                 ? $gmSettings['direct_debit_mandate']
                 : '';
 
             foreach ($settingsKeys as $key => $formValue) {
+                $billingAdsress = $customerOrder->getBillingAddress();
+                $paymentDate    = $customerOrder->getPaymentDate();
+
                 switch ($formValue) {
                     case '[creditor_information]':
                         $value = \array_key_exists(
@@ -417,22 +464,23 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                         $value = \array_key_exists('bic', $gmSettings) ? $gmSettings['bic'] : '';
                         break;
                     case '[mandate_id]':
-                        $value = \get_post_meta($orderId, '_german_market_sepa_mandate_reference', true);
+                        /** @var string $value */
+                        $value = \get_post_meta((int)$orderId, '_german_market_sepa_mandate_reference', true);
                         break;
                     case '[street]':
-                        $value = $customerOrder->getBillingAddress()->getStreet();
+                        $value = $billingAdsress ? $billingAdsress->getStreet() : '';
                         break;
                     case '[city]':
-                        $value = $customerOrder->getBillingAddress()->getCity();
+                        $value = $billingAdsress ? $billingAdsress->getCity() : '';
                         break;
                     case '[postcode]':
-                        $value = $customerOrder->getBillingAddress()->getZipCode();
+                        $value = $billingAdsress ? $billingAdsress->getZipCode() : '';
                         break;
                     case '[country]':
-                        $value = $customerOrder->getBillingAddress()->getCountryIso();
+                        $value = $billingAdsress ? $billingAdsress->getCountryIso() : '';
                         break;
                     case '[date]':
-                        $value = $customerOrder->getPaymentDate()->getTimestamp();
+                        $value = $paymentDate ? $paymentDate->getTimestamp() : '';
                         break;
                     case '[account_holder]':
                         $value = $accountHolder;
@@ -453,7 +501,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
                 $pui = \str_replace(
                     $formValue,
-                    $value,
+                    (string)$value,
                     $pui
                 );
             }
@@ -482,9 +530,11 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param QueryFilter $query
      * @return int
      * @throws \Psr\Log\InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {
-        return $this->db->queryOne(SqlHelper::customerOrderPull(null));
+        $customerOrderPull = $this->db->queryOne(SqlHelper::customerOrderPull(null)) ?? 0;
+        return (int)$customerOrderPull;
     }
 }

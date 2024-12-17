@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Payment as PaymentModel;
 use Jtl\Connector\Core\Model\QueryFilter;
@@ -16,19 +19,18 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Payment
+ *
  * @package JtlWooCommerceConnector\Controllers
  */
 class PaymentController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
-    /**
-     *
-     */
     public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
      * @param QueryFilter $query
      * @return array|AbstractModel[]
      * @throws InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -52,8 +54,8 @@ class PaymentController extends AbstractBaseController implements PullInterface,
             $paymentModuleCode = $this->util->mapPaymentModuleCode($order);
 
             $payments[] = (new PaymentModel())
-                ->setId(new Identity($order->get_id()))
-                ->setCustomerOrderId(new Identity($order->get_id(), $orderHostId))
+                ->setId(new Identity((string)$order->get_id()))
+                ->setCustomerOrderId(new Identity((string)$order->get_id(), $orderHostId))
                 ->setTotalSum((float)$order->get_total())
                 ->setPaymentModuleCode($paymentModuleCode)
                 ->setTransactionId($this->getTransactionId($paymentModuleCode, $order))
@@ -68,9 +70,9 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-    * @param int $endpointId
-    * @return int
-    * @throws InvalidArgumentException
+     * @param int $endpointId
+     * @return int
+     * @throws InvalidArgumentException
      */
     public function getOrderHostId(int $endpointId): int
     {
@@ -80,11 +82,11 @@ class PaymentController extends AbstractBaseController implements PullInterface,
             $endpointId
         );
 
-        return $this->db->queryOne($query);
+        return (int)$this->db->queryOne($query);
     }
 
     /**
-     * @param string $paymentModuleCode
+     * @param string    $paymentModuleCode
      * @param \WC_Order $order
      * @return string
      */
@@ -92,6 +94,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     {
         $transactionId = $order->get_transaction_id();
         if ($paymentModuleCode == PaymentType::AMAPAY) {
+            /** @var int|string $transactionId */
             $transactionId = $order->get_meta('amazon_charge_id');
         }
 
@@ -99,12 +102,13 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-     * @param PaymentModel $model
-     * @return PaymentModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws \WC_Data_Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var PaymentModel $model */
         $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());
 
         if (!$order instanceof \WC_Order) {
@@ -112,7 +116,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
         }
 
         $order->set_transaction_id($model->getTransactionId());
-        $order->set_date_paid($model->getCreationDate());
+        $order->set_date_paid($model->getCreationDate() ? $model->getCreationDate()->getTimestamp() : null);
         $order->save();
 
         return $model;
@@ -122,6 +126,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

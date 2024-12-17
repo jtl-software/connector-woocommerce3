@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\SpecificValue;
@@ -10,66 +12,80 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific
 
 /**
  * Class WpmlSpecificValue
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlSpecificValue extends AbstractComponent
 {
     /**
      * @param SpecificValue $specificValue
-     * @param int $mainSpecificValueId
-     * @param string $elementType
+     * @param int           $mainSpecificValueId
+     * @param string        $elementType
+     * @return void
+     * @throws \Exception
      */
     public function getTranslations(SpecificValue $specificValue, int $mainSpecificValueId, string $elementType): void
     {
-        $trid         = $this->getCurrentPlugin()
-            ->getElementTrid($mainSpecificValueId, 'tax_' . $elementType);
-        $translations = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class)
-            ->getTranslations($trid, 'tax_' . $elementType, true);
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $trid       = $wpmlPlugin->getElementTrid($mainSpecificValueId, 'tax_' . $elementType);
+
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $wpmlPlugin->getComponent(WpmlTermTranslation::class);
+        $translations        = $wpmlTermTranslation
+            ->getTranslations((int)$trid, 'tax_' . $elementType, true);
 
         foreach ($translations as $languageCode => $translation) {
             $specificValue->addI18n((new SpecificValueI18nModel())
-                ->setLanguageISO($this->getCurrentPlugin()->convertLanguageToWawi($languageCode))
+                ->setLanguageISO($wpmlPlugin->convertLanguageToWawi($languageCode))
                 ->setValue($translation->name));
         }
     }
 
     /**
-     * @param string $taxonomy
+     * @param string        $taxonomy
      * @param SpecificValue $specificValue
-     * @param int $mainSpecificValueId
+     * @param int           $mainSpecificValueId
+     * @return void
      * @throws \Exception
      */
     public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void
     {
         $type = 'tax_' . $taxonomy;
-        $trid = $this->getCurrentPlugin()->getElementTrid($mainSpecificValueId, $type);
+
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $trid       = $wpmlPlugin->getElementTrid($mainSpecificValueId, $type);
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
-            $languageCode = $this->getCurrentPlugin()->convertLanguageToWpml($specificValueI18n->getLanguageISO());
-            if ($this->getCurrentPlugin()->getDefaultLanguage() === $languageCode) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($specificValueI18n->getLanguageISO());
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
             }
 
-            $specificTranslation = $this->findSpecificValueTranslation($trid, $taxonomy, $languageCode);
+            $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
             if (isset($specificTranslation['term_taxonomy_id'])) {
                 $specificValue->getId()->setEndpoint($specificTranslation['term_taxonomy_id']);
             } else {
-                $specificValue->getId()->setEndpoint(0);
+                $specificValue->getId()->setEndpoint('0');
             }
 
             $slug = \wc_sanitize_taxonomy_name($specificValueI18n->getValue()) . '-' . $languageCode;
 
-            $specificValueId = $this->getCurrentPlugin()
+            /** @var WooCommerceSpecificValue $wooCommerceSpecificValue */
+            $wooCommerceSpecificValue = $wpmlPlugin
                 ->getPluginsManager()
                 ->get(WooCommerce::class)
-                ->getComponent(WooCommerceSpecificValue::class)
+                ->getComponent(WooCommerceSpecificValue::class);
+
+            $specificValueId = $wooCommerceSpecificValue
                 ->save($taxonomy, $specificValue, $specificValueI18n, $slug);
 
             if (!\is_null($specificValueId) && $specificValueId !== 0) {
-                $this->getCurrentPlugin()->getSitepress()->set_element_language_details(
+                $wpmlPlugin->getSitepress()->set_element_language_details(
                     $specificValueId,
                     $type,
-                    $trid,
+                    (int)$trid,
                     $languageCode
                 );
             }
@@ -77,23 +93,23 @@ class WpmlSpecificValue extends AbstractComponent
     }
 
     /**
-     * @param int $trid
+     * @param int    $trid
      * @param string $taxonomy
      * @param string $languageCode
-     * @return array
+     * @return array<string, string>
      */
     public function findSpecificValueTranslation(int $trid, string $taxonomy, string $languageCode): array
     {
-        $specificTranslations = $this
-            ->getCurrentPlugin()
-            ->getComponent(WpmlTermTranslation::class)
+        /** @var WpmlTermTranslation $wpmlTermTranslation */
+        $wpmlTermTranslation = $this->getCurrentPlugin()->getComponent(WpmlTermTranslation::class);
+
+        $specificTranslations = $wpmlTermTranslation
             ->getTranslations($trid, 'tax_' . $taxonomy, false);
 
         $translation = [];
         if (isset($specificTranslations[$languageCode])) {
             $translationData = $specificTranslations[$languageCode];
-            $translation     = $this->getCurrentPlugin()
-                ->getComponent(WpmlTermTranslation::class)
+            $translation     = $wpmlTermTranslation
                 ->getTranslatedTerm($translationData->term_id, $taxonomy);
         }
         return $translation;

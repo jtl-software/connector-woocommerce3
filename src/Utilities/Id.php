@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use Jtl\Connector\Core\Definition\IdentityType;
@@ -13,7 +15,7 @@ class Id
     public const MANUFACTURER_PREFIX = 'm';
 
     /**
-     * @param array $endpointIds
+     * @param array<int, int|string> $endpointIds
      * @return string
      */
     public static function link(array $endpointIds): string
@@ -22,29 +24,29 @@ class Id
     }
 
     /**
-     * @param $endpointId
-     * @return array
+     * @param string $endpointId
+     * @return string[]
      */
-    public static function unlink($endpointId): array
+    public static function unlink(string $endpointId): array
     {
         return \explode(self::SEPARATOR, $endpointId);
     }
 
     /**
-     * @param $imageId
-     * @param $productId
+     * @param int        $imageId
+     * @param int|string $productId
      * @return string
      */
-    public static function linkProductImage($imageId, $productId): string
+    public static function linkProductImage(int $imageId, int|string $productId): string
     {
         return self::link([self::PRODUCT_PREFIX, $imageId, $productId]);
     }
 
     /**
-     * @param $endpointId
-     * @return array|null
+     * @param string $endpointId
+     * @return array<int, int|string>|null
      */
-    public static function unlinkImage($endpointId): ?array
+    public static function unlinkImage(string $endpointId): ?array
     {
         list($typePrefix, $parts) = \explode(self::SEPARATOR, $endpointId, 2);
 
@@ -64,19 +66,19 @@ class Id
     }
 
     /**
-     * @param $attachmentId
+     * @param int $attachmentId
      * @return string
      */
-    public static function linkCategoryImage($attachmentId): string
+    public static function linkCategoryImage(int $attachmentId): string
     {
         return self::link([self::CATEGORY_PREFIX, $attachmentId]);
     }
 
     /**
-     * @param $endpoint
-     * @return mixed|string
+     * @param string $endpoint
+     * @return string
      */
-    public static function unlinkCategoryImage($endpoint): mixed
+    public static function unlinkCategoryImage(string $endpoint): string
     {
         if (\strstr($endpoint, self::CATEGORY_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -86,19 +88,19 @@ class Id
     }
 
     /**
-     * @param $attachmentId
+     * @param int $attachmentId
      * @return string
      */
-    public static function linkManufacturerImage($attachmentId): string
+    public static function linkManufacturerImage(int $attachmentId): string
     {
         return self::link([self::MANUFACTURER_PREFIX, $attachmentId]);
     }
 
     /**
-     * @param $endpoint
-     * @return mixed|string
+     * @param string $endpoint
+     * @return string
      */
-    public static function unlinkManufacturerImage($endpoint): mixed
+    public static function unlinkManufacturerImage(string $endpoint): string
     {
         if (\strstr($endpoint, self::MANUFACTURER_PREFIX . self::SEPARATOR)) {
             return self::unlink($endpoint)[1];
@@ -108,10 +110,10 @@ class Id
     }
 
     /**
-     * @param $endpointId
-     * @return array
+     * @param string $endpointId
+     * @return array<int, int|string>
      */
-    public static function unlinkCustomer($endpointId): array
+    public static function unlinkCustomer(string $endpointId): array
     {
         return [$endpointId, (int)(\str_contains($endpointId, self::SEPARATOR))];
     }

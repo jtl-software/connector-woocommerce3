@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
@@ -13,7 +15,9 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @param Product $model
+     * @param AbstractModel $model
+     * @phpstan-param Product $model
+     *
      * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws Exception
@@ -22,16 +26,16 @@ class ProductPriceController extends ProductPrice implements PushInterface
     {
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 
-        if ($wcProduct !== false) {
+        if ($wcProduct !== false && $wcProduct !== null) {
             $vat = $model->getVat();
-            if (\is_null($vat)) {
-                $vat = $this->util->getTaxRateByTaxClass($wcProduct->get_tax_class());
-            }
 
             $wcProducts[] = $wcProduct;
 
             if ($this->wpml->canBeUsed()) {
-                $wcProductTranslations = $this->wpml->getComponent(WpmlProduct::class)
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+
+                $wcProductTranslations = $wpmlProduct
                     ->getWooCommerceProductTranslations($wcProduct);
                 $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
             }
