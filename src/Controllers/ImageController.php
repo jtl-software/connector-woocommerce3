@@ -596,8 +596,7 @@ class ImageController extends AbstractBaseController implements
 
         $attachment  = [];
         $relinkImage = false;
-
-        $fileName = $this->getNextAvailableImageFilename($name, $extension, $uploadDir['path']);
+        $fileName    = $this->getNextAvailableImageFilename($fileInfo['filename'], $extension, $uploadDir['path']);
         if ($endpointId !== '') {
             $id         = Id::unlink($endpointId);
             $attachment = \get_post((int)$id[0], \ARRAY_A) ?? [];
@@ -763,17 +762,17 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param ProductImage $image
-     * @return string|null
+     * @return string
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \http\Exception\InvalidArgumentException
      */
-    private function pushProductImage(ProductImage $image): ?string
+    private function pushProductImage(ProductImage $image): string
     {
         $productId = (int)$image->getForeignKey()->getEndpoint();
         $wcProduct = \wc_get_product($productId);
 
         if (!$wcProduct instanceof WC_Product) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image);
@@ -786,10 +785,10 @@ class ImageController extends AbstractBaseController implements
 
         if ($this->isCoverImage($image)) {
             $result = \set_post_thumbnail($productId, $attachmentId);
-            if ($result === false) {
-                throw new \http\Exception\InvalidArgumentException(
-                    "Setting post thumbnail for given product id failed."
-                );
+            if ($result instanceof \WP_Error) {
+                $this->logger->error(ErrorFormatter::formatError($result));
+
+                return '';
             }
 
             if ($this->wpml->canBeUsed()) {
@@ -799,10 +798,10 @@ class ImageController extends AbstractBaseController implements
 
                 foreach ($wpmlProductIds as $wpmlProductId) {
                     $wpmlResult = \set_post_thumbnail($wpmlProductId, $attachmentId);
-                    if ($wpmlResult === false) {
-                        throw new \http\Exception\InvalidArgumentException(
-                            "Setting post thumbnail for given wpml product id failed."
-                        );
+                    if ($wpmlResult instanceof \WP_Error) {
+                        $this->logger->error(ErrorFormatter::formatError($wpmlResult));
+
+                        return '';
                     }
                 }
             }
@@ -832,7 +831,7 @@ class ImageController extends AbstractBaseController implements
                     value passed is same as the one in the database."
                 );
 
-                return null;
+                return '';
             }
         }
 
@@ -841,15 +840,15 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param CategoryImage $image
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function pushCategoryImage(CategoryImage $image): ?string
+    private function pushCategoryImage(CategoryImage $image): string
     {
         $categoryId = (int)$image->getForeignKey()->getEndpoint();
 
         if (!\term_exists($categoryId)) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image) ?? 0;
@@ -860,15 +859,15 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param ManufacturerImage $image
-     * @return string|null
+     * @return string
      * @throws Exception
      */
-    private function pushManufacturerImage(ManufacturerImage $image): ?string
+    private function pushManufacturerImage(ManufacturerImage $image): string
     {
         $termId = (int)$image->getForeignKey()->getEndpoint();
 
         if (!\term_exists($termId)) {
-            return null;
+            return '';
         }
 
         $attachmentId = $this->saveImage($image) ?? 0;

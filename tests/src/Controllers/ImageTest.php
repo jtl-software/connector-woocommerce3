@@ -14,6 +14,15 @@ use JtlWooCommerceConnector\Utilities\Util;
 use Mockery\Mock;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\MockObject\ClassAlreadyExistsException;
+use PHPUnit\Framework\MockObject\ClassIsFinalException;
+use PHPUnit\Framework\MockObject\ClassIsReadonlyException;
+use PHPUnit\Framework\MockObject\DuplicateMethodException;
+use PHPUnit\Framework\MockObject\InvalidMethodNameException;
+use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
+use PHPUnit\Framework\MockObject\RuntimeException;
+use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
 
@@ -101,6 +110,63 @@ class ImageTest extends TestCase
             [
                 (new ProductImage())->setName(''),
                 ''
+            ]
+        ];
+    }
+
+    /**
+     * Get next available image filename if image file doesn't exist ($fileExists = false)
+     *
+     * @dataProvider getNextAvailableImageFileNameFileNotExistingDataProvider
+     * @param string $name
+     * @param string $extension
+     * @param string $uploadDir
+     * @param string $expectedFileName
+     *
+     * @throws RuntimeException
+     * @throws ClassIsFinalException
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws ExpectationFailedException
+     * @throws DuplicateMethodException
+     * @throws ClassIsReadonlyException
+     * @throws ClassAlreadyExistsException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \PHPUnit\Framework\MockObject\ReflectionException
+     * @throws UnknownTypeException
+     * @throws ReflectionException
+     * @throws \Exception
+     */
+    public function testGetNextAvailableImageFilenameFileNotExisting(
+        string $name,
+        string $extension,
+        string $uploadDir,
+        string $expectedFileName
+    ) {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $imageController = new ImageController($db, $util, $primaryKeyMapper);
+
+        $controller                    = new \ReflectionClass($imageController);
+        $getNextAvailableImageFilename = $controller->getMethod('getNextAvailableImageFilename');
+        $getNextAvailableImageFilename->setAccessible(true);
+
+        $result = $getNextAvailableImageFilename->invoke($imageController, $name, $extension, $uploadDir);
+        $this->assertSame($expectedFileName, $result);
+    }
+
+    public function getNextAvailableImageFileNameFileNotExistingDataProvider(): array
+    {
+        return [
+            [
+                '1111_Product',
+                'jpg',
+                '/var/www/html/wordpress/wp-content/uploads/2024/11',
+                '1111_Product.jpg'
             ]
         ];
     }
