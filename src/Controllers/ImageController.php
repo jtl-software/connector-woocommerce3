@@ -814,9 +814,9 @@ class ImageController extends AbstractBaseController implements
      * @return AbstractModel
      * @throws Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel $model, bool $realDelete = true): AbstractModel
     {
-        return $this->deleteData($model);
+        return $this->deleteData($model, $realDelete);
     }
 
 
@@ -886,7 +886,7 @@ class ImageController extends AbstractBaseController implements
         } else {
             if ($this->isCoverImage($image)) {
                 \delete_post_thumbnail($productId);
-                $this->db->query(SqlHelper::imageDeleteLinks($productId));
+                #$this->db->query(SqlHelper::imageDeleteLinks($productId));
             } else {
                 if (
                     SupportedPlugins::isActive(
