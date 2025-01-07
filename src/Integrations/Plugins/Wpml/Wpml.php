@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Exception;
@@ -9,21 +11,18 @@ use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
-use Psr\Log\NullLogger;
 use SitePress;
 use woocommerce_wpml;
 use wpdb;
 
 /**
  * Class Wpml
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class Wpml extends AbstractPlugin
 {
-    /**
-     * @var Db
-     */
-    protected $database;
+    protected Db $database;
 
     /**
      * @return bool
@@ -39,11 +38,13 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @return array
+     * @return array<string, array<string, string>>
      */
     public function getActiveLanguages(): array
     {
-        return $this->getSitepress()->get_active_languages();
+        /** @var array<string, array<string, string>> $activeLanguages */
+        $activeLanguages = $this->getSitepress()->get_active_languages();
+        return $activeLanguages;
     }
 
     /**
@@ -73,13 +74,8 @@ class Wpml extends AbstractPlugin
     {
         $wpmlLanguageCode = \substr($wpmlLanguageCode, 0, 2);
         $language         = Util::mapLanguageIso($wpmlLanguageCode);
-        #$language         = Language::convert($wpmlLanguageCode);
-        if (\is_null($language)) {
-            $this->logger->warning(
-                \sprintf("Cannot find corresponding language code %s", $wpmlLanguageCode)
-            );
-            $language = '';
-        }
+        // $language         = Language::convert($wpmlLanguageCode);
+
         return $language;
     }
 
@@ -91,7 +87,7 @@ class Wpml extends AbstractPlugin
     public function convertLanguageToWpml(string $wawiLanguageCode): string
     {
         $language = Util::mapLanguageIso($wawiLanguageCode);
-        return $language ?? '';
+        return $language;
     }
 
     /**
@@ -155,13 +151,14 @@ class Wpml extends AbstractPlugin
     }
 
     /**
-     * @param int $termId
+     * @param int    $termId
      * @param string $elementType
-     * @return int
+     * @return bool|int|string|null
      */
-    public function getElementTrid(int $termId, string $elementType): int
+    public function getElementTrid(int $termId, string $elementType): bool|int|null|string
     {
-        $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+        /** @var bool|int|string|null $trid */
+        $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
 
         if ($trid === 0) {
             $this->getSitepress()->set_element_language_details(
@@ -171,7 +168,8 @@ class Wpml extends AbstractPlugin
                 $this->getDefaultLanguage()
             );
 
-            $trid = (int)$this->getSitepress()->get_element_trid($termId, $elementType);
+            /** @var bool|int|string|null $trid */
+            $trid = $this->getSitepress()->get_element_trid($termId, $elementType);
         }
 
         return $trid;

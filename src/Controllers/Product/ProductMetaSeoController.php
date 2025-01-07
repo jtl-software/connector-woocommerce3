@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -11,11 +13,11 @@ use WC_Product;
 class ProductMetaSeoController extends AbstractBaseController
 {
     /**
-     * @param $newPostId
+     * @param int              $newPostId
      * @param ProductI18nModel $tmpMeta
      * @return void
      */
-    public function pushData($newPostId, ProductI18nModel $tmpMeta): void
+    public function pushData(int $newPostId, ProductI18nModel $tmpMeta): void
     {
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
@@ -43,9 +45,9 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @param ProductModel $model
-     * @return array|null
+     * @return array<string, array<int, string>|string>|null
      */
     public function pullData(WC_Product $wcProduct, ProductModel $model): ?array
     {
@@ -87,11 +89,11 @@ class ProductMetaSeoController extends AbstractBaseController
     }
 
     /**
-     * @param int $productId
+     * @param int              $productId
      * @param ProductI18nModel $tmpMeta
-     * @param string $metaTitle
-     * @param string $metaDescription
-     * @param string $metaKeywords
+     * @param string           $metaTitle
+     * @param string           $metaDescription
+     * @param string           $metaKeywords
      * @return void
      */
     protected function setSeoValues(
@@ -117,10 +119,10 @@ class ProductMetaSeoController extends AbstractBaseController
 
     /**
      * @param WC_Product $wcProduct
-     * @param string $metaTitle
-     * @param string $metaDescription
-     * @param string $metaKeywords
-     * @return array
+     * @param string     $metaTitle
+     * @param string     $metaDescription
+     * @param string     $metaKeywords
+     * @return array<string, array<int, string>|string>
      */
     protected function getSeoValues(
         WC_Product $wcProduct,
@@ -128,10 +130,17 @@ class ProductMetaSeoController extends AbstractBaseController
         string $metaDescription,
         string $metaKeywords
     ): array {
+        /** @var array<int, string> $titleTag */
+        $titleTag = \get_post_meta($wcProduct->get_id(), $metaTitle);
+        /** @var array<int, string> $metaDesc */
+        $metaDesc = \get_post_meta($wcProduct->get_id(), $metaDescription);
+        /** @var array<int, string> $keyWords */
+        $keyWords = \get_post_meta($wcProduct->get_id(), $metaKeywords);
+
         return [
-            'titleTag' => \get_post_meta($wcProduct->get_id(), $metaTitle),
-            'metaDesc' => \get_post_meta($wcProduct->get_id(), $metaDescription),
-            'keywords' => \get_post_meta($wcProduct->get_id(), $metaKeywords),
+            'titleTag' => $titleTag,
+            'metaDesc' => $metaDesc,
+            'keywords' => $keyWords,
             'permlink' => $wcProduct->get_slug()
         ];
     }

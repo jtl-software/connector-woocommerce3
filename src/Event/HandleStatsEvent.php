@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
@@ -8,25 +10,38 @@ class HandleStatsEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.stats';
 
-    protected $result;
-    protected $controller;
+    protected mixed $result;
+    protected string $controller;
 
-    public function __construct($controller)
+    /**
+     * @param string $controller
+     */
+    public function __construct(string $controller)
     {
         $this->controller = $controller;
     }
 
-    public function getController()
+    /**
+     * @return string
+     */
+    public function getController(): string
     {
         return $this->controller;
     }
 
-    public function getResult()
+    /**
+     * @return mixed
+     */
+    public function getResult(): mixed
     {
         return $this->result;
     }
 
-    public function setResult($result): static
+    /**
+     * @param mixed $result
+     * @return $this
+     */
+    public function setResult(mixed $result): static
     {
         $this->result = $result;
         return $this;

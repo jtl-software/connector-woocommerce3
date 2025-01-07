@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\ProductVariation as ProductVariationModel;
 use Jtl\Connector\Core\Model\ProductVariationI18n as ProductVariationI18nModel;
 use Jtl\Connector\Core\Model\ProductVariationValue as ProductVariationValueModel;
@@ -21,9 +25,9 @@ class ProductVariationController extends AbstractBaseController
 {
     // <editor-fold defaultstate="collapsed" desc="Pull">
     /**
-     * @param ProductModel $model
+     * @param ProductModel         $model
      * @param WC_Product_Attribute $attribute
-     * @param string $languageIso
+     * @param string               $languageIso
      * @return ProductVariationModel|null
      */
     public function pullDataParent(
@@ -77,14 +81,22 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param WC_Product $product
+     * @param WC_Product   $product
      * @param ProductModel $model
-     * @param string $languageIso
-     * @return array
+     * @param string       $languageIso
+     * @return array<int, AbstractIdentity|ProductVariation>
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
-        $parentProduct     = \wc_get_product($product->get_parent_id());
+        $parentProduct = \wc_get_product($product->get_parent_id());
+
+        if (!$parentProduct instanceof \WC_Product) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Parent product with ID {$product->get_parent_id()} not found."
+            );
+        }
+
         $productVariations = [];
         /**
          * @var string $slug
@@ -153,10 +165,10 @@ class ProductVariationController extends AbstractBaseController
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param string $productId
-     * @param array $variationSpecificData
-     * @param array $attributesFilteredVariationSpecifics
-     * @return array|null
+     * @param string                                             $productId
+     * @param array<string, array<string, int|string>>           $variationSpecificData
+     * @param array<string, array<string, bool|int|string|null>> $attributesFilteredVariationSpecifics
+     * @return array<string, array<string, bool|int|string|null>>|null
      * @throws InvalidArgumentException
      */
     public function pushMasterData(
@@ -168,7 +180,8 @@ class ProductVariationController extends AbstractBaseController
         $productVaSpeAttrHandler = new ProductVaSpeAttrHandlerController($this->db, $this->util);
 
         foreach ($variationSpecificData as $key => $variationSpecific) {
-            $taxonomy       = $this->createVariantSlug((string)$key);
+            $taxonomy = $this->createVariantSlug($key);
+            /** @var array<int, array<string, int|string|null>> $specificID */
             $specificID     = $this->db->query(SqlHelper::getSpecificId(\substr($taxonomy, 3)));
             $specificExists = isset($specificID[0]['attribute_id']);
             $options        = [];
@@ -179,7 +192,7 @@ class ProductVariationController extends AbstractBaseController
 
             if ($specificExists) {
                 //Get existing values
-                $pushedValues = \explode(' ' . \WC_DELIMITER . ' ', $variationSpecific['value']);
+                $pushedValues = \explode(' ' . \WC_DELIMITER . ' ', (string)$variationSpecific['value']);
                 foreach ($pushedValues as $pushedValue) {
                     //check if value did not exists
                     $termId = (int)$productVaSpeAttrHandler
@@ -202,7 +215,7 @@ class ProductVariationController extends AbstractBaseController
 
                         $options = \explode(
                             ' ' . \WC_DELIMITER . ' ',
-                            $attributesFilteredVariationSpecifics[$taxonomy]['value']
+                            (string)$attributesFilteredVariationSpecifics[$taxonomy]['value']
                         );
 
                         if ((!\in_array($termId, $options))) {
@@ -230,9 +243,9 @@ class ProductVariationController extends AbstractBaseController
                     }
 
                     \wp_set_object_terms(
-                        $productId,
+                        (int)$productId,
                         $options,
-                        $attributesFilteredVariationSpecifics[$taxonomy]['name'],
+                        (string)$attributesFilteredVariationSpecifics[$taxonomy]['name'],
                         true
                     );
                 }
@@ -249,7 +262,7 @@ class ProductVariationController extends AbstractBaseController
 
                 $options = \explode(
                     ' ' . \WC_DELIMITER . ' ',
-                    $variationSpecific['value']
+                    (string)$variationSpecific['value']
                 );
 
                 $attributeId = \wc_create_attribute($endpoint);
@@ -264,7 +277,7 @@ class ProductVariationController extends AbstractBaseController
                 }
 
                 //Register taxonomy for current request
-                \register_taxonomy($taxonomy, null);
+                \register_taxonomy($taxonomy, []);
 
                 $assignedValueIds = [];
 
@@ -276,12 +289,13 @@ class ProductVariationController extends AbstractBaseController
                         'slug' => $slug,
                     ];
 
+                    /** @var array<int, array<string, int|string|null>> $exValId */
                     $exValId = $this->db->query(
                         SqlHelper::getSpecificValueId(
                             $taxonomy,
                             $endpointValue['name']
                         )
-                    );
+                    ) ?? [];
 
                     if (\count($exValId) >= 1) {
                         if (isset($exValId[0]['term_id'])) {
@@ -300,7 +314,7 @@ class ProductVariationController extends AbstractBaseController
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            //  var_dump($newTerm);
+                            // var_dump($newTerm);
                             // die();
                             $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;
@@ -329,7 +343,7 @@ class ProductVariationController extends AbstractBaseController
                 ];
 
                 \wp_set_object_terms(
-                    $productId,
+                    (int)$productId,
                     $assignedValueIds,
                     $attributesFilteredVariationSpecifics[$taxonomy]['name'],
                     true
@@ -342,17 +356,17 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
-     * @param $productId
-     * @param $pushedVariations
-     * @return array
+     * @param int                $productId
+     * @param ProductVariation[] $pushedVariations
+     * @return array<int, string>
+     * @throws InvalidArgumentException
      */
     public function pushChildData(
-        $productId,
-        $pushedVariations
+        int $productId,
+        array $pushedVariations
     ): array {
         $updatedAttributeKeys = [];
 
-        /** @var ProductVariationModel $variation */
         foreach ($pushedVariations as $variation) {
             foreach ($variation->getValues() as $variationValue) {
                 foreach ($variation->getI18ns() as $variationI18n) {
@@ -383,7 +397,9 @@ class ProductVariationController extends AbstractBaseController
                             \str_replace('attribute_', '', $metaKey)
                         );
 
-                        $slug = $term !== false ? $term->slug : \wc_sanitize_taxonomy_name($i18n->getName());
+                        $slug = ($term instanceof \WP_Term)
+                            ? $term->slug
+                            : \wc_sanitize_taxonomy_name($i18n->getName());
 
                         \update_post_meta(
                             $productId,
@@ -400,8 +416,9 @@ class ProductVariationController extends AbstractBaseController
     }
 
     /**
+     * @param string $wawiLanguageIso
+     * @return bool
      * @throws InvalidArgumentException
-     * @throws \Exception
      */
     protected function skipNotDefaultLanguage(string $wawiLanguageIso): bool
     {

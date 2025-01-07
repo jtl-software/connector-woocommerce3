@@ -1,53 +1,61 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 /**
  * Class WordpressUtils
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 abstract class WordpressUtils
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
+    /**
+     * @param Db $db
+     */
     public function __construct(Db $db)
     {
         $this->db = $db;
     }
 
     /**
-     * @param $postId
-     * @param $metaKey
-     * @param $metaValue
-     * @param string $prevValue
+     * @param string          $postId
+     * @param string          $metaKey
+     * @param string|string[] $metaValue
+     * @param string          $prevValue
      * @return bool|int
      */
-    public function updatePostMeta($postId, $metaKey, $metaValue, string $prevValue = ''): bool|int
-    {
-        return \update_post_meta($postId, $metaKey, $metaValue, $prevValue);
+    public function updatePostMeta(
+        string $postId,
+        string $metaKey,
+        array|string $metaValue,
+        string $prevValue = ''
+    ): bool|int {
+        return \update_post_meta((int)$postId, $metaKey, $metaValue, $prevValue);
     }
 
     /**
-     * @param $postId
-     * @param string $metaKey
-     * @param bool $single
+     * @param string|int $postId
+     * @param string     $metaKey
+     * @param bool       $single
+     * @return mixed
      */
-    public function getPostMeta($postId, string $metaKey = '', bool $single = false)
+    public function getPostMeta(string|int $postId, string $metaKey = '', bool $single = false): mixed //TODO:check das
     {
-        return \get_post_meta($postId, $metaKey, $single);
+        return \get_post_meta((int)$postId, $metaKey, $single);
     }
 
     /**
-     * @param $postId
-     * @param $metaKey
+     * @param string $postId
+     * @param string $metaKey
      * @param string $metaValue
      * @return bool
      */
-    public function deletePostMeta($postId, $metaKey, string $metaValue = ''): bool
+    public function deletePostMeta(string $postId, string $metaKey, string $metaValue = ''): bool
     {
-        return \delete_post_meta($postId, $metaKey, $metaValue);
+        return \delete_post_meta((int)$postId, $metaKey, $metaValue);
     }
 }

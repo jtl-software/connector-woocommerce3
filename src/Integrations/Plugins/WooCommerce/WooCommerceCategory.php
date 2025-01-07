@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use jtl\Connector\Core\Model\Category;
-use jtl\Connector\Core\Model\CategoryI18n;
-use jtl\Connector\Core\Model\CategoryI18n as CategoryI18nModel;
-use jtl\Connector\Core\Model\Identity;
+use Exception;
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\CategoryI18n as CategoryI18nModel;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
@@ -18,16 +21,17 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class WooCommerceCategory
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\WooCommerce
  */
 class WooCommerceCategory extends AbstractComponent
 {
     /**
-     * @param Category $category
-     * @param string $languageIso
-     * @param array $data
+     * @param Category              $category
+     * @param string                $languageIso
+     * @param array<string, string> $data
      * @return CategoryI18nModel
-     * @throws \Exception
+     * @throws Exception
      */
     public function createCategoryI18n(Category $category, string $languageIso, array $data): CategoryI18n
     {
@@ -41,7 +45,7 @@ class WooCommerceCategory extends AbstractComponent
         /** @var YoastSeo $yoastSeo */
         $yoastSeo = $this->getCurrentPlugin()->getPluginsManager()->get(YoastSeo::class);
         if ($yoastSeo->canBeUsed()) {
-            $seoData = $yoastSeo->findCategorySeoData($data['category_id']);
+            $seoData = $yoastSeo->findCategorySeoData((int)$data['category_id']);
             if (!empty($seoData)) {
                 $i18n->setMetaDescription($seoData['wpseo_desc'] ?? '')
                     ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $data['name'])
@@ -63,22 +67,30 @@ class WooCommerceCategory extends AbstractComponent
 
     /**
      * @param int $limit
-     * @return array
+     * @return array<int, array<int|string, int|string|null>>
      * @throws InvalidArgumentException
      */
     public function getCategories(int $limit): array
     {
         (new \JtlWooCommerceConnector\Utilities\Category($this->getPluginsManager()->getDatabase()))
             ->fillCategoryLevelTable();
-        return $this->getCurrentPlugin()->getPluginsManager()->getDatabase()->query(SqlHelper::categoryPull($limit));
+
+        /** @var array<int, array<int|string, int|string|null>> $categories */
+        $categories = $this->getCurrentPlugin()
+            ->getPluginsManager()
+            ->getDatabase()
+            ->query(SqlHelper::categoryPull($limit))
+            ?? [];
+
+        return $categories;
     }
 
     /**
-     * @param CategoryI18nModel $categoryI18n
-     * @param Identity $parentCategoryId
-     * @param int|null $categoryId
-     * @return array
-     * @throws \Exception
+     * @param CategoryI18n $categoryI18n
+     * @param Identity     $parentCategoryId
+     * @param int|null     $categoryId
+     * @return array<int|string, int|string>
+     * @throws Exception
      */
     public function saveWooCommerceCategory(
         CategoryI18n $categoryI18n,
@@ -97,18 +109,22 @@ class WooCommerceCategory extends AbstractComponent
         if (empty($categoryId)) {
             $result = \wp_insert_term($categoryI18n->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
-            if (isset($categoryData['slug'])) {
-                $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
-            }
+            $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
+
             $wpml = $this->getCurrentPlugin()->getPluginsManager()->get(Wpml::class);
+
+            /** @var WpmlTermTranslation $wpmlTermTranslation */
+            $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
+            /** @var array<int|string, int|string>|\WP_Error $result */
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         }
         \add_filter('pre_term_description', 'wp_filter_kses');

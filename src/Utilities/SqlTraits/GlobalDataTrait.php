@@ -7,6 +7,8 @@
  * Time: 09:44
  */
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait GlobalDataTrait

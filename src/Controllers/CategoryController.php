@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
@@ -7,6 +9,7 @@ use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
+use Jtl\Connector\Core\Model\Category;
 use Jtl\Connector\Core\Model\Category as CategoryModel;
 use Jtl\Connector\Core\Model\CategoryI18n;
 use Jtl\Connector\Core\Model\Identity;
@@ -29,11 +32,12 @@ class CategoryController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
+    /** @var array<int, string|int> */
     private static array $idCache = [];
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return array<Category>
      * @throws InvalidArgumentException
      * @throws \Exception
      */
@@ -42,23 +46,26 @@ class CategoryController extends AbstractBaseController implements
         $categories = [];
 
         if ($this->wpml->canBeUsed()) {
-            $categoryData = $this->wpml
-                ->getComponent(WpmlCategory::class)
-                ->getCategories($query->getLimit());
+            $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+
+            /** @var WpmlCategory $wpmlCategory */
+            $categoryData = $wpmlCategory->getCategories($query->getLimit());
         } else {
-            $categoryUtil = new CategoryUtil($this->db, $this->util);
+            $categoryUtil = new CategoryUtil($this->db);
             $categoryUtil->fillCategoryLevelTable();
             $categoryData = $this->db->query(SqlHelper::categoryPull($query->getLimit()));
+            $categoryData = $categoryData === null ? [] : $categoryData;
         }
 
+        /** @var array<string, int|string> $categoryDataSet */
         foreach ($categoryData as $categoryDataSet) {
             $category = (new CategoryModel())
-                ->setId(new Identity($categoryDataSet['category_id']))
+                ->setId(new Identity((string)$categoryDataSet['category_id']))
                 ->setLevel((int)$categoryDataSet['level'])
                 ->setSort((int)$categoryDataSet['sort']);
 
             if (!empty($categoryDataSet['parent'])) {
-                $category->setParentCategoryId(new Identity($categoryDataSet['parent']));
+                $category->setParentCategoryId(new Identity((string)$categoryDataSet['parent']));
             }
 
             $wooCommerceCategoryComponent = $this->getPluginsManager()
@@ -67,24 +74,27 @@ class CategoryController extends AbstractBaseController implements
 
             $i18n = (new CategoryI18n())
                 ->setLanguageISO($this->util->getWooCommerceLanguage())
-                ->setName(\html_entity_decode($categoryDataSet['name']))
-                ->setDescription(\html_entity_decode($categoryDataSet['description']))
-                ->setUrlPath($categoryDataSet['slug'])
-                ->setTitleTag($categoryDataSet['name']);
+                ->setName(\html_entity_decode((string)$categoryDataSet['name']))
+                ->setDescription(\html_entity_decode((string)$categoryDataSet['description']))
+                ->setUrlPath((string)$categoryDataSet['slug'])
+                ->setTitleTag((string)$categoryDataSet['name']);
 
             if (
                 SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_YOAST_SEO_PREMIUM)
             ) {
+                //['product_cat' => [catId => seoData[desc -> string, focus -> string], catId => seoData]]
+                /** @var array<string, array<int, array<string, string>>|bool|string> $taxonomySeo */
                 $taxonomySeo = \get_option('wpseo_taxonomy_meta');
 
-                if (isset($taxonomySeo['product_cat'])) {
+                if (isset($taxonomySeo['product_cat']) && \is_array($taxonomySeo['product_cat'])) {
+                    /** @var array<string, string> $seoData */
                     foreach ($taxonomySeo['product_cat'] as $catId => $seoData) {
                         if ($catId === (int)$categoryDataSet['category_id']) {
                             $i18n
                                 ->setMetaDescription($seoData['wpseo_desc'] ?? '')
-                                ->setMetaKeywords($seoData['wpseo_focuskw'] ?? $categoryDataSet['name'])
-                                ->setTitleTag($seoData['wpseo_title'] ?? $categoryDataSet['name']);
+                                ->setMetaKeywords($seoData['wpseo_focuskw'] ?? (string)$categoryDataSet['name'])
+                                ->setTitleTag($seoData['wpseo_title'] ?? (string)$categoryDataSet['name']);
                         }
                     }
                 }
@@ -92,7 +102,8 @@ class CategoryController extends AbstractBaseController implements
                 SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
             ) {
-                $sql             = SqlHelper::pullRankMathSeoTermData((int) $categoryDataSet['category_id']);
+                $sql = SqlHelper::pullRankMathSeoTermData((int) $categoryDataSet['category_id']);
+                /** @var array<int, array<string, string>> $categorySeoData */
                 $categorySeoData = $this->db->query($sql);
                 if (\is_array($categorySeoData)) {
                     $this->util->setI18nRankMathSeo($i18n, $categorySeoData);
@@ -103,8 +114,10 @@ class CategoryController extends AbstractBaseController implements
 
             if ($this->wpml->canBeUsed()) {
                 $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
-                $categoryTranslations     = $wpmlTaxonomyTranslations
-                    ->getTranslations($categoryDataSet['trid'], 'tax_product_cat');
+
+                /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
+                $categoryTranslations = $wpmlTaxonomyTranslations
+                    ->getTranslations((int)$categoryDataSet['trid'], 'tax_product_cat');
 
                 foreach ($categoryTranslations as $languageCode => $translation) {
                     $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
@@ -113,6 +126,7 @@ class CategoryController extends AbstractBaseController implements
                     );
 
                     if (isset($term['term_id'])) {
+                        /** @var WooCommerceCategory $wooCommerceCategoryComponent */
                         $i18n = $wooCommerceCategoryComponent
                             ->createCategoryI18n(
                                 $category,
@@ -135,12 +149,13 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param CategoryModel $model
+     * @param AbstractModel $model
      * @return CategoryModel
      * @throws \Exception
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var CategoryModel $model */
         if (!$model->getIsActive()) {
             return $model;
         }
@@ -150,7 +165,7 @@ class CategoryController extends AbstractBaseController implements
         $parentCategoryId = $model->getParentCategoryId();
 
         if (isset(self::$idCache[$parentCategoryId->getHost()])) {
-            $parentCategoryId->setEndpoint(self::$idCache[$parentCategoryId->getHost()]);
+            $parentCategoryId->setEndpoint((string)self::$idCache[$parentCategoryId->getHost()]);
         }
 
         $meta       = null;
@@ -190,7 +205,7 @@ class CategoryController extends AbstractBaseController implements
             $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
             $categoryTerm = \get_term($categoryId, CategoryUtil::TERM_TAXONOMY);
-            if ($categoryTerm instanceof \WP_Error) {
+            if (!$categoryTerm instanceof \WP_Term) {
                 throw new \Exception(\sprintf("Cannot find category %s", $categoryId));
             }
             // WordPress does not create a unique slug itself if the given already exists
@@ -200,13 +215,19 @@ class CategoryController extends AbstractBaseController implements
 
             $wpml = $this->getPluginsManager()->get(Wpml::class);
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->disableGetTermAdjustId();
+                $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
+                /** @var WpmlTermTranslation $wpmlTermTranslation */
+                $wpmlTermTranslation->disableGetTermAdjustId();
             }
 
             $result = \wp_update_term($categoryId, CategoryUtil::TERM_TAXONOMY, $categoryData);
 
             if ($wpml->canBeUsed()) {
-                $wpml->getComponent(WpmlTermTranslation::class)->enableGetTermAdjustId();
+                $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
+                /** @var WpmlTermTranslation $wpmlTermTranslation */
+                $wpmlTermTranslation->enableGetTermAdjustId();
             }
         }
 
@@ -228,31 +249,33 @@ class CategoryController extends AbstractBaseController implements
                 $taxonomySeo = ['product_cat' => []];
             }
 
-            if (!isset($taxonomySeo['product_cat'])) {
+            if (\is_array($taxonomySeo) && !isset($taxonomySeo['product_cat'])) {
                 $taxonomySeo['product_cat'] = [];
             }
             $exists = false;
 
-            foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
-                if ($catKey === (int)$result['term_id']) {
-                    $exists                                               = true;
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_desc']    = $meta->getMetaDescription();
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
-                    $taxonomySeo['product_cat'][$catKey]['wpseo_title']   = \strcmp(
-                        $meta->getTitleTag(),
-                        ''
-                    ) === 0 ? $meta->getName() : $meta->getTitleTag();
+            if (\is_array($taxonomySeo) && \is_array($taxonomySeo['product_cat'])) {
+                foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
+                    if ($catKey === (int)$result['term_id']) {
+                        $exists                                               = true;
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_desc']    = $meta->getMetaDescription();
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
+                        $taxonomySeo['product_cat'][$catKey]['wpseo_title']   = \strcmp(
+                            $meta->getTitleTag(),
+                            ''
+                        ) === 0 ? $meta->getName() : $meta->getTitleTag();
+                    }
                 }
-            }
-            if ($exists === false) {
-                $taxonomySeo['product_cat'][(int)$result['term_id']] = [
-                    'wpseo_desc'    => $meta->getMetaDescription(),
-                    'wpseo_focuskw' => $meta->getMetaKeywords(),
-                    'wpseo_title'   => \strcmp(
-                        $meta->getTitleTag(),
-                        ''
-                    ) === 0 ? $meta->getName() : $meta->getTitleTag(),
-                ];
+                if ($exists === false) {
+                    $taxonomySeo['product_cat'][(int)$result['term_id']] = [
+                        'wpseo_desc'    => $meta->getMetaDescription(),
+                        'wpseo_focuskw' => $meta->getMetaKeywords(),
+                        'wpseo_title'   => \strcmp(
+                            $meta->getTitleTag(),
+                            ''
+                        ) === 0 ? $meta->getName() : $meta->getTitleTag(),
+                    ];
+                }
             }
 
             \update_option('wpseo_taxonomy_meta', $taxonomySeo, true);
@@ -261,23 +284,23 @@ class CategoryController extends AbstractBaseController implements
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
             $updateRankMathSeoData = [
-                'rank_math_title' => $i18n->getTitleTag(),
-                'rank_math_description' => $i18n->getMetaDescription(),
-                'rank_math_focus_keyword' => $i18n->getMetaKeywords()
+                'rank_math_title' => $meta->getTitleTag(),
+                'rank_math_description' => $meta->getMetaDescription(),
+                'rank_math_focus_keyword' => $meta->getMetaKeywords()
             ];
             $this->util->updateTermMeta($updateRankMathSeoData, (int) $result['term_id']);
         }
 
         if (!empty($result)) {
-            $model->getId()->setEndpoint($result['term_id']);
+            $model->getId()->setEndpoint((string)$result['term_id']);
             self::$idCache[$model->getId()->getHost()] = $result['term_id'];
 
             (new CategoryUtil($this->db))->updateCategoryTree($model, empty($categoryId));
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml
-                ->getComponent(WpmlCategory::class)
-                ->setCategoryTranslations($model, $result, $parentCategoryId);
+                /** @var WpmlCategory $wpmlCategory */
+                $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+                $wpmlCategory->setCategoryTranslations($model, $result, $parentCategoryId);
             }
         }
 
@@ -285,18 +308,19 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param CategoryModel $model
+     * @param AbstractModel $model
      * @return CategoryModel
      * @throws InvalidArgumentException
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var Category $model */
         $categoryId = $model->getId()->getEndpoint();
 
         if (!empty($categoryId)) {
             \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'yes');
 
-            $result = \wp_delete_term($categoryId, CategoryUtil::TERM_TAXONOMY);
+            $result = \wp_delete_term((int)$categoryId, CategoryUtil::TERM_TAXONOMY);
 
             if ($result instanceof \WP_Error) {
                 $this->logger->error(ErrorFormatter::formatError($result));
@@ -319,9 +343,12 @@ class CategoryController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         if ($this->wpml->canBeUsed()) {
-            $count = $this->wpml->getComponent(WpmlCategory::class)->getStats();
+            $wpmlCategory = $this->wpml->getComponent(WpmlCategory::class);
+
+            /** @var WpmlCategory $wpmlCategory */
+            $count = (int)$wpmlCategory->getStats();
         } else {
-            $count = $this->db->queryOne(SqlHelper::categoryStats());
+            $count = (int)$this->db->queryOne(SqlHelper::categoryStats());
         }
 
         return $count;

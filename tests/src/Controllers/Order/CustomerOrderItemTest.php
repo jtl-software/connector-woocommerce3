@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Controllers\Order;
 
 use JtlWooCommerceConnector\Controllers\Order\CustomerOrderItemController;
@@ -9,6 +11,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class CustomerOrderItemTest
+ *
  * @package JtlWooCommerceConnector\Tests\Controllers\Order
  */
 class CustomerOrderItemTest extends AbstractTestCase
@@ -19,9 +22,10 @@ class CustomerOrderItemTest extends AbstractTestCase
      * @param float $priceNet
      * @param float $priceGross
      * @param float $expectedVatRate
+     * @return void
      * @throws \ReflectionException
      */
-    public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate)
+    public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate): void
     {
         $vatRate = $this->invokeMethodFromObject(
             new CustomerOrderItemController($this->createDbMock(), $this->createUtilMock()),
@@ -33,7 +37,7 @@ class CustomerOrderItemTest extends AbstractTestCase
     }
 
     /**
-     * @return array
+     * @return array<int, array<int, float|int>>
      */
     public function calculateVatDataProvider(): array
     {

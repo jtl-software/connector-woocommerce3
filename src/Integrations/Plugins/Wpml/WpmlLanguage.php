@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -9,6 +11,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 /**
  * Class WpmlLanguage
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\Wpml
  */
 class WpmlLanguage extends AbstractComponent
@@ -21,8 +24,11 @@ class WpmlLanguage extends AbstractComponent
     {
         $jtlLanguages = [];
 
-        $defaultLanguage = $this->plugin->getDefaultLanguage();
-        $activeLanguages = $this->plugin->getActiveLanguages();
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->plugin;
+
+        $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
+        $activeLanguages = $wpmlPlugin->getActiveLanguages();
 
         foreach ($activeLanguages as $activeLanguage) {
             $jtlLanguages[] = (new Language())

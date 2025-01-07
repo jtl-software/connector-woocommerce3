@@ -1,25 +1,21 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:41
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 /**
  * Trait CrossSellingTrait
+ *
  * @package JtlWooCommerceConnector\Utilities\SqlTraits
  */
 trait CrossSellingTrait
 {
     /**
-     * @param null $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function crossSellingPull($limit = null): string
+    public static function crossSellingPull(?int $limit = null): string
     {
         global $wpdb;
         $jclc       = $wpdb->prefix . 'jtl_connector_link_crossselling';

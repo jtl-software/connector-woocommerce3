@@ -7,11 +7,14 @@
  * Time: 10:55
  */
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait ManufacturerTrait
 {
-    /*    public static function specificPull($limit)
+/*
+    Public static function specificPull($limit)
         {
             global $wpdb;
             $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -51,7 +54,8 @@ trait ManufacturerTrait
                       LEFT JOIN {$jclsv} lsv ON t.term_id = lsv.endpoint_id
                     WHERE tt.taxonomy LIKE '{$specificName}'
                     ORDER BY tt.parent ASC;";
-        }*/
+        }
+*/
 
     /**
      * @return string
@@ -73,10 +77,10 @@ trait ManufacturerTrait
     }
 
     /**
-     * @param $limit
+     * @param int $limit
      * @return string
      */
-    public static function manufacturerPull($limit): string
+    public static function manufacturerPull(int $limit): string
     {
         global $wpdb;
         $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
@@ -115,8 +119,11 @@ trait ManufacturerTrait
             \join('","', $metaKeys)
         );
     }
-    /*  public static function getSpecificValueId($specificName, $specificValueName)
-      {
+}
+
+/*
+    Public static function getSpecificValueId($specificName, $specificValueName)
+        {
           global $wpdb;
           $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
 
@@ -126,10 +133,10 @@ trait ManufacturerTrait
                     LEFT JOIN {$jclsv} lsv ON tt.term_taxonomy_id = lsv.endpoint_id
                   WHERE tt.taxonomy LIKE '{$specificName}' AND t.name = '{$specificValueName}';
           ";
-      }
+        }
 
-      public static function getSpecificId($specificName)
-      {
+        public static function getSpecificId($specificName)
+        {
           global $wpdb;
 
           $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -140,23 +147,23 @@ trait ManufacturerTrait
                     LEFT JOIN {$jcls} l ON wat.attribute_id = l.endpoint_id
                   WHERE wat.attribute_name LIKE '{$specificName}';
           ";
-      }
+        }
 
-      public static function removeSpecificLinking($id)
-      {
+        public static function removeSpecificLinking($id)
+        {
           global $wpdb;
 
           $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
 
           return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
-      }
+        }
 
-      public static function removeSpecificValueLinking($id)
-      {
+        public static function removeSpecificValueLinking($id)
+        {
           global $wpdb;
 
           $jcls = $wpdb->prefix . 'jtl_connector_link_specific_value';
 
           return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
-      }*/
-}
+      }
+*/

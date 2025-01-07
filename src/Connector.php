@@ -5,6 +5,10 @@ namespace JtlWooCommerceConnector;
 \ini_set('display_errors', 'off');
 
 use DI\Container;
+use DI\DependencyException;
+use DI\NotFoundException;
+use http\Exception\InvalidArgumentException;
+use Jawira\CaseConverter\CaseConverterException;
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Application\Request;
 use Jtl\Connector\Core\Application\Response;
@@ -19,7 +23,13 @@ use Jtl\Connector\Core\Definition\Event;
 use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 use Jtl\Connector\Core\Event\BoolEvent;
 use Jtl\Connector\Core\Event\RpcEvent;
+use Jtl\Connector\Core\Exception\ApplicationException;
+use Jtl\Connector\Core\Exception\DefinitionException;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Logger\LoggerService;
+use Jtl\Connector\Core\Model\Category;
+use Jtl\Connector\Core\Model\Product;
+use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
@@ -41,23 +51,24 @@ use Symfony\Component\Yaml\Exception\ParseException;
 
 class Connector implements ConnectorInterface, UseChecksumInterface, HandleRequestInterface
 {
-    /**
-     * @var Db
-     */
     protected Db $db;
 
-    /**
-     * @var LoggerService
-     */
     protected LoggerService $loggerService;
 
-    /**
-     * @var SqlHelper
-     */
     protected SqlHelper $sqlHelper;
 
     /**
+     * @param ConfigInterface $config
+     * @param Container       $container
+     * @param EventDispatcher $dispatcher
      * @return void
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @throws \InvalidArgumentException
+     * @throws CaseConverterException
+     * @throws DefinitionException
+     * @throws \LogicException
+     * @throws \RuntimeException
      */
     public function initialize(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
     {
@@ -66,17 +77,32 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         $db   = new Db($wpdb);
         $util = new Util($db);
 
-        $this->db            = $db;
-        $this->sqlHelper     = new SqlHelper($this->db);
-        $this->loggerService = $container->get(LoggerService::class);
+        $this->db        = $db;
+        $this->sqlHelper = new SqlHelper();
+
+        $loggerService = $container->get(LoggerService::class);
+
+        if (!$loggerService instanceof LoggerService) {
+            throw new \RuntimeException('LoggerService not found');
+        }
+
+        $this->loggerService = $loggerService;
         $container->set(Db::class, $db);
         $container->set(Util::class, $util);
 
         $dispatcher->addListener(Event::createRpcEventName(
             Event::BEFORE
-        ), static function (RpcEvent $event) use ($config) {
+        ), static function (RpcEvent $event) use ($config): void {
             if ($event->getController() === 'Connector' && $event->getAction() === 'auth') {
-                \JtlConnectorAdmin::loadFeaturesJson($config->get(ConfigSchema::FEATURES_PATH));
+                $featuresPath = $config->get(ConfigSchema::FEATURES_PATH);
+
+                if (!\is_string($featuresPath)) {
+                    throw new InvalidArgumentException(
+                        "Expected featuresPath to be string but got " . \gettype($featuresPath) . " instead"
+                    );
+                }
+
+                \JtlConnectorAdmin::loadFeaturesJson($featuresPath);
             }
         });
 
@@ -85,7 +111,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             Controller::CONNECTOR,
             Action::FINISH,
             Event::AFTER
-        ), static function (BoolEvent $event) use ($db, $util) {
+        ), static function (BoolEvent $event) use ($db, $util): void {
             if (Config::get(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no') === 'yes') {
                 (new CategoryUtil($db))->saveCategoryLevelsAsPreOrder();
                 \update_option(CategoryUtil::OPTION_CATEGORY_HAS_CHANGED, 'no');
@@ -98,8 +124,18 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
-     * @return bool
+     * @param Application $application
+     * @param Request     $request
+     * @return Response
+     * @throws DependencyException
+     * @throws NotFoundException
      * @throws \InvalidArgumentException
+     * @throws ApplicationException
+     * @throws MustNotBeNullException
+     * @throws \ReflectionException
+     * @throws \RuntimeException
+     * @throws \Throwable
+     * @throws \TypeError
      */
     public function handle(Application $application, Request $request): Response
     {
@@ -120,11 +156,16 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             $result = $application->handleRequest($this, $request);
 
             if (\in_array($controllerName = $request->getController(), ['product', 'category'])) {
+                /** @var Db $database */
                 $database = $application->getContainer()->get(Db::class);
-                $util     = $application->getContainer()->get(Util::class);
+                /** @var Util $util */
+                $util = $application->getContainer()->get(Util::class);
+
+                /** @var Category[]|Product[] $entities */
+                $entities = $request->getParams();
 
                 (new B2BMarket($database, $util))
-                    ->handleCustomerGroupsBlacklists($controllerName, ...$request->getParams());
+                    ->handleCustomerGroupsBlacklists($controllerName, ...$entities);
             }
         }
 
@@ -145,28 +186,38 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
      * This method allows main entities to be added by plugins.
      *
      * @param EventDispatcher $eventDispatcher
-     * @param Request $request
+     * @param Request         $request
      * @return Response
      */
     public function handleCallByPlugin(EventDispatcher $eventDispatcher, Request $request): Response
     {
         if ($request->getAction() === 'pull') {
-            $event = new HandlePullEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event         = new HandlePullEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePullEvent::EVENT_NAME);
         } elseif ($request->getAction() === 'statistic') {
             $event = new HandleStatsEvent($request->getController());
             $eventDispatcher->dispatch($event, HandleStatsEvent::EVENT_NAME);
         } elseif ($request->getAction() === 'push') {
-            $event = new HandlePushEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event         = new HandlePushEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandlePushEvent::EVENT_NAME);
         } else {
-            $event = new HandleDeleteEvent($request->getController(), $request->getParams());
+            /** @var array<QueryFilter> $requestParams */
+            $requestParams = $request->getParams();
+            $event         = new HandleDeleteEvent($request->getController(), $requestParams);
             $eventDispatcher->dispatch($event, HandleDeleteEvent::EVENT_NAME);
         }
 
         return new Response($event->getResult());
     }
 
+    /**
+     * @return ChecksumLoaderInterface
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function getChecksumLoader(): ChecksumLoaderInterface
     {
         $checksumLoader = new ChecksumLoader($this->getDb());
@@ -175,6 +226,10 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return $checksumLoader;
     }
 
+    /**
+     * @return \Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface
+     * @throws \Psr\Log\InvalidArgumentException
+     */
     public function getPrimaryKeyMapper(): \Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface
     {
         $primaryKeyMapper = new PrimaryKeyMapper($this->getDb(), $this->getSqlHelper());
@@ -183,29 +238,44 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         return $primaryKeyMapper;
     }
 
+    /**
+     * @return TokenValidatorInterface
+     */
     public function getTokenValidator(): TokenValidatorInterface
     {
-        return new TokenValidator(Config::get(Config::OPTIONS_TOKEN, ''));
+        /** @var string $optionsToken */
+        $optionsToken = Config::get(Config::OPTIONS_TOKEN, '');
+        return new TokenValidator($optionsToken);
     }
 
+    /**
+     * @return string
+     */
     public function getControllerNamespace(): string
     {
         return 'JtlWooCommerceConnector\Controllers';
     }
 
     /**
-     * @throws ParseException
+     * @return string
+     * @throws ParseException|InvalidArgumentException
      */
     public function getEndpointVersion(): string
     {
         return Config::getBuildVersion();
     }
 
+    /**
+     * @return string
+     */
     public function getPlatformVersion(): string
     {
         return '';
     }
 
+    /**
+     * @return string
+     */
     public function getPlatformName(): string
     {
         return 'WooCommerce';

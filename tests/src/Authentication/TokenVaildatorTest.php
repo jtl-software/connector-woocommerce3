@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Authentication;
 
 use Jtl\UnitTest\TestCase;
@@ -8,6 +10,7 @@ use JtlWooCommerceConnector\Authentication\TokenValidator;
 class TokenValidatorTest extends TestCase
 {
     /**
+     * @return void
      * @throws \Exception
      */
     public function testValidate(): void
@@ -17,6 +20,7 @@ class TokenValidatorTest extends TestCase
     }
 
     /**
+     * @return void
      * @throws \Exception
      */
     public function testValidateFailure(): void

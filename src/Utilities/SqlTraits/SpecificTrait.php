@@ -1,21 +1,16 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 10:55
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 trait SpecificTrait
 {
     /**
-     * @param $limit
+     * @param int $limit
      * @return string
      */
-    public static function specificPull($limit): string
+    public static function specificPull(int $limit): string
     {
         global $wpdb;
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
@@ -29,10 +24,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $specificName
+     * @param string $specificName
      * @return string
      */
-    public static function specificValuePull($specificName): string
+    public static function specificValuePull(string $specificName): string
     {
         global $wpdb;
         $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
@@ -49,10 +44,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $specificName
+     * @param string $specificName
      * @return string
      */
-    public static function forceSpecificValuePull($specificName): string
+    public static function forceSpecificValuePull(string $specificName): string
     {
         global $wpdb;
         $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
@@ -82,11 +77,11 @@ trait SpecificTrait
     }
 
     /**
-     * @param $specificName
-     * @param $specificValueName
+     * @param string $specificName
+     * @param string $specificValueName
      * @return string
      */
-    public static function getSpecificValueId($specificName, $specificValueName): string
+    public static function getSpecificValueId(string $specificName, string $specificValueName): string
     {
         global $wpdb;
         $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
@@ -101,11 +96,11 @@ trait SpecificTrait
     }
 
     /**
-     * @param $specificName
-     * @param $specificValueName
+     * @param string $specificName
+     * @param string $specificValueName
      * @return string
      */
-    public static function getSpecificValueIdBySlug($specificName, $specificValueName): string
+    public static function getSpecificValueIdBySlug(string $specificName, string $specificValueName): string
     {
         global $wpdb;
         $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
@@ -120,10 +115,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $specificName
+     * @param string $specificName
      * @return string
      */
-    public static function getSpecificId($specificName): string
+    public static function getSpecificId(string $specificName): string
     {
         global $wpdb;
 
@@ -138,10 +133,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $id
+     * @param int $id
      * @return string
      */
-    public static function removeSpecificLinking($id): string
+    public static function removeSpecificLinking(int $id): string
     {
         global $wpdb;
 
@@ -151,10 +146,10 @@ trait SpecificTrait
     }
 
     /**
-     * @param $id
+     * @param int $id
      * @return string
      */
-    public static function removeSpecificValueLinking($id): string
+    public static function removeSpecificValueLinking(int $id): string
     {
         global $wpdb;
 
@@ -162,10 +157,13 @@ trait SpecificTrait
 
         return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
     }
-    /*SELECT t.term_id, t.name, tt.taxonomy, t.slug
+}
+
+/*
+    SELECT t.term_id, t.name, tt.taxonomy, t.slug
     FROM wp_terms t
     LEFT JOIN wp_term_taxonomy tt ON t.term_id = tt.term_id
     LEFT JOIN jtl_connector_link_specific l ON t.term_id = l.endpoint_id
     WHERE l.host_id IS NULL AND tt.taxonomy LIKE 'pa_groesse'
-    ORDER BY tt.parent ASC;*/
-}
+    ORDER BY tt.parent ASC;
+*/

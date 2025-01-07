@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
@@ -9,11 +11,17 @@ use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
+use Jtl\Connector\Core\Model\AbstractIdentity;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\ProductAttribute;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
+use Jtl\Connector\Core\Model\ProductSpecific;
+use Jtl\Connector\Core\Model\ProductVariation;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Model\TaxRate;
 use JtlWooCommerceConnector\Controllers\Product\Product2CategoryController;
@@ -53,16 +61,22 @@ class ProductController extends AbstractBaseController implements
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
 
+    /** @var int[] */
     private static array $idCache = [];
 
     /**
+     * @param int $limit
+     * @return int[]|string[]
      * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
      */
-    protected function getProductsIds(int $limit)
+    protected function getProductsIds(int $limit): array
     {
         if ($this->wpml->canBeUsed()) {
-            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts($limit);
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+
+            $ids = $wpmlProduct->getProducts($limit);
         } else {
             $ids = $this->db->queryList(SqlHelper::productPull($limit));
         }
@@ -72,7 +86,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return AbstractIdentity[]|ProductModel[]
      * @throws InvalidArgumentException
      * @throws Exception
      */
@@ -93,7 +107,7 @@ class ProductController extends AbstractBaseController implements
             $modDate      = $product->get_date_modified();
             $status       = $product->get_status('view');
             $productModel = (new ProductModel())
-                ->setId(new Identity($product->get_id()))
+                ->setId(new Identity((string)$product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
                 ->setIsActive(
                     !\in_array($status, [
@@ -118,11 +132,9 @@ class ProductController extends AbstractBaseController implements
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock(\is_bool($ms = $product->managing_stock()) ? $ms : $ms == 'yes')
-                ->setPermitNegativeStock(
-                    \is_bool($pns = $product->backorders_allowed()) ? $pns : $pns == 'yes'
-                )
-                ->setShippingClassId(new Identity($product->get_shipping_class_id()));
+                ->setConsiderStock($product->managing_stock())
+                ->setPermitNegativeStock($product->backorders_allowed())
+                ->setShippingClassId(new Identity((string)$product->get_shipping_class_id()));
 
             //EAN / GTIN / MPN
             if ($this->util->useGtinAsEanEnabled()) {
@@ -136,6 +148,12 @@ class ProductController extends AbstractBaseController implements
                 ) {
                     $manufacturerNumber = \get_post_meta($product->get_id(), '_ts_mpn', true);
                     $ean                = \get_post_meta($product->get_id(), '_ts_gtin');
+
+                    if (!\is_string($manufacturerNumber)) {
+                        throw new \http\Exception\InvalidArgumentException(
+                            'Manufacturer number is not a string'
+                        );
+                    }
 
                     if (\is_array($ean) && \count($ean) > 0 && \array_key_exists(0, $ean)) {
                         $ean = $ean[0];
@@ -159,7 +177,7 @@ class ProductController extends AbstractBaseController implements
             }
 
             if ($product->get_parent_id() !== 0) {
-                $productModel->setMasterProductId(new Identity($product->get_parent_id()));
+                $productModel->setMasterProductId(new Identity((string)$product->get_parent_id()));
             }
 
             $specialPrices = (new ProductSpecialPriceController($this->db, $this->util))
@@ -168,7 +186,9 @@ class ProductController extends AbstractBaseController implements
                 ->pullData($product, $productModel);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml->getComponent(WpmlProduct::class)->getTranslations($product, $productModel);
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+                $wpmlProduct->getTranslations($product, $productModel);
             }
 
             $productModel
@@ -185,11 +205,17 @@ class ProductController extends AbstractBaseController implements
                 $product instanceof \WC_Product_Variable
                 || $product instanceof \WC_Product_Variation
             ) {
-                $productModel->setVariations(...$productVariationSpecificAttribute['productVariation']);
+                /** @var ProductVariation[] $productVariation */
+                $productVariation = $productVariationSpecificAttribute['productVariation'];
+                $productModel->setVariations(...$productVariation);
             }
 
-            $productModel->setAttributes(...$productVariationSpecificAttribute['productAttributes'])
-                ->setSpecifics(...$productVariationSpecificAttribute['productSpecifics']);
+            /** @var ProductAttribute[] $productAttributes */
+            $productAttributes = $productVariationSpecificAttribute['productAttributes'];
+            /** @var ProductSpecific[] $productSpecific */
+            $productSpecific = $productVariationSpecificAttribute['productSpecifics'];
+            $productModel->setAttributes(...$productAttributes)
+                ->setSpecifics(...$productSpecific);
             if ($product->managing_stock()) {
                 $productModel->setStockLevel(
                     (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController(
@@ -233,8 +259,10 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $model
-     * @return ProductModel
+     * @param AbstractModel $model
+     * @phpstan-param Product $model
+     *
+     * @return AbstractModel
      * @throws InvalidArgumentException
      * @throws NonNumericValue
      * @throws NonStringUnitName
@@ -257,7 +285,7 @@ class ProductController extends AbstractBaseController implements
 
         if (empty($masterProductId) && isset(self::$idCache[$model->getMasterProductId()->getHost()])) {
             $masterProductId = self::$idCache[$model->getMasterProductId()->getHost()];
-            $model->getMasterProductId()->setEndpoint($masterProductId);
+            $model->getMasterProductId()->setEndpoint((string)$masterProductId);
         }
 
         foreach ($model->getI18ns() as $i18n) {
@@ -321,24 +349,22 @@ class ProductController extends AbstractBaseController implements
         \add_filter('content_save_pre', 'wp_filter_post_kses');
         \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-        if ($newPostId instanceof \WP_Error) {
+        if (!\is_int($newPostId)) {
             $this->logger->error(ErrorFormatter::formatError($newPostId));
             return $model;
         }
 
-        if (\is_null($newPostId)) {
-            return $model;
-        }
-
-        $model->getId()->setEndpoint($newPostId);
+        $model->getId()->setEndpoint((string)$newPostId);
 
         $wcProduct = \wc_get_product($newPostId);
         $this->onProductInserted($model, $tmpI18n);
 
         if ($this->wpml->canBeUsed()) {
-            $this->wpml->getComponent(WpmlProduct::class)->setProductTranslations(
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+            $wpmlProduct->setProductTranslations(
                 $newPostId,
-                $masterProductId,
+                (string)$masterProductId,
                 $model
             );
         }
@@ -365,7 +391,7 @@ class ProductController extends AbstractBaseController implements
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_RANK_MATH_SEO_AI)
         ) {
-            (new ProductMetaSeoController($this->db, $this->util))->pushData((int)$newPostId, $tmpI18n);
+            (new ProductMetaSeoController($this->db, $this->util))->pushData($newPostId, $tmpI18n);
         }
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {
@@ -388,12 +414,13 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $model
-     * @return ProductModel
+     * @param AbstractModel $model
+     * @return AbstractModel
      * @throws Exception
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var Product $model */
         $productId = (int)$model->getId()->getEndpoint();
 
         $wcProduct = \wc_get_product($productId);
@@ -403,7 +430,9 @@ class ProductController extends AbstractBaseController implements
             \wc_delete_product_transients($productId);
 
             if ($this->wpml->canBeUsed()) {
-                $this->wpml->getComponent(WpmlProduct::class)->deleteTranslations($wcProduct);
+                /** @var WpmlProduct $wpmlProduct */
+                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+                $wpmlProduct->deleteTranslations($wcProduct);
             }
 
             unset(self::$idCache[$model->getId()->getHost()]);
@@ -421,7 +450,9 @@ class ProductController extends AbstractBaseController implements
     public function statistic(QueryFilter $query): int
     {
         if ($this->wpml->canBeUsed()) {
-            $ids = $this->wpml->getComponent(WpmlProduct::class)->getProducts();
+            /** @var WpmlProduct $wpmlProduct */
+            $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+            $ids         = $wpmlProduct->getProducts();
         } else {
             $ids = $this->db->queryList(SqlHelper::productPull());
         }
@@ -429,31 +460,34 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $product
-     * @param $meta
+     * @param ProductModel     $product
+     * @param ProductI18nModel $meta
      * @return void
      * @throws InvalidArgumentException
+     * @throws TranslatableAttributeException
      * @throws WC_Data_Exception
+     * @throws MustNotBeNullException
+     * @throws \Psr\Log\InvalidArgumentException
+     * @throws \TypeError
      * @throws Exception
      */
-    protected function onProductInserted(ProductModel &$product, &$meta): void
+    protected function onProductInserted(ProductModel &$product, ProductI18nModel &$meta): void
     {
         $wcProduct   = \wc_get_product($product->getId()->getEndpoint());
         $productType = $this->getType($product);
 
-        if (\is_null($wcProduct)) {
+        if (\is_null($wcProduct) || $wcProduct === false) {
             return;
         }
 
         $this->updateProductMeta($product, $wcProduct);
-
         $this->updateProductRelations($product, $wcProduct, $productType);
 
         (new ProductVaSpeAttrHandlerController($this->db, $this->util))->pushDataNew($product, $wcProduct, $meta);
 
         if ($productType !== ProductController::TYPE_CHILD) {
             $this->updateProduct($product, $wcProduct);
-            \wc_delete_product_transients($product->getId()->getEndpoint());
+            \wc_delete_product_transients((int)$product->getId()->getEndpoint());
         }
 
         //variations
@@ -466,9 +500,10 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $jtlProduct
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws TranslatableAttributeException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
@@ -484,6 +519,7 @@ class ProductController extends AbstractBaseController implements
                 $attrName = \strtolower(\trim($i18n->getName()));
 
                 if (\strcmp($attrName, ProductVaSpeAttrHandlerController::PRODUCT_TYPE_ATTR) === 0) {
+                    /** @var string $value */
                     $value = $i18n->getValue();
 
                     $allowedTypes = \wc_get_product_types();
@@ -530,6 +566,12 @@ class ProductController extends AbstractBaseController implements
             $productTypeTerm    = \get_term_by('slug', $oldWcProductType, 'product_type');
             $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
+            if ($currentProductType instanceof \WP_Error) {
+                throw new \http\Exception\InvalidArgumentException(
+                    "Expected current product type to be iterable. Got WP_Error."
+                );
+            }
+
             $removeTerm = null;
             foreach ($currentProductType as $term) {
                 if ($term instanceof \WP_Term) {
@@ -551,7 +593,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws WC_Data_Exception
      * @throws Exception
@@ -577,17 +619,17 @@ class ProductController extends AbstractBaseController implements
             $productId = $product->getId()->getEndpoint();
             if ($this->util->useGtinAsEanEnabled()) {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_ts_gtin',
                     (string)$product->getEan(),
-                    \get_post_meta($productId, '_ts_gtin', true)
+                    \get_post_meta((int)$productId, '_ts_gtin', true)
                 );
             } else {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_ts_gtin',
                     '',
-                    \get_post_meta($productId, '_ts_gtin', true)
+                    \get_post_meta((int)$productId, '_ts_gtin', true)
                 );
             }
         }
@@ -597,17 +639,17 @@ class ProductController extends AbstractBaseController implements
 
             if ($this->util->useGtinAsEanEnabled()) {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_gm_gtin',
                     (string)$product->getEan(),
-                    \get_post_meta($productId, '_gm_gtin', true)
+                    \get_post_meta((int)$productId, '_gm_gtin', true)
                 );
             } else {
                 \update_post_meta(
-                    $productId,
+                    (int)$productId,
                     '_gm_gtin',
                     '',
-                    \get_post_meta($productId, '_gm_gtin', true)
+                    \get_post_meta((int)$productId, '_gm_gtin', true)
                 );
             }
         }
@@ -632,13 +674,16 @@ class ProductController extends AbstractBaseController implements
         $tags = \array_map('trim', \explode(' ', $product->getKeywords()));
         \wp_set_post_terms($wcProduct->get_id(), \implode(',', $tags), 'product_tag', false);
 
+        /** @var string $termValue */
+        $termValue = \wc_clean($product->getShippingClassId()->getEndpoint());
+
         $shippingClass = \get_term_by(
             'id',
-            \wc_clean($product->getShippingClassId()->getEndpoint()),
+            $termValue,
             'product_shipping_class'
         );
 
-        if (!empty($shippingClass)) {
+        if ($shippingClass instanceof \WP_Term) {
             \wp_set_object_terms(
                 $wcProduct->get_id(),
                 $shippingClass->term_id,
@@ -654,8 +699,8 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param string $productType
+     * @param WC_Product   $wcProduct
+     * @param string       $productType
      * @return void
      * @throws InvalidArgumentException
      * @throws Exception
@@ -672,17 +717,20 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param ProductModel $product
-     * @param WC_Product $wcProduct
-     * @param $meta
+     * @param ProductModel     $product
+     * @param WC_Product       $wcProduct
+     * @param ProductI18nModel $meta
      * @return void
      * @throws Exception
      */
-    public function updateVariationCombinationChild(ProductModel $product, WC_Product $wcProduct, $meta): void
-    {
+    public function updateVariationCombinationChild(
+        ProductModel $product,
+        WC_Product $wcProduct,
+        ProductI18nModel $meta
+    ): void {
         $productId = (int)$wcProduct->get_id();
 
-        $productTitle         = \esc_html(\get_the_title($product->getMasterProductId()->getEndpoint()));
+        $productTitle         = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));
         $variation_post_title = \sprintf(\__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post([
             'ID' => $productId,
@@ -697,13 +745,13 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param ProductModel $product
-     * @param WC_Product $wcProduct
+     * @param WC_Product   $wcProduct
      * @return void
      * @throws Exception
      */
-    private function updateProduct(ProductModel $product, $wcProduct): void
+    private function updateProduct(ProductModel $product, WC_Product $wcProduct): void
     {
-        $productId = (int)$wcProduct->get_id();
+        $productId = $wcProduct->get_id();
 
         \update_post_meta($productId, '_visibility', 'visible');
 
@@ -756,23 +804,23 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param DateTime $creationDate
-     * @param bool $gmt
-     * @return string|null
+     * @param bool     $gmt
+     * @return string
      * @throws Exception
      */
-    private function getCreationDate(DateTime $creationDate, bool $gmt = false): ?string
+    private function getCreationDate(DateTime $creationDate, bool $gmt = false): string
     {
-        if (\is_null($creationDate)) {
-            return null;
-        }
-
         if ($gmt) {
             $shopTimeZone = new \DateTimeZone(\wc_timezone_string());
-            $creationDate->sub(
-                \date_interval_create_from_date_string(
-                    $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
-                )
+            $dateInterval = \date_interval_create_from_date_string(
+                $shopTimeZone->getOffset($creationDate) / 3600 . ' hours'
             );
+
+            if ($dateInterval === false) {
+                throw new Exception("Could not create date interval from date string.");
+            }
+
+            $creationDate->sub($dateInterval);
         }
 
         return $creationDate->format('Y-m-d H:i:s');
@@ -785,6 +833,7 @@ class ProductController extends AbstractBaseController implements
      */
     public function findTaxClassName(TaxRate ...$jtlTaxRates): ?string
     {
+        /** @var array<int, array<string, string|null>> $foundTaxClasses */
         $foundTaxClasses = $this->db->query(SqlHelper::getTaxClassByTaxRates(...$jtlTaxRates));
         return $foundTaxClasses[0]['taxClassName'] ?? null;
     }

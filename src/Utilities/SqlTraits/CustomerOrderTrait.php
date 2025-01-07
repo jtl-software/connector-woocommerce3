@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: Jan Weskamp <jan.weskamp@jtl-software.com>
- * Date: 07.11.2018
- * Time: 09:44
- */
+declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
@@ -15,10 +10,10 @@ use JtlWooCommerceConnector\Utilities\Util;
 trait CustomerOrderTrait
 {
     /**
-     * @param $limit
+     * @param int|null $limit
      * @return string
      */
-    public static function customerOrderPull($limit): string
+    public static function customerOrderPull(?int $limit): string
     {
         global $wpdb;
         $jclo = $wpdb->prefix . 'jtl_connector_link_order';
@@ -33,7 +28,9 @@ trait CustomerOrderTrait
 
         $status = Util::getOrderStatusesToImport();
 
+        /** @var string $since */
         $since = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);
+        /** @var int $delay */
         $delay = Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN, 0);
 
         $hposEnabled = \get_option('woocommerce_custom_orders_table_enabled') === 'yes';

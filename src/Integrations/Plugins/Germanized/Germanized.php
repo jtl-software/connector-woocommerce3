@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\Germanized;
 
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
@@ -30,7 +32,7 @@ class Germanized extends AbstractPlugin
      * @param \WC_Product $wcProduct
      * @return bool|mixed|void
      */
-    public function getUnit(\WC_Product $wcProduct)
+    public function getUnit(\WC_Product $wcProduct): mixed
     {
         return (new \JtlWooCommerceConnector\Utilities\Germanized())->getUnit($wcProduct);
     }

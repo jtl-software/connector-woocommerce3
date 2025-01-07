@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 /**
  * Interface PluginInterface
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 interface PluginInterface
@@ -20,13 +23,13 @@ interface PluginInterface
 
     /**
      * @param ComponentInterface $component
-     * @return mixed
+     * @return self
      */
     public function addComponent(ComponentInterface $component): self;
 
     /**
      * @param ComponentInterface ...$components
-     * @return mixed
+     * @return self
      */
     public function addComponents(ComponentInterface ...$components): self;
 
@@ -38,6 +41,8 @@ interface PluginInterface
 
     /**
      * @param PluginsManager $pluginsManager
+     *
+     * @return void
      */
     public function setPluginsManager(PluginsManager $pluginsManager): void;
 

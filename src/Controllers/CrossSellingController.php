@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Model\CrossSelling;
 use Jtl\Connector\Core\Model\CrossSelling as CrossSellingModel;
 use Jtl\Connector\Core\Model\CrossSellingItem;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -17,6 +20,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CrossSelling
+ *
  * @package JtlWooCommerceConnector\Controllers
  */
 class CrossSellingController extends AbstractBaseController implements
@@ -30,21 +34,22 @@ class CrossSellingController extends AbstractBaseController implements
 
     /**
      * @param QueryFilter $query
-     * @return array
+     * @return CrossSellingModel[]
      * @throws InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
         $crossSelling = [];
 
-        $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit()));
+        /** @var array<int, array<string, int|string>> $results */
+        $results          = $this->db->query(SqlHelper::crossSellingPull($query->getLimit())) ?? [];
         $formattedResults = $this->formatResults($results);
 
         foreach ($formattedResults as $row) {
             $type            = $row['meta_key'];
-            $relatedProducts = \unserialize($row['meta_value']);
+            $relatedProducts = \unserialize((string)$row['meta_value']);
 
-            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName($type, $this->util);
+            $crossSellingGroup = CrossSellingGroup::getByWooCommerceName((string)$type, $this->util);
 
             if (!empty($relatedProducts)) {
                 if (!isset($crossSelling[$row['post_id']])) {
@@ -52,19 +57,24 @@ class CrossSellingController extends AbstractBaseController implements
                 }
 
                 $crossSelling[$row['post_id']]
-                    ->setId(new Identity($row['post_id']))
-                    ->setProductId(new Identity($row['post_id']));
+                    ->setId(new Identity((string)$row['post_id']))
+                    ->setProductId(new Identity((string)$row['post_id']));
 
                 $crosssellingProducts = [];
-                foreach ($relatedProducts as $product) {
-                    $crosssellingProducts[] = new Identity($product);
+
+                if (\is_array($relatedProducts)) {
+                    foreach ($relatedProducts as $product) {
+                        $crosssellingProducts[] = new Identity($product);
+                    }
                 }
 
-                $crossSelling[$row['post_id']]->addItem(
-                    (new CrossSellingItem())
-                        ->setCrossSellingGroupId($crossSellingGroup->getId())
-                        ->setProductIds(...$crosssellingProducts)
-                );
+                if (!\is_bool($crossSellingGroup)) {
+                    $crossSelling[$row['post_id']]->addItem(
+                        (new CrossSellingItem())
+                            ->setCrossSellingGroupId($crossSellingGroup->getId())
+                            ->setProductIds(...$crosssellingProducts)
+                    );
+                }
             } else {
                 $this->logger->error(\sprintf(
                     'CrossSelling values for product id %s are empty',
@@ -79,15 +89,20 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param array $result
-     * @return array
+     * @param array<int, array<string, int|string>> $result
+     * @return array<int, array<string, int|string>>
      */
     protected function formatResults(array $result): array
     {
         $formattedResults = [];
         foreach ($result as $row) {
-            $types  = \explode('||', $row['meta_key']);
-            $values = \explode('||', $row['meta_value']);
+            /** @var string $metaKey */
+            $metaKey = $row['meta_key'];
+            /** @var string $metaValue */
+            $metaValue = $row['meta_value'];
+
+            $types  = \explode('||', $metaKey);
+            $values = \explode('||', $metaValue);
 
             foreach ($types as $i => $type) {
                 if (empty($type) || !isset($values[$i])) {
@@ -104,11 +119,12 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param CrossSellingModel $model
+     * @param AbstractModel $model
      * @return CrossSellingModel
      */
     public function push(AbstractModel $model): AbstractModel
     {
+        /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
@@ -136,11 +152,12 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param CrossSellingModel $model
+     * @param AbstractModel $model
      * @return AbstractModel
      */
     public function delete(AbstractModel $model): AbstractModel
     {
+        /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
 
         if (!$product instanceof \WC_Product) {
@@ -172,6 +189,7 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
+     * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
      */
@@ -181,12 +199,12 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param $productId
-     * @param $key
-     * @param $value
+     * @param int                    $productId
+     * @param string                 $key
+     * @param array<int, int|string> $value
      * @return void
      */
-    protected function updateMetaKey($productId, $key, $value): void
+    protected function updateMetaKey(int $productId, string $key, array $value): void
     {
         \update_post_meta(
             $productId,
@@ -198,10 +216,10 @@ class CrossSellingController extends AbstractBaseController implements
 
     /**
      * @param CrossSellingModel $crossSelling
-     * @param $crossSellingGroupEndpointId
-     * @return array
+     * @param string            $crossSellingGroupEndpointId
+     * @return int[]
      */
-    private function getProductIds(CrossSellingModel $crossSelling, $crossSellingGroupEndpointId): array
+    private function getProductIds(CrossSellingModel $crossSelling, string $crossSellingGroupEndpointId): array
     {
         $products = [];
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
@@ -8,22 +10,32 @@ class CanHandleEvent extends Event
 {
     public const EVENT_NAME = 'connector.can_handle';
 
-    protected $controller;
-    protected $action;
+    protected string $controller;
+    protected string $action;
     protected bool $canHandle = false;
 
-    public function __construct($controller, $action)
+    /**
+     * @param string $controller
+     * @param string $action
+     */
+    public function __construct(string $controller, string $action)
     {
         $this->controller = $controller;
         $this->action     = $action;
     }
 
-    public function getController()
+    /**
+     * @return string
+     */
+    public function getController(): string
     {
         return $this->controller;
     }
 
-    public function getAction()
+    /**
+     * @return string
+     */
+    public function getAction(): string
     {
         return $this->action;
     }
@@ -37,10 +49,10 @@ class CanHandleEvent extends Event
     }
 
     /**
-     * @param $canHandle
+     * @param bool $canHandle
      * @return void
      */
-    public function setCanHandle($canHandle): void
+    public function setCanHandle(bool $canHandle): void
     {
         $this->canHandle = $this->canHandle || $canHandle;
     }

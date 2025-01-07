@@ -1,39 +1,61 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Event;
 
+use Jtl\Connector\Core\Model\QueryFilter;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class HandlePullEvent extends Event
 {
     public const EVENT_NAME = 'connector.handle.pull';
 
-    protected $result;
-    protected $controller;
-    protected $params;
+    protected mixed $result;
+    protected string $controller;
 
-    public function __construct($controller, $params)
+    /** @var QueryFilter[] $params */
+    protected array $params;
+
+    /**
+     * @param string        $controller
+     * @param QueryFilter[] $params
+     */
+    public function __construct(string $controller, array $params)
     {
         $this->controller = $controller;
         $this->params     = $params;
     }
 
-    public function getController()
+    /**
+     * @return string
+     */
+    public function getController(): string
     {
         return $this->controller;
     }
 
-    public function getParams()
+    /**
+     * @return QueryFilter[]
+     */
+    public function getParams(): array
     {
         return $this->params;
     }
 
-    public function getResult()
+    /**
+     * @return mixed
+     */
+    public function getResult(): mixed
     {
         return $this->result;
     }
 
-    public function setResult($result): static
+    /**
+     * @param mixed $result
+     * @return static
+     */
+    public function setResult(mixed $result): static
     {
         $this->result = $result;
         return $this;

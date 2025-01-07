@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
-use Jtl\Connector\Core\Model\AbstractI18n;
+use Jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\ManufacturerI18n;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
 use JtlWooCommerceConnector\Controllers\CustomerOrderController;
@@ -23,10 +26,11 @@ class Util extends WordpressUtils
     public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
     public const TO_SYNC_MOD   = 100;
 
-    private $locale;
+    private string $locale;
 
     /**
-     * @throws InvalidArgumentException
+     * @param Db $db
+     * @throws InvalidArgumentException|\Exception
      */
     public function __construct(Db $db)
     {
@@ -35,30 +39,42 @@ class Util extends WordpressUtils
         $this->locale = $this->mapLanguageIso(get_locale());
     }
 
+    /**
+     * @return string
+     */
     public function getWooCommerceLanguage(): string
     {
         return $this->locale;
     }
 
     /**
-     * @param $language
+     * @param string $language
      *
      * @return bool
      */
-    public function isWooCommerceLanguage($language): bool
+    public function isWooCommerceLanguage(string $language): bool
     {
         return $language === $this->getWooCommerceLanguage();
     }
 
     /**
-     * @param                $taxClass
+     * @param string         $taxClass
      * @param \WC_Order|null $order
      *
      * @return float
+     * @throws \http\Exception\InvalidArgumentException
      */
-    public function getTaxRateByTaxClass($taxClass, \WC_Order $order = null): float
+    public function getTaxRateByTaxClass(string $taxClass, ?\WC_Order $order = null): float
     {
-        $countryIso = \explode(":", \get_option('woocommerce_default_country'));
+        $wcDefaultCountry = \get_option('woocommerce_default_country');
+
+        if (!\is_string($wcDefaultCountry)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected wcDefaultCountry to be a string but got " . \gettype($wcDefaultCountry) . " instead."
+            );
+        }
+
+        $countryIso = \explode(":", $wcDefaultCountry);
         $countryIso = $countryIso[0];
 
         if (! \is_null($order)) {
@@ -86,19 +102,19 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array $bulkPrices
+     * @param array<int, array<string, int|float|string>> $bulkPrices
      *
-     * @return array
+     * @return array<int, array<string, float|int|string>>
      */
     public static function setBulkPricesQuantityTo(array $bulkPrices): array
     {
         \usort($bulkPrices, function ($a, $b) {
-            return (int) $a['bulk_price_from'] > (int) $b['bulk_price_from'] ? 1 : 0;
+            return (float) $a['bulk_price_from'] > (float) $b['bulk_price_from'] ? 1 : 0;
         });
 
         foreach ($bulkPrices as $i => &$bulkPrice) {
             if (isset($bulkPrices[ $i + 1 ])) {
-                $bulkPrice['bulk_price_to'] = $bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
+                $bulkPrice['bulk_price_to'] = (float)$bulkPrices[ $i + 1 ]['bulk_price_from'] - 1;
             } else {
                 $bulkPrice['bulk_price_to'] = '';
             }
@@ -111,13 +127,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param      $stockLevel
-     * @param      $backorders
-     * @param bool $managesStock
+     * @param float|int $stockLevel
+     * @param bool      $backorders
+     * @param bool      $managesStock
      *
      * @return string
      */
-    public function getStockStatus($stockLevel, $backorders, bool $managesStock = false): string
+    public function getStockStatus(float|int $stockLevel, bool $backorders, bool $managesStock = false): string
     {
         $stockStatus = $stockLevel > 0;
 
@@ -129,13 +145,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $price
-     * @param $pd
-     * @return mixed|string
+     * @param string $price
+     * @param int    $pd
+     * @return int|string
      */
-    public static function getNetPriceCutted($price, $pd): mixed
+    public static function getNetPriceCutted(string $price, int $pd): mixed
     {
-        $position = \strrpos((string) $price, '.');
+        $position = \strrpos($price, '.');
 
         if ($position > 0) {
             $cut   = \substr($price, 0, $position + 1 + $pd);
@@ -146,13 +162,13 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param          $id
-     * @param array    $vatPluginsPriority
-     * @param callable $getMetaFieldValueFunction
+     * @param int                   $id
+     * @param array<string, string> $vatPluginsPriority
+     * @param callable              $getMetaFieldValueFunction
      *
      * @return string
      */
-    public static function findVatId($id, array $vatPluginsPriority, callable $getMetaFieldValueFunction): string
+    public static function findVatId(int $id, array $vatPluginsPriority, callable $getMetaFieldValueFunction): string
     {
         $uid = '';
         foreach ($vatPluginsPriority as $metaKey => $pluginName) {
@@ -172,11 +188,11 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $customerId
+     * @param int $customerId
      *
      * @return string
      */
-    public static function getVatIdFromCustomer($customerId): string
+    public static function getVatIdFromCustomer(int $customerId): string
     {
         $vatIdPlugins = [
             'b2b_uid'          => SupportedPlugins::PLUGIN_B2B_MARKET,
@@ -191,11 +207,11 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $orderId
+     * @param int $orderId
      *
      * @return string
      */
-    public static function getVatIdFromOrder($orderId): string
+    public static function getVatIdFromOrder(int $orderId): string
     {
         $vatIdPlugins = [
             'billing_vat'      => SupportedPlugins::PLUGIN_GERMAN_MARKET,
@@ -210,12 +226,12 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $group
+     * @param string $group
      *
      * @return bool
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function isValidCustomerGroup($group): bool
+    public function isValidCustomerGroup(string $group): bool
     {
         $result = empty($group) || $group === CustomerGroupController::DEFAULT_GROUP;
 
@@ -225,6 +241,7 @@ class Util extends WordpressUtils
 
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $customerGroups = $this->db->query(SqlHelper::customerGroupPull());
+            $customerGroups = $customerGroups ?? [];
             foreach ($customerGroups as $cKey => $customerGroup) {
                 if (isset($customerGroup['ID']) && $customerGroup['ID'] === $group) {
                     $result = true;
@@ -236,24 +253,44 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $productId
+     * @param int $productId
+     * @return void
+     * @throws \http\Exception\InvalidArgumentException
      */
-    public function addMasterProductToSync($productId): void
+    public function addMasterProductToSync(int $productId): void
     {
-        $masterProductsToSyncCount = (int) \get_option(self::TO_SYNC_COUNT, 0);
-        $page                      = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
-        $masterProductsToSync      = \get_option(self::TO_SYNC . '_' . $page, []);
-        $masterProductsToSync[]    = $productId;
+        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0);
+
+        if (!\is_int($masterProductsToSyncCount)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected masterProductsToSyncCount to be an integer but got " .
+                \gettype($masterProductsToSyncCount) . " instead."
+            );
+        }
+
+        $page                 = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
+        $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
+
+        if (!\is_array($masterProductsToSync)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected masterProductsToSync to be an array but got " .
+                \gettype($masterProductsToSync) . " instead."
+            );
+        }
+
+        $masterProductsToSync[] = $productId;
 
         \update_option(self::TO_SYNC . '_' . $page, \array_unique($masterProductsToSync));
     }
 
     /**
-     *
+     * @return void
+     * @throws \http\Exception\InvalidArgumentException
+     * @throws \Exception
      */
     public function syncMasterProducts(): void
     {
-        $masterProductsToSyncCount = (int) \get_option(self::TO_SYNC_COUNT, 0);
+        $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0);
 
         if ($masterProductsToSyncCount > 0) {
             $page = ( $masterProductsToSyncCount + 1 ) % self::TO_SYNC_MOD + 1;
@@ -261,9 +298,16 @@ class Util extends WordpressUtils
             for ($i = 1; $i <= $page; $i++) {
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
 
+                if (!\is_array($masterProductsToSync)) {
+                    throw new \http\Exception\InvalidArgumentException(
+                        "Expected masterProductsToSync to be an array but got " .
+                        \gettype($masterProductsToSync) . " instead."
+                    );
+                }
+
                 if (! empty($masterProductsToSync)) {
                     foreach ($masterProductsToSync as $productId) {
-                        \WC_Product_Variable::sync($productId);
+                        \WC_Product_Variable::sync((int)$productId);
                     }
 
                     \delete_option(self::TO_SYNC . '_' . $page);
@@ -275,7 +319,8 @@ class Util extends WordpressUtils
     }
 
     /**
-     *
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function countCategories(): void
     {
@@ -284,15 +329,17 @@ class Util extends WordpressUtils
 
         while (! empty($result)) {
             $result = $this->db->query(SqlHelper::categoryProductsCount($offset, $limit));
+            $result = $result ?? [];
 
+            /** @var array<string, int|string> $category */
             foreach ($result as $category) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
-                    $category['term_taxonomy_id'],
-                    $category['count']
+                    (int)$category['term_taxonomy_id'],
+                    (int)$category['count']
                 ));
                 $this->db->query(SqlHelper::categoryMetaCountUpdate(
-                    $category['term_id'],
-                    $category['count']
+                    (int)$category['term_id'],
+                    (int)$category['count']
                 ));
             }
 
@@ -301,7 +348,8 @@ class Util extends WordpressUtils
     }
 
     /**
-     * ???
+     * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function countProductTags(): void
     {
@@ -310,11 +358,13 @@ class Util extends WordpressUtils
 
         while (! empty($result)) {
             $result = $this->db->query(SqlHelper::productTagsCount($offset, $limit));
+            $result = $result ?? [];
 
+            /** @var array<string, int|string> $tag */
             foreach ($result as $tag) {
                 $this->db->query(SqlHelper::termTaxonomyCountUpdate(
-                    $tag['term_taxonomy_id'],
-                    $tag['count']
+                    (int)$tag['term_taxonomy_id'],
+                    (int)$tag['count']
                 ));
             }
 
@@ -323,18 +373,26 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $locale
+     * @param string $locale
      *
      * @return string
      * @throws \Exception
      */
-    public static function mapLanguageIso($locale): string
+    public static function mapLanguageIso(string $locale): string
     {
+        if (\strpos($locale, '_') !== false) {
+            $strPos = (\strpos($locale, '_', 4) !== false)
+                ? \strpos($locale, '_', 4)
+                : null;
+        } else {
+            $strPos = null;
+        }
+
         if (\substr_count($locale, '_') == 2) {
             $locale = \substr(
                 $locale,
                 0,
-                \strpos($locale, '_', 4)
+                $strPos
             );
         }
 
@@ -374,20 +432,21 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param $name
+     * @param string $name
      *
      * @return int
      */
-    public static function getAttributeTaxonomyIdByName($name): int
+    public static function getAttributeTaxonomyIdByName(string $name): int
     {
         $name       = \str_replace('pa_', '', $name);
         $taxonomies = \wp_list_pluck(\wc_get_attribute_taxonomies(), 'attribute_id', 'attribute_name');
 
+        /** @param $name string */
         return isset($taxonomies[ $name ]) ? (int) $taxonomies[ $name ] : 0;
     }
 
     /**
-     *
+     * @return void
      */
     public static function deleteB2Bcache(): void
     {
@@ -395,16 +454,17 @@ class Util extends WordpressUtils
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET) &&
             \is_callable([ 'BM_Helper', 'delete_b2b_transients' ])
         ) {
+            /** @phpstan-ignore staticMethod.notFound */
             \BM_Helper::delete_b2b_transients();
         }
     }
 
     /**
-     * @param $str
+     * @param string $str
      *
      * @return string
      */
-    public static function removeSpecialchars($str): string
+    public static function removeSpecialchars(string $str): string
     {
         return \strtr($str, [
             "Ä" => "AE",
@@ -463,23 +523,43 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @return array
+     * @return string[]
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function getOrderStatusesToImport(): array
     {
         $defaultStatuses = Config::JTLWCC_CONFIG_DEFAULTS[ Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT ];
 
-        return Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+        $orderImportStatuses = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
+
+        if (!\is_array($orderImportStatuses)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected orderImportStatuses to be an array but got "
+                . \gettype($orderImportStatuses) . " instead."
+            );
+        }
+
+        return $orderImportStatuses;
     }
 
     /**
-     * @return array
+     * @return string[]
+     * @throws \http\Exception\InvalidArgumentException
      */
     public static function getManualPaymentTypes(): array
     {
         $defaultManualPayments = Config::JTLWCC_CONFIG_DEFAULTS[ Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES ];
 
-        return Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+        $manualPaymentTypes = Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
+
+        if (!\is_array($manualPaymentTypes)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected manualPaymentTypes to be an array but got "
+                . \gettype($manualPaymentTypes) . " instead."
+            );
+        }
+
+        return $manualPaymentTypes;
     }
 
 
@@ -521,7 +601,11 @@ class Util extends WordpressUtils
         return \max($precision, 2);
     }
 
-    public function createVariantTaxonomyName($name): string
+    /**
+     * @param string $name
+     * @return string
+     */
+    public function createVariantTaxonomyName(string $name): string
     {
         return 'attribute_pa_' . \wc_sanitize_taxonomy_name(
             \substr(
@@ -536,8 +620,8 @@ class Util extends WordpressUtils
 
 
     /**
-     * @param string      $attributeName
-     * @param string      $languageIso
+     * @param string                $attributeName
+     * @param string                $languageIso
      * @param TranslatableAttribute ...$productAttributes
      *
      * @return TranslatableAttributeI18n|null
@@ -564,8 +648,9 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param array $dataSet
-     * @param int   $termId
+     * @param array<string, string> $dataSet
+     * @param int                   $termId
+     * @return void
      */
     public function updateTermMeta(array $dataSet, int $termId): void
     {
@@ -582,12 +667,12 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param AbstractI18n $i18n
-     * @param array     $rankMathSeoData
+     * @param CategoryI18n|ManufacturerI18n     $i18n
+     * @param array<int, array<string, string>> $rankMathSeoData
      *
      * @return void
      */
-    public function setI18nRankMathSeo(AbstractI18n $i18n, array $rankMathSeoData): void
+    public function setI18nRankMathSeo(ManufacturerI18n|CategoryI18n $i18n, array $rankMathSeoData): void
     {
         foreach ($rankMathSeoData as $termMeta) {
             switch ($termMeta['meta_key']) {
@@ -604,6 +689,9 @@ class Util extends WordpressUtils
         }
     }
 
+    /**
+     * @return bool|array<string, array<string, string>>
+     */
     public function getStates(): bool|array
     {
         return \WC()->countries->get_states();
@@ -611,10 +699,11 @@ class Util extends WordpressUtils
 
     /**
      * @param \WC_Product_Attribute $wcProductAttribute
-     * @param TranslatableAttribute      ...$jtlAttributes
+     * @param TranslatableAttribute ...$jtlAttributes
      *
      * @return string
      * @throws TranslatableAttributeException
+     * @throws \http\Exception\InvalidArgumentException
      */
     public function findAttributeValue(
         \WC_Product_Attribute $wcProductAttribute,
@@ -631,6 +720,12 @@ class Util extends WordpressUtils
                     break 2;
                 }
             }
+        }
+
+        if (!\is_string($value)) {
+            throw new \http\Exception\InvalidArgumentException(
+                "Expected value to be a string but got " . \gettype($value) . " instead."
+            );
         }
 
         return $value;

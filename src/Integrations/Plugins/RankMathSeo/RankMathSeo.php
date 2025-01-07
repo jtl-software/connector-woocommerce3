@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo;
 
-use Jtl\Connector\Core\Model\AbstractI18n;
-use jtl\Connector\Core\Model\Model;
-use jtl\Connector\Core\Model\ProductI18n;
-use jtl\Connector\Core\Model\CategoryI18n;
+use Jtl\Connector\Core\Model\ManufacturerI18n;
+use Jtl\Connector\Core\Model\ProductI18n;
+use Jtl\Connector\Core\Model\CategoryI18n;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractPlugin;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
@@ -14,6 +15,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class RankMathSeo
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins\YoastSeo
  */
 class RankMathSeo extends AbstractPlugin
@@ -28,32 +30,51 @@ class RankMathSeo extends AbstractPlugin
     }
 
     /**
-     * @param $temId
-     * @return array
+     * @param int $temId
+     * @return array<int, array<string, string>>|null
      * @throws InvalidArgumentException
      */
-    public function findManufacturerSeoData($temId): array
+    public function findManufacturerSeoData(int $temId): array|null
     {
-        return $this->getPluginsManager()->getDatabase()->query(SqlHelper::pullRankMathSeoTermData($temId));
+        /** @var array<int, array<string, string>>|null $manufacturerSeoData*/
+        $manufacturerSeoData = $this->getPluginsManager()
+            ->getDatabase()
+            ->query(SqlHelper::pullRankMathSeoTermData($temId));
+
+        return $manufacturerSeoData;
     }
 
     /**
      * @param \WC_Product $wcProduct
      * @param ProductI18n $jtlProductI18n
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
     public function setProductSeoData(\WC_Product $wcProduct, ProductI18n $jtlProductI18n): void
     {
         $utils = (new Util($this->getPluginsManager()->getDatabase()));
-        $jtlProductI18n->setTitleTag($utils->getPostMeta($wcProduct->get_id(), 'rank_math_title', true))
-            ->setMetaDescription($utils->getPostMeta($wcProduct->get_id(), 'rank_math_description', true))
-            ->setMetaKeywords($utils->getPostMeta($wcProduct->get_id(), 'rank_math_focus_keyword', true))
+
+        /** @var string $rankMathTitle */
+        $rankMathTitle = $utils->getPostMeta($wcProduct->get_id(), 'rank_math_title', true);
+
+        /** @var string $rankMathDescription */
+        $rankMathDescription = $utils->getPostMeta($wcProduct->get_id(), 'rank_math_description', true);
+
+        /** @var string $rankMathFocusKeyword */
+        $rankMathFocusKeyword = $utils->getPostMeta($wcProduct->get_id(), 'rank_math_focus_keyword', true);
+
+        $jtlProductI18n->setTitleTag($rankMathTitle)
+            ->setMetaDescription($rankMathDescription)
+            ->setMetaKeywords($rankMathFocusKeyword)
             ->setUrlPath($wcProduct->get_slug());
     }
 
     /**
-     * @param int $categoryId
+     * @param int          $categoryId
      * @param CategoryI18n $categoryI18n
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
     public function setCategorySeoData(int $categoryId, CategoryI18n $categoryI18n): void
@@ -68,11 +89,13 @@ class RankMathSeo extends AbstractPlugin
     }
 
     /**
-     * @param int $taxonomyId
-     * @param AbstractI18n $i18nModel
+     * @param int                           $taxonomyId
+     * @param ManufacturerI18n|CategoryI18n $i18nModel
+     *
+     * @return void
      * @throws \InvalidArgumentException
      */
-    public function updateWpSeoTaxonomyMeta(int $taxonomyId, AbstractI18n $i18nModel): void
+    public function updateWpSeoTaxonomyMeta(int $taxonomyId, ManufacturerI18n|CategoryI18n $i18nModel): void
     {
         $taxonomySeo = [
             'rank_math_description' => $i18nModel->getMetaDescription(),

@@ -1,18 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Utilities;
 
 /**
  * UtilGermanized is a singleton that can be used by controllers or mappers that are meant for the Germanized plugin.
+ *
  * @package JtlWooCommerceConnector\Utilities
  */
 class Germanized
 {
-    /**
-     * @var array Index used in database mapped to translated salutation.
-     */
+    /** @var array<int, string> Index used in database mapped to translated salutation. */
     private array $salutations;
 
+    /** @var array<string, string> */
     private static array $units = [
         'l'  => 'L',
         'ml' => 'mL',
@@ -20,6 +22,9 @@ class Germanized
         'cl' => 'cL',
     ];
 
+    /**
+     * Germanized constructor.
+     */
     public function __construct()
     {
         $this->salutations = [
@@ -39,18 +44,19 @@ class Germanized
     }
 
     /**
-     * @param $index
+     * @param string $index
+     * @return string
      */
-    public function parseIndexToSalutation($index)
+    public function parseIndexToSalutation(string $index): string
     {
-        return isset($this->salutations[(int)$index]) ? $this->salutations[$index] : '';
+        return $this->salutations[(int)$index] ?? '';
     }
 
     /**
-     * @param $code
-     * @return mixed|string
+     * @param string $code
+     * @return string
      */
-    public function parseUnit($code)
+    public function parseUnit(string $code): string
     {
         return \in_array($code, \array_keys(self::$units)) ? self::$units[$code] : $code;
     }
@@ -58,64 +64,101 @@ class Germanized
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
+     * @param \WC_Product $wcProduct
      * @return bool
      */
-    public function hasUnitProduct($wcProduct): bool
+    public function hasUnitProduct(\WC_Product $wcProduct): bool
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->has_unit_product();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                return $gzdProduct->has_unit_product();
+            }
         }
+        /** @phpstan-ignore property.notFound */
         return $wcProduct->gzd_product->has_product_units();
     }
 
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
-     * @return mixed|null
+     * @param \WC_Product $wcProduct
+     * @return string|false|null
      */
-    public function getUnit($wcProduct): mixed
+    public function getUnit(\WC_Product $wcProduct): string|false|null
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                /** @var false|string|null $gzdProductUnit */
+                $gzdProductUnit = $gzdProduct->get_unit();
+                return $gzdProductUnit;
+            }
         }
-        return $wcProduct->gzd_product->unit;
+        /** @var false|string|null $gzdProductUnit */
+        $gzdProductUnit = $wcProduct->gzd_product->unit; /** @phpstan-ignore property.notFound */
+        return $gzdProductUnit;
     }
 
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
-     * @return mixed|null
+     * @param \WC_Product $wcProduct
+     * @return false|string|null
      */
-    public function getUnitProduct($wcProduct): mixed
+    public function getUnitProduct(\WC_Product $wcProduct): false|null|string
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_product();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                /** @var false|string|null $gzdUnitProduct */
+                $gzdUnitProduct = $gzdProduct->get_unit_product();
+                return $gzdUnitProduct;
+            }
         }
-        return $wcProduct->gzd_product->unit_product;
+        /** @var false|string|null $gzdUnitProduct */
+        $gzdUnitProduct = $wcProduct->gzd_product->unit_product; /** @phpstan-ignore property.notFound */
+        return $gzdUnitProduct;
     }
 
     /**
      * Backward compatibility method
      *
-     * @param $wcProduct
-     * @return mixed|null
+     * @param \WC_Product $wcProduct
+     * @return false|string|null
      */
-    public function getUnitBase($wcProduct): mixed
+    public function getUnitBase(\WC_Product $wcProduct): false|null|string
     {
         if ($this->pluginVersionIsGreaterOrEqual('3.0.0')) {
-            return \wc_gzd_get_gzd_product($wcProduct)->get_unit_base();
+            $gzdProduct = \wc_gzd_get_gzd_product($wcProduct);
+
+            if (\is_bool($gzdProduct)) {
+                return false;
+            } else {
+                /** @var false|string|null $gzdUnitBase */
+                $gzdUnitBase = $gzdProduct->get_unit_base();
+                return $gzdUnitBase;
+            }
         }
-        return $wcProduct->gzd_product->unit_base;
+        /** @var false|string|null $gzdUnitBase */
+        $gzdUnitBase = $wcProduct->gzd_product->unit_base; /** @phpstan-ignore property.notFound */
+        return $gzdUnitBase;
     }
 
     /**
-     * @param $versionToCompare
+     * @param string $versionToCompare
      * @return bool
      */
-    public function pluginVersionIsGreaterOrEqual($versionToCompare): bool
+    public function pluginVersionIsGreaterOrEqual(string $versionToCompare): bool
     {
         $currentVersion = SupportedPlugins::getVersionOf(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED);
         if (\is_null($currentVersion)) {
@@ -123,6 +166,8 @@ class Germanized
                 SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2
             );
         }
+
+        $currentVersion = $currentVersion ?? '';
 
         if (\version_compare($currentVersion, $versionToCompare, '>=')) {
             return true;

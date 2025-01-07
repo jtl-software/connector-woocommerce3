@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -14,7 +16,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
 {
     /**
      * @param ProductModel $product
-     * @param \WC_Product $wcProduct
+     * @param \WC_Product  $wcProduct
      * @return void
      * @throws \Exception
      */
@@ -24,8 +26,8 @@ class ProductDeliveryTimeController extends AbstractBaseController
         $time                               = $product->calculateHandlingTime();
         $germanizedDeliveryTimeTaxonomyName = 'product_delivery_time';
 
-        $this->removeDeliveryTimeTerm($productId);
-        $this->removeDeliveryTimeTerm($productId, $germanizedDeliveryTimeTaxonomyName);
+        $this->removeDeliveryTimeTerm((int)$productId);
+        $this->removeDeliveryTimeTerm((int)$productId, $germanizedDeliveryTimeTaxonomyName);
 
         if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
             //FUNCTION ATTRIBUTE BY JTL
@@ -39,7 +41,9 @@ class ProductDeliveryTimeController extends AbstractBaseController
 
                     if (\preg_match('/^(wc_)[a-zA-Z\_]+$/', \trim($i18n->getName()))) {
                         if (\strcmp(\trim($i18n->getName()), 'wc_dt_offset') === 0) {
-                            $offset = (int)\trim($i18n->getValue());
+                            /** @var string $i18nValue */
+                            $i18nValue = $i18n->getValue();
+                            $offset    = (int)\trim($i18nValue);
                         }
                     }
                     unset($pushedAttributes[$key]);
@@ -73,13 +77,18 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 return;
             }
 
+            /** @var string $prefixDeliveryTime */
+            $prefixDeliveryTime = Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME);
+            /** @var string $suffixDeliveryTime */
+            $suffixDeliveryTime = Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME);
+
             //Build Term string
             $deliveryTimeString = \trim(
                 \sprintf(
                     '%s %s %s',
-                    Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME),
+                    $prefixDeliveryTime,
                     $time,
-                    Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME)
+                    $suffixDeliveryTime
                 )
             );
 
@@ -114,7 +123,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 );
 
                 if ($newTerm instanceof WP_Error) {
-                    //  var_dump($newTerm);
+                    // var_dump($newTerm);
                     // die();
                     $error = new WP_Error('invalid_taxonomy', 'Could not create delivery time.');
                     $this->logger->error(ErrorFormatter::formatError($error));
@@ -122,17 +131,17 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 } else {
                     $termId = $newTerm['term_id'];
 
-                    \wp_set_object_terms($productId, $termId, 'product_delivery_times', true);
+                    \wp_set_object_terms((int)$productId, $termId, 'product_delivery_times', true);
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                        \update_post_meta($productId, '_lieferzeit', $termId);
+                        \update_post_meta((int)$productId, '_lieferzeit', $termId);
                     }
                 }
-            } else {
-                \wp_set_object_terms($productId, $term->term_id, $term->taxonomy, true);
+            } elseif ($term instanceof \WP_Term) {
+                \wp_set_object_terms((int)$productId, $term->term_id, $term->taxonomy, true);
 
                 if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
-                    \update_post_meta($productId, '_lieferzeit', $term->term_id);
+                    \update_post_meta((int)$productId, '_lieferzeit', $term->term_id);
                 }
             }
 
@@ -168,13 +177,13 @@ class ProductDeliveryTimeController extends AbstractBaseController
                     if (\is_array($germanizedTermArray) && isset($germanizedTermArray['term_id'])) {
                         $germanizedTermId = $germanizedTermArray['term_id'];
                     }
-                } else {
+                } elseif ($germanizedTerm instanceof \WP_Term) {
                     $germanizedTermId = $germanizedTerm->term_id;
                 }
 
                 if ($germanizedTermId !== false) {
                     \wp_set_object_terms(
-                        $productId,
+                        (int)$productId,
                         $germanizedTermId,
                         $germanizedDeliveryTimeTaxonomyName,
                         true
@@ -187,6 +196,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                             '3.7.0'
                         )
                     ) {
+                        /** @var string $oldDeliveryTime */
                         $oldDeliveryTime = $this->util->getPostMeta(
                             $productId,
                             '_default_delivery_time',
@@ -195,7 +205,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                         $this->util->updatePostMeta(
                             $productId,
                             '_default_delivery_time',
-                            $germanizedTerm->slug,
+                            ($germanizedTerm instanceof \WP_Term) ? $germanizedTerm->slug : '',
                             $oldDeliveryTime
                         );
                     }
@@ -205,14 +215,14 @@ class ProductDeliveryTimeController extends AbstractBaseController
     }
 
     /**
-     * @param $productId
+     * @param int    $productId
      * @param string $taxonomyName
      * @return void
      */
-    private function removeDeliveryTimeTerm($productId, string $taxonomyName = 'product_delivery_times'): void
+    private function removeDeliveryTimeTerm(int $productId, string $taxonomyName = 'product_delivery_times'): void
     {
         $terms = \wp_get_object_terms($productId, $taxonomyName);
-        if (\is_array($terms) && !$terms instanceof WP_Error) {
+        if (!$terms instanceof WP_Error && \is_array($terms)) {
             if (\count($terms) > 0) {
                 /** @var \WP_Term $term */
                 foreach ($terms as $key => $term) {
@@ -230,7 +240,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                         '3.7.0'
                     )
                 ) {
-                    $this->util->deletePostMeta($productId, '_default_delivery_time');
+                    $this->util->deletePostMeta((string)$productId, '_default_delivery_time');
                 }
             }
         }

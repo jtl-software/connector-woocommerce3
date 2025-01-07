@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
+use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
@@ -13,8 +16,9 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param DeliverNoteModel $model
+     * @param AbstractModel $model
      * @return AbstractModel
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
@@ -23,6 +27,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)
         ) {
+            /** @var DeliverNoteModel $model */
             $orderId = $model->getCustomerOrderId()->getEndpoint();
 
             $order = \wc_get_order($orderId);
@@ -33,9 +38,18 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
+            if (!$shipmentTrackingActions instanceof WC_Advanced_Shipment_Tracking_Actions) {
+                throw new InvalidArgumentException(
+                    "shipmentTrackingActions expected to be instance of
+                    WC_Advanced_Shipment_Tracking_Actions but got null or object instead."
+                );
+            }
+
             foreach ($model->getTrackingLists() as $trackingList) {
                 $trackingInfoItem                 = [];
-                $trackingInfoItem['date_shipped'] = $model->getCreationDate()->format("Y-m-d");
+                $trackingInfoItem['date_shipped'] = $model->getCreationDate()
+                    ? $model->getCreationDate()->format("Y-m-d")
+                    : '';
 
                 $trackingProviders = $shipmentTrackingActions->get_providers();
 
@@ -72,15 +86,16 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     }
 
     /**
-     * @return object|WC_Advanced_Shipment_Tracking_Actions|null
+     * @return object|null
      */
-    protected function getShipmentTrackingActions()
+    protected function getShipmentTrackingActions(): object|null
     {
         $shipmentTrackingActions = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {
             $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
         } else {
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
+                /** @phpstan-ignore class.notFound */
                 $shipmentTrackingActions = AST_Pro_Actions::get_instance();
             }
         }
@@ -88,8 +103,8 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     }
 
     /**
-     * @param string $shippingMethodName
-     * @param array $trackingProviders
+     * @param string                                   $shippingMethodName
+     * @param array<int|string, array<string, string>> $trackingProviders
      * @return string|null
      */
     private function findTrackingProviderSlug(string $shippingMethodName, array $trackingProviders): ?string

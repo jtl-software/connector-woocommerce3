@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Checksum;
 
 use Jtl\Connector\Core\Checksum\ChecksumLoaderInterface;
@@ -11,36 +13,37 @@ use Psr\Log\NullLogger;
 
 class ChecksumLoader implements ChecksumLoaderInterface
 {
-    /**
-     * @var NullLogger
-     */
-    protected $logger;
+    protected LoggerInterface $logger;
 
-    /**
-     * @var Db
-     */
     protected Db $db;
 
+    /**
+     * @param Db $db
+     */
     public function __construct(Db $db)
     {
         $this->db     = $db;
         $this->logger = new NullLogger();
     }
 
+    /**
+     * @param LoggerInterface $logger
+     * @return void
+     */
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
 
     /**
-     * @param $endpointId
-     * @param $type
+     * @param string $endpointId
+     * @param int    $type
      * @return string
      * @throws InvalidArgumentException
      */
-    public function read($endpointId, $type): string
+    public function read(string $endpointId, int $type): string
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return '';
         }
 
@@ -54,15 +57,15 @@ class ChecksumLoader implements ChecksumLoaderInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $type
-     * @param $checksum
+     * @param string $endpointId
+     * @param int    $type
+     * @param string $checksum
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function write($endpointId, $type, $checksum): bool
+    public function write(string $endpointId, int $type, string $checksum): bool
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
         }
 
@@ -76,14 +79,14 @@ class ChecksumLoader implements ChecksumLoaderInterface
     }
 
     /**
-     * @param $endpointId
-     * @param $type
+     * @param string $endpointId
+     * @param int    $type
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function delete($endpointId, $type): bool
+    public function delete(string $endpointId, int $type): bool
     {
-        if ($endpointId === null || $type !== Checksum::TYPE_VARIATION) {
+        if ($endpointId === '' || $type !== Checksum::TYPE_VARIATION) {
             return false;
         }
 
@@ -96,7 +99,12 @@ class ChecksumLoader implements ChecksumLoaderInterface
         return (bool)$rows;
     }
 
-    public function getChecksumRead($endpointId, $type): string
+    /**
+     * @param string $endpointId
+     * @param int    $type
+     * @return string
+     */
+    public function getChecksumRead(string $endpointId, int $type): string
     {
         global $wpdb;
 
@@ -112,7 +120,13 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumWrite($endpointId, $type, $checksum): string
+    /**
+     * @param string $endpointId
+     * @param int    $type
+     * @param string $checksum
+     * @return string
+     */
+    public function getChecksumWrite(string $endpointId, int $type, string $checksum): string
     {
         global $wpdb;
 
@@ -126,7 +140,12 @@ class ChecksumLoader implements ChecksumLoaderInterface
         );
     }
 
-    public function getChecksumDelete($endpointId, $type): string
+    /**
+     * @param string $endpointId
+     * @param int    $type
+     * @return string
+     */
+    public function getChecksumDelete(string $endpointId, int $type): string
     {
         global $wpdb;
         $jcpc = $wpdb->prefix . 'jtl_connector_product_checksum';

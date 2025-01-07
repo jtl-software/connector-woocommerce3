@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Integrations\Plugins;
 
 /**
  * Interface ComponentInterface
+ *
  * @package JtlWooCommerceConnector\Integrations\Plugins
  */
 interface ComponentInterface
@@ -17,7 +20,7 @@ interface ComponentInterface
      * @param PluginInterface $plugin
      * @return mixed
      */
-    public function setPlugin(PluginInterface $plugin);
+    public function setPlugin(PluginInterface $plugin): mixed;
 
     /**
      * @return string
