@@ -6,6 +6,8 @@ namespace JtlWooCommerceConnector\Tests\Utilities;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\AbstractImage;
+use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
@@ -38,6 +40,7 @@ class ImageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        require_once '/var/www/html/wordpress/wp-load.php';
         $this->getLocale = (new MockBuilder())->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_locale')
             ->setFunction(function () {
@@ -167,6 +170,54 @@ class ImageTest extends TestCase
                 'jpg',
                 '/var/www/html/wordpress/wp-content/uploads/2024/11',
                 '1111_Product.jpg'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider deleteProductImageDataProvider
+     * @param AbstractImage $image
+     * @param bool $realDelete
+     * @return void
+     * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \PHPUnit\Framework\MockObject\ReflectionException
+     */
+    public function testDeleteProductImage(AbstractImage $image, bool $realDelete): void
+    {
+        global $wpdb;
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $imageController = new ImageController($db, $util, $primaryKeyMapper);
+
+        $controller = new \ReflectionClass($imageController);
+        $deleteProductImage = $controller->getMethod('deleteProductImage');
+        $deleteProductImage->setAccessible(true);
+
+        $result = $deleteProductImage->invoke($imageController, $image, $realDelete);
+
+        #$this->assertTrue($result);
+    }
+
+    public function deleteProductImageDataProvider(): array
+    {
+        return [
+            [
+                (new ProductImage())->setName('Default name')->setI18ns(
+                    (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger')
+                )
+                ->setId(new Identity("1111_3140", 1)),
+                true
             ]
         ];
     }
