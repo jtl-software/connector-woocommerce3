@@ -24,13 +24,13 @@ use Jtl\Connector\Core\Model\ProductImage;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use JtlWooCommerceConnector\Utilities\WordpressUtils;
 use WC_Product;
 
 class ImageController extends AbstractBaseController implements
@@ -970,7 +970,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = (int)$ids[0];
         $productId    = (int)$ids[1];
 
-        $wcProduct = \wc_get_product($productId);
+        $wcProduct = $this->util->wcGetProduct($productId);
         if (!$wcProduct instanceof WC_Product) {
             return;
         }

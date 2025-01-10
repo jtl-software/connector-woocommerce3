@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JtlWooCommerceConnector\Tests\Utilities;
+namespace JtlWooCommerceConnector\Tests\Controllers;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
@@ -13,7 +13,6 @@ use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
-use Mockery\Mock;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -27,6 +26,7 @@ use PHPUnit\Framework\MockObject\RuntimeException;
 use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use JtlWooCommerceConnector\Tests\Faker\DbFaker;
 
 class ImageTest extends TestCase
 {
@@ -41,7 +41,8 @@ class ImageTest extends TestCase
     {
         parent::setUp();
         require_once '/var/www/html/wordpress/wp-load.php';
-        $this->getLocale = (new MockBuilder())->setNamespace('JtlWooCommerceConnector\Utilities')
+        $this->getLocale = (new MockBuilder())
+            ->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_locale')
             ->setFunction(function () {
                 return 'de_DE';
@@ -189,14 +190,19 @@ class ImageTest extends TestCase
      * @throws UnknownTypeException
      * @throws \PHPUnit\Framework\InvalidArgumentException
      * @throws \PHPUnit\Framework\MockObject\ReflectionException
+     * @throws \Exception
      */
-    public function testDeleteProductImage(AbstractImage $image, bool $realDelete): void
+    public function testDeleteProductImage(AbstractImage $image, bool $realDelete, $queryString): void
     {
         global $wpdb;
-        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
-        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
 
+        $db = new DbFaker($wpdb);
+        $util = $this->createMock(Util::class);
         $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $util->expects($this->once())
+            ->method('wcGetProduct')
+            ->willReturn(new \WC_Product());
 
         $imageController = new ImageController($db, $util, $primaryKeyMapper);
 
@@ -204,20 +210,23 @@ class ImageTest extends TestCase
         $deleteProductImage = $controller->getMethod('deleteProductImage');
         $deleteProductImage->setAccessible(true);
 
-        $result = $deleteProductImage->invoke($imageController, $image, $realDelete);
+        $deleteProductImage->invoke($imageController, $image, $realDelete);
 
-        #$this->assertTrue($result);
+        $this->assertSame($queryString, $db->givenQueries[0]);
     }
 
     public function deleteProductImageDataProvider(): array
     {
         return [
             [
-                (new ProductImage())->setName('Default name')->setI18ns(
-                    (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger')
-                )
-                ->setId(new Identity("1111_3140", 1)),
-                true
+                (new ProductImage())->setName('Default name')->setId(new Identity("1111_2222", 1)),
+                true,
+                "
+            DELETE FROM wp_jtl_connector_link_image
+            WHERE (`type` = 42
+            OR `type` = 64)
+            AND endpoint_id
+            LIKE '1111_2222'",
             ]
         ];
     }
