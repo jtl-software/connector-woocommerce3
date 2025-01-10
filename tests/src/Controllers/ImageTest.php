@@ -27,6 +27,7 @@ use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
 use JtlWooCommerceConnector\Tests\Faker\DbFaker;
+use WC_Product;
 
 class ImageTest extends TestCase
 {
@@ -193,15 +194,14 @@ class ImageTest extends TestCase
      */
     public function testDeleteProductImage(AbstractImage $image, bool $realDelete, $queryString): void
     {
-        global $wpdb;
-
-        $db = new DbFaker($wpdb);
+        $wpDb = $this->getMockBuilder('\wpdb')->getMock();
+        $db = new DbFaker($wpDb);
         $util = $this->createMock(Util::class);
         $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
 
         $util->expects($this->once())
             ->method('wcGetProduct')
-            ->willReturn(new \WC_Product());
+            ->willReturn(new WC_Product());
 
         $imageController = new ImageController($db, $util, $primaryKeyMapper);
 
