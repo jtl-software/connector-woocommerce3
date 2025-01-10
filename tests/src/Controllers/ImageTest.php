@@ -40,7 +40,6 @@ class ImageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        require_once '/var/www/html/wordpress/wp-load.php';
         $this->getLocale = (new MockBuilder())
             ->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_locale')
