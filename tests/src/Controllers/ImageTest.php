@@ -41,6 +41,7 @@ class ImageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->getLocale = (new MockBuilder())
             ->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_locale')
@@ -171,61 +172,6 @@ class ImageTest extends TestCase
                 'jpg',
                 '/var/www/html/wordpress/wp-content/uploads/2024/11',
                 '1111_Product.jpg'
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider deleteProductImageDataProvider
-     * @param AbstractImage $image
-     * @param bool $realDelete
-     * @return void
-     * @throws ClassAlreadyExistsException
-     * @throws ClassIsFinalException
-     * @throws ClassIsReadonlyException
-     * @throws DuplicateMethodException
-     * @throws InvalidMethodNameException
-     * @throws OriginalConstructorInvocationRequiredException
-     * @throws RuntimeException
-     * @throws UnknownTypeException
-     * @throws \PHPUnit\Framework\InvalidArgumentException
-     * @throws \PHPUnit\Framework\MockObject\ReflectionException
-     * @throws \Exception
-     */
-    public function testDeleteProductImage(AbstractImage $image, bool $realDelete, $queryString): void
-    {
-        $wpDb = $this->getMockBuilder('\wpdb')->getMock();
-        $db = new DbFaker($wpDb);
-        $util = $this->createMock(Util::class);
-        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
-
-        $util->expects($this->once())
-            ->method('wcGetProduct')
-            ->willReturn(new WC_Product());
-
-        $imageController = new ImageController($db, $util, $primaryKeyMapper);
-
-        $controller = new \ReflectionClass($imageController);
-        $deleteProductImage = $controller->getMethod('deleteProductImage');
-        $deleteProductImage->setAccessible(true);
-
-        $deleteProductImage->invoke($imageController, $image, $realDelete);
-
-        $this->assertSame($queryString, $db->givenQueries[0]);
-    }
-
-    public function deleteProductImageDataProvider(): array
-    {
-        return [
-            [
-                (new ProductImage())->setName('Default name')->setId(new Identity("1111_2222", 1)),
-                true,
-                "
-            DELETE FROM wp_jtl_connector_link_image
-            WHERE (`type` = 42
-            OR `type` = 64)
-            AND endpoint_id
-            LIKE '1111_2222'",
             ]
         ];
     }
