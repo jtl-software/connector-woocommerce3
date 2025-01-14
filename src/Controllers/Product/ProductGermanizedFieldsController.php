@@ -411,26 +411,16 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $termId = $existingTerm->term_id;
         }
 
-        $gpsrManufacturerAddress = $manufacturerData['name'] . "\n"
-            . $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
-            . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
-            . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
-            . $manufacturerData['email'] . "\n"
-            . $manufacturerData['homepage'];
-
-        $gpsrResponsibleAddress = $responsiblePersonData['name'] . "\n"
-            . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
-            . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"
-            . $responsiblePersonData['state'] . ' ' . $responsiblePersonData['country'] . "\n"
-            . $responsiblePersonData['email'] . "\n"
-            . $responsiblePersonData['homepage'];
+        $concatenatedAddresses         = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
+        $gpsrManufacturerAddress       = $concatenatedAddresses;
+        $gpsrResponsiblePersonAddress  = $concatenatedAddresses[1];
 
         if (!empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
             \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
         }
 
-        if (!empty(\str_replace([' ', "\n"], '', $gpsrResponsibleAddress))) {
-            \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsibleAddress);
+        if (!empty(\str_replace([' ', "\n"], '', $gpsrResponsiblePersonAddress))) {
+            \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsiblePersonAddress);
         }
 
         #remove existing product to gpsr manufacturer link
@@ -511,5 +501,29 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 \esc_sql($nutrientData)
             )
         );
+    }
+
+    /**
+     * @param string[] $manufacturerData
+     * @param string[] $responsiblePersonData
+     * @return string[]
+     */
+    public function getConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData): array
+    {
+        $gpsrManufacturerAddress = $manufacturerData['name'] . "\n"
+            . $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
+            . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
+            . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
+            . $manufacturerData['email'] . "\n"
+            . $manufacturerData['homepage'];
+
+        $gpsrResponsiblePersonAddress = $responsiblePersonData['name'] . "\n"
+            . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
+            . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"
+            . $responsiblePersonData['state'] . ' ' . $responsiblePersonData['country'] . "\n"
+            . $responsiblePersonData['email'] . "\n"
+            . $responsiblePersonData['homepage'];
+
+        return [$gpsrManufacturerAddress, $gpsrResponsiblePersonAddress];
     }
 }
