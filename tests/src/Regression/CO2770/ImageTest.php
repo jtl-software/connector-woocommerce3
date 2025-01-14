@@ -100,9 +100,14 @@ class ImageTest extends TestCase
 
         $this->assertSame($queryString, $db->givenQueries[0]);
          * **/
+        //TODO: dummy assertion, replace by actual test later
+        $this->assertTrue(true);
         echo 'ImageTest::testDeleteProductImage() in CO2770\Regression not implemented.';
     }
 
+    /**
+     * @return array<int, ProductImage|bool|string>
+     */
     public function deleteProductImageDataProvider(): array
     {
         return [
