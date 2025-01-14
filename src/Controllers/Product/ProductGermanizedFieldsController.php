@@ -298,6 +298,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         $gpsrManufacturerTitleform = '';
 
         $manufacturerData = [
+            'name' => '',
             'street' => '',
             'housenumber' => '',
             'postalcode' => '',
@@ -326,6 +327,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     switch ($i18n->getName()) {
                         case 'gpsr_manufacturer_name':
                             $gpsrManufacturerName      = $i18n->getValue();
+                            $manufacturerData['name']  = $gpsrManufacturerName;
                             $gpsrManufacturerTitleform = \strtolower(
                                 \str_replace(' ', '', $i18n->getValue())
                             ) . '-gpsr';
@@ -409,7 +411,8 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $termId = $existingTerm->term_id;
         }
 
-        $gpsrManufacturerAddress = $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
+        $gpsrManufacturerAddress = $manufacturerData['name'] . "\n"
+            . $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
             . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
             . $manufacturerData['state'] . ' ' . $manufacturerData['country'] . "\n"
             . $manufacturerData['email'] . "\n"
