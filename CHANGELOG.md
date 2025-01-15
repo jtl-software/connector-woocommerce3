@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.3.0 _2025-01-15_
 - CO-2782 - update logic for orphaned b2b meta fields
 - CO-2589 - update phpstan
 - CO-2770 - fix double image upload
