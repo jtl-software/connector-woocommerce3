@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace JtlWooCommerceConnector\Tests\Utilities;
+namespace JtlWooCommerceConnector\Tests\Controllers;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\AbstractImage;
+use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
-use Mockery\Mock;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -25,6 +26,8 @@ use PHPUnit\Framework\MockObject\RuntimeException;
 use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use JtlWooCommerceConnector\Tests\Faker\DbFaker;
+use WC_Product;
 
 class ImageTest extends TestCase
 {
@@ -38,7 +41,9 @@ class ImageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->getLocale = (new MockBuilder())->setNamespace('JtlWooCommerceConnector\Utilities')
+
+        $this->getLocale = (new MockBuilder())
+            ->setNamespace('JtlWooCommerceConnector\Utilities')
             ->setName('get_locale')
             ->setFunction(function () {
                 return 'de_DE';

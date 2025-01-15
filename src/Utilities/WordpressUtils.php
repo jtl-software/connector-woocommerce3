@@ -58,4 +58,13 @@ abstract class WordpressUtils
     {
         return \delete_post_meta((int)$postId, $metaKey, $metaValue);
     }
+
+    /**
+     * @param int $productId
+     * @return \WC_Product|null
+     */
+    public function wcGetProduct(int $productId): ?\WC_Product
+    {
+        return \wc_get_product($productId);
+    }
 }
