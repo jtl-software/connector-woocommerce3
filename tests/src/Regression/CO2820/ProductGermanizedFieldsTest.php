@@ -65,7 +65,7 @@ class ProductGermanizedFieldsTest extends TestCase
      * @throws ClassAlreadyExistsException
      * @throws \Exception
      */
-    public function testGetConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData, string $expectedResult): void
+    public function testGetConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData, array $expectedResult): void
     {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
@@ -75,9 +75,9 @@ class ProductGermanizedFieldsTest extends TestCase
         $controller  = new \ReflectionClass($germanizedController);
         $getAddresses = $controller->getMethod('getConcatenatedAddresses');
 
-        print_r($expectedResult);
-        #$result = $getAddresses->invoke($imageController, $manufacturerData, $responsiblePersonData);
-        #$this->assertSame($expectedResult, $result);
+        $results = $getAddresses->invoke($germanizedController, $manufacturerData, $responsiblePersonData);
+        $this->assertSame($expectedResult[0], $results[0]);
+        $this->assertSame($expectedResult[1], $results[1]);
     }
 
     /**
@@ -109,7 +109,20 @@ class ProductGermanizedFieldsTest extends TestCase
                     'email' => 'Responsible email',
                     'homepage' => 'Responsible homepage'
                 ],
-                'Manufacturer ABC'
+                [
+                    'Manufacturer ABC' . "\n" .
+                    'Manufacturer street Manufacturer housenumber' . "\n" .
+                    'Manufacturer postalcode Manufacturer city' . "\n" .
+                    'Manufacturer state Manufacturer country' . "\n" .
+                    'Manufacturer email' . "\n" .
+                    'Manufacturer homepage',
+                    'John Doe' . "\n" .
+                    'Responsible street Responsible housenumber' . "\n" .
+                    'Responsible postalcode Responsible city' . "\n" .
+                    'Responsible state Responsible country' . "\n" .
+                    'Responsible email' . "\n" .
+                    'Responsible homepage'
+                ]
             ]
         ];
     }
