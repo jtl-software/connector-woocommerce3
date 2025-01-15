@@ -24,13 +24,13 @@ use Jtl\Connector\Core\Model\ProductImage;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
-use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use JtlWooCommerceConnector\Utilities\WordpressUtils;
 use WC_Product;
 
 class ImageController extends AbstractBaseController implements
@@ -902,14 +902,14 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel $model
+     * @param bool $realDelete
      * @return AbstractModel
      * @throws Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel $model, bool $realDelete = true): AbstractModel
     {
-        return $this->deleteData($model);
+        return $this->deleteData($model, $realDelete);
     }
-
 
     /**
      * @param AbstractImage $image
@@ -970,7 +970,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = (int)$ids[0];
         $productId    = (int)$ids[1];
 
-        $wcProduct = \wc_get_product($productId);
+        $wcProduct = $this->util->wcGetProduct($productId);
         if (!$wcProduct instanceof WC_Product) {
             return;
         }
@@ -979,9 +979,9 @@ class ImageController extends AbstractBaseController implements
             $this->deleteAllProductImages($productId);
             $this->db->query(SqlHelper::imageDeleteLinks($productId));
         } else {
+            $this->db->query(SqlHelper::imageDeleteLink($attachmentId, $productId));
             if ($this->isCoverImage($image)) {
                 \delete_post_thumbnail($productId);
-                $this->db->query(SqlHelper::imageDeleteLinks($productId));
             } else {
                 if (
                     SupportedPlugins::isActive(

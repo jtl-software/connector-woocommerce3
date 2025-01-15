@@ -233,10 +233,33 @@ trait ImageTrait
         return \sprintf(
             "
             DELETE FROM {$jcli}
-            WHERE `type` = %d
-            OR `type` = %d
+            WHERE (`type` = %d
+            OR `type` = %d)
             AND endpoint_id
             LIKE '%%%s{$productId}'",
+            IdentityType::PRODUCT_IMAGE,
+            IdentityType::PRODUCT,
+            Id::SEPARATOR
+        );
+    }
+
+    /**
+     * @param int $attachmentId
+     * @param int $productId
+     * @return string
+     */
+    public static function imageDeleteLink(int $attachmentId, int $productId): string
+    {
+        global $wpdb;
+        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+
+        return \sprintf(
+            "
+            DELETE FROM {$jcli}
+            WHERE (`type` = %d
+            OR `type` = %d)
+            AND endpoint_id
+            LIKE '{$attachmentId}%s{$productId}'",
             IdentityType::PRODUCT_IMAGE,
             IdentityType::PRODUCT,
             Id::SEPARATOR
