@@ -233,7 +233,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $current_time = \time();
 
                 if ($specialPrice->getConsiderDateLimit()) {
-                    $dateTo   = \is_null($end = $specialPrice->getActiveUntilDate())
+                    $dateTo = \is_null($end = $specialPrice->getActiveUntilDate())
                         ? null
                         : $end->setTime(
                             Date::LAST_HOUR,
