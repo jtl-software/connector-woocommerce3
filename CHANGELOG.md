@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2818 - add time to end date for special price
 
 ## 2.3.0 _2025-01-15_
 - CO-2782 - update logic for orphaned b2b meta fields
