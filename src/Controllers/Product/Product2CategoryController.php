@@ -37,7 +37,7 @@ class Product2CategoryController extends AbstractBaseController
             foreach ($categories as $category) {
                 $productCategory = (new Product2CategoryModel())
                     ->setId(new Identity(Id::link([$product->get_id(), $category])))
-                    ->setCategoryId(new Identity($category));
+                    ->setCategoryId(new Identity((string)$category));
 
                 $productCategories[] = $productCategory;
             }
