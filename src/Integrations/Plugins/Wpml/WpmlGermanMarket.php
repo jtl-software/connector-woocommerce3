@@ -35,7 +35,7 @@ class WpmlGermanMarket extends AbstractComponent
 
         foreach ($translations as $languageCode => $translation) {
             $translated = $wpmlTermTranslation
-                ->getTranslatedTerm($translation->element_id, 'pa_' . $taxonomyName);
+                ->getTranslatedTerm((int)$translation->element_id, 'pa_' . $taxonomyName);
 
             if (!empty($translated)) {
                 $measurementUnitTranslations[] = (new MeasurementUnitI18n())
