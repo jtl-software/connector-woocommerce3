@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.3.1 _2025-01-20_
 - CO-2857 - fix type errors
 
 ## 2.3.0 _2025-01-15_
