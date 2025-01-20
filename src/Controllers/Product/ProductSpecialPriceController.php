@@ -16,6 +16,7 @@ use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Controllers\ProductController;
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\Date;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
@@ -232,7 +233,14 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $current_time = \time();
 
                 if ($specialPrice->getConsiderDateLimit()) {
-                    $dateTo   = \is_null($end = $specialPrice->getActiveUntilDate()) ? null : $end->getTimestamp();
+                    $dateTo   = \is_null($end = $specialPrice->getActiveUntilDate())
+                        ? null
+                        : $end->setTime(
+                            Date::LAST_HOUR,
+                            Date::LAST_MINUTE,
+                            Date::LAST_SECOND
+                        )->format('Y-m-d H:i:s');
+
                     $dateFrom = \is_null($start = $specialPrice->getActiveFromDate())
                         ? null
                         : $start->getTimestamp();
@@ -279,7 +287,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                         \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
                     );
 
-                    if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
+                    if ($salePrice !== '' && $dateTo == '' && $dateFrom == '') {
                         \update_post_meta(
                             (int)$productId,
                             $priceMetaKey,
@@ -287,7 +295,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             \get_post_meta((int)$productId, $priceMetaKey, true)
                         );
                     } elseif (
-                        '' !== $salePrice
+                        $salePrice !== ''
                         && $dateFrom <= $current_time
                         && ($current_time <= $dateTo || $dateTo == '')
                     ) {
@@ -393,7 +401,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             );
                         }
 
-                        if ('' !== $salePrice && '' == $dateTo && '' == $dateFrom) {
+                        if ($salePrice !== '' && $dateTo == '' && $dateFrom == '') {
                             if (isset($priceMetaKey)) {
                                 \update_post_meta(
                                     (int)$productId,
@@ -460,7 +468,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 }
                             }
                         } elseif (
-                            '' !== $salePrice
+                            $salePrice !== ''
                             && $dateFrom <= $current_time
                             && ($current_time <= $dateTo || $dateTo == '')
                         ) {
