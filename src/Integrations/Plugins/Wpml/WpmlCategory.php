@@ -104,7 +104,7 @@ class WpmlCategory extends AbstractComponent
         if (isset($categoryTranslation[$languageCode])) {
             $translationData = $categoryTranslation[$languageCode];
             $translation     = $wpmlTermTranslation
-                ->getTranslatedTerm($translationData->term_id, 'product_cat');
+                ->getTranslatedTerm((int)$translationData->term_id, 'product_cat');
         }
         return $translation;
     }

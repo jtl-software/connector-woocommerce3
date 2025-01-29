@@ -61,9 +61,9 @@ abstract class WordpressUtils
 
     /**
      * @param int $productId
-     * @return \WC_Product|null
+     * @return \WC_Product|null|false
      */
-    public function wcGetProduct(int $productId): ?\WC_Product
+    public function wcGetProduct(int $productId): \WC_Product|null|false
     {
         return \wc_get_product($productId);
     }
