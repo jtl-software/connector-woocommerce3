@@ -174,7 +174,7 @@ class ImageController extends AbstractBaseController implements
      * @param int|null $limit
      * @return array<int, array<string, bool|int|string|null>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
     {
@@ -207,7 +207,7 @@ class ImageController extends AbstractBaseController implements
                         }
 
                         if (!\is_int($postId)) {
-                            throw new \http\Exception\InvalidArgumentException(
+                            throw new \InvalidArgumentException(
                                 "Expected postId to be an integer but got " . \gettype($postId) . " instead."
                             );
                         }

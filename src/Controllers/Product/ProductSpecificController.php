@@ -86,7 +86,7 @@ class ProductSpecificController extends AbstractBaseController
          * @var WC_Product_Attribute $wcProductAttribute
          */
         foreach ($curAttributes as $slug => $wcProductAttribute) {
-            if (!\str_starts_with($slug, 'pa_')) {
+            if (!\str_starts_with((string)$slug, 'pa_')) {
                 $newSpecifics[$slug] = [
                     'name'         => $wcProductAttribute->get_name(),
                     'value'        => $this->util->findAttributeValue(
@@ -99,7 +99,7 @@ class ProductSpecificController extends AbstractBaseController
                     'is_taxonomy'  => $wcProductAttribute->get_taxonomy(),
                 ];
             } elseif (
-                \str_starts_with($slug, 'pa_')
+                \str_starts_with((string)$slug, 'pa_')
                 && \array_key_exists($wcProductAttribute->get_id(), $specificData)
             ) {
                 $cOldOptions = $wcProductAttribute->get_options();

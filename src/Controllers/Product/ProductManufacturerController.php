@@ -66,7 +66,7 @@ class ProductManufacturerController extends AbstractBaseController
             $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
 
             if (!\is_array($terms)) {
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     'Array type expected. Got ' . \gettype($terms) . ' instead.'
                 );
             }

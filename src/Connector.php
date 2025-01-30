@@ -97,7 +97,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
                 $featuresPath = $config->get(ConfigSchema::FEATURES_PATH);
 
                 if (!\is_string($featuresPath)) {
-                    throw new InvalidArgumentException(
+                    throw new \InvalidArgumentException(
                         "Expected featuresPath to be string but got " . \gettype($featuresPath) . " instead"
                     );
                 }
