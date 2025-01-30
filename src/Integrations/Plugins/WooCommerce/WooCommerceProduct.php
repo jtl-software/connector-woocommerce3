@@ -98,7 +98,7 @@ class WooCommerceProduct extends AbstractComponent
             );
 
             if (!$dateTimeInterval instanceof \DateInterval) {
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     'Could not create DateInterval. Got ' . \gettype($dateTimeInterval) . ' instead.'
                 );
             }
