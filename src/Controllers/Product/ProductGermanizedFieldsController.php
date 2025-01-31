@@ -412,7 +412,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
 
         $concatenatedAddresses         = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
-        $gpsrManufacturerAddress       = $concatenatedAddresses;
+        $gpsrManufacturerAddress       = $concatenatedAddresses[0];
         $gpsrResponsiblePersonAddress  = $concatenatedAddresses[1];
 
         if (!empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
