@@ -411,9 +411,9 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             $termId = $existingTerm->term_id;
         }
 
-        $concatenatedAddresses         = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
-        $gpsrManufacturerAddress       = $concatenatedAddresses[0];
-        $gpsrResponsiblePersonAddress  = $concatenatedAddresses[1];
+        $concatenatedAddresses        = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
+        $gpsrManufacturerAddress      = $concatenatedAddresses[0];
+        $gpsrResponsiblePersonAddress = $concatenatedAddresses[1];
 
         if (!empty(\str_replace([' ', "\n"], '', $gpsrManufacturerAddress))) {
             \update_term_meta($termId, 'formatted_address', $gpsrManufacturerAddress);
@@ -430,7 +430,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
         \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
     }
-
 
     /**
      * @param ProductModel                  $product
