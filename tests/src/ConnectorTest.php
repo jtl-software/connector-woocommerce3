@@ -50,6 +50,7 @@ class ConnectorTest extends TestCase
      * @throws ReflectionException
      * @throws UnknownTypeException
      * @throws IncompatibleReturnValueException
+     * @covers Connector::handle
      */
     public function testHandleByApplication(): void
     {
@@ -84,6 +85,7 @@ class ConnectorTest extends TestCase
      * @throws ReflectionException
      * @throws UnknownTypeException
      * @throws IncompatibleReturnValueException
+     * @covers Connector::handleCallByPlugin
      */
     public function testHandleByPlugin(): void
     {
@@ -121,6 +123,7 @@ class ConnectorTest extends TestCase
      * @throws \ReflectionException
      * @throws Exception
      * @throws ClassAlreadyExistsException
+     * @covers Connector::handleCallByPlugin
      */
     public function testsHandleCallByPlugin(): void
     {
@@ -149,6 +152,7 @@ class ConnectorTest extends TestCase
      * @throws ReflectionException
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
+     * @covers Connector::getControllerNamespace
      */
     public function testGetControllerNamespace(): void
     {
@@ -171,6 +175,7 @@ class ConnectorTest extends TestCase
      * @throws ReflectionException
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
+     * @covers Connector::getPlatformName
      */
     public function testGetPlatformName(): void
     {
@@ -193,6 +198,7 @@ class ConnectorTest extends TestCase
      * @throws ReflectionException
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
+     * @covers Connector::getPlatformVersion
      */
     public function testGetPlatformVersion(): void
     {

@@ -26,6 +26,7 @@ class WpmlCurrencyTest extends TestCase
     /**
      * @throws \phpmock\MockEnabledException
      * @throws InjectionException
+     * @covers WpmlCurrency::getCurrencies
      * @return void
      */
     public function testGetCurrencies(): void
@@ -83,6 +84,7 @@ class WpmlCurrencyTest extends TestCase
      * @throws \ReflectionException
      * @throws InvalidArgumentException
      * @throws Exception
+     * @covers WpmlCurrency::setCurrencies
      * @return void
      */
     public function testSetCurrencies(): void

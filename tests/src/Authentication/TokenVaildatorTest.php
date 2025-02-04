@@ -12,6 +12,7 @@ class TokenValidatorTest extends TestCase
     /**
      * @return void
      * @throws \Exception
+     * @covers TokenValidator::validate
      */
     public function testValidate(): void
     {
@@ -22,6 +23,7 @@ class TokenValidatorTest extends TestCase
     /**
      * @return void
      * @throws \Exception
+     * @covers TokenValidator::validate
      */
     public function testValidateFailure(): void
     {

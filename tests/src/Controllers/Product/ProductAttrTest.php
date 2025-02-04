@@ -18,6 +18,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @param bool   $expectedResult
          * @return void
          * @throws \ReflectionException
+         * @covers ProductAttrController::hasWcAttributePrefix
          */
         public function testHasWcAttributePrefix(string $attributeName, bool $expectedResult): void
         {
@@ -48,6 +49,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @param string $expectedAttributeName
          * @return void
          * @throws \ReflectionException
+         * @covers ProductAttrController::convertLegacyAttributeName
          */
         public function testConvertLegacyAttributeName(string $attributeName, string $expectedAttributeName): void
         {
@@ -79,6 +81,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @return void
          * @throws \ReflectionException
          * @throws RuntimeException
+         * @covers ProductAttrController::updateProductVisibility
          */
         public function testUpdateProductVisibility(string $visibilityType, array $expectedVisibilityArray): void
         {
@@ -130,6 +133,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @throws \ReflectionException
          * @throws \InvalidArgumentException
          * @throws ExpectationFailedException
+         * @covers ProductAttrController::wcSanitizeTaxonomyName
          */
         public function testWcSanitizeTaxonomyName(): void
         {

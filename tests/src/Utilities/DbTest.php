@@ -36,6 +36,7 @@ class DbTest extends AbstractTestCase
      * @throws UnknownTypeException
      * @throws Exception
      * @throws ClassAlreadyExistsException
+     * @covers Db::__construct
      */
     public function testInitialization(): void
     {
