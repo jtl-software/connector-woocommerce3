@@ -28,7 +28,6 @@
     "psr/log": "^1.1"
   },
   "require-dev": {
-    "phpunit/php-code-coverage": "^11.0",
     "phpunit/phpunit": "^9.5",
     "php-mock/php-mock": "^2.2",
     "mockery/mockery": "^1.3",
