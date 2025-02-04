@@ -64,7 +64,7 @@ class CrossSellingController extends AbstractBaseController implements
 
                 if (\is_array($relatedProducts)) {
                     foreach ($relatedProducts as $product) {
-                        $crosssellingProducts[] = new Identity($product);
+                        $crosssellingProducts[] = new Identity((string)$product);
                     }
                 }
 
