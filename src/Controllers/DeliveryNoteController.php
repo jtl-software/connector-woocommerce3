@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
-
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
