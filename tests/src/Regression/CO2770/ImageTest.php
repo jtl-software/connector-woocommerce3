@@ -77,6 +77,7 @@ class ImageTest extends TestCase
      * @throws \PHPUnit\Framework\InvalidArgumentException
      * @throws \PHPUnit\Framework\MockObject\ReflectionException
      * @throws \Exception
+     * @covers ImageController::deleteProductImage
      */
     public function testDeleteProductImage(AbstractImage $image, bool $realDelete, $queryString): void
     {
