@@ -57,7 +57,7 @@ class CustomerOrderAddressController extends AbstractBaseController
             /** @var string $wcStorePostcode */
             $wcStorePostcode = \get_option('woocommerce_store_city');
             /** @var string $wcStoreZipCode */
-            $wcStoreZipCode = \get_option($wcStorePostcode);
+            $wcStoreZipCode = \get_option($wcStorePostcode) ?? '';
             $address->setZipCode($wcStoreZipCode);
         }
 
