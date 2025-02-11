@@ -117,7 +117,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
                         ->pullData(
                             $product,
                             $attribute,
-                            $slug,
+                            (string)$slug,
                             $languageIso
                         );
                 }
