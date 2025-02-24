@@ -28,7 +28,6 @@ use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Utilities\WordpressUtils;
 use WC_Product;
 
 class ImageController extends AbstractBaseController implements

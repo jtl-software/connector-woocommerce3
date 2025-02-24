@@ -20,6 +20,7 @@ class WpmlLanguageTest extends TestCase
     /**
      * @runInSeparateProcess
      * @preserveGlobalState disabled
+     * @covers WpmlLanguage::getLanguages
      * @return void
      * @throws \Exception
      */

@@ -17,6 +17,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
          * @param ProductModel $product
          * @param array<int, string> $expectedAdresses
          * @dataProvider createManufacturerAndResponsibleStringsDataProvider
+         * @covers ProductGermanMarketFieldsController::createManufacturerAndResponsibleStrings
          * @return void
          */
         public function testCreateManufacturerAndResponsibleStrings(

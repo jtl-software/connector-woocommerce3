@@ -48,6 +48,7 @@ class ProductSpecialPriceTest extends AbstractTestCase
      * @throws \ReflectionException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      * @dataProvider setPostMetaKeyDataProvider
+     * @covers ProductSpecialPriceController::setPostMetaKey
      */
     public function testSetPostMetaKey(
         string $productId,

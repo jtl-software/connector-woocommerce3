@@ -53,6 +53,7 @@ class ImageTraitTest extends TestCase
      * @throws \PHPUnit\Framework\MockObject\UnknownTypeException
      * @throws \ReflectionException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @covers SqlHelper::imageDeleteLinks
      */
     public function testGetImageDeleteLinks(int $productId, string $expectedSqlQuery): void
     {

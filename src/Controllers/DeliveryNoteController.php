@@ -37,11 +37,9 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
-            if (!$shipmentTrackingActions instanceof WC_Advanced_Shipment_Tracking_Actions) {
-                throw new \InvalidArgumentException(
-                    "shipmentTrackingActions expected to be instance of
-                    WC_Advanced_Shipment_Tracking_Actions but got null or object instead."
-                );
+            if ($shipmentTrackingActions === null) {
+                throw new \InvalidArgumentException("shipmentTrackingActions expected to be instance of
+                    WC_Advanced_Shipment_Tracking_Actions but got null instead.");
             }
 
             foreach ($model->getTrackingLists() as $trackingList) {
@@ -50,7 +48,9 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                     ? $model->getCreationDate()->format("Y-m-d")
                     : '';
 
-                $trackingProviders = $shipmentTrackingActions->get_providers();
+                $trackingProviders = $shipmentTrackingActions
+                ? $shipmentTrackingActions->get_providers()
+                : null;
 
                 $shippingProviderName = \trim($trackingList->getName());
 
@@ -85,12 +85,13 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     }
 
     /**
-     * @return object|null
+     * @return WC_Advanced_Shipment_Tracking_Actions|null
      */
-    protected function getShipmentTrackingActions(): object|null
+    protected function getShipmentTrackingActions(): WC_Advanced_Shipment_Tracking_Actions|null
     {
         $shipmentTrackingActions = null;
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)) {
+            /** @var WC_Advanced_Shipment_Tracking_Actions $shipmentTrackingActions */
             $shipmentTrackingActions = WC_Advanced_Shipment_Tracking_Actions::get_instance();
         } else {
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)) {
