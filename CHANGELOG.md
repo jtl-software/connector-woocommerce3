@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2818 - add time to end date for special price
+- CO-2820 - consider manufacturer name in address
 - CO-2861 - fix exception error
 
 ## 2.3.1 _2025-01-20_
