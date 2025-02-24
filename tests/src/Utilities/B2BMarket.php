@@ -21,6 +21,7 @@ class B2BMarket extends AbstractTestCase
      * @return void
      * @throws \ReflectionException
      * @throws RuntimeException
+     * @covers B2BMarket::setB2BCustomerGroupBlacklist
      */
     public function testSetB2BCustomerGroupBlacklist(): void
     {

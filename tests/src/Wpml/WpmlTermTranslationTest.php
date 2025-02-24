@@ -43,6 +43,7 @@ class WpmlTermTranslationTest extends TestCase
      * @throws InvalidArgumentException
      * @throws RuntimeException
      * @throws \ReflectionException
+     * @covers WpmlTermTranslation::getTranslations
      */
     public function testGetAllExistingTranslations(
         array $elementTranslations,
@@ -77,6 +78,7 @@ class WpmlTermTranslationTest extends TestCase
      *
      * @param mixed $getTermByIdReturnValue
      * @param mixed $expectedReturnValue
+     * @covers WpmlTermTranslation::getTranslatedTerm
      * @return void
      */
     public function testGetTranslatedTerm(mixed $getTermByIdReturnValue, mixed $expectedReturnValue): void

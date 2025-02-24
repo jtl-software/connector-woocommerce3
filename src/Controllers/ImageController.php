@@ -30,7 +30,6 @@ use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
-use JtlWooCommerceConnector\Utilities\WordpressUtils;
 use WC_Product;
 
 class ImageController extends AbstractBaseController implements
@@ -174,7 +173,7 @@ class ImageController extends AbstractBaseController implements
      * @param int|null $limit
      * @return array<int, array<string, bool|int|string|null>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
     {
@@ -207,7 +206,7 @@ class ImageController extends AbstractBaseController implements
                         }
 
                         if (!\is_int($postId)) {
-                            throw new \http\Exception\InvalidArgumentException(
+                            throw new \InvalidArgumentException(
                                 "Expected postId to be an integer but got " . \gettype($postId) . " instead."
                             );
                         }
@@ -397,7 +396,7 @@ class ImageController extends AbstractBaseController implements
         $images = $this->db->query($query);
 
         if (!\is_array($images)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected images to be an array but got " . \gettype($images) . " instead."
             );
         }
@@ -608,7 +607,7 @@ class ImageController extends AbstractBaseController implements
                 } else {
                     $attachedFile = \get_attached_file($attachment['ID']);
                     if (!\is_string($attachedFile)) {
-                        throw new \http\Exception\InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             "File path of attachedFile not found. Got false instead of string"
                         );
                     }
@@ -778,7 +777,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = $this->saveImage($image);
 
         if (\is_null($attachmentId)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Attachment id is null. Image could not be saved."
             );
         }

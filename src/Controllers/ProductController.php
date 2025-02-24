@@ -150,7 +150,7 @@ class ProductController extends AbstractBaseController implements
                     $ean                = \get_post_meta($product->get_id(), '_ts_gtin');
 
                     if (!\is_string($manufacturerNumber)) {
-                        throw new \http\Exception\InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             'Manufacturer number is not a string'
                         );
                     }
@@ -567,7 +567,7 @@ class ProductController extends AbstractBaseController implements
             $currentProductType = \wp_get_object_terms($wcProduct->get_id(), 'product_type');
 
             if ($currentProductType instanceof \WP_Error) {
-                throw new \http\Exception\InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     "Expected current product type to be iterable. Got WP_Error."
                 );
             }

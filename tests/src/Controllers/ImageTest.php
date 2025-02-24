@@ -69,6 +69,7 @@ class ImageTest extends TestCase
      * @throws ReflectionException
      * @throws \PHPUnit\Framework\ExpectationFailedException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @covers ImageController::getImageAlt
      */
     public function testGetImageAltText(ProductImage $image, string $expectedAltText): void
     {
@@ -142,6 +143,7 @@ class ImageTest extends TestCase
      * @throws UnknownTypeException
      * @throws ReflectionException
      * @throws \Exception
+     * @covers ImageController::getNextAvailableImageFilename
      */
     public function testGetNextAvailableImageFilenameFileNotExisting(
         string $name,

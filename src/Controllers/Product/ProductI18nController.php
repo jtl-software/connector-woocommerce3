@@ -94,7 +94,7 @@ class ProductI18nController extends AbstractBaseController
                     $parent = \wc_get_product($product->get_parent_id());
 
                     if (!$parent instanceof \WC_Product) {
-                        throw new InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             "Parent with ID {$product->get_parent_id()} not found."
                         );
                     }
@@ -104,7 +104,7 @@ class ProductI18nController extends AbstractBaseController
                     $parent = \wc_get_product($product->get_parent_id());
 
                     if (!$parent instanceof \WC_Product) {
-                        throw new InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             "Parent with ID {$product->get_parent_id()} not found."
                         );
                     }

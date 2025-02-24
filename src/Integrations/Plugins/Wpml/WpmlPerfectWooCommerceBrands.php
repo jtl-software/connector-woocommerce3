@@ -84,7 +84,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         $manufacturerTerm = \get_term_by('id', $mainManufacturerId, 'pwb-brand');
 
         if (!$manufacturerTerm instanceof \WP_Term) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Manufacturer with ID {$mainManufacturerId} not found."
             );
         }

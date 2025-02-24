@@ -193,7 +193,7 @@ class WpmlProduct extends AbstractComponent
 
         $wcProductId = $wooCommerceProduct
             ->saveProduct(
-                $wcProductId,
+                (int)$wcProductId,
                 (string)$masterProductId,
                 $jtlProduct,
                 $productI18n
@@ -203,7 +203,7 @@ class WpmlProduct extends AbstractComponent
             $wcProduct = \wc_get_product($wcProductId);
 
             if (!$wcProduct instanceof \WC_Product) {
-                throw new \Psr\Log\InvalidArgumentException("Product with ID {$wcProductId} not found");
+                throw new \InvalidArgumentException("Product with ID {$wcProductId} not found");
             }
 
             $wcProduct->set_parent_id($masterProductId);

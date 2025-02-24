@@ -92,7 +92,7 @@ class ProductVariationController extends AbstractBaseController
         $parentProduct = \wc_get_product($product->get_parent_id());
 
         if (!$parentProduct instanceof \WC_Product) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Parent product with ID {$product->get_parent_id()} not found."
             );
         }

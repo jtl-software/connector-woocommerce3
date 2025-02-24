@@ -24,6 +24,7 @@ class CustomerOrderItemTest extends AbstractTestCase
      * @param float $expectedVatRate
      * @return void
      * @throws \ReflectionException
+     * @covers CustomerOrderItemController::calculateVat
      */
     public function testCalculateVat(float $priceNet, float $priceGross, float $expectedVatRate): void
     {

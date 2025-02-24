@@ -340,7 +340,7 @@ class ProductPrice extends AbstractBaseController
             ) {
                 $customerGroup = \get_post($customerGroupId);
                 if (!$customerGroup instanceof \WP_Post) {
-                    throw new \http\Exception\InvalidArgumentException("Customer group not found");
+                    throw new \InvalidArgumentException("Customer group not found");
                 }
 
                 $bulkPrices = [];

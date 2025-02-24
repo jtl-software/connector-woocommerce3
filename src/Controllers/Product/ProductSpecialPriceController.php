@@ -321,7 +321,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                         $priceMetaKey  = null;
 
                         if (!$customerGroup instanceof \WP_Post) {
-                            throw new \http\Exception\InvalidArgumentException("Customer group not found");
+                            throw new \InvalidArgumentException("Customer group not found");
                         }
 
                         if (

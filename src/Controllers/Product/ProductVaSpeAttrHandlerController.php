@@ -117,7 +117,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
                         ->pullData(
                             $product,
                             $attribute,
-                            $slug,
+                            (string)$slug,
                             $languageIso
                         );
                 }
@@ -716,7 +716,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
             if (!$wcProduct instanceof \WC_Product) {
-                throw new \http\Exception\InvalidArgumentException("WC Product not found.");
+                throw new \InvalidArgumentException("WC Product not found.");
             }
 
             //Get updated attributes

@@ -483,7 +483,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     private function getNutrientTermData(int|string $nutrientData, string $flag): ?string
     {
         if (!\in_array($flag, ['getSlug', 'getTermId'])) {
-            throw new InvalidArgumentException('Invalid nutrient flag argument');
+            throw new \InvalidArgumentException('Invalid nutrient flag argument');
         }
 
         $tableName = $this->db->getWpDb()->prefix . 'terms';

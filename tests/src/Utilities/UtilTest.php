@@ -22,6 +22,7 @@ class UtilTest extends TestCase
      *
      * @param array<int, int|float|string>             $bulkPricesInput
      * @param array<int, array<int, int|float|string>> $expectedOutput
+     * @covers Util::setBulkPricesQuantityTo
      * @return void
      */
     public function testSetBulkPricesQuantityTo(array $bulkPricesInput, array $expectedOutput): void
@@ -93,6 +94,7 @@ class UtilTest extends TestCase
      * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      * @throws MockEnabledException
+     * @covers Util::findVatId
      */
     public function testFindVatId(): void
     {
@@ -128,6 +130,7 @@ class UtilTest extends TestCase
      * @throws \InvalidArgumentException
      * @throws InvalidArgumentException
      * @throws MockEnabledException
+     * @covers Util::findVatId
      */
     public function testFindVatIdNotFound(): void
     {
@@ -198,6 +201,7 @@ class UtilTest extends TestCase
      *
      * @param float $number
      * @param int   $expectedPrecision
+     * @covers Util::getDecimalPrecision
      * @return void
      */
     public function testGetDecimalPrecision(float $number, int $expectedPrecision): void
@@ -226,6 +230,7 @@ class UtilTest extends TestCase
      * @dataProvider checkIfTrueDataProvider
      * @param string $value
      * @param bool   $expectedResult
+     * @covers Util::isTrue
      * @return void
      */
     public function testCheckIfTrue(string $value, bool $expectedResult): void
@@ -259,6 +264,7 @@ class UtilTest extends TestCase
      * @throws ExpectationFailedException
      * @throws InvalidArgumentException
      * @throws \Exception
+     * @covers Util::mapLanguageIso
      */
     public function testMapLanguageIso(string $locale, string $expectedResult): void
     {
