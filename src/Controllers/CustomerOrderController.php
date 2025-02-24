@@ -178,7 +178,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $payPalPlusSettings = \get_option('woocommerce_paypal_plus_settings', []);
 
             if (!\is_array($payPalPlusSettings)) {
-                throw new \http\Exception\InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     "payPalSettings expected to be an array but got " . \gettype($payPalPlusSettings)
                 );
             }
@@ -188,7 +188,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
 
                 if (!\is_array($orderMetaData)) {
-                    throw new \http\Exception\InvalidArgumentException(
+                    throw new \InvalidArgumentException(
                         "orderMetaData expected to be an array but got " . \gettype($orderMetaData)
                     );
                 }
