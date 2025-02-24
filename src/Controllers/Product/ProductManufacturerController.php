@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -56,7 +55,7 @@ class ProductManufacturerController extends AbstractBaseController
     /**
      * @param ProductModel $model
      * @return Identity|null
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel $model): ?Identity
     {
@@ -66,7 +65,7 @@ class ProductManufacturerController extends AbstractBaseController
             $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
 
             if (!\is_array($terms)) {
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     'Array type expected. Got ' . \gettype($terms) . ' instead.'
                 );
             }

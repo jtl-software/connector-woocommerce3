@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
-use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
@@ -48,7 +47,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
     /**
      * @param QueryFilter $query
      * @return AbstractModel[]
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \WC_Data_Exception
      * @throws \Exception
      */
@@ -168,7 +167,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param \WC_Order          $order
      * @param CustomerOrderModel $customerOrder
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function setPayPalPlusPaymentInfo(\WC_Order $order, CustomerOrderModel $customerOrder): void
     {
@@ -178,7 +177,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
             $payPalPlusSettings = \get_option('woocommerce_paypal_plus_settings', []);
 
             if (!\is_array($payPalPlusSettings)) {
-                throw new \http\Exception\InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     "payPalSettings expected to be an array but got " . \gettype($payPalPlusSettings)
                 );
             }
@@ -188,7 +187,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
                 $orderMetaData = $order->get_meta('_payment_instruction_result');
 
                 if (!\is_array($orderMetaData)) {
-                    throw new \http\Exception\InvalidArgumentException(
+                    throw new \InvalidArgumentException(
                         "orderMetaData expected to be an array but got " . \gettype($orderMetaData)
                     );
                 }
@@ -530,7 +529,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
      * @param QueryFilter $query
      * @return int
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

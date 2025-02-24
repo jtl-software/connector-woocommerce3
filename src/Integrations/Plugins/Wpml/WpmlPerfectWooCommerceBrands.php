@@ -64,7 +64,6 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
      * @param Manufacturer $jtlManufacturer
      * @return void
      * @throws \InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
      * @throws \Exception
      */
     public function saveTranslations(Manufacturer $jtlManufacturer): void
@@ -84,7 +83,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
         $manufacturerTerm = \get_term_by('id', $mainManufacturerId, 'pwb-brand');
 
         if (!$manufacturerTerm instanceof \WP_Term) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Manufacturer with ID {$mainManufacturerId} not found."
             );
         }

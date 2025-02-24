@@ -85,14 +85,14 @@ class ProductVariationController extends AbstractBaseController
      * @param ProductModel $model
      * @param string       $languageIso
      * @return array<int, AbstractIdentity|ProductVariation>
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {
         $parentProduct = \wc_get_product($product->get_parent_id());
 
         if (!$parentProduct instanceof \WC_Product) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Parent product with ID {$product->get_parent_id()} not found."
             );
         }

@@ -14,7 +14,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
     /**
      * @return void
      * @throws \Noodlehaus\Exception\EmptyDirectoryException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function capture_request(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -42,7 +42,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             $features = $application->getConfig()->get(ConfigSchema::FEATURES_PATH);
 
             if (!\is_string($features)) {
-                throw new \http\Exception\InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     "Expected features to be a string but got " . \gettype($features) . " instead."
                 );
             }

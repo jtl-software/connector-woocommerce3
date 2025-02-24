@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
@@ -21,7 +20,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
     {
@@ -32,7 +31,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function setBasePriceProperties(ProductModel $product, WC_Product $wcProduct): void
     {
@@ -236,7 +235,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $wcProduct = \wc_get_product($productId);
 
             if (!$wcProduct instanceof WC_Product) {
-                throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+                throw new \InvalidArgumentException("Product with ID {$productId} not found");
             }
 
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
@@ -359,7 +358,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
      * @param ProductModel          $product
      * @param array<string, string> $metaKeys
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function clearPPU(ProductModel $product, array $metaKeys): void
     {
@@ -367,7 +366,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
         $wcProduct = \wc_get_product($productId);
 
         if (!$wcProduct instanceof WC_Product) {
-            throw new \http\Exception\InvalidArgumentException("Product with ID {$productId} not found");
+            throw new \InvalidArgumentException("Product with ID {$productId} not found");
         }
 
         $metaData = $this->getGermanMarketMeta(

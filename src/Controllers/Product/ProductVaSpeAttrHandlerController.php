@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use InvalidArgumentException;
 use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\AbstractIdentity;
@@ -92,7 +91,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param ProductModel $model
      *
      * @return array<string, array<int, AbstractIdentity|ProductSpecific|ProductVariation|TranslatableAttribute>>
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
@@ -180,7 +179,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function handleCustomPropertyAttributes(WC_Product $product, string $languageIso = ''): void
     {
@@ -217,7 +216,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function setProductFunctionAttributes(
         WC_Product $product,
@@ -315,7 +314,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getDeliveryTimeFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -337,7 +336,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getDownloadableFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -361,7 +360,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getOnlyOneFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -382,7 +381,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getPayableFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -409,7 +408,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getVisibilityFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -443,7 +442,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getVirtualFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -464,7 +463,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getProductTypeFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -486,7 +485,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getPurchaseNoteFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -509,7 +508,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getFacebookSyncStatusFunctionAttribute(
         WC_Product $product,
@@ -539,7 +538,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string          $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getIsServiceFunctionAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -561,7 +560,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string          $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getMinimumAgeAttribute(\WC_GZD_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -583,7 +582,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getDigitalFunctionAttribute(WC_Product $product, string $languageIso = ''): ProductAttrModel
     {
@@ -612,7 +611,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getSuppressShippingNoticeFunctionAttribute(
         WC_Product $product,
@@ -643,7 +642,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param string     $languageIso
      *
      * @return ProductAttrModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getAltDeliveryNoteFunctionAttribute(
         WC_Product $product,
@@ -716,7 +715,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             $wcProduct = \wc_get_product($product->getId()->getEndpoint());
 
             if (!$wcProduct instanceof \WC_Product) {
-                throw new \http\Exception\InvalidArgumentException("WC Product not found.");
+                throw new \InvalidArgumentException("WC Product not found.");
             }
 
             //Get updated attributes
@@ -854,7 +853,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param ProductAttrModel                    ...$jtlAttributes
      * @return array<string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function getVariationAttributes(array $curAttributes, ProductAttrModel ...$jtlAttributes): array
     {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\CategoryI18n;
@@ -30,7 +29,7 @@ class Util extends WordpressUtils
 
     /**
      * @param Db $db
-     * @throws InvalidArgumentException|\Exception
+     * @throws \InvalidArgumentException|\Exception
      */
     public function __construct(Db $db)
     {
@@ -62,14 +61,14 @@ class Util extends WordpressUtils
      * @param \WC_Order|null $order
      *
      * @return float
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function getTaxRateByTaxClass(string $taxClass, ?\WC_Order $order = null): float
     {
         $wcDefaultCountry = \get_option('woocommerce_default_country');
 
         if (!\is_string($wcDefaultCountry)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected wcDefaultCountry to be a string but got " . \gettype($wcDefaultCountry) . " instead."
             );
         }
@@ -255,14 +254,14 @@ class Util extends WordpressUtils
     /**
      * @param int $productId
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function addMasterProductToSync(int $productId): void
     {
         $masterProductsToSyncCount = \get_option(self::TO_SYNC_COUNT, 0);
 
         if (!\is_int($masterProductsToSyncCount)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected masterProductsToSyncCount to be an integer but got " .
                 \gettype($masterProductsToSyncCount) . " instead."
             );
@@ -272,7 +271,7 @@ class Util extends WordpressUtils
         $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
 
         if (!\is_array($masterProductsToSync)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected masterProductsToSync to be an array but got " .
                 \gettype($masterProductsToSync) . " instead."
             );
@@ -285,7 +284,7 @@ class Util extends WordpressUtils
 
     /**
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function syncMasterProducts(): void
@@ -299,7 +298,7 @@ class Util extends WordpressUtils
                 $masterProductsToSync = \get_option(self::TO_SYNC . '_' . $page, []);
 
                 if (!\is_array($masterProductsToSync)) {
-                    throw new \http\Exception\InvalidArgumentException(
+                    throw new \InvalidArgumentException(
                         "Expected masterProductsToSync to be an array but got " .
                         \gettype($masterProductsToSync) . " instead."
                     );
@@ -524,7 +523,7 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function getOrderStatusesToImport(): array
     {
@@ -533,7 +532,7 @@ class Util extends WordpressUtils
         $orderImportStatuses = Config::get(Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT, $defaultStatuses);
 
         if (!\is_array($orderImportStatuses)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected orderImportStatuses to be an array but got "
                 . \gettype($orderImportStatuses) . " instead."
             );
@@ -544,7 +543,7 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function getManualPaymentTypes(): array
     {
@@ -553,7 +552,7 @@ class Util extends WordpressUtils
         $manualPaymentTypes = Config::get(Config::OPTIONS_DEFAULT_MANUAL_PAYMENT_TYPES, $defaultManualPayments);
 
         if (!\is_array($manualPaymentTypes)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected manualPaymentTypes to be an array but got "
                 . \gettype($manualPaymentTypes) . " instead."
             );
@@ -703,7 +702,7 @@ class Util extends WordpressUtils
      *
      * @return string
      * @throws TranslatableAttributeException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function findAttributeValue(
         \WC_Product_Attribute $wcProductAttribute,
@@ -723,7 +722,7 @@ class Util extends WordpressUtils
         }
 
         if (!\is_string($value)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected value to be a string but got " . \gettype($value) . " instead."
             );
         }

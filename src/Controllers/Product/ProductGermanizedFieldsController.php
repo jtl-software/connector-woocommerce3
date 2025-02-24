@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -27,7 +26,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @return void
-     * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
@@ -208,7 +206,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -477,13 +475,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param int|string $nutrientData
      * @param string     $flag
      * @return string|null
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function getNutrientTermData(int|string $nutrientData, string $flag): ?string
     {
         if (!\in_array($flag, ['getSlug', 'getTermId'])) {
-            throw new InvalidArgumentException('Invalid nutrient flag argument');
+            throw new \InvalidArgumentException('Invalid nutrient flag argument');
         }
 
         $tableName = $this->db->getWpDb()->prefix . 'terms';

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
@@ -18,7 +17,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     /**
      * @param AbstractModel $model
      * @return AbstractModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws Exception
      */
     public function push(AbstractModel $model): AbstractModel
@@ -39,7 +38,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
             $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
             if (!$shipmentTrackingActions instanceof WC_Advanced_Shipment_Tracking_Actions) {
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     "shipmentTrackingActions expected to be instance of
                     WC_Advanced_Shipment_Tracking_Actions but got null or object instead."
                 );

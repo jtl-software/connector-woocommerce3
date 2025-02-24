@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
-use http\Exception\InvalidArgumentException;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Util;
 
@@ -16,7 +15,7 @@ trait PaymentTrait
      * @param bool     $includeCompletedOrders
      * @param int|null $limit
      * @return string
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function paymentCompletedPull(bool $includeCompletedOrders, ?int $limit = null): string
     {

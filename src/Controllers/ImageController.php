@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Exception;
-use http\Exception\RuntimeException;
-use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
@@ -70,7 +68,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param QueryFilter $query
      * @return array<int, CategoryImage|ManufacturerImage|ProductImage>
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      * @throws Exception
      */
@@ -174,7 +172,7 @@ class ImageController extends AbstractBaseController implements
      * @param int|null $limit
      * @return array<int, array<string, bool|int|string|null>> The image entities.
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
     {
@@ -207,7 +205,7 @@ class ImageController extends AbstractBaseController implements
                         }
 
                         if (!\is_int($postId)) {
-                            throw new \http\Exception\InvalidArgumentException(
+                            throw new \InvalidArgumentException(
                                 "Expected postId to be an integer but got " . \gettype($postId) . " instead."
                             );
                         }
@@ -387,7 +385,7 @@ class ImageController extends AbstractBaseController implements
      * @param string $query
      * @return array<int, array<string, bool|int|string|null>>
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function categoryImagePullByQuery(string $query): array
     {
@@ -397,7 +395,7 @@ class ImageController extends AbstractBaseController implements
         $images = $this->db->query($query);
 
         if (!\is_array($images)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected images to be an array but got " . \gettype($images) . " instead."
             );
         }
@@ -578,7 +576,7 @@ class ImageController extends AbstractBaseController implements
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \RuntimeException
      * @throws \getid3_exception
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function saveImage(AbstractImage $image): ?int
     {
@@ -608,7 +606,7 @@ class ImageController extends AbstractBaseController implements
                 } else {
                     $attachedFile = \get_attached_file($attachment['ID']);
                     if (!\is_string($attachedFile)) {
-                        throw new \http\Exception\InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             "File path of attachedFile not found. Got false instead of string"
                         );
                     }
@@ -764,7 +762,7 @@ class ImageController extends AbstractBaseController implements
      * @param ProductImage $image
      * @return string
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function pushProductImage(ProductImage $image): string
     {
@@ -778,7 +776,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = $this->saveImage($image);
 
         if (\is_null($attachmentId)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Attachment id is null. Image could not be saved."
             );
         }
@@ -915,7 +913,6 @@ class ImageController extends AbstractBaseController implements
      * @param AbstractImage $image
      * @param bool          $realDelete
      * @return void
-     * @throws RuntimeException
      * @throws DefinitionException
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \RuntimeException
@@ -933,7 +930,7 @@ class ImageController extends AbstractBaseController implements
                 $id      = Id::unlinkCategoryImage($endpointId);
                 break;
             default:
-                throw new RuntimeException(
+                throw new \RuntimeException(
                     \sprintf(
                         "Invalid relation %s type for id %s when deleting image.",
                         $image->getRelationType(),
