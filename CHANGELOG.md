@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2886 - update variable types
 
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
