@@ -132,7 +132,7 @@ class ProductController extends AbstractBaseController implements
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock($product->managing_stock())
+                ->setConsiderStock($product->managing_stock() === 'yes')
                 ->setPermitNegativeStock($product->backorders_allowed())
                 ->setShippingClassId(new Identity((string)$product->get_shipping_class_id()));
 
