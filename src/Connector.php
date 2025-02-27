@@ -7,7 +7,6 @@ namespace JtlWooCommerceConnector;
 use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
-use http\Exception\InvalidArgumentException;
 use Jawira\CaseConverter\CaseConverterException;
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Application\Request;
@@ -258,7 +257,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     /**
      * @return string
-     * @throws ParseException|InvalidArgumentException
+     * @throws ParseException|\InvalidArgumentException
      */
     public function getEndpointVersion(): string
     {

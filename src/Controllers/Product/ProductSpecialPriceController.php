@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use InvalidArgumentException;
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use Jtl\Connector\Core\Model\Identity;
@@ -27,7 +26,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param WC_Product   $product
      * @param ProductModel $model
      * @return ProductSpecialPriceModel[]
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function pullData(WC_Product $product, ProductModel $model): array
@@ -129,7 +128,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param string     $priceNet
      * @param WC_Product $product
      * @return float
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function getPriceNet(string $priceNet, WC_Product $product): float
     {
@@ -150,7 +149,7 @@ class ProductSpecialPriceController extends AbstractBaseController
      * @param WC_Product   $wcProduct
      * @param string       $productType
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function pushData(ProductModel $product, WC_Product $wcProduct, string $productType): void

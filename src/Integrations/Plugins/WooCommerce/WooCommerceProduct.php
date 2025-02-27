@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\WooCommerce;
 
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -86,7 +85,7 @@ class WooCommerceProduct extends AbstractComponent
      * @param DateTime $creationDate
      * @param bool     $gmt
      * @return string
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     private function getCreationDate(DateTime $creationDate, bool $gmt = false): string

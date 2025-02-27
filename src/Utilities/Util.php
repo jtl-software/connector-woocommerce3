@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use InvalidArgumentException;
 use Jtl\Connector\Core\Definition\PaymentType;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\CategoryI18n;
@@ -30,7 +29,7 @@ class Util extends WordpressUtils
 
     /**
      * @param Db $db
-     * @throws InvalidArgumentException|\Exception
+     * @throws \InvalidArgumentException|\Exception
      */
     public function __construct(Db $db)
     {
@@ -62,7 +61,7 @@ class Util extends WordpressUtils
      * @param \WC_Order|null $order
      *
      * @return float
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function getTaxRateByTaxClass(string $taxClass, ?\WC_Order $order = null): float
     {
@@ -255,7 +254,7 @@ class Util extends WordpressUtils
     /**
      * @param int $productId
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function addMasterProductToSync(int $productId): void
     {
@@ -285,7 +284,7 @@ class Util extends WordpressUtils
 
     /**
      * @return void
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function syncMasterProducts(): void
@@ -524,7 +523,7 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function getOrderStatusesToImport(): array
     {
@@ -544,7 +543,7 @@ class Util extends WordpressUtils
 
     /**
      * @return string[]
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function getManualPaymentTypes(): array
     {
@@ -703,7 +702,7 @@ class Util extends WordpressUtils
      *
      * @return string
      * @throws TranslatableAttributeException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function findAttributeValue(
         \WC_Product_Attribute $wcProductAttribute,

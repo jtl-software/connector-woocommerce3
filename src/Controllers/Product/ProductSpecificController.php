@@ -60,7 +60,7 @@ class ProductSpecificController extends AbstractBaseController
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
      * @throws \TypeError
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pushData(
         int $productId,

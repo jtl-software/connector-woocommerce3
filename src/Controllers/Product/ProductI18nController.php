@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Exception;
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Model\Product as ProductModel;
 use Jtl\Connector\Core\Model\ProductI18n as ProductI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
@@ -76,7 +75,7 @@ class ProductI18nController extends AbstractBaseController
     /**
      * @param WC_Product $product
      * @return string
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private function name(WC_Product $product): string
     {

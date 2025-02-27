@@ -85,7 +85,7 @@ class ProductVariationController extends AbstractBaseController
      * @param ProductModel $model
      * @param string       $languageIso
      * @return array<int, AbstractIdentity|ProductVariation>
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pullDataChild(WC_Product $product, ProductModel $model, string $languageIso = ''): array
     {

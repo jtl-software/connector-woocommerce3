@@ -64,7 +64,6 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
      * @param Manufacturer $jtlManufacturer
      * @return void
      * @throws \InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
      * @throws \Exception
      */
     public function saveTranslations(Manufacturer $jtlManufacturer): void

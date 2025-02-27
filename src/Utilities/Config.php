@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities;
 
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -176,7 +175,7 @@ class Config
     /**
      * @return string
      * @throws ParseException
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function getBuildVersion(): string
     {
