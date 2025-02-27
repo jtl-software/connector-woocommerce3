@@ -581,10 +581,11 @@ class ImageController extends AbstractBaseController implements
     {
         $endpointId = $image->getId()->getEndpoint();
         $post       = null;
+        $parent  = get_term($image->getForeignKey()->getEndpoint());
 
         $fileInfo  = \pathinfo($image->getFilename());
         $name      = $this->sanitizeImageName(
-            !empty($image->getName()) ? $image->getName() : $fileInfo['filename']
+            !empty($image->getName()) ? $image->getName() : $parent->slug
         );
         $extension = (\is_array($fileInfo) && \array_key_exists('extension', $fileInfo))
             ? $fileInfo['extension']
@@ -639,10 +640,12 @@ class ImageController extends AbstractBaseController implements
                 return null;
             }
 
+            $imageAlt = !empty($this->getImageAlt($image)) ? $this->getImageAlt($image) : $parent->slug;
+
             require_once(\ABSPATH . 'wp-admin/includes/image.php');
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
-            \update_post_meta($post, '_wp_attachment_image_alt', $this->getImageAlt($image));
+            \update_post_meta($post, '_wp_attachment_image_alt', $imageAlt);
 
             if ($relinkImage) {
                 $this->relinkImage($post, $image);
@@ -651,7 +654,7 @@ class ImageController extends AbstractBaseController implements
             if ($this->wpml->canWpmlMediaBeUsed()) {
                 /** @var WpmlMedia $wpmlMedia */
                 $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
-                $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns());
+                $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns(), $imageAlt);
             }
         }
 

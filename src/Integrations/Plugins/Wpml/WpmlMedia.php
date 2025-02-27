@@ -70,7 +70,7 @@ class WpmlMedia extends AbstractComponent
      * @return void
      * @throws \Exception
      */
-    public function saveAttachmentTranslations(int $attachmentId, array $imageI18ns): void
+    public function saveAttachmentTranslations(int $attachmentId, array $imageI18ns, string $imageAlt): void
     {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin   = $this->getCurrentPlugin();
@@ -82,9 +82,10 @@ class WpmlMedia extends AbstractComponent
                 continue;
             }
             $wpmlLanguage = $wpmlPlugin->convertLanguageToWpml($i18n->getLanguageISO());
+            $imageAltText = !empty($i18n->getAltText()) ? $i18n->getAltText() : $imageAlt;
             if (isset($translations[$wpmlLanguage])) {
                 $translation = $translations[$wpmlLanguage];
-                \update_post_meta($translation->element_id, '_wp_attachment_image_alt', $i18n->getAltText());
+                \update_post_meta($translation->element_id, '_wp_attachment_image_alt', $imageAltText);
             }
         }
     }
