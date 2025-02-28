@@ -581,7 +581,7 @@ class ImageController extends AbstractBaseController implements
     {
         $endpointId = $image->getId()->getEndpoint();
         $post       = null;
-        $parent  = get_term($image->getForeignKey()->getEndpoint());
+        $parent     = \get_term($image->getForeignKey()->getEndpoint());
 
         $fileInfo  = \pathinfo($image->getFilename());
         $name      = $this->sanitizeImageName(
