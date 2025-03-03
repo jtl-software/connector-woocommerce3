@@ -7,3 +7,5 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $wpdb = new class {
     public string $prefix = '';
 };
+
+WP_Mock::bootstrap();
