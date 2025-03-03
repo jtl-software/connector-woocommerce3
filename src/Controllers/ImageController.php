@@ -29,6 +29,8 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
+use WP_Error;
+use WP_Term;
 
 class ImageController extends AbstractBaseController implements
     PullInterface,
@@ -577,16 +579,17 @@ class ImageController extends AbstractBaseController implements
      * @throws \getid3_exception
      * @throws \InvalidArgumentException
      */
-    private function saveImage(AbstractImage $image): ?int
+    public function saveImage(AbstractImage $image, bool $testFlag = false): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
         $post       = null;
         $parent     = \get_term($image->getForeignKey()->getEndpoint());
 
+        /** @var array<string, string> $fileInfo */
         $fileInfo  = \pathinfo($image->getFilename());
-        $name      = $this->sanitizeImageName(
-            !empty($image->getName()) ? $image->getName() : $parent->slug
-        );
+
+        $name = $this->getImageName($image, $parent, $fileInfo);
+
         $extension = (\is_array($fileInfo) && \array_key_exists('extension', $fileInfo))
             ? $fileInfo['extension']
             : '';
@@ -640,9 +643,13 @@ class ImageController extends AbstractBaseController implements
                 return null;
             }
 
-            $imageAlt = !empty($this->getImageAlt($image)) ? $this->getImageAlt($image) : $parent->slug;
+            $imageAlt = $this->getImageAlt($image, $parent);
+            #$imageAlt = !empty($currentImageAlt) ? $currentImageAlt : $parent->slug;
 
-            require_once(\ABSPATH . 'wp-admin/includes/image.php');
+            if (!$testFlag) {
+                require_once(\ABSPATH . 'wp-admin/includes/image.php');
+            }
+
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $imageAlt);
@@ -651,11 +658,11 @@ class ImageController extends AbstractBaseController implements
                 $this->relinkImage($post, $image);
             }
 
-            if ($this->wpml->canWpmlMediaBeUsed()) {
-                /** @var WpmlMedia $wpmlMedia */
-                $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
-                $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns(), $imageAlt);
-            }
+            #if ($this->wpml->canWpmlMediaBeUsed()) {
+            #    /** @var WpmlMedia $wpmlMedia */
+            #    $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
+            #    $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns(), $imageAlt);
+            #}
         }
 
         return $post;
@@ -738,9 +745,10 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractImage $image
+     * @param array|\WP_Error|\WP_Term|null $parent
      * @return string
      */
-    protected function getImageAlt(AbstractImage $image): string
+    public function getImageAlt(AbstractImage $image, array|null|\WP_Error|\WP_Term $parent = null): string
     {
         $altText = $image->getName();
         $i18ns   = $image->getI18ns();
@@ -757,7 +765,32 @@ class ImageController extends AbstractBaseController implements
             }
         }
 
+        if (empty($altText) && $parent instanceof \WP_Term) {
+            $altText = $parent->slug;
+        }
+
         return $altText;
+    }
+
+    /**
+     * @param $image
+     * @param array<string, string>|WP_Error|WP_Term|null $parent
+     * @param array<string, string> $fileInfo
+     * @return string
+     */
+    public function getImageName(AbstractImage $image, array|null|WP_Error|WP_Term $parent, array $fileInfo): string
+    {
+        if ($parent instanceof WP_Term) {
+            $imageName = $this->sanitizeImageName(
+                !empty($image->getName()) ? $image->getName() : $parent->slug
+            );
+        } else {
+            $imageName = $this->sanitizeImageName(
+                !empty($image->getName()) ? $image->getName() : $fileInfo['filename']
+            );
+        }
+
+        return $imageName;
     }
 
     /**
