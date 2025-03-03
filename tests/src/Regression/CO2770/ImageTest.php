@@ -103,7 +103,7 @@ class ImageTest extends TestCase
          * **/
         //TODO: dummy assertion, replace by actual test later
         $this->assertTrue(true);
-        echo 'ImageTest::testDeleteProductImage() in CO2770\Regression not implemented.';
+        #echo 'ImageTest::testDeleteProductImage() in CO2770\Regression not implemented.';
     }
 
     /**

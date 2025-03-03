@@ -64,6 +64,7 @@ class ProductGermanizedFieldsTest extends TestCase
      * @throws UnknownTypeException
      * @throws ClassAlreadyExistsException
      * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
      */
     public function testGetConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData, array $expectedResult): void
     {
