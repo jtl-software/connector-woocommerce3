@@ -34,6 +34,7 @@ class ClassInitializationTest extends AbstractTestCase
      * @throws Exception
      * @throws ClassAlreadyExistsException
      * @return void
+     * @covers \JtlWooCommerceConnector\{Controllers,Models,Utilities}*
      */
     public function testClassInitialization(): void
     {
