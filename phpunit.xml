@@ -14,7 +14,7 @@
          verbose="true">
     <testsuites>
         <testsuite name="default">
-            <directory>exit</directory>
+            <directory>./tests</directory>
         </testsuite>
     </testsuites>
 
