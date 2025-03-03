@@ -579,7 +579,7 @@ class ImageController extends AbstractBaseController implements
      * @throws \getid3_exception
      * @throws \InvalidArgumentException
      */
-    public function saveImage(AbstractImage $image, bool $testFlag = false): ?int
+    public function saveImage(AbstractImage $image): ?int
     {
         $endpointId = $image->getId()->getEndpoint();
         $post       = null;
@@ -644,12 +644,8 @@ class ImageController extends AbstractBaseController implements
             }
 
             $imageAlt = $this->getImageAlt($image, $parent);
-            #$imageAlt = !empty($currentImageAlt) ? $currentImageAlt : $parent->slug;
 
-            if (!$testFlag) {
-                require_once(\ABSPATH . 'wp-admin/includes/image.php');
-            }
-
+            require_once(\ABSPATH . 'wp-admin/includes/image.php');
             $attachData = \wp_generate_attachment_metadata($post, $destination);
             \wp_update_attachment_metadata($post, $attachData);
             \update_post_meta($post, '_wp_attachment_image_alt', $imageAlt);
@@ -658,11 +654,11 @@ class ImageController extends AbstractBaseController implements
                 $this->relinkImage($post, $image);
             }
 
-            #if ($this->wpml->canWpmlMediaBeUsed()) {
-            #    /** @var WpmlMedia $wpmlMedia */
-            #    $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
-            #    $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns(), $imageAlt);
-            #}
+            if ($this->wpml->canWpmlMediaBeUsed()) {
+                /** @var WpmlMedia $wpmlMedia */
+                $wpmlMedia = $this->wpml->getComponent(WpmlMedia::class);
+                $wpmlMedia->saveAttachmentTranslations($post, $image->getI18ns(), $imageAlt);
+            }
         }
 
         return $post;
