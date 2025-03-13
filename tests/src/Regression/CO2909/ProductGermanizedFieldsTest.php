@@ -1,4 +1,7 @@
-<?php /** @noinspection PhpIllegalPsrClassPathInspection */
+<?php
+
+/** @noinspection PhpIllegalPsrClassPathInspection */
+
 declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Tests\Regression\CO2909 {
@@ -66,6 +69,7 @@ namespace JtlWooCommerceConnector\Tests\Regression\CO2909 {
     }
 }
 
+// phpcs:disable
 namespace {
     class WP_Error {}
 
@@ -84,3 +88,4 @@ namespace {
         throw new \RuntimeException('This method should never be called');
     }
 }
+// phpcs:enable
