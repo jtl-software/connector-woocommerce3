@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-2875 - use the correct \InvalidArgumentException
+- CO-2909 - Fix array_map error in germanized fields
 
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
