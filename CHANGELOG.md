@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2919 - implement core updates in connector
 - CO-2875 - use the correct \InvalidArgumentException
 
 ## 2.3.2 _2025-02-24_

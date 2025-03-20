@@ -113,13 +113,13 @@ class SpecificController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
+     * @param AbstractModel ...$model
      *
-     * @return SpecificModel
+     * @return SpecificModel[]
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var SpecificModel $model */
         $model->setType('string');
@@ -326,11 +326,11 @@ class SpecificController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws InvalidArgumentException
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
         /** @var SpecificModel $model */
         $specificId = (int)$model->getId()->getEndpoint();

@@ -13,11 +13,11 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductStockLevelController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var Product $model */
         $productId = $model->getId()->getEndpoint();

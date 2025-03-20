@@ -15,12 +15,12 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws \InvalidArgumentException
      * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         if (
             SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)

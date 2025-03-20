@@ -102,11 +102,11 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws \WC_Data_Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var PaymentModel $model */
         $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());

@@ -149,11 +149,12 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return CategoryModel
-     * @throws \Exception
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
+     * @throws \InvalidArgumentException
+     * @throws \WP_Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var CategoryModel $model */
         if (!$model->getIsActive()) {
@@ -308,11 +309,11 @@ class CategoryController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return CategoryModel
-     * @throws InvalidArgumentException
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
+     * @throws \InvalidArgumentException|\WP_Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
         /** @var Category $model */
         $categoryId = $model->getId()->getEndpoint();
@@ -337,7 +338,7 @@ class CategoryController extends AbstractBaseController implements
     /**
      * @param QueryFilter $query
      * @return int
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
     public function statistic(QueryFilter $query): int

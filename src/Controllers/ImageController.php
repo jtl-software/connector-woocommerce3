@@ -136,7 +136,7 @@ class ImageController extends AbstractBaseController implements
                     $model = new ManufacturerImage();
                     break;
                 default:
-                    throw new \Exception(\sprintf("Invalid image type '%s'", $type));
+                    throw new Exception(\sprintf("Invalid image type '%s'", $type));
             }
 
             $model->setId(new Identity($imageLinkId))
@@ -544,11 +544,11 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var AbstractImage $model */
         $foreignKey = $model->getForeignKey()->getEndpoint();
@@ -683,7 +683,7 @@ class ImageController extends AbstractBaseController implements
                 $type        = IdentityType::CATEGORY_IMAGE;
                 break;
             default:
-                throw new \Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
+                throw new Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
         }
 
         $primaryKeyMapper->delete(

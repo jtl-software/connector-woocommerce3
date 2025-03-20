@@ -258,17 +258,17 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @phpstan-param Product $model
+     * @param AbstractModel ...$model
+     * @phpstan-param Product ...$model
      *
-     * @return AbstractModel
+     * @return AbstractModel[]
      * @throws \InvalidArgumentException
      * @throws NonNumericValue
      * @throws NonStringUnitName
      * @throws WC_Data_Exception
      * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         if (Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS)) {
             //Wawi überträgt Netto
@@ -413,11 +413,11 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
         /** @var Product $model */
         $productId = (int)$model->getId()->getEndpoint();

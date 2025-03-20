@@ -119,10 +119,10 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return CrossSellingModel
+     * @param AbstractModel ...$model
+     * @return CrossSellingModel[]
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
@@ -152,10 +152,10 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
         /** @var CrossSelling $model */
         $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
@@ -191,7 +191,7 @@ class CrossSellingController extends AbstractBaseController implements
     /**
      * @param QueryFilter $query
      * @return int
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

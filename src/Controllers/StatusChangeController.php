@@ -15,11 +15,11 @@ use WC_Order;
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @return StatusChangeModel
-     * @throws \WC_Data_Exception|InvalidArgumentException
+     * @param AbstractModel ...$model
+     * @return StatusChangeModel[]
+     * @throws \WC_Data_Exception|\InvalidArgumentException
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         /** @var StatusChangeModel $model */
         $customerOrderId = $model->getCustomerOrderId();

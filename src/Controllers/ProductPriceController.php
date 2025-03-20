@@ -15,14 +15,14 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @phpstan-param Product $model
+     * @param AbstractModel ...$model
+     * @phpstan-param Product ...$model
      *
-     * @return AbstractModel
+     * @return AbstractModel[]
      * @throws InvalidArgumentException
      * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 

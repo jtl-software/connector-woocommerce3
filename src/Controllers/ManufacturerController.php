@@ -159,14 +159,14 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @phpstan-param Manufacturer $model
+     * @param AbstractModel ...$model
+     * @phpstan-param Manufacturer ...$model
      *
-     * @return AbstractModel
+     * @return AbstractModel[]
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $meta = (new ManufacturerI18nModel());
@@ -293,12 +293,12 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
-     * @throws InvalidArgumentException
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
+     * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             /** @var Manufacturer $model */

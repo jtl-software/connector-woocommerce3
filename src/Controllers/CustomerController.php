@@ -169,11 +169,11 @@ class CustomerController extends AbstractBaseController implements PullInterface
     }
 
     /**
-     * @param AbstractModel $model
+     * @param AbstractModel ...$model
      * @return AbstractModel
      * @throws InvalidArgumentException
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$model): array
     {
         // Only registered customers data can be updated
         /** @var Customer $model */
