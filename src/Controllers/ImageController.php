@@ -878,10 +878,10 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param AbstractModel $model
      * @param bool          $realDelete
-     * @return AbstractModel
+     * @return AbstractModel[]
      * @throws Exception
      */
-    public function deleteData(AbstractModel $model, bool $realDelete = true): AbstractModel
+    public function deleteData(AbstractModel $model, bool $realDelete = true): array
     {
         /** @var AbstractImage $model */
         switch ($model->getRelationType()) {
@@ -894,18 +894,19 @@ class ImageController extends AbstractBaseController implements
                 break;
         }
 
-        return $model;
+        $deletedImage[] = $model;
+
+        return $deletedImage;
     }
 
     /**
-     * @param AbstractModel $model
-     * @param bool $realDelete
-     * @return AbstractModel
+     * @param AbstractModel ...$model
+     * @return AbstractModel[]
      * @throws Exception
      */
-    public function delete(AbstractModel $model, bool $realDelete = true): AbstractModel
+    public function delete(AbstractModel ...$model): array
     {
-        return $this->deleteData($model, $realDelete);
+        return $this->deleteData($model);
     }
 
     /**
