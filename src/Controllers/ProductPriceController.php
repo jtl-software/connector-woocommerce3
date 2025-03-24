@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Automattic\WooCommerce\Internal\DependencyManagement\ContainerException;
 use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
@@ -15,49 +16,54 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @param AbstractModel ...$model
      * @phpstan-param Product ...$model
      *
      * @return AbstractModel[]
      * @throws InvalidArgumentException
-     * @throws Exception
+     * @throws ContainerException
+     * @throws \Psr\Log\InvalidArgumentException
      */
-    public function push(AbstractModel ...$model): array
+    public function push(AbstractModel ...$models): array
     {
-        $wcProduct = \wc_get_product($model->getId()->getEndpoint());
+        $returnModels = [];
 
-        if ($wcProduct !== false && $wcProduct !== null) {
-            $vat = $model->getVat();
+        foreach ($models as $model) {
+            $wcProduct = \wc_get_product($model->getId()->getEndpoint());
 
-            $wcProducts[] = $wcProduct;
+            if ($wcProduct !== false && $wcProduct !== null) {
+                $vat = $model->getVat();
 
-            if ($this->wpml->canBeUsed()) {
-                /** @var WpmlProduct $wpmlProduct */
-                $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
+                $wcProducts[] = $wcProduct;
 
-                $wcProductTranslations = $wpmlProduct
-                    ->getWooCommerceProductTranslations($wcProduct);
-                $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
-            }
+                if ($this->wpml->canBeUsed()) {
+                    /** @var WpmlProduct $wpmlProduct */
+                    $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
 
-            foreach ($wcProducts as $wcProduct) {
-                $this->savePrices(
-                    $wcProduct,
-                    $vat,
-                    $this->getJtlProductType($wcProduct),
-                    ...$model->getPrices()
-                );
-
-                // Update the max and min prices for the parent product
-                if ($wcProduct->is_type('variation')) {
-                    \WC_Product_Variable::sync($wcProduct->get_id());
+                    $wcProductTranslations = $wpmlProduct
+                        ->getWooCommerceProductTranslations($wcProduct);
+                    $wcProducts = \array_merge($wcProducts, $wcProductTranslations);
                 }
 
-                \wc_delete_product_transients($wcProduct->get_id());
-            }
-        }
+                foreach ($wcProducts as $wcProduct) {
+                    $this->savePrices(
+                        $wcProduct,
+                        $vat,
+                        $this->getJtlProductType($wcProduct),
+                        ...$model->getPrices()
+                    );
 
-        return $model;
+                    // Update the max and min prices for the parent product
+                    if ($wcProduct->is_type('variation')) {
+                        \WC_Product_Variable::sync($wcProduct->get_id());
+                    }
+
+                    \wc_delete_product_transients($wcProduct->get_id());
+                }
+            }
+
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**

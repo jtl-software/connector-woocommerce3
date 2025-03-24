@@ -28,6 +28,8 @@ use JtlWooCommerceConnector\Utilities\Id;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
+use Psr\Log\InvalidArgumentException;
+use RuntimeException;
 use WC_Product;
 
 class ImageController extends AbstractBaseController implements
@@ -68,7 +70,7 @@ class ImageController extends AbstractBaseController implements
      * @param QueryFilter $query
      * @return array<int, CategoryImage|ManufacturerImage|ProductImage>
      * @throws \InvalidArgumentException
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     public function pull(QueryFilter $query): array
@@ -97,7 +99,7 @@ class ImageController extends AbstractBaseController implements
      * @param int                                             $type
      * @param int                                             $limit
      * @return array<int, ProductImage|CategoryImage|ManufacturerImage>
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     private function addNextImages(array $images, int $type, int $limit): array
@@ -170,7 +172,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int|null $limit
      * @return array<int, array<string, bool|int|string|null>> The image entities.
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
     private function productImagePull(?int $limit = null): array
@@ -282,7 +284,7 @@ class ImageController extends AbstractBaseController implements
      * @param int                    $postId        The product which is owner of the images.
      *
      * @return array<int, array<string, int|string|null>> The filtered image data.
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function addProductImagesForPost(array $attachmentIds, int $postId): array
     {
@@ -294,7 +296,7 @@ class ImageController extends AbstractBaseController implements
      * @param array<int, int|string> $attachmentIds
      * @param int                    $productId
      * @return array<int, array<string, int|string|null>>
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function fetchProductAttachments(array $attachmentIds, int $productId): array
     {
@@ -364,7 +366,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int|null $limit
      * @return string
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     private function getCategoryImagePullQuery(?int $limit): string
@@ -383,7 +385,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param string $query
      * @return array<int, array<string, bool|int|string|null>>
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
     private function categoryImagePullByQuery(string $query): array
@@ -410,7 +412,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int|null $limit
      * @return string
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     private function getManufacturerImagePullQuery(?int $limit): string
@@ -429,7 +431,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param string $query
      * @return array<int, array<string, bool|int|string|null>>
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function manufacturerImagePull(string $query): array
     {
@@ -451,7 +453,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param QueryFilter $query
      * @return int
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     public function statistic(QueryFilter $query): int
@@ -484,7 +486,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @return int
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws Exception
      */
     private function masterProductImageStats(): int
@@ -544,36 +546,42 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Push">
     /**
-     * @param AbstractModel ...$model
+     * @param AbstractModel ...$models
      * @return AbstractModel[]
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function push(AbstractModel ...$model): array
+    public function push(AbstractModel ...$models): array
     {
-        /** @var AbstractImage $model */
-        $foreignKey = $model->getForeignKey()->getEndpoint();
+        $returnModels = [];
 
-        if (!empty($foreignKey)) {
-            $this->delete($model);
+        foreach ($models as $model) {
+            /** @var AbstractImage $model */
+            $foreignKey = $model->getForeignKey()->getEndpoint();
 
-            if ($model instanceof ProductImage) {
-                $model->getId()->setEndpoint($this->pushProductImage($model) ?? '');
-            } elseif ($model instanceof CategoryImage) {
-                $model->getId()->setEndpoint($this->pushCategoryImage($model) ?? '');
-            } elseif ($model instanceof ManufacturerImage) {
-                $model->getId()->setEndpoint($this->pushManufacturerImage($model) ?? '');
+            if (!empty($foreignKey)) {
+                $this->delete($model);
+
+                if ($model instanceof ProductImage) {
+                    $model->getId()->setEndpoint($this->pushProductImage($model) ?? '');
+                } elseif ($model instanceof CategoryImage) {
+                    $model->getId()->setEndpoint($this->pushCategoryImage($model) ?? '');
+                } elseif ($model instanceof ManufacturerImage) {
+                    $model->getId()->setEndpoint($this->pushManufacturerImage($model) ?? '');
+                }
             }
-        }
 
-        return $model;
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**
      * @param AbstractImage $image
      * @return int|null
      * @throws DefinitionException
-     * @throws \Psr\Log\InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      * @throws \getid3_exception
      * @throws \InvalidArgumentException
      */
@@ -663,7 +671,7 @@ class ImageController extends AbstractBaseController implements
      * @param AbstractImage $image
      * @return void
      * @throws DefinitionException
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function relinkImage(int $newEndpointId, AbstractImage $image): void
     {
@@ -760,7 +768,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param ProductImage $image
      * @return string
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
     private function pushProductImage(ProductImage $image): string
@@ -876,37 +884,42 @@ class ImageController extends AbstractBaseController implements
 
     // <editor-fold defaultstate="collapsed" desc="Delete">
     /**
-     * @param AbstractModel $model
      * @param bool          $realDelete
+     * @param AbstractModel ...$models
      * @return AbstractModel[]
-     * @throws Exception
+     * @throws DefinitionException
+     * @throws \InvalidArgumentException
+     * @throws RuntimeException
      */
-    public function deleteData(AbstractModel $model, bool $realDelete = true): array
+    public function deleteData(bool $realDelete = true, AbstractModel ...$models): array
     {
-        /** @var AbstractImage $model */
-        switch ($model->getRelationType()) {
-            case self::PRODUCT_IMAGE:
-                $this->deleteProductImage($model, $realDelete);
-                break;
-            case self::CATEGORY_IMAGE:
-            case self::MANUFACTURER_IMAGE:
-                $this->deleteImageTermMeta($model, $realDelete);
-                break;
+        $returnModels = [];
+
+        foreach ($models as $model) {
+            /** @var AbstractImage $model */
+            switch ($model->getRelationType()) {
+                case self::PRODUCT_IMAGE:
+                    $this->deleteProductImage($model, $realDelete);
+                    break;
+                case self::CATEGORY_IMAGE:
+                case self::MANUFACTURER_IMAGE:
+                    $this->deleteImageTermMeta($model, $realDelete);
+                    break;
+            }
+
+            $returnModels[] = $model;
         }
-
-        $deletedImage[] = $model;
-
-        return $deletedImage;
+        return $returnModels;
     }
 
     /**
-     * @param AbstractModel ...$model
+     * @param AbstractModel ...$models
      * @return AbstractModel[]
      * @throws Exception
      */
-    public function delete(AbstractModel ...$model): array
+    public function delete(AbstractModel ...$models): array
     {
-        return $this->deleteData($model);
+        return $this->deleteData(true, ...$models);
     }
 
     /**
@@ -914,8 +927,8 @@ class ImageController extends AbstractBaseController implements
      * @param bool          $realDelete
      * @return void
      * @throws DefinitionException
-     * @throws \Psr\Log\InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
+     * @throws RuntimeException
      */
     private function deleteImageTermMeta(AbstractImage $image, bool $realDelete): void
     {
@@ -930,7 +943,7 @@ class ImageController extends AbstractBaseController implements
                 $id      = Id::unlinkCategoryImage($endpointId);
                 break;
             default:
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     \sprintf(
                         "Invalid relation %s type for id %s when deleting image.",
                         $image->getRelationType(),
@@ -953,7 +966,7 @@ class ImageController extends AbstractBaseController implements
      * @param AbstractImage $image
      * @param bool          $realDelete
      * @return void
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function deleteProductImage(AbstractImage $image, bool $realDelete): void
     {
@@ -1021,7 +1034,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int $attachmentId
      * @return void
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function deleteIfNotUsedByOthers(int $attachmentId): void
     {
@@ -1039,7 +1052,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int $attachmentId
      * @return bool
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
     {
@@ -1070,7 +1083,7 @@ class ImageController extends AbstractBaseController implements
     /**
      * @param int $productId
      * @return void
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function deleteAllProductImages(int $productId): void
     {
