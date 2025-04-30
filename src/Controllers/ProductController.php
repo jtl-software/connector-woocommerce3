@@ -56,7 +56,7 @@ class ProductController extends AbstractBaseController implements
 {
     use WawiProductPriceSchmuddelTrait;
 
-    public const
+    public const string
         TYPE_PARENT = 'parent',
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
@@ -259,6 +259,7 @@ class ProductController extends AbstractBaseController implements
     }
 
     /**
+     * @param AbstractModel ...$models
      * @phpstan-param Product ...$model
      *
      * @return AbstractModel[]
@@ -288,7 +289,7 @@ class ProductController extends AbstractBaseController implements
         $returnModels = [];
 
         foreach ($models as $model) {
-            $tmpI18n = null;
+            $tmpI18n         = null;
             $masterProductId = $model->getMasterProductId()->getEndpoint();
 
             if (empty($masterProductId) && isset(self::$idCache[$model->getMasterProductId()->getHost()])) {
@@ -315,7 +316,7 @@ class ProductController extends AbstractBaseController implements
                 continue;
             }
 
-            $wcProductId = (int)$model->getId()->getEndpoint();
+            $wcProductId       = (int)$model->getId()->getEndpoint();
             $existingProductId = \wc_get_product_id_by_sku($model->getSku());
             if ($existingProductId !== 0) {
                 $wcProductId = $existingProductId;

@@ -146,7 +146,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 
     /**
      * @param AbstractModel ...$models
-     * @return array
+     * @return AbstractModel[]
      * @throws \InvalidArgumentException
      */
     public function push(AbstractModel ...$models): array

@@ -127,7 +127,7 @@ class SpecificController extends AbstractBaseController implements
         foreach ($models as $model) {
             /** @var SpecificModel $model */
             $model->setType('string');
-            $meta = null;
+            $meta             = null;
             $defaultAvailable = false;
 
             foreach ($model->getI18ns() as $i18n) {
@@ -162,7 +162,7 @@ class SpecificController extends AbstractBaseController implements
 
                 //STOP here if already exists
                 $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
-                $endpointId = (int)$model->getId()->getEndpoint();
+                $endpointId         = (int)$model->getId()->getEndpoint();
 
                 if ($existingTaxonomyId !== 0) {
                     if ($existingTaxonomyId !== $endpointId) {
@@ -221,7 +221,7 @@ class SpecificController extends AbstractBaseController implements
                 }
 
                 foreach ($model->getValues() as $key => $value) {
-                    $metaValue = null;
+                    $metaValue             = null;
                     $defaultValueAvailable = false;
 
                     //Get i18n
@@ -386,7 +386,7 @@ class SpecificController extends AbstractBaseController implements
 
                 /** @var WP_Post $post */
                 foreach ($posts as $post) {
-                    $wcProduct = \wc_get_product($post->ID);
+                    $wcProduct        = \wc_get_product($post->ID);
                     $productSpecifics = $wcProduct instanceof \WC_Product ? $wcProduct->get_attributes() : [];
 
                     /** @var WC_Product_Attribute $productSpecific */

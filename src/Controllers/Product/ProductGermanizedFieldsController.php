@@ -421,10 +421,10 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsiblePersonAddress);
         }
 
-        #remove existing product to gpsr manufacturer link
+        // remove existing product to gpsr manufacturer link
         \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
 
-        #link product to gpsr manufacturer
+        // link product to gpsr manufacturer
         \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
         \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
     }

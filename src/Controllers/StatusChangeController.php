@@ -29,8 +29,8 @@ class StatusChangeController extends AbstractBaseController implements PushInter
         foreach ($models as $model) {
             /** @var StatusChangeModel $model */
             $customerOrderId = $model->getCustomerOrderId();
-            $endpointId = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
-            $order = \wc_get_order($endpointId);
+            $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
+            $order           = \wc_get_order($endpointId);
 
             if ($order instanceof WC_Order) {
                 if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {

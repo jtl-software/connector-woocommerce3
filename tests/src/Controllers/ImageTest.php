@@ -128,6 +128,7 @@ class ImageTest extends TestCase
      * @param string $extension
      * @param string $uploadDir
      * @param string $expectedFileName
+     * @return void
      *
      * @throws RuntimeException
      * @throws ClassIsFinalException
@@ -150,7 +151,7 @@ class ImageTest extends TestCase
         string $extension,
         string $uploadDir,
         string $expectedFileName
-    ) {
+    ): void {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
 
@@ -166,6 +167,9 @@ class ImageTest extends TestCase
         $this->assertSame($expectedFileName, $result);
     }
 
+    /**
+     * @return array<int, array<int, string>>
+     */
     public function getNextAvailableImageFileNameFileNotExistingDataProvider(): array
     {
         return [

@@ -21,9 +21,9 @@ use WhiteCube\Lingua\Service;
  */
 class Util extends WordpressUtils
 {
-    public const TO_SYNC       = 'jtlconnector_master_products_to_sync';
-    public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
-    public const TO_SYNC_MOD   = 100;
+    public const string TO_SYNC       = 'jtlconnector_master_products_to_sync';
+    public const string TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
+    public const int TO_SYNC_MOD      = 100;
 
     private string $locale;
 

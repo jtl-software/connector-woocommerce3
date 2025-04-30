@@ -44,13 +44,13 @@ class ProductStockLevelController extends AbstractBaseController implements Push
 
                     $wcProductTranslations = $wpmlProduct
                         ->getWooCommerceProductTranslations($wcProduct);
-                    $wcProducts = \array_merge($wcProducts, $wcProductTranslations);
+                    $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
                 }
 
                 foreach ($wcProducts as $wcProduct) {
                     \update_post_meta($wcProduct->get_id(), '_manage_stock', 'yes');
 
-                    $stockLevel = $model->getStockLevel();
+                    $stockLevel  = $model->getStockLevel();
                     $stockStatus = $this->util->getStockStatus($stockLevel, $wcProduct->backorders_allowed());
 
                     // Stock status is always determined by children so sync later.

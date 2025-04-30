@@ -174,7 +174,7 @@ class CategoryController extends AbstractBaseController implements
                 $parentCategoryId->setEndpoint((string)self::$idCache[$parentCategoryId->getHost()]);
             }
 
-            $meta = null;
+            $meta       = null;
             $categoryId = (int)$model->getId()->getEndpoint();
 
             foreach ($model->getI18ns() as $i18n) {
@@ -265,10 +265,10 @@ class CategoryController extends AbstractBaseController implements
                 if (\is_array($taxonomySeo) && \is_array($taxonomySeo['product_cat'])) {
                     foreach ($taxonomySeo['product_cat'] as $catKey => $seoData) {
                         if ($catKey === (int)$result['term_id']) {
-                            $exists = true;
-                            $taxonomySeo['product_cat'][$catKey]['wpseo_desc'] = $meta->getMetaDescription();
+                            $exists                                               = true;
+                            $taxonomySeo['product_cat'][$catKey]['wpseo_desc']    = $meta->getMetaDescription();
                             $taxonomySeo['product_cat'][$catKey]['wpseo_focuskw'] = $meta->getMetaKeywords();
-                            $taxonomySeo['product_cat'][$catKey]['wpseo_title'] = \strcmp(
+                            $taxonomySeo['product_cat'][$catKey]['wpseo_title']   = \strcmp(
                                 $meta->getTitleTag(),
                                 ''
                             ) === 0 ? $meta->getName() : $meta->getTitleTag();

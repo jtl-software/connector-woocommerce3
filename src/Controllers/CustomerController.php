@@ -202,14 +202,19 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 $wcCustomer->set_billing_email($model->getEMail());
                 $wcCustomer->set_billing_phone($model->getPhone());
 
-                $customerGroup = \get_post($model->getCustomerGroupId()->getEndpoint());
+                $customerGroup = \get_post((int)$model->getCustomerGroupId()->getEndpoint());
+
+                if (!$customerGroup instanceof \WP_Post) {
+                    throw new \InvalidArgumentException("Customer group not found");
+                }
+
                 $wcCustomer->set_role($customerGroup->post_name);
 
                 $wcCustomer->save();
 
-                if (($wpCustomerRole = $this->getWpCustomerRole(
-                        $model->getCustomerGroupId()->getEndpoint()
-                    )) !== null) {
+                if (
+                    ($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null
+                ) {
                     \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
                 }
             } catch (\Exception $exception) {

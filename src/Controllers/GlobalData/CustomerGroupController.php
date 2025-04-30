@@ -16,7 +16,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroupController extends AbstractBaseController
 {
-    public const DEFAULT_GROUP = 'customer';
+    public const string DEFAULT_GROUP = 'customer';
 
     protected Db $db;
     protected Util $util;

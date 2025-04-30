@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers;
 
 use Automattic\WooCommerce\Internal\DependencyManagement\ContainerException;
+use DateInvalidTimeZoneException;
 use Exception;
 use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
@@ -18,10 +19,9 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
 {
     /**
      * @param AbstractModel ...$models
-     * @return AbstractModel[]
+     * @return array|AbstractModel[]
      * @throws ContainerException
-     * @throws \DateInvalidTimeZoneException
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function push(AbstractModel ...$models): array
     {
@@ -52,14 +52,12 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                 }
 
                 foreach ($model->getTrackingLists() as $trackingList) {
-                    $trackingInfoItem = [];
+                    $trackingInfoItem                 = [];
                     $trackingInfoItem['date_shipped'] = $model->getCreationDate()
                         ? $model->getCreationDate()->format("Y-m-d")
                         : '';
 
-                    $trackingProviders = $shipmentTrackingActions
-                        ? $shipmentTrackingActions->get_providers()
-                        : null;
+                    $trackingProviders = $shipmentTrackingActions->get_providers();
 
                     $shippingProviderName = \trim($trackingList->getName());
 

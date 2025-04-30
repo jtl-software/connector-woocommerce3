@@ -16,11 +16,11 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlProduct;
 class ProductPriceController extends ProductPrice implements PushInterface
 {
     /**
-     * @phpstan-param Product ...$model
+     * @param AbstractModel ...$models
      *
      * @return AbstractModel[]
-     * @throws InvalidArgumentException
      * @throws ContainerException
+     * @throws InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
     public function push(AbstractModel ...$models): array
@@ -41,7 +41,7 @@ class ProductPriceController extends ProductPrice implements PushInterface
 
                     $wcProductTranslations = $wpmlProduct
                         ->getWooCommerceProductTranslations($wcProduct);
-                    $wcProducts = \array_merge($wcProducts, $wcProductTranslations);
+                    $wcProducts            = \array_merge($wcProducts, $wcProductTranslations);
                 }
 
                 foreach ($wcProducts as $wcProduct) {

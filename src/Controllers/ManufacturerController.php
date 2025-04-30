@@ -159,8 +159,8 @@ class ManufacturerController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel ...$model
-     * @phpstan-param Manufacturer ...$model
+     * @param AbstractModel ...$models
+     * @phpstan-param Manufacturer ...$models
      *
      * @return AbstractModel[]
      * @throws \InvalidArgumentException
@@ -248,10 +248,10 @@ class ManufacturerController extends AbstractBaseController implements
 
                             foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
                                 if ($brandKey === (int)$term->term_id) {
-                                    $exists = true;
-                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_desc'] = $i18n->getMetaDescription();
+                                    $exists                                               = true;
+                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_desc']    = $i18n->getMetaDescription();
                                     $taxonomySeo['pwb-brand'][$brandKey]['wpseo_focuskw'] = $i18n->getMetaKeywords();
-                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_title'] = \strcmp(
+                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_title']   = \strcmp(
                                         $i18n->getTitleTag(),
                                         ''
                                     ) === 0 ? $model->getName() : $i18n->getTitleTag();

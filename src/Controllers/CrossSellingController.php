@@ -29,8 +29,8 @@ class CrossSellingController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    public const CROSSSELLING_META_KEY = '_crosssell_ids';
-    public const UPSELLING_META_KEY    = '_upsell_ids';
+    public const string CROSSSELLING_META_KEY = '_crosssell_ids';
+    public const string UPSELLING_META_KEY    = '_upsell_ids';
 
     /**
      * @param QueryFilter $query
@@ -138,7 +138,7 @@ class CrossSellingController extends AbstractBaseController implements
             $model->getId()->setEndpoint($model->getProductId()->getEndpoint());
 
             $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
-            $upSellProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
+            $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
             $this->updateMetaKey(
                 $product->get_id(),
@@ -175,13 +175,13 @@ class CrossSellingController extends AbstractBaseController implements
             }
 
             $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
-            $upSellProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
+            $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
 
             $crossSellIds =
                 !empty($crossSellingProducts)
                     ? \array_diff($product->get_cross_sell_ids(), $crossSellingProducts)
                     : [];
-            $upSellIds = !empty($upSellProducts) ? \array_diff($product->get_upsell_ids(), $upSellProducts) : [];
+            $upSellIds    = !empty($upSellProducts) ? \array_diff($product->get_upsell_ids(), $upSellProducts) : [];
 
             $this->updateMetaKey(
                 $product->get_id(),

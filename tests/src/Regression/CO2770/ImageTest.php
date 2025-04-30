@@ -64,22 +64,14 @@ class ImageTest extends TestCase
     /**
      * @dataProvider deleteProductImageDataProvider
      * @param AbstractImage $image
-     * @param bool $realDelete
+     * @param bool          $realDelete
+     * @param string        $queryString
      * @return void
-     * @throws ClassAlreadyExistsException
-     * @throws ClassIsFinalException
-     * @throws ClassIsReadonlyException
-     * @throws DuplicateMethodException
-     * @throws InvalidMethodNameException
-     * @throws OriginalConstructorInvocationRequiredException
-     * @throws RuntimeException
-     * @throws UnknownTypeException
-     * @throws \PHPUnit\Framework\InvalidArgumentException
-     * @throws \PHPUnit\Framework\MockObject\ReflectionException
-     * @throws \Exception
-     * @covers ImageController::deleteProductImage
+     * @throws ExpectationFailedException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @covers       ImageController::deleteProductImage
      */
-    public function testDeleteProductImage(AbstractImage $image, bool $realDelete, $queryString): void
+    public function testDeleteProductImage(AbstractImage $image, bool $realDelete, string $queryString): void
     {
         /**
         $wpDb = $this->getMockBuilder('\wpdb')->getMock();
@@ -100,7 +92,7 @@ class ImageTest extends TestCase
         $deleteProductImage->invoke($imageController, $image, $realDelete);
 
         $this->assertSame($queryString, $db->givenQueries[0]);
-         * **/
+         * */
         //TODO: dummy assertion, replace by actual test later
         $this->assertTrue(true);
         echo 'ImageTest::testDeleteProductImage() in CO2770\Regression not implemented.';

@@ -8,7 +8,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class CanHandleEvent extends Event
 {
-    public const EVENT_NAME = 'connector.can_handle';
+    public const string EVENT_NAME = 'connector.can_handle';
 
     protected string $controller;
     protected string $action;

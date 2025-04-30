@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\CustomerGroup;
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use Jtl\Connector\Core\Model\Identity;
@@ -19,6 +20,7 @@ use JtlWooCommerceConnector\Utilities\Date;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
+use WP_Post;
 
 class ProductSpecialPriceController extends AbstractBaseController
 {
@@ -209,12 +211,12 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $product
+     * @param ProductModel          $product
      * @param ProductSpecialPrice[] $specialPrices
-     * @param string $productId
-     * @param Identity $masterProductId
-     * @param string $productType
-     * @param int $pd
+     * @param string                $productId
+     * @param Identity              $masterProductId
+     * @param string                $productType
+     * @param int                   $pd
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -319,7 +321,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                         $customerGroup = \get_post($endpoint);
                         $priceMetaKey  = null;
 
-                        if (!$customerGroup instanceof \WP_Post) {
+                        if (!$customerGroup instanceof WP_Post) {
                             throw new \InvalidArgumentException("Customer group not found");
                         }
 
@@ -610,7 +612,11 @@ class ProductSpecialPriceController extends AbstractBaseController
         }
     }
 
-    public function setCustomerGroupNames($customerGroups): void
+    /**
+     * @param CustomerGroup[] $customerGroups
+     * @return void
+     */
+    public function setCustomerGroupNames(array $customerGroups): void
     {
         if (
             SupportedPlugins::comparePluginVersion(
@@ -632,15 +638,15 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param $customerGroups
-     * @param string $productId
-     * @param Identity $masterProductId
-     * @param string $productType
-     * @param int $pd
+     * @param CustomerGroup[] $customerGroups
+     * @param string          $productId
+     * @param Identity        $masterProductId
+     * @param string          $productType
+     * @param int             $pd
      * @return void
      */
     public function updateCustomerGroupPostMeta(
-        $customerGroups,
+        array $customerGroups,
         string $productId,
         Identity $masterProductId,
         string $productType,
@@ -650,7 +656,7 @@ class ProductSpecialPriceController extends AbstractBaseController
         foreach ($customerGroups as $groupKey => $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
             $post            = \get_post((int)$customerGroupId);
-            if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
+            if ($post instanceof WP_Post && \is_int((int)$customerGroupId)) {
                 $priceMetaKey = $this->setPostMetaKey($productId, $post->post_name);
 
                 $regularPriceMetaKey = \sprintf(
@@ -786,8 +792,8 @@ class ProductSpecialPriceController extends AbstractBaseController
 
     /**
      * @param string $productId
-     * @param \WP_Post|null $post
-     * @return string
+     * @param string $postName
+     * @return string|null
      */
     public function setPostMetaKey(
         string $productId,
@@ -819,11 +825,11 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string $productId
-     * @param $post
-     * @return array
+     * @param string  $productId
+     * @param WP_Post $post
+     * @return array<int, string|null>
      */
-    public function setPriceMetaKeysForTypeChild(string $productId, $post): array
+    public function setPriceMetaKeysForTypeChild(string $productId, WP_Post $post): array
     {
         $COPpriceMetaKey     = null;
         $COPpriceTypeMetaKey = null;
