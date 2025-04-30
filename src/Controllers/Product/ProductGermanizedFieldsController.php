@@ -12,6 +12,7 @@ use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\TaxonomyOverride;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
 
@@ -387,7 +388,10 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
 
         if ($gpsrManufacturerName === '') {
-            \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+            TaxonomyOverride::wp_delete_object_term_relationships(
+                (int)$product->getId()->getEndpoint(),
+                'product_manufacturer'
+            );
             \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', '');
 
             return;
@@ -422,7 +426,10 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
 
         #remove existing product to gpsr manufacturer link
-        \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+        TaxonomyOverride::wp_delete_object_term_relationships(
+            (int)$product->getId()->getEndpoint(),
+            'product_manufacturer'
+        );
 
         #link product to gpsr manufacturer
         \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
