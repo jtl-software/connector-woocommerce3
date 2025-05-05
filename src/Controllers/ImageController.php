@@ -38,14 +38,14 @@ class ImageController extends AbstractBaseController implements
     PushInterface,
     DeleteInterface
 {
-    public const GALLERY_DIVIDER    = ',';
-    public const PRODUCT_THUMBNAIL  = '_thumbnail_id';
-    public const CATEGORY_THUMBNAIL = 'thumbnail_id';
-    public const GALLERY_KEY        = '_product_image_gallery';
-    public const MANUFACTURER_KEY   = 'pwb_brand_image';
-    public const PRODUCT_IMAGE      = 'product';
-    public const CATEGORY_IMAGE     = 'category';
-    public const MANUFACTURER_IMAGE = 'manufacturer';
+    public const string GALLERY_DIVIDER    = ',';
+    public const string PRODUCT_THUMBNAIL  = '_thumbnail_id';
+    public const string CATEGORY_THUMBNAIL = 'thumbnail_id';
+    public const string GALLERY_KEY        = '_product_image_gallery';
+    public const string MANUFACTURER_KEY   = 'pwb_brand_image';
+    public const string PRODUCT_IMAGE      = 'product';
+    public const string CATEGORY_IMAGE     = 'category';
+    public const string MANUFACTURER_IMAGE = 'manufacturer';
 
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
@@ -583,7 +583,8 @@ class ImageController extends AbstractBaseController implements
     {
         $endpointId = $image->getId()->getEndpoint();
         $post       = null;
-        $parent     = \get_term($image->getForeignKey()->getEndpoint());
+        /** @var WP_Term|WP_Error|null $parent */
+        $parent = \get_term($image->getForeignKey()->getEndpoint());
 
         /** @var array<string, string> $fileInfo */
         $fileInfo = \pathinfo($image->getFilename());
@@ -740,8 +741,8 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractImage $image
-     * @param array|\WP_Error|\WP_Term|null $parent
+     * @param AbstractImage           $image
+     * @param \WP_Error|\WP_Term|null $parent
      * @return string
      */
     public function getImageAlt(AbstractImage $image, array|null|\WP_Error|\WP_Term $parent = null): string
@@ -769,12 +770,12 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
-     * @param $image
-     * @param array<string, string>|WP_Error|WP_Term|null $parent
+     * @param AbstractImage         $image
+     * @param WP_Error|WP_Term|null $parent
      * @param array<string, string> $fileInfo
      * @return string
      */
-    public function getImageName(AbstractImage $image, array|null|WP_Error|WP_Term $parent, array $fileInfo): string
+    public function getImageName(AbstractImage $image, null|WP_Error|WP_Term $parent, array $fileInfo): string
     {
         if ($parent instanceof WP_Term) {
             $imageName = $this->sanitizeImageName(
@@ -931,7 +932,7 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel $model
-     * @param bool $realDelete
+     * @param bool          $realDelete
      * @return AbstractModel
      * @throws Exception
      */

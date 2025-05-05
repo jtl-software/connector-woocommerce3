@@ -31,7 +31,7 @@ use WC_Product_Attribute;
 
 class ProductVaSpeAttrHandlerController extends AbstractBaseController
 {
-    public const
+    public const string
         PRODUCT_TYPE_ATTR              = 'wc_product_type',
         DELIVERY_TIME_ATTR             = 'wc_dt_offset',
         DOWNLOADABLE_ATTR              = 'wc_downloadable',

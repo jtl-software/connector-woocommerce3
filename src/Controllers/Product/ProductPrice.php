@@ -20,7 +20,7 @@ use WC_Product;
 
 class ProductPrice extends AbstractBaseController
 {
-    public const GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
+    public const string GUEST_CUSTOMER_GROUP = 'wc_guest_customer_group';
 
     /**
      * @param WC_Product   $product
