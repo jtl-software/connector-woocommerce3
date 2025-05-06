@@ -55,7 +55,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         public function createManufacturerAndResponsibleStringsDataProvider(): array
         {
             $product = new ProductModel();
-            $product->setId(new Identity(1, 1));
+            $product->setId(new Identity('1', 1));
 
             $attributes = [
                 ['gpsr_manufacturer_name', 'Manufacturer ABC'],

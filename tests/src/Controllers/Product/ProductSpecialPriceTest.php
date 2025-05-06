@@ -90,7 +90,7 @@ class ProductSpecialPriceTest extends AbstractTestCase
     public function setPostMetaKeyDataProvider(): array
     {
         $product = new ProductModel();
-        $product->setId(new Identity(1, 1));
+        $product->setId(new Identity('1', 1));
 
         return [
             ['1111', '1.0.8.1', 'customer', null],

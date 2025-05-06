@@ -83,7 +83,7 @@ class WpmlMedia extends AbstractComponent
                 continue;
             }
             $wpmlLanguage = $wpmlPlugin->convertLanguageToWpml($i18n->getLanguageISO());
-            $imageAltText = !empty($i18n->getAltText()) ? $i18n->getAltText() : $imageAlt;
+            $imageAltText = $i18n->getAltText();
             if (isset($translations[$wpmlLanguage])) {
                 $translation = $translations[$wpmlLanguage];
                 \update_post_meta($translation->element_id, '_wp_attachment_image_alt', $imageAltText);

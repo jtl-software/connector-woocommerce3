@@ -171,7 +171,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
     /**
      * @param AbstractModel $model
      * @return AbstractModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function push(AbstractModel $model): AbstractModel
     {
@@ -198,7 +198,12 @@ class CustomerController extends AbstractBaseController implements PullInterface
             $wcCustomer->set_billing_email($model->getEMail());
             $wcCustomer->set_billing_phone($model->getPhone());
 
-            $customerGroup = \get_post($model->getCustomerGroupId()->getEndpoint());
+            $customerGroup = \get_post((int)$model->getCustomerGroupId()->getEndpoint());
+
+            if (!$customerGroup instanceof \WP_Post) {
+                throw new \InvalidArgumentException("Customer group not found");
+            }
+
             $wcCustomer->set_role($customerGroup->post_name);
 
             $wcCustomer->save();

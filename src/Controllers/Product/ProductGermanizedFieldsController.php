@@ -325,10 +325,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     switch ($i18n->getName()) {
                         case 'gpsr_manufacturer_name':
+                            /** @var string $gpsrManufacturerName */
                             $gpsrManufacturerName      = $i18n->getValue();
                             $manufacturerData['name']  = $gpsrManufacturerName;
                             $gpsrManufacturerTitleform = \strtolower(
-                                \str_replace(' ', '', $i18n->getValue())
+                                \str_replace(' ', '', $gpsrManufacturerName)
                             ) . '-gpsr';
                             break;
                         case 'gpsr_manufacturer_street':
@@ -392,13 +393,15 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 (int)$product->getId()->getEndpoint(),
                 'product_manufacturer'
             );
-            \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', '');
+            \update_post_meta((int)$product->getId()->getEndpoint(), '_manufacturer_slug', '');
 
             return;
         }
 
+        /** @var \WP_Term|false $existingTerm */
         $existingTerm = \get_term_by('slug', $gpsrManufacturerTitleform, 'product_manufacturer');
         if (!$existingTerm) {
+            /** @var array<string, int|string> $newTerm */
             $newTerm = \wp_insert_term(
                 $gpsrManufacturerName,
                 'product_manufacturer',
@@ -408,11 +411,14 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     ]
             );
 
+            /** @var int $termId */
             $termId = $newTerm['term_id'];
         } else {
             $termId = $existingTerm->term_id;
         }
 
+        /** @var array<string, string> $manufacturerData */
+        /** @var array<string, string> $responsiblePersonData */
         $concatenatedAddresses        = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
         $gpsrManufacturerAddress      = $concatenatedAddresses[0];
         $gpsrResponsiblePersonAddress = $concatenatedAddresses[1];
@@ -432,8 +438,8 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         );
 
         // link product to gpsr manufacturer
-        \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
-        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
+        \wp_set_object_terms((int)$product->getId()->getEndpoint(), $termId, 'product_manufacturer');
+        \update_post_meta((int)$product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
     }
 
     /**
@@ -502,7 +508,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 $selectColumn,
                 $tableName,
                 $whereColumn,
-                \esc_sql($nutrientData)
+                \esc_sql((string)$nutrientData)
             )
         );
     }

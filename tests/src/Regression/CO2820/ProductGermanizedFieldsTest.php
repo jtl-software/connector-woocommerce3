@@ -52,7 +52,7 @@ class ProductGermanizedFieldsTest extends TestCase
     }
 
     /**
-     * @dataprovider gpsrDataProvider
+     * @dataProvider gpsrDataProvider
      * @param array<string, string> $manufacturerData
      * @param array<string, string> $responsiblePersonData
      * @param array<string, string> $expectedResult
@@ -70,6 +70,8 @@ class ProductGermanizedFieldsTest extends TestCase
      * @throws \PHPUnit\Framework\MockObject\ReflectionException
      * @throws \ReflectionException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
      */
     public function testGetConcatenatedAddresses(
         array $manufacturerData,

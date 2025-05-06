@@ -48,9 +48,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                     ? $model->getCreationDate()->format("Y-m-d")
                     : '';
 
-                $trackingProviders = $shipmentTrackingActions
-                ? $shipmentTrackingActions->get_providers()
-                : null;
+                $trackingProviders = $shipmentTrackingActions->get_providers();
 
                 $shippingProviderName = \trim($trackingList->getName());
 

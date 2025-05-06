@@ -41,9 +41,11 @@ class ClassInitializationTest extends AbstractTestCase
         $srcPath   = \sprintf('%s/src', \dirname(__DIR__, 2));
         $classList = $this->findClasses($srcPath);
 
+
         $classList = \array_filter($classList, static function ($classPath) {
             return \str_contains($classPath, 'Traits') === false;
         });
+
 
         foreach ($classList as $classPath) {
             $classFile = new \SplFileInfo($classPath);
@@ -69,6 +71,6 @@ class ClassInitializationTest extends AbstractTestCase
      */
     protected function findClasses(string $srcPath): bool|array
     {
-        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), \GLOB_BRACE);
+        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), 1024);
     }
 }
