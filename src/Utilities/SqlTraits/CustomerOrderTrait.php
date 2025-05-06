@@ -41,7 +41,7 @@ trait CustomerOrderTrait
         $from         = $hposEnabled ? $wpdb->prefix . 'wc_orders' : $wpdb->posts;
 
         $where = ((!empty($since) && \strtotime($since) !== false) ? "AND p.{$dateColumn} > '{$since}' " : '')
-            . "AND p.${dateColumn} < DATE_SUB(NOW(), INTERVAL {$delay} SECOND)";
+            . "AND p.{$dateColumn} < DATE_SUB(NOW(), INTERVAL {$delay} SECOND)";
 
         return \sprintf(
             "

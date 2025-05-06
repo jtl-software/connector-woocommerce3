@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Product as ProductModel;
+use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use PhpUnitsOfMeasure\Exception\NonNumericValue;
 use PhpUnitsOfMeasure\Exception\NonStringUnitName;
@@ -411,8 +412,8 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
         [$gpsrManufacturerAddress, $gpsrResponsibleAddress] = $this->createManufacturerAndResponsibleStrings($product);
 
-        \update_post_meta($postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
-        \update_post_meta($postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
+        \update_post_meta((int)$postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
+        \update_post_meta((int)$postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
     }
 
     /**
@@ -510,6 +511,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             }
         }
 
+        /** @var array<string, string> $manufacturerData */
         $gpsrManufacturerAddress = $manufacturerData['name'] . "\n"
             . $manufacturerData['street'] . ' ' . $manufacturerData['housenumber'] . "\n"
             . $manufacturerData['postalcode'] . ' ' . $manufacturerData['city'] . "\n"
@@ -517,6 +519,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             . $manufacturerData['email'] . "\n"
             . $manufacturerData['homepage'];
 
+        /** @var array<string, string> $responsiblePersonData */
         $gpsrResponsibleAddress = $responsiblePersonData['name'] . "\n"
             . $responsiblePersonData['street'] . ' ' . $responsiblePersonData['housenumber'] . "\n"
             . $responsiblePersonData['postalcode'] . ' ' . $responsiblePersonData['city'] . "\n"

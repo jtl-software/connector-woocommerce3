@@ -53,26 +53,37 @@ class ProductGermanizedFieldsTest extends TestCase
 
     /**
      * @dataProvider gpsrDataProvider
-     * @throws InvalidMethodNameException
-     * @throws RuntimeException
-     * @throws OriginalConstructorInvocationRequiredException
-     * @throws ClassIsFinalException
-     * @throws \PHPUnit\Framework\InvalidArgumentException
-     * @throws DuplicateMethodException
-     * @throws ClassIsReadonlyException
-     * @throws \PHPUnit\Framework\MockObject\ReflectionException
-     * @throws UnknownTypeException
+     * @param array<string, string> $manufacturerData
+     * @param array<string, string> $responsiblePersonData
+     * @param array<string, string> $expectedResult
+     * @return void
      * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \PHPUnit\Framework\MockObject\ReflectionException
+     * @throws \ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
      */
-    public function testGetConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData, array $expectedResult): void
-    {
+    public function testGetConcatenatedAddresses(
+        array $manufacturerData,
+        array $responsiblePersonData,
+        array $expectedResult
+    ): void {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
 
         $germanizedController = new ProductGermanizedFieldsController($db, $util);
 
-        $controller  = new \ReflectionClass($germanizedController);
+        $controller   = new \ReflectionClass($germanizedController);
         $getAddresses = $controller->getMethod('getConcatenatedAddresses');
 
         $results = $getAddresses->invoke($germanizedController, $manufacturerData, $responsiblePersonData);

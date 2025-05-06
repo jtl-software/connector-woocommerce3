@@ -50,6 +50,7 @@ namespace JtlWooCommerceConnector\Tests\Regression\CO2909 {
         /**
          * @return void
          * @throws \ReflectionException
+         * @covers ProductGermanizedFieldsController::updateGermanizedGpsrData
          */
         public function testCanUpdateGermanizedGpsrData(): void
         {
