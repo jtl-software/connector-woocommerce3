@@ -12,7 +12,7 @@ use Psr\Log\InvalidArgumentException;
 
 class ShippingClassController extends AbstractBaseController
 {
-    public const string TERM_TAXONOMY = 'product_shipping_class';
+    public const TERM_TAXONOMY = 'product_shipping_class';
 
     /**
      * @return array<int, ShippingClassModel>

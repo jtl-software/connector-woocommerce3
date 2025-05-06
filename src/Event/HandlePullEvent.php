@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class HandlePullEvent extends Event
 {
-    public const string EVENT_NAME = 'connector.handle.pull';
+    public const EVENT_NAME = 'connector.handle.pull';
 
     protected mixed $result;
     protected string $controller;

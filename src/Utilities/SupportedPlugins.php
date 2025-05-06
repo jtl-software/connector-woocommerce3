@@ -8,7 +8,7 @@ class SupportedPlugins
 {
     //THEMESPECIALS
 
-    public const string
+    public const
         //Compatible
         PLUGIN_B2B_MARKET                                          = 'B2B Market',
         PLUGIN_GERMAN_MARKET                                       = 'German Market',
@@ -56,7 +56,7 @@ class SupportedPlugins
         PLUGIN_BACKWPUP                  = 'BackWPup';
 
     //arrays
-    public const array SUPPORTED_PLUGINS = [
+    public const SUPPORTED_PLUGINS = [
         self::PLUGIN_PERFECT_WOO_BRANDS,
         self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE,
         self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE,
@@ -91,7 +91,7 @@ class SupportedPlugins
         self::PLUGIN_ADVANCED_CUSTOM_FIELDS,
     ];
 
-    public const array INCOMPATIBLE_PLUGINS = [
+    public const INCOMPATIBLE_PLUGINS = [
         self::PLUGIN_ANTISPAM_BEE,
         self::PLUGIN_CERBER_SECURITY,
         self::PLUGIN_WORDFENCE,

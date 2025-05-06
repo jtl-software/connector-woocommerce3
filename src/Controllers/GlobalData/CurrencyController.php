@@ -13,10 +13,10 @@ use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
 
 class CurrencyController extends AbstractBaseController
 {
-    public const string ISO                = 'woocommerce_currency';
-    public const string SIGN_POSITION      = 'woocommerce_currency_pos';
-    public const string CENT_DELIMITER     = 'woocommerce_price_decimal_sep';
-    public const string THOUSAND_DELIMITER = 'woocommerce_price_thousand_sep';
+    public const ISO                = 'woocommerce_currency';
+    public const SIGN_POSITION      = 'woocommerce_currency_pos';
+    public const CENT_DELIMITER     = 'woocommerce_price_decimal_sep';
+    public const THOUSAND_DELIMITER = 'woocommerce_price_thousand_sep';
 
     /**
      * @return CurrencyModel[]

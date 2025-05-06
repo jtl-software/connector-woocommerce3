@@ -9,9 +9,9 @@ use Psr\Log\InvalidArgumentException;
 
 class Category
 {
-    public const string TERM_TAXONOMY               = 'product_cat';
-    public const string LEVEL_TABLE                 = 'jtl_connector_category_level';
-    public const string OPTION_CATEGORY_HAS_CHANGED = 'jtlconnector_category_has_changes';
+    public const TERM_TAXONOMY               = 'product_cat';
+    public const LEVEL_TABLE                 = 'jtl_connector_category_level';
+    public const OPTION_CATEGORY_HAS_CHANGED = 'jtlconnector_category_has_changes';
 
     protected Db $db;
 

@@ -39,14 +39,14 @@ class ImageController extends AbstractBaseController implements
     PushInterface,
     DeleteInterface
 {
-    public const string GALLERY_DIVIDER    = ',';
-    public const string PRODUCT_THUMBNAIL  = '_thumbnail_id';
-    public const string CATEGORY_THUMBNAIL = 'thumbnail_id';
-    public const string GALLERY_KEY        = '_product_image_gallery';
-    public const string MANUFACTURER_KEY   = 'pwb_brand_image';
-    public const string PRODUCT_IMAGE      = 'product';
-    public const string CATEGORY_IMAGE     = 'category';
-    public const string MANUFACTURER_IMAGE = 'manufacturer';
+    public const GALLERY_DIVIDER    = ',';
+    public const PRODUCT_THUMBNAIL  = '_thumbnail_id';
+    public const CATEGORY_THUMBNAIL = 'thumbnail_id';
+    public const GALLERY_KEY        = '_product_image_gallery';
+    public const MANUFACTURER_KEY   = 'pwb_brand_image';
+    public const PRODUCT_IMAGE      = 'product';
+    public const CATEGORY_IMAGE     = 'category';
+    public const MANUFACTURER_IMAGE = 'manufacturer';
 
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];

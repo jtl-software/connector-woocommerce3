@@ -8,7 +8,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleStatsEvent extends Event
 {
-    public const string EVENT_NAME = 'connector.handle.stats';
+    public const EVENT_NAME = 'connector.handle.stats';
 
     protected mixed $result;
     protected string $controller;
