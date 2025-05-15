@@ -146,7 +146,7 @@ class WpmlCategory extends AbstractComponent
             $tablePrefix,
             $tablePrefix,
             $wpmlPlugin->getDefaultLanguage(),
-            \esc_sql($limit)
+            \esc_sql(((string)$limit))
         );
 
         /** @var array<int, array<int|string, int|string|null>> $categories */

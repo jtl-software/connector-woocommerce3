@@ -254,10 +254,11 @@ function clearJTLLogs(): void
 
 
 /**
- * @throws UnexpectedValueException
+ * @param bool $exit
  * @return void
+ * @throws UnexpectedValueException
  */
-function clearConnectorCache($exit = true): void
+function clearConnectorCache(bool $exit = true): void
 {
     $cacheDir = CONNECTOR_DIR . '/var/cache';
 
