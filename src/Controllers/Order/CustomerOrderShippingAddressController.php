@@ -20,15 +20,15 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
     {
         $address = (new CustomerOrderShippingAddressModel())
             ->setId(new Identity(CustomerOrderController::SHIPPING_ID_PREFIX . $order->get_id()))
-            ->setFirstName($order->get_shipping_first_name())
-            ->setLastName($order->get_shipping_last_name())
-            ->setStreet($order->get_shipping_address_1())
-            ->setExtraAddressLine($order->get_shipping_address_2())
-            ->setZipCode($order->get_shipping_postcode())
-            ->setCity($order->get_shipping_city())
+            ->setFirstName($order->get_shipping_first_name() ?? '')
+            ->setLastName($order->get_shipping_last_name() ?? '')
+            ->setStreet($order->get_shipping_address_1() ?? '')
+            ->setExtraAddressLine($order->get_shipping_address_2() ?? '')
+            ->setZipCode($order->get_shipping_postcode() ?? '')
+            ->setCity($order->get_shipping_city() ?? '')
             ->setState($this->getState($order->get_shipping_country(), $order->get_shipping_state()))
-            ->setCountryIso($order->get_shipping_country())
-            ->setCompany($order->get_shipping_company())
+            ->setCountryIso($order->get_shipping_country() ?? '')
+            ->setCompany($order->get_shipping_company() ?? '')
             ->setCustomerId($this->createCustomerId($order));
 
         if ($this->emptyAddressCheck($address)) {
@@ -92,7 +92,7 @@ class CustomerOrderShippingAddressController extends CustomerOrderAddressControl
         }
 
         if (empty($address->getCountryIso())) {
-            $address->setCountryIso($order->get_billing_country());
+            $address->setCountryIso($order->get_billing_country() ?? '');
         }
 
         if (empty($address->getLastName())) {
