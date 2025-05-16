@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
-use http\Exception\InvalidArgumentException;
 use Jtl\Connector\Core\Exception\TranslatableAttributeException;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -13,6 +12,7 @@ use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\Germanized;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\TaxonomyOverride;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
 
@@ -27,7 +27,6 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @return void
-     * @throws InvalidArgumentException
      * @throws \InvalidArgumentException
      */
     public function pullData(ProductModel &$product, WC_Product $wcProduct): void
@@ -208,7 +207,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
     /**
      * @param ProductModel $product
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -326,10 +325,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 if ($this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
                     switch ($i18n->getName()) {
                         case 'gpsr_manufacturer_name':
+                            /** @var string $gpsrManufacturerName */
                             $gpsrManufacturerName      = $i18n->getValue();
                             $manufacturerData['name']  = $gpsrManufacturerName;
                             $gpsrManufacturerTitleform = \strtolower(
-                                \str_replace(' ', '', $i18n->getValue())
+                                \str_replace(' ', '', $gpsrManufacturerName)
                             ) . '-gpsr';
                             break;
                         case 'gpsr_manufacturer_street':
@@ -389,14 +389,19 @@ class ProductGermanizedFieldsController extends AbstractBaseController
         }
 
         if ($gpsrManufacturerName === '') {
-            \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
-            \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', '');
+            TaxonomyOverride::wp_delete_object_term_relationships(
+                (int)$product->getId()->getEndpoint(),
+                'product_manufacturer'
+            );
+            \update_post_meta((int)$product->getId()->getEndpoint(), '_manufacturer_slug', '');
 
             return;
         }
 
+        /** @var \WP_Term|false $existingTerm */
         $existingTerm = \get_term_by('slug', $gpsrManufacturerTitleform, 'product_manufacturer');
         if (!$existingTerm) {
+            /** @var array<string, int|string> $newTerm */
             $newTerm = \wp_insert_term(
                 $gpsrManufacturerName,
                 'product_manufacturer',
@@ -406,11 +411,14 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                     ]
             );
 
+            /** @var int $termId */
             $termId = $newTerm['term_id'];
         } else {
             $termId = $existingTerm->term_id;
         }
 
+        /** @var array<string, string> $manufacturerData */
+        /** @var array<string, string> $responsiblePersonData */
         $concatenatedAddresses        = $this->getConcatenatedAddresses($manufacturerData, $responsiblePersonData);
         $gpsrManufacturerAddress      = $concatenatedAddresses[0];
         $gpsrResponsiblePersonAddress = $concatenatedAddresses[1];
@@ -423,12 +431,15 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsiblePersonAddress);
         }
 
-        #remove existing product to gpsr manufacturer link
-        \wp_delete_object_term_relationships($product->getId()->getEndpoint(), 'product_manufacturer');
+        // remove existing product to gpsr manufacturer link
+        TaxonomyOverride::wp_delete_object_term_relationships(
+            (int)$product->getId()->getEndpoint(),
+            'product_manufacturer'
+        );
 
-        #link product to gpsr manufacturer
-        \wp_set_object_terms($product->getId()->getEndpoint(), $termId, 'product_manufacturer');
-        \update_post_meta($product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
+        // link product to gpsr manufacturer
+        \wp_set_object_terms((int)$product->getId()->getEndpoint(), $termId, 'product_manufacturer');
+        \update_post_meta((int)$product->getId()->getEndpoint(), '_manufacturer_slug', $gpsrManufacturerTitleform);
     }
 
     /**
@@ -477,7 +488,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
      * @param int|string $nutrientData
      * @param string     $flag
      * @return string|null
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws \Psr\Log\InvalidArgumentException
      */
     private function getNutrientTermData(int|string $nutrientData, string $flag): ?string
@@ -497,7 +508,7 @@ class ProductGermanizedFieldsController extends AbstractBaseController
                 $selectColumn,
                 $tableName,
                 $whereColumn,
-                \esc_sql($nutrientData)
+                \esc_sql((string)$nutrientData)
             )
         );
     }

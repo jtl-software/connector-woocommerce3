@@ -560,7 +560,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function init_hooks(Db $db): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -893,7 +893,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @param bool   $submit
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function displayPageNew(
         ?string $page,
@@ -1454,7 +1454,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
     /**
      * @return array<int, array<string, mixed>>
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws Exception
      */
     private static function getCustomersFields(): array
@@ -1819,7 +1819,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      * @return void
      * @throws ParseException
      * @throws \Psr\Log\InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     private static function update(Db $db): void
     {
@@ -1828,7 +1828,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $installed_version = Config::get(Config::OPTIONS_INSTALLED_VERSION, '');
 
         if (!\is_string($installed_version)) {
-            throw new \http\Exception\InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Expected installed_version to be a string, got " . gettype($installed_version) . "instead."
             );
         }

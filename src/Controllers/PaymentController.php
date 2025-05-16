@@ -30,7 +30,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      * @param QueryFilter $query
      * @return array|AbstractModel[]
      * @throws InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function pull(QueryFilter $query): array
     {
@@ -126,7 +126,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      * @param QueryFilter $query
      * @return int
      * @throws InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

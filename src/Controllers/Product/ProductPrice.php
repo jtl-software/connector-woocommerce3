@@ -293,7 +293,7 @@ class ProductPrice extends AbstractBaseController
      * @param float                                $vat
      * @param string                               $productType
      * @return void
-     * @throws InvalidArgumentException|\http\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException|\InvalidArgumentException
      */
     public function updateProductPrices(
         WC_Product $wcProduct,

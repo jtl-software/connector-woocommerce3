@@ -6,7 +6,6 @@ namespace JtlWooCommerceConnector\Controllers;
 
 use DateTime;
 use Exception;
-use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\DeleteInterface;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
@@ -87,7 +86,7 @@ class ProductController extends AbstractBaseController implements
     /**
      * @param QueryFilter $query
      * @return AbstractIdentity[]|ProductModel[]
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws Exception
      */
     public function pull(QueryFilter $query): array
@@ -274,7 +273,7 @@ class ProductController extends AbstractBaseController implements
      * @phpstan-param Product $model
      *
      * @return AbstractModel
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws NonNumericValue
      * @throws NonStringUnitName
      * @throws WC_Data_Exception
@@ -474,7 +473,7 @@ class ProductController extends AbstractBaseController implements
      * @param ProductModel     $product
      * @param ProductI18nModel $meta
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws TranslatableAttributeException
      * @throws WC_Data_Exception
      * @throws MustNotBeNullException
@@ -514,7 +513,7 @@ class ProductController extends AbstractBaseController implements
      * @param WC_Product   $wcProduct
      * @return void
      * @throws TranslatableAttributeException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function updateProductType(ProductModel $jtlProduct, WC_Product $wcProduct): void
     {
@@ -713,7 +712,7 @@ class ProductController extends AbstractBaseController implements
      * @param WC_Product   $wcProduct
      * @param string       $productType
      * @return void
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws Exception
      */
     private function updateProductRelations(ProductModel $product, WC_Product $wcProduct, string $productType): void

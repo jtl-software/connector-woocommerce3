@@ -76,7 +76,7 @@ class Category
      * @param int            $count
      * @return void
      * @throws InvalidArgumentException
-     * @throws \http\Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function saveCategoryLevelsAsPreOrder(array $parent = [], int &$count = 0): void
     {

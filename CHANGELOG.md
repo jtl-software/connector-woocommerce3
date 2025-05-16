@@ -3,6 +3,9 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2875 - use the correct \InvalidArgumentException
+- CO-2909 - Fix array_map error in germanized fields
+- CO-2888 - add default values for title and alt text
 - CO-2886 - update variable types
 
 ## 2.3.2 _2025-02-24_

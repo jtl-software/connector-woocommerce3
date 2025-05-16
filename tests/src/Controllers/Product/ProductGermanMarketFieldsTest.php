@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
     use Jtl\Connector\Core\Model\Identity;
+    use Jtl\Connector\Core\Model\Product;
     use Jtl\Connector\Core\Model\Product as ProductModel;
     use Jtl\Connector\Core\Model\ProductAttribute;
     use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
@@ -14,7 +17,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     class ProductGermanMarketFieldsTest extends AbstractTestCase
     {
         /**
-         * @param ProductModel $product
+         * @param ProductModel       $product
          * @param array<int, string> $expectedAdresses
          * @dataProvider createManufacturerAndResponsibleStringsDataProvider
          * @covers ProductGermanMarketFieldsController::createManufacturerAndResponsibleStrings
@@ -45,14 +48,14 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         }
 
         /**
-         * @return array[]
+         * @return array<int, array<int, Product|array<int, string>>>
          * @throws \JsonException
          * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
          */
         public function createManufacturerAndResponsibleStringsDataProvider(): array
         {
             $product = new ProductModel();
-            $product->setId(new Identity(1, 1));
+            $product->setId(new Identity('1', 1));
 
             $attributes = [
                 ['gpsr_manufacturer_name', 'Manufacturer ABC'],
