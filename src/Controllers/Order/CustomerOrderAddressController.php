@@ -48,39 +48,47 @@ class CustomerOrderAddressController extends AbstractBaseController
     protected function createDefaultAddresses(AbstractOrderAddress $address, ?WC_Order $order = null): void
     {
         if (empty($address->getCity())) {
-            /** @var string $wcStoreCity */
-            $wcStoreCity = \get_option('woocommerce_store_city');
+            $wcStoreCity = $this->safeGetOption('woocommerce_store_city');
             $address->setCity($wcStoreCity);
         }
 
         if (empty($address->getZipCode())) {
-            /** @var string $wcStorePostcode */
-            $wcStorePostcode = \get_option('woocommerce_store_city');
-            /** @var string $wcStoreZipCode */
-            $wcStoreZipCode = \get_option($wcStorePostcode) ?? '';
+            $wcStorePostcode = $this->safeGetOption('woocommerce_store_city');
+            $wcStoreZipCode  = $this->safeGetOption($wcStorePostcode);
             $address->setZipCode($wcStoreZipCode);
         }
 
         if (empty($address->getStreet())) {
-            /** @var string $wcStoreAddress */
-            $wcStoreAddress = \get_option('woocommerce_store_city');
-            /** @var string $wcStoreStreet */
-            $wcStoreStreet = \get_option($wcStoreAddress);
+            $wcStoreAddress = $this->safeGetOption('woocommerce_store_city');
+            $wcStoreStreet  = $this->safeGetOption($wcStoreAddress);
             $address->setStreet($wcStoreStreet);
         }
 
         if (empty($address->getCountryIso())) {
-            /** @var string $wcDefaultCountry */
-            $wcDefaultCountry = \get_option('woocommerce_store_city');
-            /** @var string $wcCountryIso */
-            $wcCountryIso = \get_option($wcDefaultCountry);
+            $wcDefaultCountry = $this->safeGetOption('woocommerce_store_city');
+            $wcCountryIso     = $this->safeGetOption($wcDefaultCountry);
             $address->setCountryIso($wcCountryIso);
         }
 
         if (empty($address->getLastName())) {
-            /** @var string $noLastNameGiven */
-            $noLastNameGiven = \get_option('woocommerce_store_city');
+            $noLastNameGiven = $this->safeGetOption('woocommerce_store_city');
             $address->setLastName($noLastNameGiven);
         }
+    }
+
+    /**
+     * @param string $optionName
+     *
+     * @return string
+     */
+    private function safeGetOption(string $optionName): string
+    {
+        $value = \get_option($optionName);
+
+        if (\is_string($value)) {
+            return $value;
+        }
+
+        return '';
     }
 }
