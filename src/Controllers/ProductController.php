@@ -105,9 +105,9 @@ class ProductController extends AbstractBaseController implements
             $postDate      = $product->get_date_created();
             $modDate       = $product->get_date_modified();
             $status        = $product->get_status('view');
-            $considerStock = is_string($managingStock = $product->managing_stock())
+            $considerStock = \is_string($managingStock = $product->managing_stock())
                 ? $product->managing_stock() === 'yes'
-                : (is_bool($managingStock) ? $managingStock : null);
+                : (\is_bool($managingStock) ? $managingStock : null);
 
             if ($considerStock === null) {
                 throw new \InvalidArgumentException(
