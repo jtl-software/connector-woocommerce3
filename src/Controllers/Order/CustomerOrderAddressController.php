@@ -53,25 +53,25 @@ class CustomerOrderAddressController extends AbstractBaseController
         }
 
         if (empty($address->getZipCode())) {
-            $wcStorePostcode = $this->safeGetOption('woocommerce_store_city');
+            $wcStorePostcode = $this->safeGetOption('woocommerce_store_postcode');
             $wcStoreZipCode  = $this->safeGetOption($wcStorePostcode);
             $address->setZipCode($wcStoreZipCode);
         }
 
         if (empty($address->getStreet())) {
-            $wcStoreAddress = $this->safeGetOption('woocommerce_store_city');
+            $wcStoreAddress = $this->safeGetOption('woocommerce_store_address');
             $wcStoreStreet  = $this->safeGetOption($wcStoreAddress);
             $address->setStreet($wcStoreStreet);
         }
 
         if (empty($address->getCountryIso())) {
-            $wcDefaultCountry = $this->safeGetOption('woocommerce_store_city');
+            $wcDefaultCountry = $this->safeGetOption('woocommerce_default_country');
             $wcCountryIso     = $this->safeGetOption($wcDefaultCountry);
             $address->setCountryIso($wcCountryIso);
         }
 
         if (empty($address->getLastName())) {
-            $noLastNameGiven = $this->safeGetOption('woocommerce_store_city');
+            $noLastNameGiven = $this->safeGetOption('NoLastNameGiven');
             $address->setLastName($noLastNameGiven);
         }
     }
