@@ -7,7 +7,6 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     use Jtl\Connector\Core\Exception\TranslatableAttributeException;
     use Jtl\Connector\Core\Model\Identity;
     use Jtl\Connector\Core\Model\Product;
-    use Jtl\Connector\Core\Model\Product;
     use Jtl\Connector\Core\Model\Product as ProductModel;
     use Jtl\Connector\Core\Model\ProductAttribute;
     use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
