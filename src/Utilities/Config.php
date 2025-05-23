@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Config
 {
-    public const string
+    public const
         OPTIONS_AUTO_B2B_MARKET_OPTIONS                  = 'jtlconnector_auto_b2b_market',
         OPTIONS_PULL_ORDERS_SINCE                        = 'jtlconnector_pull_orders_since',
         OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page',
@@ -46,7 +46,7 @@ class Config
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
         OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than';
 
-    public const array JTLWCC_CONFIG_DEFAULTS = [
+    public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
         Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => true,
         Config::OPTIONS_SEND_CUSTOM_PROPERTIES => true,
@@ -86,7 +86,7 @@ class Config
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
     ];
 
-    public const array JTLWCC_CONFIG = [
+    public const JTLWCC_CONFIG = [
         //FIRSTPAGE
         Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => 'bool',

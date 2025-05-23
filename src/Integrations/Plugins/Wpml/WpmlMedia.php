@@ -19,7 +19,7 @@ use JtlWooCommerceConnector\Utilities\Id;
  */
 class WpmlMedia extends AbstractComponent
 {
-    public const string
+    public const
         ELEMENT_TYPE = 'post_attachment';
 
     /**
