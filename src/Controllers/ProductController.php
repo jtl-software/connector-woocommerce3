@@ -421,7 +421,7 @@ class ProductController extends AbstractBaseController implements
             \add_filter('content_save_pre', 'wp_filter_post_kses');
             \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
-            $returnModels[] = $models;
+            $returnModels[] = $model;
         }
 
         return $returnModels;
