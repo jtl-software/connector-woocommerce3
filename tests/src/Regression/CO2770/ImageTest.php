@@ -63,6 +63,7 @@ class ImageTest extends TestCase
 
     /**
      * @dataProvider deleteProductImageDataProvider
+     *
      * @param AbstractImage $image
      * @param bool          $realDelete
      * @param string        $queryString
@@ -95,7 +96,6 @@ class ImageTest extends TestCase
          * */
         //TODO: dummy assertion, replace by actual test later
         $this->assertTrue(true);
-        echo 'ImageTest::testDeleteProductImage() in CO2770\Regression not implemented.';
     }
 
     /**

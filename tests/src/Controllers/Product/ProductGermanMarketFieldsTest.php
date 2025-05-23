@@ -7,6 +7,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     use Jtl\Connector\Core\Exception\TranslatableAttributeException;
     use Jtl\Connector\Core\Model\Identity;
     use Jtl\Connector\Core\Model\Product;
+    use Jtl\Connector\Core\Model\Product;
     use Jtl\Connector\Core\Model\Product as ProductModel;
     use Jtl\Connector\Core\Model\ProductAttribute;
     use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
@@ -49,14 +50,14 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
         }
 
         /**
-         * @return array<int, Product|array<int, string>>
+         * @return array<int, array<int, Product|array<int, string>>>
          * @throws TranslatableAttributeException
          * @throws \JsonException
          */
         public function createManufacturerAndResponsibleStringsDataProvider(): array
         {
             $product = new ProductModel();
-            $product->setId(new Identity(1, 1));
+            $product->setId(new Identity('1', 1));
 
             $attributes = [
                 ['gpsr_manufacturer_name', 'Manufacturer ABC'],

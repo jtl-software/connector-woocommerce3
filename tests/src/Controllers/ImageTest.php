@@ -6,8 +6,6 @@ namespace JtlWooCommerceConnector\Tests\Controllers;
 
 use InvalidArgumentException;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
-use Jtl\Connector\Core\Model\AbstractImage;
-use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
@@ -26,12 +24,12 @@ use PHPUnit\Framework\MockObject\RuntimeException;
 use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
-use JtlWooCommerceConnector\Tests\Faker\DbFaker;
-use WC_Product;
+use WP_Mock;
 
 class ImageTest extends TestCase
 {
     protected \phpmock\Mock $getLocale;
+    protected \phpmock\Mock $copy;
 
     /**
      * @return void
@@ -50,6 +48,14 @@ class ImageTest extends TestCase
             })->build();
 
         $this->getLocale->enable();
+
+        $this->copy = (new MockBuilder())
+            ->setNamespace('JtlWooCommerceConnector\Controllers')
+            ->setName('copy')
+            ->setFunction(function () {
+                return true;
+            })->build();
+        $this->copy->enable();
     }
 
     /**
@@ -59,11 +65,13 @@ class ImageTest extends TestCase
     {
         parent::tearDown();
         $this->getLocale->disable();
+        $this->copy->disable();
     }
 
     /**
      * @dataProvider imageAltTextDataProvider
      * @param ProductImage $image
+     * @param string       $defaultImageName
      * @param string       $expectedAltText
      * @return void
      * @throws ReflectionException
@@ -71,7 +79,7 @@ class ImageTest extends TestCase
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      * @covers ImageController::getImageAlt
      */
-    public function testGetImageAltText(ProductImage $image, string $expectedAltText): void
+    public function testGetImageAltText(ProductImage $image, string $defaultImageName, string $expectedAltText): void
     {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
@@ -92,7 +100,10 @@ class ImageTest extends TestCase
         $getImageAlt = $controller->getMethod('getImageAlt');
         $getImageAlt->setAccessible(true);
 
-        $result = $getImageAlt->invoke($imageController, $image);
+        $parent       = \Mockery::mock('WP_Term');
+        $parent->slug = $defaultImageName;
+
+        $result = $getImageAlt->invoke($imageController, $image, $parent);
         $this->assertSame($expectedAltText, $result);
     }
 
@@ -107,15 +118,18 @@ class ImageTest extends TestCase
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('ger'),
                     (new ImageI18n())->setAltText('Alt text default')->setLanguageISO('eng')
                 ),
+                'default-parent-slug',
                 'Alt text default'
             ],
             [
                 (new ProductImage())->setName("Default name"),
+                'default-parent-slug',
                 'Default name'
             ],
             [
                 (new ProductImage())->setName(''),
-                ''
+                'default-parent-slug',
+                'default-parent-slug'
             ]
         ];
     }
@@ -144,6 +158,7 @@ class ImageTest extends TestCase
      * @throws UnknownTypeException
      * @throws ReflectionException
      * @throws \Exception
+     * @return void
      * @covers ImageController::getNextAvailableImageFilename
      */
     public function testGetNextAvailableImageFilenameFileNotExisting(
@@ -179,6 +194,73 @@ class ImageTest extends TestCase
                 '/var/www/html/wordpress/wp-content/uploads/2024/11',
                 '1111_Product.jpg'
             ]
+        ];
+    }
+
+    /**
+     * @dataProvider getImageNameWithDefaultTitleAndAltTextDataProvider
+     * @param string             $name
+     * @param array<int, string> $fileInfo
+     * @param string             $defaultImageName
+     * @param string             $expectedImageName
+     * @return void
+     * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws ExpectationFailedException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws ReflectionException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
+     * @throws \Mockery\Exception\RuntimeException
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \PHPUnit\Framework\MockObject\ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @covers ImageController::getImageName
+     */
+    public function testGetImageNameWithDefaultTitleAndAltText(
+        string $name,
+        array $fileInfo,
+        string $defaultImageName,
+        string $expectedImageName
+    ): void {
+        $db               = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util             = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $imageController = new ImageController($db, $util, $primaryKeyMapper);
+
+        $productImage = new ProductImage();
+        $productImage->setName($name);
+
+        $parent       = \Mockery::mock('WP_Term');
+        $parent->slug = $defaultImageName;
+
+        $imageName = $imageController->getImageName($productImage, $parent, $fileInfo);
+
+        $this->assertSame($expectedImageName, $imageName);
+    }
+
+    /**
+     * @return array<int, array<int, string|array<string, string>>>
+     */
+    public function getImageNameWithDefaultTitleAndAltTextDataProvider(): array
+    {
+        return [
+            [
+                '',
+                ['filename' => 'mocked-filename'],
+                'mocked-parent-slug',
+                'mocked-parent-slug'
+            ],
+            [
+                'ImageName',
+                ['filename' => 'mocked-filename'],
+                'mocked-parent-slug',
+                'ImageName'
+            ],
         ];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace src\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 
 class ImageTraitTest extends TestCase
@@ -28,10 +29,7 @@ class ImageTraitTest extends TestCase
     {
         global $wpdb;
 
-        $wpdb = $this->getMockBuilder(\wpdb::class)
-            ->setMethods(['prefix'])
-            ->getMock();
-
+        $wpdb         = Mockery::mock('WPDB');
         $wpdb->prefix = 'wp_';
     }
 

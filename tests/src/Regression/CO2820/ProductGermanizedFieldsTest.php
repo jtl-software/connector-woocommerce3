@@ -69,6 +69,9 @@ class ProductGermanizedFieldsTest extends TestCase
      * @throws UnknownTypeException
      * @throws ExpectationFailedException
      * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
      * @throws ReflectionException
      * @throws \ReflectionException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException

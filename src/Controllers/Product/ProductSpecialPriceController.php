@@ -236,6 +236,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                 if ($specialPrice->getConsiderDateLimit()) {
                     $dateTo = \is_null($end = $specialPrice->getActiveUntilDate())
                         ? null
+                        // @phpstan-ignore-next-line
                         : $end->setTime(
                             Date::LAST_HOUR,
                             Date::LAST_MINUTE,
@@ -318,10 +319,10 @@ class ProductSpecialPriceController extends AbstractBaseController
                     }
                 } elseif (\is_int((int)$endpoint)) {
                     if ($productType !== ProductController::TYPE_PARENT) {
-                        $customerGroup = \get_post($endpoint);
+                        $customerGroup = \get_post((int)$endpoint);
                         $priceMetaKey  = null;
 
-                        if (!$customerGroup instanceof WP_Post) {
+                        if (!$customerGroup instanceof \WP_Post) {
                             throw new \InvalidArgumentException("Customer group not found");
                         }
 
@@ -594,19 +595,17 @@ class ProductSpecialPriceController extends AbstractBaseController
                             }
                         } else {
                             /** @var false|string $regularPrice */
-                            $regularPrice = \get_post_meta($productId, $regularPriceMetaKey, true);
+                            $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
                             if (!\is_bool($regularPrice)) {
                                 \update_post_meta(
                                     (int)$productId,
-                                    $priceMetaKey,
+                                    $priceMetaKey ?? '_price',
                                     \wc_format_decimal((float)$regularPrice, $pd),
-                                    \get_post_meta((int)$productId, $priceMetaKey, true)
+                                    \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
                                 );
                             }
                         }
                     }
-                } else {
-                    continue;
                 }
             }
         }
@@ -764,9 +763,9 @@ class ProductSpecialPriceController extends AbstractBaseController
 
             \update_post_meta(
                 (int)$productId,
-                $priceMetaKey,
+                $priceMetaKey ?? '_price',
                 \wc_format_decimal((float)$regularPrice, $pd),
-                \get_post_meta((int)$productId, $priceMetaKey, true)
+                \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
             );
 
             if ($productType === ProductController::TYPE_CHILD) {
@@ -814,10 +813,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
             $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
             \update_post_meta(
-                $productId,
+                (int)$productId,
                 $metaKeyForCustomerGroupPriceType,
                 'fix',
-                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                \get_post_meta((int)$productId, $metaKeyForCustomerGroupPriceType, true)
             );
         }
 
@@ -825,11 +824,11 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string  $productId
-     * @param WP_Post $post
+     * @param string   $productId
+     * @param \WP_Post $post
      * @return array<int, string|null>
      */
-    public function setPriceMetaKeysForTypeChild(string $productId, WP_Post $post): array
+    public function setPriceMetaKeysForTypeChild(string $productId, \WP_Post $post): array
     {
         $COPpriceMetaKey     = null;
         $COPpriceTypeMetaKey = null;
