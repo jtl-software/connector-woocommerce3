@@ -11,12 +11,14 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\MockObject\ClassAlreadyExistsException;
 use PHPUnit\Framework\MockObject\ClassIsFinalException;
 use PHPUnit\Framework\MockObject\ClassIsReadonlyException;
 use PHPUnit\Framework\MockObject\DuplicateMethodException;
 use PHPUnit\Framework\MockObject\InvalidMethodNameException;
 use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
+use PHPUnit\Framework\MockObject\ReflectionException;
 use PHPUnit\Framework\MockObject\RuntimeException;
 use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
@@ -65,13 +67,14 @@ class ProductGermanizedFieldsTest extends TestCase
      * @throws OriginalConstructorInvocationRequiredException
      * @throws RuntimeException
      * @throws UnknownTypeException
-     * @throws \PHPUnit\Framework\ExpectationFailedException
+     * @throws ExpectationFailedException
      * @throws \PHPUnit\Framework\InvalidArgumentException
-     * @throws \PHPUnit\Framework\MockObject\ReflectionException
-     * @throws \ReflectionException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      * @throws \Exception
      * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
+     * @throws ReflectionException
+     * @throws \ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
     public function testGetConcatenatedAddresses(
         array $manufacturerData,

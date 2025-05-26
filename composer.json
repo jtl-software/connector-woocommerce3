@@ -19,7 +19,7 @@
   ],
   "require": {
     "php": ">=8.1",
-    "jtl/connector": "5.2.*",
+    "jtl/connector": "dev-master",
     "symfony/yaml": "^3.4",
     "twbs/bootstrap": "^4.3",
     "theiconic/name-parser": "^0.1.1",

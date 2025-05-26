@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Automattic\WooCommerce\Internal\DependencyManagement\ContainerException;
 use Jtl\Connector\Core\Controller\PullInterface;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Controller\StatisticInterface;
+use Jtl\Connector\Core\Exception\MustNotBeNullException;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\Identity;
@@ -102,24 +104,33 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$models
+     * @return AbstractModel[]
+     * @throws ContainerException
+     * @throws MustNotBeNullException
+     * @throws \TypeError
      * @throws \WC_Data_Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$models): array
     {
-        /** @var PaymentModel $model */
-        $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());
+        $returnModels = [];
 
-        if (!$order instanceof \WC_Order) {
-            return $model;
+        foreach ($models as $model) {
+            /** @var PaymentModel $model */
+            $order = \wc_get_order((int)$model->getCustomerOrderId()->getEndpoint());
+
+            if (!$order instanceof \WC_Order) {
+                $returnModels[] = $model;
+                continue;
+            }
+
+            $order->set_transaction_id($model->getTransactionId());
+            $order->set_date_paid($model->getCreationDate() ? $model->getCreationDate()->getTimestamp() : null);
+            $order->save();
+
+            $returnModels[] = $model;
         }
-
-        $order->set_transaction_id($model->getTransactionId());
-        $order->set_date_paid($model->getCreationDate() ? $model->getCreationDate()->getTimestamp() : null);
-        $order->save();
-
-        return $model;
+        return $returnModels;
     }
 
     /**

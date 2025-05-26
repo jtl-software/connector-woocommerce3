@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Automattic\WooCommerce\Internal\DependencyManagement\ContainerException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
@@ -15,36 +16,43 @@ use WC_Order;
 class StatusChangeController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @return StatusChangeModel
-     * @throws \WC_Data_Exception|InvalidArgumentException
+     * @param AbstractModel ...$models
+     * @return StatusChangeModel[]
+     * @throws \InvalidArgumentException
+     * @throws ContainerException
+     * @throws \WC_Data_Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$models): array
     {
-        /** @var StatusChangeModel $model */
-        $customerOrderId = $model->getCustomerOrderId();
-        $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
-        $order           = \wc_get_order($endpointId);
+        $returnModels = [];
 
-        if ($order instanceof WC_Order) {
-            if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
-                \add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
-                    return false;
-                }, 10, 2);
-            }
+        foreach ($models as $model) {
+            /** @var StatusChangeModel $model */
+            $customerOrderId = $model->getCustomerOrderId();
+            $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : false;
+            $order           = \wc_get_order($endpointId);
 
-            $newStatus = $this->mapStatus($model, $order);
-            if ($newStatus !== null) {
-                if ($newStatus === 'wc-completed') {
-                    $this->linkIfPaymentIsNotLinked($model);
+            if ($order instanceof WC_Order) {
+                if ($model->getOrderStatus() === CustomerOrder::STATUS_CANCELLED) {
+                    \add_filter('woocommerce_can_restore_order_stock', function ($true, $order) {
+                        return false;
+                    }, 10, 2);
                 }
 
-                $order->set_status($newStatus);
-                $order->save();
-            }
-        }
+                $newStatus = $this->mapStatus($model, $order);
+                if ($newStatus !== null) {
+                    if ($newStatus === 'wc-completed') {
+                        $this->linkIfPaymentIsNotLinked($model);
+                    }
 
-        return $model;
+                    $order->set_status($newStatus);
+                    $order->save();
+                }
+            }
+
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**

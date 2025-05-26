@@ -20,6 +20,7 @@ use JtlWooCommerceConnector\Utilities\Date;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
+use WP_Post;
 
 class ProductSpecialPriceController extends AbstractBaseController
 {
@@ -654,7 +655,7 @@ class ProductSpecialPriceController extends AbstractBaseController
         foreach ($customerGroups as $groupKey => $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
             $post            = \get_post((int)$customerGroupId);
-            if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
+            if ($post instanceof WP_Post && \is_int((int)$customerGroupId)) {
                 $priceMetaKey = $this->setPostMetaKey($productId, $post->post_name);
 
                 $regularPriceMetaKey = \sprintf(

@@ -15,6 +15,8 @@ use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
 use WC_Product;
 
+use function DI\string;
+
 class ProductGermanMarketFieldsController extends AbstractBaseController
 {
     /**

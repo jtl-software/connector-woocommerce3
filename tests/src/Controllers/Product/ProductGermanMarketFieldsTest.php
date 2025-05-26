@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
+    use Jtl\Connector\Core\Exception\TranslatableAttributeException;
     use Jtl\Connector\Core\Model\Identity;
     use Jtl\Connector\Core\Model\Product;
     use Jtl\Connector\Core\Model\Product as ProductModel;
@@ -49,8 +50,8 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
         /**
          * @return array<int, array<int, Product|array<int, string>>>
+         * @throws TranslatableAttributeException
          * @throws \JsonException
-         * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
          */
         public function createManufacturerAndResponsibleStringsDataProvider(): array
         {

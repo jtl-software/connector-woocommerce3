@@ -142,6 +142,7 @@ class ImageTest extends TestCase
      * @param string $extension
      * @param string $uploadDir
      * @param string $expectedFileName
+     * @return void
      *
      * @throws RuntimeException
      * @throws ClassIsFinalException

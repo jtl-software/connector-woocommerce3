@@ -85,7 +85,6 @@ class ProductSpecialPriceTest extends AbstractTestCase
     /**
      * @return array<int, array<int, string|null>>
      * @throws \JsonException
-     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
      */
     public function setPostMetaKeyDataProvider(): array
     {
