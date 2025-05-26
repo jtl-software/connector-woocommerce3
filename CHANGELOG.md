@@ -3,7 +3,11 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-2919 - implement core updates in connector
 - CO-2875 - use the correct \InvalidArgumentException
+- CO-2909 - Fix array_map error in germanized fields
+- CO-2888 - add default values for title and alt text
+- CO-2912 - Fix setZipCode
 - CO-2905 - support Advanced Shipment Tracking Pro again
 
 ## 2.3.2 _2025-02-24_

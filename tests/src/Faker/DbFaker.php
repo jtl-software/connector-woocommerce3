@@ -8,14 +8,12 @@ use JtlWooCommerceConnector\Utilities\Db;
 
 class DbFaker extends Db
 {
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     public array $givenQueries = [];
 
     /**
      * @param string $query
-     * @param bool $shouldLog
+     * @param bool   $shouldLog
      * @return array<string, bool|int|string|null>|null Faker Database query results
      * @throws \Psr\Log\InvalidArgumentException
      */

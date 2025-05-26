@@ -11,12 +11,14 @@ use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\MockObject\ClassAlreadyExistsException;
 use PHPUnit\Framework\MockObject\ClassIsFinalException;
 use PHPUnit\Framework\MockObject\ClassIsReadonlyException;
 use PHPUnit\Framework\MockObject\DuplicateMethodException;
 use PHPUnit\Framework\MockObject\InvalidMethodNameException;
 use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
+use PHPUnit\Framework\MockObject\ReflectionException;
 use PHPUnit\Framework\MockObject\RuntimeException;
 use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
@@ -53,26 +55,38 @@ class ProductGermanizedFieldsTest extends TestCase
 
     /**
      * @dataProvider gpsrDataProvider
-     * @throws InvalidMethodNameException
-     * @throws RuntimeException
-     * @throws OriginalConstructorInvocationRequiredException
-     * @throws ClassIsFinalException
-     * @throws \PHPUnit\Framework\InvalidArgumentException
-     * @throws DuplicateMethodException
-     * @throws ClassIsReadonlyException
-     * @throws \PHPUnit\Framework\MockObject\ReflectionException
-     * @throws UnknownTypeException
+     * @param array<string, string> $manufacturerData
+     * @param array<string, string> $responsiblePersonData
+     * @param array<string, string> $expectedResult
+     * @return void
      * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws ClassIsReadonlyException
+     * @throws DuplicateMethodException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
+     * @throws ExpectationFailedException
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\Product\ProductGermanizedFieldsController::getConcatenatedAddresses
+     * @throws ReflectionException
+     * @throws \ReflectionException
+     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      */
-    public function testGetConcatenatedAddresses(array $manufacturerData, array $responsiblePersonData, array $expectedResult): void
-    {
+    public function testGetConcatenatedAddresses(
+        array $manufacturerData,
+        array $responsiblePersonData,
+        array $expectedResult
+    ): void {
         $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
         $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
 
         $germanizedController = new ProductGermanizedFieldsController($db, $util);
 
-        $controller  = new \ReflectionClass($germanizedController);
+        $controller   = new \ReflectionClass($germanizedController);
         $getAddresses = $controller->getMethod('getConcatenatedAddresses');
 
         $results = $getAddresses->invoke($germanizedController, $manufacturerData, $responsiblePersonData);

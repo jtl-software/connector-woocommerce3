@@ -29,6 +29,7 @@ use WC_Product_Attribute;
 use WP_Error;
 use WP_Post;
 use WP_Query;
+use WPML\Auryn\InjectionException;
 
 class SpecificController extends AbstractBaseController implements
     PullInterface,
@@ -113,288 +114,302 @@ class SpecificController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     *
-     * @return SpecificModel
+     * @param AbstractModel ...$models
+     * @return SpecificModel[]
      * @throws \InvalidArgumentException
-     * @throws \Exception
+     * @throws InjectionException
+     * @throws \WP_Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$models): array
     {
-        /** @var SpecificModel $model */
-        $model->setType('string');
-        $meta             = null;
-        $defaultAvailable = false;
+        $returnModels = [];
 
-        foreach ($model->getI18ns() as $i18n) {
-            if ($this->wpml->canBeUsed()) {
-                if (Util::mapLanguageIso($i18n->getLanguageIso()) === $this->wpml->getDefaultLanguage()) {
-                    $meta = $i18n;
-                    break;
-                }
-            } else {
-                if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                    $meta = $i18n;
-                    break;
-                }
-            }
+        foreach ($models as $model) {
+            /** @var SpecificModel $model */
+            $model->setType('string');
+            $meta             = null;
+            $defaultAvailable = false;
 
-            if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                $defaultAvailable = true;
-            }
-        }
-
-        //Fallback 'ger' if incorrect language code was given
-        if ($meta === null && $defaultAvailable) {
             foreach ($model->getI18ns() as $i18n) {
+                if ($this->wpml->canBeUsed()) {
+                    if (Util::mapLanguageIso($i18n->getLanguageIso()) === $this->wpml->getDefaultLanguage()) {
+                        $meta = $i18n;
+                        break;
+                    }
+                } else {
+                    if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                        $meta = $i18n;
+                        break;
+                    }
+                }
+
                 if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                    $meta = $i18n;
+                    $defaultAvailable = true;
                 }
             }
-        }
 
-        if ($meta !== null) {
-            $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
+            //Fallback 'ger' if incorrect language code was given
+            if ($meta === null && $defaultAvailable) {
+                foreach ($model->getI18ns() as $i18n) {
+                    if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                        $meta = $i18n;
+                    }
+                }
+            }
 
-            //STOP here if already exists
-            $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
-            $endpointId         = (int)$model->getId()->getEndpoint();
+            if ($meta !== null) {
+                $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
 
-            if ($existingTaxonomyId !== 0) {
-                if ($existingTaxonomyId !== $endpointId) {
-                    $attrId = $existingTaxonomyId;
+                //STOP here if already exists
+                $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
+                $endpointId         = (int)$model->getId()->getEndpoint();
+
+                if ($existingTaxonomyId !== 0) {
+                    if ($existingTaxonomyId !== $endpointId) {
+                        $attrId = $existingTaxonomyId;
+                    } else {
+                        $attrId = $endpointId;
+                    }
                 } else {
                     $attrId = $endpointId;
                 }
-            } else {
-                $attrId = $endpointId;
-            }
 
-            $endpoint = [
-                'id'       => $attrId,
-                'name'     => $meta->getName(),
-                'slug'     => \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27)),
-                'type'     => 'select',
-                'order_by' => 'menu_order',
-                'has_archives' => false,
-            ];
+                $endpoint = [
+                    'id' => $attrId,
+                    'name' => $meta->getName(),
+                    'slug' => \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27)),
+                    'type' => 'select',
+                    'order_by' => 'menu_order',
+                    'has_archives' => false,
+                ];
 
-            if ($endpoint['id'] === 0) {
-                $attributeId = \wc_create_attribute($endpoint);
-            } else {
-                $attributeData = \wc_get_attribute($endpoint['id']);
-                if (!\is_null($attributeData)) {
-                    $endpoint['has_archives'] = (bool)$attributeData->has_archives;
-                }
-                $attributeId = \wc_update_attribute($endpoint['id'], $endpoint);
-            }
-
-            if ($attributeId instanceof WP_Error) {
-                //var_dump($attributeId);
-                //die();
-                //return $termId->get_error_message();
-                $this->logger->error(ErrorFormatter::formatError($attributeId));
-
-                return $model;
-            }
-
-            $model->getId()->setEndpoint((string)$attributeId);
-
-            //Get taxonomy
-            $taxonomy = $attrName ?
-                'pa_' . \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27))
-                : '';
-
-            //Register taxonomy for current request
-            \register_taxonomy($taxonomy, []);
-
-            if ($this->wpml->canBeUsed()) {
-                /** @var WpmlSpecific $wpmlSpecific */
-                $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
-
-                $wpmlSpecific->setTranslations($model, $meta);
-            }
-
-            foreach ($model->getValues() as $key => $value) {
-                $metaValue             = null;
-                $defaultValueAvailable = false;
-
-                //Get i18n
-                foreach ($value->getI18ns() as $i18n) {
-                    if ($this->wpml->canBeUsed()) {
-                        if (Util::mapLanguageIso($i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
-                            $metaValue = $i18n;
-                        }
-                    } else {
-                        if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
-                            $metaValue = $i18n;
-                            break;
-                        }
+                if ($endpoint['id'] === 0) {
+                    $attributeId = \wc_create_attribute($endpoint);
+                } else {
+                    $attributeData = \wc_get_attribute($endpoint['id']);
+                    if (!\is_null($attributeData)) {
+                        $endpoint['has_archives'] = (bool)$attributeData->has_archives;
                     }
-
-                    if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                        $defaultValueAvailable = true;
-                    }
+                    $attributeId = \wc_update_attribute($endpoint['id'], $endpoint);
                 }
 
-                //Fallback 'ger' if incorrect language code was given
-                if ($defaultValueAvailable) {
-                    foreach ($value->getI18ns() as $i18n) {
-                        if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
-                            $metaValue = $i18n;
-                        }
-                    }
-                }
+                if ($attributeId instanceof WP_Error) {
+                    //var_dump($attributeId);
+                    //die();
+                    //return $termId->get_error_message();
+                    $this->logger->error(ErrorFormatter::formatError($attributeId));
 
-                if (\is_null($metaValue)) {
+                    $returnModels[] =   $model;
                     continue;
                 }
 
-                $slug = \wc_sanitize_taxonomy_name($metaValue->getValue());
+                $model->getId()->setEndpoint((string)$attributeId);
 
-                $endpointValue = [
-                    'name' => $metaValue->getValue(),
-                    'slug' => $slug,
-                ];
+                //Get taxonomy
+                $taxonomy = $attrName ?
+                    'pa_' . \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27))
+                    : '';
 
-                /** @var array<int, array<string, int|string|null>> $exValId */
-                $exValId = $this->db->query(
-                    SqlHelper::getSpecificValueId($taxonomy, $endpointValue['name'])
-                ) ?? [];
+                //Register taxonomy for current request
+                \register_taxonomy($taxonomy, []);
 
-                if (\count($exValId) >= 1) {
-                    if (isset($exValId[0]['term_id'])) {
-                        $exValId = $exValId[0]['term_id'];
-                    } else {
-                        $exValId = null;
-                    }
-                } else {
-                    $exValId = null;
+                if ($this->wpml->canBeUsed()) {
+                    /** @var WpmlSpecific $wpmlSpecific */
+                    $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
+
+                    $wpmlSpecific->setTranslations($model, $meta);
                 }
 
-                $endValId = (int)$value->getId()->getEndpoint();
+                foreach ($model->getValues() as $key => $value) {
+                    $metaValue             = null;
+                    $defaultValueAvailable = false;
 
-                if (\is_null($exValId) && $endValId === 0) {
-                    $newTerm = \wp_insert_term(
-                        $endpointValue['name'],
-                        $taxonomy
-                    );
+                    //Get i18n
+                    foreach ($value->getI18ns() as $i18n) {
+                        if ($this->wpml->canBeUsed()) {
+                            if (Util::mapLanguageIso($i18n->getLanguageISO()) === $this->wpml->getDefaultLanguage()) {
+                                $metaValue = $i18n;
+                            }
+                        } else {
+                            if ($this->util->isWooCommerceLanguage($i18n->getLanguageISO())) {
+                                $metaValue = $i18n;
+                                break;
+                            }
+                        }
 
-                    if ($newTerm instanceof WP_Error) {
-                        // var_dump($newTerm);
-                        // die();
-                        $this->logger->error(ErrorFormatter::formatError($newTerm));
+                        if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                            $defaultValueAvailable = true;
+                        }
+                    }
+
+                    //Fallback 'ger' if incorrect language code was given
+                    if ($defaultValueAvailable) {
+                        foreach ($value->getI18ns() as $i18n) {
+                            if (\strcmp($i18n->getLanguageISO(), 'ger') === 0) {
+                                $metaValue = $i18n;
+                            }
+                        }
+                    }
+
+                    if (\is_null($metaValue)) {
                         continue;
                     }
 
-                    $termId = $newTerm['term_id'];
-                } elseif (\is_null($exValId) && $endValId !== 0) {
-                    $wpml = $this->getPluginsManager()->get(Wpml::class);
+                    $slug = \wc_sanitize_taxonomy_name($metaValue->getValue());
 
-                    /** @var WpmlTermTranslation $wpmlTermTranslation */
-                    $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+                    $endpointValue = [
+                        'name' => $metaValue->getValue(),
+                        'slug' => $slug,
+                    ];
 
-                    if ($wpml->canBeUsed()) {
-                        $wpmlTermTranslation->disableGetTermAdjustId();
+                    /** @var array<int, array<string, int|string|null>> $exValId */
+                    $exValId = $this->db->query(
+                        SqlHelper::getSpecificValueId($taxonomy, $endpointValue['name'])
+                    ) ?? [];
+
+                    if (\count($exValId) >= 1) {
+                        if (isset($exValId[0]['term_id'])) {
+                            $exValId = $exValId[0]['term_id'];
+                        } else {
+                            $exValId = null;
+                        }
+                    } else {
+                        $exValId = null;
                     }
 
-                    $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
+                    $endValId = (int)$value->getId()->getEndpoint();
 
-                    if ($wpml->canBeUsed()) {
-                        $wpmlTermTranslation->enableGetTermAdjustId();
+                    if (\is_null($exValId) && $endValId === 0) {
+                        $newTerm = \wp_insert_term(
+                            $endpointValue['name'],
+                            $taxonomy
+                        );
+
+                        if ($newTerm instanceof WP_Error) {
+                            // var_dump($newTerm);
+                            // die();
+                            $this->logger->error(ErrorFormatter::formatError($newTerm));
+                            continue;
+                        }
+
+                        $termId = $newTerm['term_id'];
+                    } elseif (\is_null($exValId) && $endValId !== 0) {
+                        $wpml = $this->getPluginsManager()->get(Wpml::class);
+
+                        /** @var WpmlTermTranslation $wpmlTermTranslation */
+                        $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+
+                        if ($wpml->canBeUsed()) {
+                            $wpmlTermTranslation->disableGetTermAdjustId();
+                        }
+
+                        $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
+
+                        if ($wpml->canBeUsed()) {
+                            $wpmlTermTranslation->enableGetTermAdjustId();
+                        }
+                    } else {
+                        $termId = $exValId;
                     }
-                } else {
-                    $termId = $exValId;
-                }
 
-                if ($termId instanceof WP_Error) {
-                    // var_dump($termId);
-                    // die();
-                    $this->logger->error(ErrorFormatter::formatError($termId));
-                    continue;
-                }
+                    if ($termId instanceof WP_Error) {
+                        // var_dump($termId);
+                        // die();
+                        $this->logger->error(ErrorFormatter::formatError($termId));
+                        continue;
+                    }
 
-                if (\is_array($termId)) {
-                    $termId = $termId['term_id'];
-                }
+                    if (\is_array($termId)) {
+                        $termId = $termId['term_id'];
+                    }
 
-                $value->getId()->setEndpoint((string)$termId);
+                    $value->getId()->setEndpoint((string)$termId);
+                }
             }
-        }
 
-        return $model;
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
-     * @throws InvalidArgumentException
+     * @param AbstractModel ...$models
+     * @return AbstractModel[]
+     * @throws \InvalidArgumentException
+     * @throws \DateInvalidTimeZoneException
+     * @throws \DateMalformedStringException
+     * @throws \WP_Exception
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$models): array
     {
-        /** @var SpecificModel $model */
-        $specificId = (int)$model->getId()->getEndpoint();
+        $returnModels = [];
 
-        if (!empty($specificId)) {
-            unset(self::$idCache[$model->getId()->getHost()]);
+        foreach ($models as $model) {
+            /** @var SpecificModel $model */
+            $specificId = (int)$model->getId()->getEndpoint();
 
-            $this->db->query(SqlHelper::removeSpecificLinking($specificId));
-            $taxonomy = \wc_attribute_taxonomy_name_by_id($specificId);
+            if (!empty($specificId)) {
+                unset(self::$idCache[$model->getId()->getHost()]);
 
-            $specificValueData = $this->db->query(
-                SqlHelper::forceSpecificValuePull($taxonomy)
-            ) ?? [];
+                $this->db->query(SqlHelper::removeSpecificLinking($specificId));
+                $taxonomy = \wc_attribute_taxonomy_name_by_id($specificId);
 
-            $terms = [];
+                $specificValueData = $this->db->query(
+                    SqlHelper::forceSpecificValuePull($taxonomy)
+                ) ?? [];
 
-            /** @var array<string, string> $specificValue */
-            foreach ($specificValueData as $specificValue) {
-                $terms[] = $specificValue['slug'];
+                $terms = [];
 
-                $this->db->query(SqlHelper::removeSpecificValueLinking((int)$specificValue['term_id']));
-            }
+                /** @var array<string, string> $specificValue */
+                foreach ($specificValueData as $specificValue) {
+                    $terms[] = $specificValue['slug'];
 
-            $products = new WP_Query([
-                'post_type'      => ['product'],
-                'posts_per_page' => -1,
-                'tax_query'      => [
-                    [
-                        'taxonomy' => $taxonomy,
-                        'field'    => 'slug',
-                        'terms'    => $terms,
-                        'operator' => 'IN',
+                    $this->db->query(SqlHelper::removeSpecificValueLinking((int)$specificValue['term_id']));
+                }
+
+                $products = new WP_Query([
+                    'post_type' => ['product'],
+                    'posts_per_page' => -1,
+                    'tax_query' => [
+                        [
+                            'taxonomy' => $taxonomy,
+                            'field' => 'slug',
+                            'terms' => $terms,
+                            'operator' => 'IN',
+                        ],
                     ],
-                ],
-            ]);
+                ]);
 
-            $isVariation = false;
+                $isVariation = false;
 
-            $posts = $products->get_posts();
+                $posts = $products->get_posts();
 
-            /** @var WP_Post $post */
-            foreach ($posts as $post) {
-                $wcProduct        = \wc_get_product($post->ID);
-                $productSpecifics = $wcProduct instanceof \WC_Product ? $wcProduct->get_attributes() : [];
+                /** @var WP_Post $post */
+                foreach ($posts as $post) {
+                    $wcProduct        = \wc_get_product($post->ID);
+                    $productSpecifics = $wcProduct instanceof \WC_Product ? $wcProduct->get_attributes() : [];
 
-                /** @var WC_Product_Attribute $productSpecific */
-                foreach ($productSpecifics as $productSpecific) {
-                    if ($productSpecific->get_variation()) {
-                        $isVariation = true;
+                    /** @var WC_Product_Attribute $productSpecific */
+                    foreach ($productSpecifics as $productSpecific) {
+                        if ($productSpecific->get_variation()) {
+                            $isVariation = true;
+                        }
                     }
                 }
-            }
 
-            if (!$isVariation) {
-                /** @var array<string, int|string> $value */
-                foreach ($specificValueData as $value) {
-                    \wp_delete_term((int)$value['term_id'], $taxonomy);
+                if (!$isVariation) {
+                    /** @var array<string, int|string> $value */
+                    foreach ($specificValueData as $value) {
+                        \wp_delete_term((int)$value['term_id'], $taxonomy);
+                    }
+
+                    \wc_delete_attribute($specificId);
                 }
-
-                \wc_delete_attribute($specificId);
             }
-        }
 
-        return $model;
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**

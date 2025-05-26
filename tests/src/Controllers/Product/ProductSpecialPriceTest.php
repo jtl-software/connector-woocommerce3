@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JtlWooCommerceConnector\Tests\Controllers\Product;
 
 use Jtl\Connector\Core\Model\Identity;
@@ -25,11 +27,10 @@ use PHPUnit\Framework\TestCase;
 
 class ProductSpecialPriceTest extends AbstractTestCase
 {
-
     /**
-     * @param string $productId
-     * @param string $pluginVersion
-     * @param string $postName
+     * @param string      $productId
+     * @param string      $pluginVersion
+     * @param string      $postName
      * @param string|null $expectedMetaKeyValue
      * @return void
      * @throws ExpectationFailedException
@@ -82,14 +83,13 @@ class ProductSpecialPriceTest extends AbstractTestCase
     }
 
     /**
-     * @return array[]
+     * @return array<int, array<int, string|null>>
      * @throws \JsonException
-     * @throws \Jtl\Connector\Core\Exception\TranslatableAttributeException
      */
     public function setPostMetaKeyDataProvider(): array
     {
         $product = new ProductModel();
-        $product->setId(new Identity(1, 1));
+        $product->setId(new Identity('1', 1));
 
         return [
             ['1111', '1.0.8.1', 'customer', null],

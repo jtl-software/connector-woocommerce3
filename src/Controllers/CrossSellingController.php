@@ -119,79 +119,92 @@ class CrossSellingController extends AbstractBaseController implements
     }
 
     /**
-     * @param AbstractModel $model
-     * @return CrossSellingModel
+     * @param AbstractModel ...$models
+     * @return CrossSellingModel[]
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$models): array
     {
-        /** @var CrossSelling $model */
-        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
+        $returnModels = [];
 
-        if (!$product instanceof \WC_Product) {
-            return $model;
+        foreach ($models as $model) {
+            /** @var CrossSelling $model */
+            $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
+
+            if (!$product instanceof \WC_Product) {
+                $returnModels[] = $model;
+                continue;
+            }
+
+            $model->getId()->setEndpoint($model->getProductId()->getEndpoint());
+
+            $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+            $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
+
+            $this->updateMetaKey(
+                $product->get_id(),
+                self::CROSSSELLING_META_KEY,
+                $crossSellingProducts
+            );
+
+            $this->updateMetaKey(
+                $product->get_id(),
+                self::UPSELLING_META_KEY,
+                $upSellProducts
+            );
+
+            $returnModels[] = $model;
         }
-
-        $model->getId()->setEndpoint($model->getProductId()->getEndpoint());
-
-        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
-
-        $this->updateMetaKey(
-            $product->get_id(),
-            self::CROSSSELLING_META_KEY,
-            $crossSellingProducts
-        );
-
-        $this->updateMetaKey(
-            $product->get_id(),
-            self::UPSELLING_META_KEY,
-            $upSellProducts
-        );
-
-        return $model;
+        return $returnModels;
     }
 
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$models
+     * @return AbstractModel[]
      */
-    public function delete(AbstractModel $model): AbstractModel
+    public function delete(AbstractModel ...$models): array
     {
-        /** @var CrossSelling $model */
-        $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
+        $returnModels = [];
 
-        if (!$product instanceof \WC_Product) {
-            return $model;
+        foreach ($models as $model) {
+            /** @var CrossSelling $model */
+            $product = \wc_get_product((int)$model->getProductId()->getEndpoint());
+
+            if (!$product instanceof \WC_Product) {
+                $returnModels[] = $model;
+                continue;
+            }
+
+            $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
+            $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
+
+            $crossSellIds =
+                !empty($crossSellingProducts)
+                    ? \array_diff($product->get_cross_sell_ids(), $crossSellingProducts)
+                    : [];
+            $upSellIds    = !empty($upSellProducts) ? \array_diff($product->get_upsell_ids(), $upSellProducts) : [];
+
+            $this->updateMetaKey(
+                $product->get_id(),
+                self::CROSSSELLING_META_KEY,
+                $crossSellIds
+            );
+
+            $this->updateMetaKey(
+                $product->get_id(),
+                self::UPSELLING_META_KEY,
+                $upSellIds
+            );
+
+            $returnModels[] = $model;
         }
 
-        $crossSellingProducts = $this->getProductIds($model, CrossSellingGroup::TYPE_CROSS_SELL);
-        $upSellProducts       = $this->getProductIds($model, CrossSellingGroup::TYPE_UP_SELL);
-
-        $crossSellIds =
-            !empty($crossSellingProducts)
-            ? \array_diff($product->get_cross_sell_ids(), $crossSellingProducts)
-            : [];
-        $upSellIds    = !empty($upSellProducts) ? \array_diff($product->get_upsell_ids(), $upSellProducts) : [];
-
-        $this->updateMetaKey(
-            $product->get_id(),
-            self::CROSSSELLING_META_KEY,
-            $crossSellIds
-        );
-
-        $this->updateMetaKey(
-            $product->get_id(),
-            self::UPSELLING_META_KEY,
-            $upSellIds
-        );
-
-        return $model;
+        return $returnModels;
     }
 
     /**
      * @param QueryFilter $query
      * @return int
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function statistic(QueryFilter $query): int
     {

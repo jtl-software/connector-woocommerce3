@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers\Product;
 
+use Jtl\Connector\Core\Model\CustomerGroup;
 use Jtl\Connector\Core\Model\CustomerGroup as CustomerGroupModel;
 use Jtl\Connector\Core\Model\CustomerGroupI18n as CustomerGroupI18nModel;
 use Jtl\Connector\Core\Model\Identity;
@@ -19,6 +20,7 @@ use JtlWooCommerceConnector\Utilities\Date;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use WC_Product;
+use WP_Post;
 
 class ProductSpecialPriceController extends AbstractBaseController
 {
@@ -209,12 +211,12 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $product
+     * @param ProductModel          $product
      * @param ProductSpecialPrice[] $specialPrices
-     * @param string $productId
-     * @param Identity $masterProductId
-     * @param string $productType
-     * @param int $pd
+     * @param string                $productId
+     * @param Identity              $masterProductId
+     * @param string                $productType
+     * @param int                   $pd
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -234,6 +236,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                 if ($specialPrice->getConsiderDateLimit()) {
                     $dateTo = \is_null($end = $specialPrice->getActiveUntilDate())
                         ? null
+                        // @phpstan-ignore-next-line
                         : $end->setTime(
                             Date::LAST_HOUR,
                             Date::LAST_MINUTE,
@@ -316,7 +319,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                     }
                 } elseif (\is_int((int)$endpoint)) {
                     if ($productType !== ProductController::TYPE_PARENT) {
-                        $customerGroup = \get_post($endpoint);
+                        $customerGroup = \get_post((int)$endpoint);
                         $priceMetaKey  = null;
 
                         if (!$customerGroup instanceof \WP_Post) {
@@ -592,25 +595,27 @@ class ProductSpecialPriceController extends AbstractBaseController
                             }
                         } else {
                             /** @var false|string $regularPrice */
-                            $regularPrice = \get_post_meta($productId, $regularPriceMetaKey, true);
+                            $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
                             if (!\is_bool($regularPrice)) {
                                 \update_post_meta(
                                     (int)$productId,
-                                    $priceMetaKey,
+                                    $priceMetaKey ?? '_price',
                                     \wc_format_decimal((float)$regularPrice, $pd),
-                                    \get_post_meta((int)$productId, $priceMetaKey, true)
+                                    \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
                                 );
                             }
                         }
                     }
-                } else {
-                    continue;
                 }
             }
         }
     }
 
-    public function setCustomerGroupNames($customerGroups): void
+    /**
+     * @param CustomerGroup[] $customerGroups
+     * @return void
+     */
+    public function setCustomerGroupNames(array $customerGroups): void
     {
         if (
             SupportedPlugins::comparePluginVersion(
@@ -632,15 +637,15 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param $customerGroups
-     * @param string $productId
-     * @param Identity $masterProductId
-     * @param string $productType
-     * @param int $pd
+     * @param CustomerGroup[] $customerGroups
+     * @param string          $productId
+     * @param Identity        $masterProductId
+     * @param string          $productType
+     * @param int             $pd
      * @return void
      */
     public function updateCustomerGroupPostMeta(
-        $customerGroups,
+        array $customerGroups,
         string $productId,
         Identity $masterProductId,
         string $productType,
@@ -650,7 +655,7 @@ class ProductSpecialPriceController extends AbstractBaseController
         foreach ($customerGroups as $groupKey => $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
             $post            = \get_post((int)$customerGroupId);
-            if ($post instanceof \WP_Post && \is_int((int)$customerGroupId)) {
+            if ($post instanceof WP_Post && \is_int((int)$customerGroupId)) {
                 $priceMetaKey = $this->setPostMetaKey($productId, $post->post_name);
 
                 $regularPriceMetaKey = \sprintf(
@@ -758,9 +763,9 @@ class ProductSpecialPriceController extends AbstractBaseController
 
             \update_post_meta(
                 (int)$productId,
-                $priceMetaKey,
+                $priceMetaKey ?? '_price',
                 \wc_format_decimal((float)$regularPrice, $pd),
-                \get_post_meta((int)$productId, $priceMetaKey, true)
+                \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
             );
 
             if ($productType === ProductController::TYPE_CHILD) {
@@ -786,8 +791,8 @@ class ProductSpecialPriceController extends AbstractBaseController
 
     /**
      * @param string $productId
-     * @param \WP_Post|null $post
-     * @return string
+     * @param string $postName
+     * @return string|null
      */
     public function setPostMetaKey(
         string $productId,
@@ -808,10 +813,10 @@ class ProductSpecialPriceController extends AbstractBaseController
 
             $metaKeyForCustomerGroupPriceType = $priceMetaKey . '_type';
             \update_post_meta(
-                $productId,
+                (int)$productId,
                 $metaKeyForCustomerGroupPriceType,
                 'fix',
-                \get_post_meta($productId, $metaKeyForCustomerGroupPriceType, true)
+                \get_post_meta((int)$productId, $metaKeyForCustomerGroupPriceType, true)
             );
         }
 
@@ -819,11 +824,11 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string $productId
-     * @param $post
-     * @return array
+     * @param string   $productId
+     * @param \WP_Post $post
+     * @return array<int, string|null>
      */
-    public function setPriceMetaKeysForTypeChild(string $productId, $post): array
+    public function setPriceMetaKeysForTypeChild(string $productId, \WP_Post $post): array
     {
         $COPpriceMetaKey     = null;
         $COPpriceTypeMetaKey = null;

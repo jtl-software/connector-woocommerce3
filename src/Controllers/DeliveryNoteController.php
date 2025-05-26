@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Controllers;
 
+use Automattic\WooCommerce\Internal\DependencyManagement\ContainerException;
+use DateInvalidTimeZoneException;
 use Exception;
+use InvalidArgumentException;
 use Jtl\Connector\Core\Controller\PushInterface;
 use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\DeliveryNote as DeliverNoteModel;
@@ -15,73 +18,81 @@ use AST_Pro_Actions;
 class DeliveryNoteController extends AbstractBaseController implements PushInterface
 {
     /**
-     * @param AbstractModel $model
-     * @return AbstractModel
+     * @param AbstractModel ...$models
+     * @return array|AbstractModel[]
+     * @throws ContainerException
      * @throws \InvalidArgumentException
-     * @throws Exception
      */
-    public function push(AbstractModel $model): AbstractModel
+    public function push(AbstractModel ...$models): array
     {
-        if (
-            SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
-            || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)
-        ) {
-            /** @var DeliverNoteModel $model */
-            $orderId = $model->getCustomerOrderId()->getEndpoint();
+        $returnModels = [];
 
-            $order = \wc_get_order($orderId);
+        foreach ($models as $model) {
+            if (
+                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_FOR_WOOCOMMERCE)
+                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_SHIPMENT_TRACKING_PRO)
+            ) {
+                /** @var DeliverNoteModel $model */
+                $orderId = $model->getCustomerOrderId()->getEndpoint();
 
-            if (!$order instanceof \WC_Order) {
-                return $model;
-            }
+                $order = \wc_get_order($orderId);
 
-            $shipmentTrackingActions = $this->getShipmentTrackingActions();
-
-            if ($shipmentTrackingActions === null) {
-                throw new \InvalidArgumentException("shipmentTrackingActions expected to be instance of
-                    WC_Advanced_Shipment_Tracking_Actions but got null instead.");
-            }
-
-            foreach ($model->getTrackingLists() as $trackingList) {
-                $trackingInfoItem                 = [];
-                $trackingInfoItem['date_shipped'] = $model->getCreationDate()
-                    ? $model->getCreationDate()->format("Y-m-d")
-                    : '';
-
-                $trackingProviders = $shipmentTrackingActions
-                ? $shipmentTrackingActions->get_providers()
-                : null;
-
-                $shippingProviderName = \trim($trackingList->getName());
-
-                $providerSlug = $this->findTrackingProviderSlug(
-                    $shippingProviderName,
-                    \is_array($trackingProviders)
-                    ? $trackingProviders
-                    : []
-                );
-                if ($providerSlug !== null) {
-                    $trackingInfoItem['tracking_provider'] = $providerSlug;
-                } else {
-                    $trackingInfoItem['custom_tracking_provider'] = $shippingProviderName;
+                if (!$order instanceof \WC_Order) {
+                    $returnModels[] = $model;
+                    continue;
                 }
 
-                foreach ($trackingList->getCodes() as $trackingCode) {
-                    $trackingInfoItem['tracking_number'] = $trackingCode;
+                $shipmentTrackingActions = $this->getShipmentTrackingActions();
 
-                    foreach ($trackingList->getTrackingURLs() as $trackingURL) {
-                        if (\str_contains($trackingURL, $trackingCode)) {
-                            $trackingInfoItem['custom_tracking_link'] = $trackingURL;
-                            break;
-                        }
+                if ($shipmentTrackingActions === null) {
+                    throw new InvalidArgumentException(
+                        "shipmentTrackingActions expected to be instance of
+                    WC_Advanced_Shipment_Tracking_Actions but got null instead."
+                    );
+                }
+
+                foreach ($model->getTrackingLists() as $trackingList) {
+                    $trackingInfoItem                 = [];
+                    $trackingInfoItem['date_shipped'] = $model->getCreationDate()
+                        ? $model->getCreationDate()->format("Y-m-d")
+                        : '';
+
+                    $trackingProviders = $shipmentTrackingActions
+                        ? $shipmentTrackingActions->get_providers()
+                        : null;
+
+                    $shippingProviderName = \trim($trackingList->getName());
+
+                    $providerSlug = $this->findTrackingProviderSlug(
+                        $shippingProviderName,
+                        \is_array($trackingProviders)
+                            ? $trackingProviders
+                            : []
+                    );
+                    if ($providerSlug !== null) {
+                        $trackingInfoItem['tracking_provider'] = $providerSlug;
+                    } else {
+                        $trackingInfoItem['custom_tracking_provider'] = $shippingProviderName;
                     }
 
-                    $shipmentTrackingActions->add_tracking_item($order->get_id(), $trackingInfoItem);
+                    foreach ($trackingList->getCodes() as $trackingCode) {
+                        $trackingInfoItem['tracking_number'] = $trackingCode;
+
+                        foreach ($trackingList->getTrackingURLs() as $trackingURL) {
+                            if (\str_contains($trackingURL, $trackingCode)) {
+                                $trackingInfoItem['custom_tracking_link'] = $trackingURL;
+                                break;
+                            }
+                        }
+
+                        $shipmentTrackingActions->add_tracking_item($order->get_id(), $trackingInfoItem);
+                    }
                 }
             }
-        }
 
-        return $model;
+            $returnModels[] = $model;
+        }
+        return $returnModels;
     }
 
     /**
