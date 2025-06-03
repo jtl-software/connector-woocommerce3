@@ -103,9 +103,20 @@ class ProductController extends AbstractBaseController implements
                 continue;
             }
 
-            $postDate     = $product->get_date_created();
-            $modDate      = $product->get_date_modified();
-            $status       = $product->get_status('view');
+            $postDate      = $product->get_date_created();
+            $modDate       = $product->get_date_modified();
+            $status        = $product->get_status('view');
+            $considerStock = \is_string($managingStock = $product->managing_stock())
+                ? $product->managing_stock() === 'yes'
+                : (\is_bool($managingStock) ? $managingStock : null);
+
+            if ($considerStock === null) {
+                throw new \InvalidArgumentException(
+                    'Managing stock expected to be bool or string. Got '
+                    . \gettype($managingStock) . ' instead.'
+                );
+            }
+
             $productModel = (new ProductModel())
                 ->setId(new Identity((string)$product->get_id()))
                 ->setIsMasterProduct($product->is_type('variable'))
@@ -132,7 +143,7 @@ class ProductController extends AbstractBaseController implements
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock($product->managing_stock())
+                ->setConsiderStock($product->managing_stock() === 'yes')
                 ->setPermitNegativeStock($product->backorders_allowed())
                 ->setShippingClassId(new Identity((string)$product->get_shipping_class_id()));
 

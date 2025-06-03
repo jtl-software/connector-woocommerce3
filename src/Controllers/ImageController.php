@@ -106,7 +106,7 @@ class ImageController extends AbstractBaseController implements
     private function addNextImages(array $images, int $type, int $limit): array
     {
         $return = [];
-// @param array<int, array<string, array<int, int>|int|string>> $images
+
         $language = $this->util->getWooCommerceLanguage();
         if ($this->wpml->canBeUsed() && $this->wpml->canWpmlMediaBeUsed()) {
             $language = $this->wpml->convertLanguageToWawi($this->wpml->getDefaultLanguage());
@@ -117,7 +117,7 @@ class ImageController extends AbstractBaseController implements
             $imageId = $image['ID'];
             /** @var string $imageLinkId */
             $imageLinkId = $image['id'];
-            /** @var string $postName */
+            /** @var ?string $postName */
             $postName = $image['post_name'];
             /** @var int $parent */
             $parent = $image['parent'];
@@ -143,7 +143,7 @@ class ImageController extends AbstractBaseController implements
             }
 
             $model->setId(new Identity($imageLinkId))
-                ->setName($postName)
+                ->setName(isset($postName) ? (string)$postName : '')
                 ->setForeignKey(new Identity((string)$parent))
                 ->setRemoteUrl(isset($imgSrc[0]) ? (string)$imgSrc[0] : $guid)
                 ->setSort($sort)
