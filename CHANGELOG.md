@@ -8,8 +8,8 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2909 - Fix array_map error in germanized fields
 - CO-2888 - add default values for title and alt text
 - CO-2912 - Fix setZipCode
-- CO-2886 - update variable types
 - CO-2905 - fix tracking info with advanced shipment pro
+- CO-2886 - update variable types
 
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
