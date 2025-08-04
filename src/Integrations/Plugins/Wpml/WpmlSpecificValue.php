@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Jtl\Connector\Core\Model\Specific;
+use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -87,6 +89,56 @@ class WpmlSpecificValue extends AbstractComponent
                     $type,
                     (int)$trid,
                     $languageCode
+                );
+            }
+        }
+    }
+
+    /**
+     * @param SpecificValue          $specificValue
+     * @param SpecificValueI18nModel $defaultTranslation
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function setTranslationsNew(SpecificValue $specificValue, SpecificValueI18nModel $defaultTranslation): void
+    {
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+
+        foreach ($specificValue->getI18ns() as $specificValueI18n) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($specificValueI18n->getLanguageISO());
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
+                continue;
+            }
+
+            $translatedName = \apply_filters(
+                'wpml_translate_single_string',
+                $defaultTranslation->getValue(),
+                'WordPress',
+                $specificValueI18n->getValue(),
+                $languageCode
+            );
+
+            if ($translatedName !== $specificValueI18n->getValue()) {
+                \icl_register_string(
+                    'WordPress',
+                    \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue()),
+                    $defaultTranslation->getValue(),
+                    false,
+                    $wpmlPlugin->getDefaultLanguage()
+                );
+
+                // Übersetzung hinzufügen
+                \icl_add_string_translation(
+                    \icl_get_string_id(
+                        $defaultTranslation->getValue(),
+                        'WordPress',
+                        \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue())
+                    ),
+                    $languageCode,
+                    $specificValueI18n->getValue(),
+                    \ICL_TM_COMPLETE
                 );
             }
         }

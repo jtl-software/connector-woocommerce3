@@ -17,6 +17,8 @@ use Jtl\Connector\Core\Model\Specific as SpecificModel;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue as SpecificValueModel;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
@@ -214,6 +216,11 @@ class SpecificController extends AbstractBaseController implements
                 \register_taxonomy($taxonomy, []);
 
                 if ($this->wpml->canBeUsed()) {
+                    #$saveTranslation = $this->getPluginsManager()
+                    #    ->get(WooCommerce::class)
+                    #    ->getComponent(WooCommerceSpecific::class)
+                    #    ->save($model, $meta);
+
                     /** @var WpmlSpecific $wpmlSpecific */
                     $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
 
@@ -294,20 +301,20 @@ class SpecificController extends AbstractBaseController implements
 
                         $termId = $newTerm['term_id'];
                     } elseif (\is_null($exValId) && $endValId !== 0) {
-                        $wpml = $this->getPluginsManager()->get(Wpml::class);
+                        #$wpml = $this->getPluginsManager()->get(Wpml::class);
 
-                        /** @var WpmlTermTranslation $wpmlTermTranslation */
-                        $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+                        #/** @var WpmlTermTranslation $wpmlTermTranslation */
+                        #$wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
 
-                        if ($wpml->canBeUsed()) {
-                            $wpmlTermTranslation->disableGetTermAdjustId();
-                        }
+                        #if ($wpml->canBeUsed()) {
+                        #    $wpmlTermTranslation->disableGetTermAdjustId();
+                        #}
 
                         $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
-                        if ($wpml->canBeUsed()) {
-                            $wpmlTermTranslation->enableGetTermAdjustId();
-                        }
+                        #if ($wpml->canBeUsed()) {
+                        #    $wpmlTermTranslation->enableGetTermAdjustId();
+                        #}
                     } else {
                         $termId = $exValId;
                     }
@@ -324,6 +331,13 @@ class SpecificController extends AbstractBaseController implements
                     }
 
                     $value->getId()->setEndpoint((string)$termId);
+
+                    if ($this->wpml->canBeUsed()) {
+                        /** @var WpmlSpecificValue $wpmlSpecificValue */
+                        $wpmlSpecificValue = $this->wpml->getComponent(WpmlSpecificValue::class);
+
+                        $wpmlSpecificValue->setTranslationsNew($value, $metaValue);
+                    }
                 }
             }
 

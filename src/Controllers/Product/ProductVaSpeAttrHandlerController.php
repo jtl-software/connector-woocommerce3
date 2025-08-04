@@ -720,7 +720,8 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
             //Get updated attributes
             $wcProductAttributes = $wcProduct->get_attributes();
-
+//TODO hier werden die attribute mitgesendet. eigentlich kommen wir hier von WpmlProduct.php und wollen die übersetzung schicken.
+            //todo vielleicht sollte man von anfang an die üebrsetzung holen und den rest niht mehr anpacken. quasi nen schritt früher im wpmlProduct
             // handleSpecifics
             $productSpecifics = ( new ProductSpecificController($this->db, $this->util) )->pushData(
                 $productId,
