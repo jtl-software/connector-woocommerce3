@@ -51,7 +51,7 @@ class WpmlSpecificValue extends AbstractComponent
      * @return void
      * @throws \Exception
      */
-    public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void
+    public function setTranslations(string $taxonomy, SpecificValue $specificValue, SpecificValueI18nModel $defaultTranslation, int $mainSpecificValueId): void
     {
         $type = 'tax_' . $taxonomy;
 
@@ -64,6 +64,36 @@ class WpmlSpecificValue extends AbstractComponent
             if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
             }
+
+            #$translatedName = \apply_filters(
+            #    'wpml_translate_single_string',
+            #    $defaultTranslation->getValue(),
+            #    'WordPress',
+            #    $specificValueI18n->getValue(),
+            #    $languageCode
+            #);
+
+            #if ($translatedName !== $specificValueI18n->getValue()) {
+            #    \icl_register_string(
+            #        'WordPress',
+            #        \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue()),
+            #        $defaultTranslation->getValue(),
+            #        false,
+            #        $wpmlPlugin->getDefaultLanguage()
+            #    );
+
+                // Übersetzung hinzufügen
+            #    \icl_add_string_translation(
+            #        \icl_get_string_id(
+            #            $defaultTranslation->getValue(),
+            #            'WordPress',
+            #            \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue())
+            #        ),
+            #        $languageCode,
+            #        $specificValueI18n->getValue(),
+            #        \ICL_TM_COMPLETE
+            #    );
+            #}
 
             $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
             if (isset($specificTranslation['term_taxonomy_id'])) {
