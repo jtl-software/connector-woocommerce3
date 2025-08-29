@@ -47,7 +47,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                 if ($shipmentTrackingActions === null) {
                     throw new InvalidArgumentException(
                         "shipmentTrackingActions expected to be instance of
-                    WC_Advanced_Shipment_Tracking_Actions but got null instead."
+                    WC_Advanced_Shipment_Tracking_Actions or AST_Pro_Actions but got null instead."
                     );
                 }
 
@@ -76,6 +76,13 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                     }
 
                     foreach ($trackingList->getCodes() as $trackingCode) {
+                        $existingShipmentTracking  = $shipmentTrackingActions->get_shipment_tracking_column($orderId);
+                        $trackingCodeAlreadyExists = \str_contains($existingShipmentTracking, $trackingCode);
+
+                        if ($trackingCodeAlreadyExists) {
+                            continue;
+                        }
+
                         $trackingInfoItem['tracking_number'] = $trackingCode;
 
                         foreach ($trackingList->getTrackingURLs() as $trackingURL) {
