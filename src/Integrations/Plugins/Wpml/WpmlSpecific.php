@@ -115,20 +115,6 @@ class WpmlSpecific extends AbstractComponent
                     $specificI18n->getName(),
                     \ICL_TM_COMPLETE
                 );
-
-
-                #$existingTaxonomyId = Util::getAttributeTaxonomyIdByName($translatedName);
-
-                #$slug = \wc_sanitize_taxonomy_name($specificI18n->getName()) . '-' . $languageCode;
-
-                #/** @var WooCommerceSpecific $wooCommerceSpecificValue */
-                #$wooCommerceSpecific = $wpmlPlugin
-                #    ->getPluginsManager()
-                #    ->get(WooCommerce::class)
-                #    ->getComponent(WooCommerceSpecific::class);
-
-                #$specificValueId = $wooCommerceSpecific
-                #    ->save($specific, $specificI18n);
             }
         }
     }

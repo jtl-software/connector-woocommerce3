@@ -67,7 +67,8 @@ class ProductSpecificController extends AbstractBaseController
         array $curAttributes,
         array $specificData = [],
         array $pushedJtlSpecifics = [],
-        array $pushedJtlAttributes = []
+        array $pushedJtlAttributes = [],
+        bool $isTranslation = false
     ): array {
         $newSpecifics = [];
 
@@ -138,6 +139,28 @@ class ProductSpecificController extends AbstractBaseController
             if (\count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
                     $term = \get_term_by('id', $valId, $slug);
+
+                    if ($isTranslation) {
+                        $getWpmlStringId = $this->db->queryOne(
+                            SqlHelper::getWpmlRegisteredStringId($term->name)
+                        ) ?? '';
+
+                        if (empty($getWpmlStringId)) {
+                            continue;
+                        }
+
+                        $getWpmlTranslatedSpecificValue = $this->db->queryOne(
+                            SqlHelper::getWpmlTranslatedSpecificValue($getWpmlStringId)
+                        ) ?? '';
+
+                        if (empty($getWpmlTranslatedSpecificValue)) {
+                            continue;
+                        }
+
+                        $term = \get_term_by('name', $getWpmlTranslatedSpecificValue, $slug);
+                    }
+
+
                     if ($term instanceof \WP_Term) {
                         $values[] = $term->slug;
                     }

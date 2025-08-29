@@ -121,6 +121,7 @@ class SpecificController extends AbstractBaseController implements
      * @throws \InvalidArgumentException
      * @throws InjectionException
      * @throws \WP_Exception
+     * @throws \Exception
      */
     public function push(AbstractModel ...$models): array
     {
@@ -162,7 +163,6 @@ class SpecificController extends AbstractBaseController implements
             if ($meta !== null) {
                 $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
 
-                //STOP here if already exists
                 $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
                 $endpointId         = (int)$model->getId()->getEndpoint();
 
@@ -196,9 +196,6 @@ class SpecificController extends AbstractBaseController implements
                 }
 
                 if ($attributeId instanceof WP_Error) {
-                    //var_dump($attributeId);
-                    //die();
-                    //return $termId->get_error_message();
                     $this->logger->error(ErrorFormatter::formatError($attributeId));
 
                     $returnModels[] =   $model;
@@ -207,20 +204,13 @@ class SpecificController extends AbstractBaseController implements
 
                 $model->getId()->setEndpoint((string)$attributeId);
 
-                //Get taxonomy
                 $taxonomy = $attrName ?
                     'pa_' . \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27))
                     : '';
 
-                //Register taxonomy for current request
                 \register_taxonomy($taxonomy, []);
 
                 if ($this->wpml->canBeUsed()) {
-                    #$saveTranslation = $this->getPluginsManager()
-                    #    ->get(WooCommerce::class)
-                    #    ->getComponent(WooCommerceSpecific::class)
-                    #    ->save($model, $meta);
-
                     /** @var WpmlSpecific $wpmlSpecific */
                     $wpmlSpecific = $this->wpml->getComponent(WpmlSpecific::class);
 
@@ -293,35 +283,31 @@ class SpecificController extends AbstractBaseController implements
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            // var_dump($newTerm);
-                            // die();
                             $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;
                         }
 
                         $termId = $newTerm['term_id'];
                     } elseif (\is_null($exValId) && $endValId !== 0) {
-                        #$wpml = $this->getPluginsManager()->get(Wpml::class);
+                        $wpml = $this->getPluginsManager()->get(Wpml::class);
 
-                        #/** @var WpmlTermTranslation $wpmlTermTranslation */
-                        #$wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
+                        /** @var WpmlTermTranslation $wpmlTermTranslation */
+                        $wpmlTermTranslation = $wpml->getComponent(WpmlTermTranslation::class);
 
-                        #if ($wpml->canBeUsed()) {
-                        #    $wpmlTermTranslation->disableGetTermAdjustId();
-                        #}
+                        if ($wpml->canBeUsed()) {
+                            $wpmlTermTranslation->disableGetTermAdjustId();
+                        }
 
                         $termId = \wp_update_term($endValId, $taxonomy, $endpointValue);
 
-                        #if ($wpml->canBeUsed()) {
-                        #    $wpmlTermTranslation->enableGetTermAdjustId();
-                        #}
+                        if ($wpml->canBeUsed()) {
+                            $wpmlTermTranslation->enableGetTermAdjustId();
+                        }
                     } else {
                         $termId = $exValId;
                     }
 
                     if ($termId instanceof WP_Error) {
-                        // var_dump($termId);
-                        // die();
                         $this->logger->error(ErrorFormatter::formatError($termId));
                         continue;
                     }
@@ -336,7 +322,7 @@ class SpecificController extends AbstractBaseController implements
                         /** @var WpmlSpecificValue $wpmlSpecificValue */
                         $wpmlSpecificValue = $this->wpml->getComponent(WpmlSpecificValue::class);
 
-                        $wpmlSpecificValue->setTranslationsNew($value, $metaValue);
+                        $wpmlSpecificValue->setTranslations($taxonomy, $value, $metaValue, (int)$termId);
                     }
                 }
             }
