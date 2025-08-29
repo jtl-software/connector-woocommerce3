@@ -134,7 +134,8 @@ trait SpecificTrait
      * @param string $stringId
      * @return string
      */
-    public static function getWpmlTranslatedSpecificValue(string $stringId) {
+    public static function getWpmlTranslatedSpecificValue(string $stringId): string
+    {
         global $wpdb;
 
         $wist = $wpdb->prefix . 'icl_string_translations';

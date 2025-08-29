@@ -130,7 +130,7 @@ class WpmlSpecificValue extends AbstractComponent
                     $languageCode
                 );
 
-                do_action('wpml_add_term_translation', [
+                \do_action('wpml_add_term_translation', [
                     'element_id'    => $specificValueId,
                     'element_type'  => $type,
                     'trid'          => $trid,
@@ -149,8 +149,12 @@ class WpmlSpecificValue extends AbstractComponent
      * @throws ExpectationFailedException
      * @throws InjectionException
      */
-    public function setTranslations(string $taxonomy, SpecificValue $specificValue, SpecificValueI18nModel $defaultTranslation, int $mainSpecificValueId): void
-    {
+    public function setTranslations(
+        string $taxonomy,
+        SpecificValue $specificValue,
+        SpecificValueI18nModel $defaultTranslation,
+        int $mainSpecificValueId
+    ): void {
         $type = 'tax_' . $taxonomy;
 
         /** @var Wpml $wpmlPlugin */
@@ -193,12 +197,12 @@ class WpmlSpecificValue extends AbstractComponent
                     \ICL_TM_COMPLETE
                 );
 
-                $translated_term = get_term_by('name', $specificValueI18n->getValue());
+                $translated_term = \get_term_by('name', $specificValueI18n->getValue());
 
                 if (!$translated_term) {
-                    $term_result = wp_insert_term($specificValueI18n->getValue(), $taxonomy);
-                    if (is_wp_error($term_result)) {
-                        // Fehlerbehandlung
+                    $term_result = \wp_insert_term($specificValueI18n->getValue(), $taxonomy);
+                    if (\is_wp_error($term_result)) {
+                        $this->logger->error("Error while creating term: " . $term_result->get_error_message());
                         return;
                     }
                     $translated_term_id = $term_result['term_id'];
@@ -206,7 +210,7 @@ class WpmlSpecificValue extends AbstractComponent
                     $translated_term_id = $translated_term->term_id;
                 }
 
-                do_action('wpml_add_term_translation', [
+                \do_action('wpml_add_term_translation', [
                     'element_id'    => $translated_term_id,
                     'element_type'  => $type,
                     'trid'          => $trid,
@@ -214,7 +218,7 @@ class WpmlSpecificValue extends AbstractComponent
                 ]);
 
                 #sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
-                do_action('wpml_set_element_language_details', [
+                \do_action('wpml_set_element_language_details', [
                     'element_id'    => $translated_term_id,
                     'element_type'  => $type,
                     'trid'          => $trid,
