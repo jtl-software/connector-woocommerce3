@@ -63,18 +63,22 @@ class ProductManufacturerController extends AbstractBaseController
         $manufacturerId = null;
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
+        } elseif(SupportedPlugins::isGermanizedActive()) {
+            $terms = \wp_get_object_terms((int)$productId, 'product_manufacturer');
+        } else {
+            $terms = \wp_get_object_terms((int)$productId, 'product_brand');
+        }
 
-            if (!\is_array($terms)) {
-                throw new \InvalidArgumentException(
-                    'Array type expected. Got ' . \gettype($terms) . ' instead.'
-                );
-            }
+        if (!\is_array($terms)) {
+            throw new \InvalidArgumentException(
+                'Array type expected. Got ' . \gettype($terms) . ' instead.'
+            );
+        }
 
-            if (\count($terms) > 0) {
-                /** @var \WP_Term $term */
-                $term           = $terms[0];
-                $manufacturerId = (new Identity())->setEndpoint((string)$term->term_id);
-            }
+        if (\count($terms) > 0) {
+            /** @var \WP_Term $term */
+            $term           = $terms[0];
+            $manufacturerId = (new Identity())->setEndpoint((string)$term->term_id);
         }
 
         return $manufacturerId;

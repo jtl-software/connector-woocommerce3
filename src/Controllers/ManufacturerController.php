@@ -15,6 +15,7 @@ use Jtl\Connector\Core\Model\Manufacturer as ManufacturerModel;
 use Jtl\Connector\Core\Model\ManufacturerI18n as ManufacturerI18nModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\PerfectWooCommerceBrands;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlGermanized;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlPerfectWooCommerceBrands;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlTermTranslation;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
@@ -30,6 +31,9 @@ class ManufacturerController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
+    public const TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
+    public const TAXONOMY_GERMANIZED     = 'product_manufacturer';
+
     /** @var array<int, int> */
     private static array $idCache = [];
 
@@ -41,7 +45,10 @@ class ManufacturerController extends AbstractBaseController implements
      */
     public function pull(QueryFilter $query): array
     {
-        $manufacturers = [];
+        $manufacturerData = [];
+        $manufacturers    = [];
+        $taxonomy         = '';
+        $elementType      = '';
 
         $perfectWooCommerceBrands = $this->getPluginsManager()->get(PerfectWooCommerceBrands::class);
 
@@ -51,55 +58,70 @@ class ManufacturerController extends AbstractBaseController implements
                 $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
                 $manufacturerData    = $wpmlPerfectWcBrands->getManufacturers((int)$query->getLimit());
             } else {
-                $sql              = SqlHelper::manufacturerPull($query->getLimit());
+                $sql              = SqlHelper::manufacturerPull($query->getLimit(), self::TAXONOMY_PERFECT_BRANDS);
                 $manufacturerData = $this->db->query($sql) ?? [];
             }
+            $taxonomy    = self::TAXONOMY_PERFECT_BRANDS;
+            $elementType = 'tax_' . $taxonomy;
+        } elseif (SupportedPlugins::isGermanizedActive()) {
+            if ($this->wpml->canBeUsed()) {
+                /** @var WpmlGermanized $wpmlGermanized */
+                $wpmlGermanized = $this->wpml->getComponent(WpmlGermanized::class);
+                $manufacturerData = $wpmlGermanized->getManufacturers((int)$query->getLimit());
+            } else {
+                $sql              = SqlHelper::manufacturerPull($query->getLimit(), self::TAXONOMY_GERMANIZED);
+                $manufacturerData = $this->db->query($sql) ?? [];
+            }
+            $taxonomy    = self::TAXONOMY_GERMANIZED;
+            $elementType = 'tax_' . $taxonomy;
+        }
 
-            /** @var array<string, string> $manufacturerDataSet */
-            foreach ($manufacturerData as $manufacturerDataSet) {
-                $manufacturer = (new ManufacturerModel())
-                    ->setId(new Identity((string)$manufacturerDataSet['term_id']))
-                    ->setName($manufacturerDataSet['name']);
+        /** @var array<string, string> $manufacturerDataSet */
+        foreach ($manufacturerData as $manufacturerDataSet) {
+            $manufacturer = (new ManufacturerModel())
+                ->setId(new Identity((string)$manufacturerDataSet['term_id']))
+                ->setName($manufacturerDataSet['name']);
 
-                $i18n = $this->createManufacturerI18n(
-                    $manufacturer,
-                    $this->util->getWooCommerceLanguage(),
-                    $manufacturerDataSet['description'],
-                    (string)$manufacturerDataSet['term_id']
-                );
+            $i18n = $this->createManufacturerI18n(
+                $manufacturer,
+                $this->util->getWooCommerceLanguage(),
+                $manufacturerDataSet['description'],
+                (string)$manufacturerDataSet['term_id']
+            );
 
-                $manufacturer->addI18n(
-                    $i18n
-                );
+            $manufacturer->addI18n(
+                $i18n
+            );
 
-                if ($this->wpml->canBeUsed()) {
-                    /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
-                    $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
+            if ($this->wpml->canBeUsed()) {
+                /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
+                $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
 
-                    $manufacturerTranslations = $wpmlTaxonomyTranslations
-                        ->getTranslations((int)$manufacturerDataSet['trid'], 'tax_pwb-brand');
+                $trid = $this->wpml->getElementTrid((int)$manufacturerDataSet['term_id'] , $elementType);
 
-                    foreach ($manufacturerTranslations as $languageCode => $translation) {
-                        $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
-                            (int)$translation->term_id,
-                            'pwb-brand'
+                $manufacturerTranslations = $wpmlTaxonomyTranslations
+                    ->getTranslations((int)$trid, $elementType);
+
+                foreach ($manufacturerTranslations as $languageCode => $translation) {
+                    $term = $wpmlTaxonomyTranslations->getTranslatedTerm(
+                        (int)$translation->term_id,
+                        $taxonomy
+                    );
+
+                    if (isset($term['term_id'])) {
+                        $i18n = $this->createManufacturerI18n(
+                            $manufacturer,
+                            Util::mapLanguageIso($translation->language_code),
+                            $term['description'],
+                            (string)$term['term_id']
                         );
 
-                        if (isset($term['term_id'])) {
-                            $i18n = $this->createManufacturerI18n(
-                                $manufacturer,
-                                Util::mapLanguageIso($translation->language_code),
-                                $term['description'],
-                                $term['term_id']
-                            );
-
-                            $manufacturer->addI18n($i18n);
-                        }
+                        $manufacturer->addI18n($i18n);
                     }
                 }
-
-                $manufacturers[] = $manufacturer;
             }
+
+            $manufacturers[] = $manufacturer;
         }
 
         return $manufacturers;
@@ -169,11 +191,17 @@ class ManufacturerController extends AbstractBaseController implements
     public function push(AbstractModel ...$models): array
     {
         $returnModels = [];
+        $taxonomy     = '';
+
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+            $taxonomy = self::TAXONOMY_PERFECT_BRANDS;
+        } elseif (SupportedPlugins::isGermanizedActive()) {
+            $taxonomy = self::TAXONOMY_GERMANIZED;
+        }
 
         foreach ($models as $model) {
-            if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+            if (!empty($taxonomy)) {
                 $meta = (new ManufacturerI18nModel());
-
 
                 foreach ($model->getI18ns() as $i18n) {
                     if ($this->wpml->canBeUsed()) {
@@ -190,7 +218,7 @@ class ManufacturerController extends AbstractBaseController implements
                 }
 
                 $name = \wc_sanitize_taxonomy_name(\substr(\trim($model->getName()), 0, 27));
-                $term = \get_term_by('slug', $name, 'pwb-brand');
+                $term = \get_term_by('slug', $name, $taxonomy);
 
                 \remove_filter('pre_term_description', 'wp_filter_kses');
 
@@ -198,7 +226,7 @@ class ManufacturerController extends AbstractBaseController implements
                     //Add term
                     $newTerm = \wp_insert_term(
                         $model->getName(),
-                        'pwb-brand',
+                        $taxonomy,
                         [
                             'description' => $meta->getDescription(),
                             'slug' => $name,
@@ -214,11 +242,8 @@ class ManufacturerController extends AbstractBaseController implements
                     }
                     $term = $newTerm;
 
-                    // if (!$term instanceof \WP_Term) {
-                    // $term = \get_term_by('id', $term['term_id'], 'pwb-brand');
-                    // }
                 } elseif ($term instanceof \WP_Term) {
-                    \wp_update_term($term->term_id, 'pwb-brand', [
+                    \wp_update_term($term->term_id, $taxonomy, [
                         'name' => $model->getName(),
                         'description' => $meta->getDescription(),
                     ]);
@@ -238,27 +263,27 @@ class ManufacturerController extends AbstractBaseController implements
                             $taxonomySeo = \get_option('wpseo_taxonomy_meta', false);
 
                             if ($taxonomySeo === false) {
-                                $taxonomySeo = ['pwb-brand' => []];
+                                $taxonomySeo = [$taxonomy => []];
                             }
 
-                            if (!isset($taxonomySeo['pwb-brand'])) {
-                                $taxonomySeo['pwb-brand'] = [];
+                            if (!isset($taxonomySeo[$taxonomy])) {
+                                $taxonomySeo[$taxonomy] = [];
                             }
                             $exists = false;
 
-                            foreach ($taxonomySeo['pwb-brand'] as $brandKey => $seoData) {
+                            foreach ($taxonomySeo[$taxonomy] as $brandKey => $seoData) {
                                 if ($brandKey === (int)$term->term_id) {
                                     $exists                                               = true;
-                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_desc']    = $i18n->getMetaDescription();
-                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_focuskw'] = $i18n->getMetaKeywords();
-                                    $taxonomySeo['pwb-brand'][$brandKey]['wpseo_title']   = \strcmp(
+                                    $taxonomySeo[$taxonomy][$brandKey]['wpseo_desc']    = $i18n->getMetaDescription();
+                                    $taxonomySeo[$taxonomy][$brandKey]['wpseo_focuskw'] = $i18n->getMetaKeywords();
+                                    $taxonomySeo[$taxonomy][$brandKey]['wpseo_title']   = \strcmp(
                                         $i18n->getTitleTag(),
                                         ''
                                     ) === 0 ? $model->getName() : $i18n->getTitleTag();
                                 }
                             }
                             if ($exists === false) {
-                                $taxonomySeo['pwb-brand'][(int)$term->term_id] = [
+                                $taxonomySeo[$taxonomy][(int)$term->term_id] = [
                                     'wpseo_desc' => $i18n->getMetaDescription(),
                                     'wpseo_focuskw' => $i18n->getMetaKeywords(),
                                     'wpseo_title' => \strcmp(
@@ -286,9 +311,15 @@ class ManufacturerController extends AbstractBaseController implements
                 }
 
                 if ($this->wpml->canBeUsed()) {
-                    /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
-                    $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
-                    $wpmlPerfectWcBrands->saveTranslations($model);
+                    if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+                        /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                        $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                        $wpmlPerfectWcBrands->saveTranslations($model);
+                    } elseif (SupportedPlugins::isGermanizedActive()) {
+                        /** @var WpmlGermanized $wpmlGermanized */
+                        $wpmlGermanized = $this->wpml->getComponent(WpmlGermanized::class);
+                        $wpmlGermanized->saveTranslations($model);
+                    }
                 }
             }
 
@@ -301,13 +332,21 @@ class ManufacturerController extends AbstractBaseController implements
      * @param AbstractModel ...$models
      * @return AbstractModel[]
      * @throws \InvalidArgumentException
+     * @throws \Exception
      */
     public function delete(AbstractModel ...$models): array
     {
         $returnModels = [];
+        $taxonomy     = '';
+
+        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+            $taxonomy = self::TAXONOMY_PERFECT_BRANDS;
+        } elseif (SupportedPlugins::isGermanizedActive()) {
+            $taxonomy = self::TAXONOMY_GERMANIZED;
+        }
 
         foreach ($models as $model) {
-            if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+            if (!empty($taxonomy)) {
                 /** @var Manufacturer $model */
                 $manufacturerId = (int)$model->getId()->getEndpoint();
 
@@ -315,12 +354,18 @@ class ManufacturerController extends AbstractBaseController implements
                     unset(self::$idCache[$model->getId()->getHost()]);
 
                     if ($this->wpml->canBeUsed()) {
-                        /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
-                        $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
-                        $wpmlPerfectWcBrands->deleteTranslations($manufacturerId);
+                        if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
+                            /** @var WpmlPerfectWooCommerceBrands $wpmlPerfectWcBrands */
+                            $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
+                            $wpmlPerfectWcBrands->deleteTranslations($manufacturerId);
+                        } elseif (SupportedPlugins::isGermanizedActive()) {
+                            /** @var WpmlGermanized $wpmlGermanized */
+                            $wpmlGermanized = $this->wpml->getComponent(WpmlGermanized::class);
+                            $wpmlGermanized->deleteTranslations($manufacturerId);
+                        }
                     }
 
-                    \wp_delete_term($manufacturerId, 'pwb-brand');
+                    \wp_delete_term($manufacturerId, $taxonomy);
                 }
             }
 
@@ -344,7 +389,15 @@ class ManufacturerController extends AbstractBaseController implements
                 $wpmlPerfectWcBrands = $this->wpml->getComponent(WpmlPerfectWooCommerceBrands::class);
                 $total               = $wpmlPerfectWcBrands->getStats();
             } else {
-                $total = $this->db->queryOne(SqlHelper::manufacturerStats());
+                $total = $this->db->queryOne(SqlHelper::manufacturerStats(self::TAXONOMY_PERFECT_BRANDS));
+            }
+        } elseif (SupportedPlugins::isGermanizedActive()) {
+            if ($this->wpml->canBeUsed()) {
+                /** @var WpmlGermanized $wpmlGermanized */
+                $wpmlGermanized = $this->wpml->getComponent(WpmlGermanized::class);
+                $total          = $wpmlGermanized->getStats();
+            } else {
+                $total = $this->db->queryOne(SqlHelper::manufacturerStats(self::TAXONOMY_GERMANIZED));
             }
         }
         return $total ? (int)$total : 0;

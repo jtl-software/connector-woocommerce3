@@ -9,6 +9,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2888 - add default values for title and alt text
 - CO-2912 - Fix setZipCode
 - CO-2886 - update variable types
+- CO-3065 - implement manufacturer logic for germanized plugin
 
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
