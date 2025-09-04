@@ -250,13 +250,6 @@ class ProductController extends AbstractBaseController implements
                 (new ProductB2BMarketFieldsController($this->db, $this->util))->pullData($productModel, $product);
             }
 
-            #if (SupportedPlugins::isPerfectWooCommerceBrandsActive() && $manufacturerId) {
-            #    $manufacturerId = (new ProductManufacturerController($this->db, $this->util))->pullData($productModel);
-            #    if ($manufacturerId instanceof Identity) {
-            #        $productModel->setManufacturerId($manufacturerId);
-            #    }
-            #}
-
             $manufacturerId = (new ProductManufacturerController($this->db, $this->util))->pullData($productModel);
             if ($manufacturerId instanceof Identity) {
                 $productModel->setManufacturerId($manufacturerId);

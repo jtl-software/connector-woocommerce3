@@ -63,7 +63,7 @@ class ProductManufacturerController extends AbstractBaseController
         $manufacturerId = null;
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $terms = \wp_get_object_terms((int)$productId, 'pwb-brand');
-        } elseif(SupportedPlugins::isGermanizedActive()) {
+        } elseif (SupportedPlugins::isGermanizedActive()) {
             $terms = \wp_get_object_terms((int)$productId, 'product_manufacturer');
         } else {
             $terms = \wp_get_object_terms((int)$productId, 'product_brand');

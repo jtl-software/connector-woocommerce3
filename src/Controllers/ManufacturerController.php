@@ -66,7 +66,7 @@ class ManufacturerController extends AbstractBaseController implements
         } elseif (SupportedPlugins::isGermanizedActive()) {
             if ($this->wpml->canBeUsed()) {
                 /** @var WpmlGermanized $wpmlGermanized */
-                $wpmlGermanized = $this->wpml->getComponent(WpmlGermanized::class);
+                $wpmlGermanized   = $this->wpml->getComponent(WpmlGermanized::class);
                 $manufacturerData = $wpmlGermanized->getManufacturers((int)$query->getLimit());
             } else {
                 $sql              = SqlHelper::manufacturerPull($query->getLimit(), self::TAXONOMY_GERMANIZED);
@@ -97,7 +97,7 @@ class ManufacturerController extends AbstractBaseController implements
                 /** @var WpmlTermTranslation $wpmlTaxonomyTranslations */
                 $wpmlTaxonomyTranslations = $this->wpml->getComponent(WpmlTermTranslation::class);
 
-                $trid = $this->wpml->getElementTrid((int)$manufacturerDataSet['term_id'] , $elementType);
+                $trid = $this->wpml->getElementTrid((int)$manufacturerDataSet['term_id'], $elementType);
 
                 $manufacturerTranslations = $wpmlTaxonomyTranslations
                     ->getTranslations((int)$trid, $elementType);
@@ -241,7 +241,6 @@ class ManufacturerController extends AbstractBaseController implements
                         $this->logger->error(ErrorFormatter::formatError($newTerm));
                     }
                     $term = $newTerm;
-
                 } elseif ($term instanceof \WP_Term) {
                     \wp_update_term($term->term_id, $taxonomy, [
                         'name' => $model->getName(),
@@ -273,7 +272,7 @@ class ManufacturerController extends AbstractBaseController implements
 
                             foreach ($taxonomySeo[$taxonomy] as $brandKey => $seoData) {
                                 if ($brandKey === (int)$term->term_id) {
-                                    $exists                                               = true;
+                                    $exists                                             = true;
                                     $taxonomySeo[$taxonomy][$brandKey]['wpseo_desc']    = $i18n->getMetaDescription();
                                     $taxonomySeo[$taxonomy][$brandKey]['wpseo_focuskw'] = $i18n->getMetaKeywords();
                                     $taxonomySeo[$taxonomy][$brandKey]['wpseo_title']   = \strcmp(

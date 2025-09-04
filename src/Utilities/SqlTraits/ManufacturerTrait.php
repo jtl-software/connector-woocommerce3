@@ -63,7 +63,7 @@ trait ManufacturerTrait
     public static function manufacturerStats(string $taxonomy): string
     {
         global $wpdb;
-        $jclm     = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+        $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
 
         return \sprintf(
             "
@@ -83,7 +83,7 @@ trait ManufacturerTrait
     public static function manufacturerPull(int $limit, string $taxonomy): string
     {
         global $wpdb;
-        $jclm     = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+        $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
 
         return \sprintf(
             "
