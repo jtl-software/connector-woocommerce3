@@ -60,7 +60,7 @@ trait ManufacturerTrait
     /**
      * @return string
      */
-    public static function manufacturerStats(): string
+    public static function manufacturerStats(string $taxonomy): string
     {
         global $wpdb;
         $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
@@ -72,7 +72,7 @@ trait ManufacturerTrait
             LEFT JOIN `%s` l ON tt.term_id = l.endpoint_id
             WHERE tt.taxonomy = '%s' AND l.host_id IS NULL",
             $jclm,
-            'pwb-brand'
+            $taxonomy
         );
     }
 
@@ -80,7 +80,7 @@ trait ManufacturerTrait
      * @param int $limit
      * @return string
      */
-    public static function manufacturerPull(int $limit): string
+    public static function manufacturerPull(int $limit, string $taxonomy): string
     {
         global $wpdb;
         $jclm = $wpdb->prefix . 'jtl_connector_link_manufacturer';
@@ -95,7 +95,7 @@ trait ManufacturerTrait
             ORDER BY tt.parent ASC
             LIMIT {$limit}",
             $jclm,
-            'pwb-brand'
+            $taxonomy
         );
     }
 

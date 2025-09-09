@@ -8,6 +8,10 @@ use Exception;
 use Jtl\Connector\Core\Model\Specific;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
+use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use WPML\Auryn\InjectionException;
 
@@ -95,9 +99,21 @@ class WpmlSpecific extends AbstractComponent
                 \icl_register_string(
                     'WordPress',
                     \sprintf('taxonomy singular name: %s', $defaultTranslation->getName()),
-                    $specificI18n->getName(),
+                    $defaultTranslation->getName(),
                     false,
-                    $languageCode
+                    $wpmlPlugin->getDefaultLanguage()
+                );
+
+                // Übersetzung hinzufügen
+                \icl_add_string_translation(
+                    \icl_get_string_id(
+                        $defaultTranslation->getName(),
+                        'WordPress',
+                        \sprintf('taxonomy singular name: %s', $defaultTranslation->getName())
+                    ),
+                    $languageCode,
+                    $specificI18n->getName(),
+                    \ICL_TM_COMPLETE
                 );
             }
         }
