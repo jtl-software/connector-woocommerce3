@@ -223,6 +223,18 @@ class SupportedPlugins
     }
 
     /**
+     * @return bool
+     */
+    public static function isGermanizedActive(): bool
+    {
+        return (
+            self::isActive(self::PLUGIN_WOOCOMMERCE_GERMANIZED) ||
+            self::isActive(self::PLUGIN_WOOCOMMERCE_GERMANIZED2) ||
+            self::isActive(self::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
+        );
+    }
+
+    /**
      * @param string ...$pluginNames
      * @return bool
      */

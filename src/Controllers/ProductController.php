@@ -236,11 +236,9 @@ class ProductController extends AbstractBaseController implements
                 );
             }
 
-            if (
-                SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
-                || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
-            ) {
+            $manufacturerId = null;
+
+            if (SupportedPlugins::isGermanizedActive()) {
                 (new ProductGermanizedFieldsController($this->db, $this->util))->pullData($productModel, $product);
             }
 
@@ -252,11 +250,9 @@ class ProductController extends AbstractBaseController implements
                 (new ProductB2BMarketFieldsController($this->db, $this->util))->pullData($productModel, $product);
             }
 
-            if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
-                $tmpManId = (new ProductManufacturerController($this->db, $this->util))->pullData($productModel);
-                if ($tmpManId instanceof Identity) {
-                    $productModel->setManufacturerId($tmpManId);
-                }
+            $manufacturerId = (new ProductManufacturerController($this->db, $this->util))->pullData($productModel);
+            if ($manufacturerId instanceof Identity) {
+                $productModel->setManufacturerId($manufacturerId);
             }
 
             if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_ADVANCED_CUSTOM_FIELDS)) {

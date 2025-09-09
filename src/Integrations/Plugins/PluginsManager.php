@@ -15,6 +15,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlCurrency;
+use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlGermanized;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlGermanMarket;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlLanguage;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlMedia;
@@ -63,7 +64,8 @@ class PluginsManager
                 new WpmlProductVariation(),
                 new WpmlGermanMarket(),
                 new WpmlMedia(),
-                new WpmlStringTranslation()
+                new WpmlStringTranslation(),
+                new WpmlGermanized()
             )
         )
             ->addPlugin(new YoastSeo())
