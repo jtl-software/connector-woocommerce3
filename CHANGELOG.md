@@ -11,6 +11,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2905 - fix tracking info with advanced shipment pro
 - CO-2886 - update variable types
 - CO-3065 - implement manufacturer logic for germanized
+- CO-2862 - specific translations in wpml
 
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
