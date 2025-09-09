@@ -115,6 +115,38 @@ trait SpecificTrait
     }
 
     /**
+     * @param string $specificValue
+     * @return string
+     */
+    public static function getWpmlRegisteredStringId(string $specificValue): string
+    {
+        global $wpdb;
+
+        $wis = $wpdb->prefix . 'icl_strings';
+
+        return "SELECT wis.id
+                FROM {$wis} wis
+                WHERE wis.value = '{$wpdb->_escape($specificValue)}'
+        ";
+    }
+
+    /**
+     * @param string $stringId
+     * @return string
+     */
+    public static function getWpmlTranslatedSpecificValue(string $stringId): string
+    {
+        global $wpdb;
+
+        $wist = $wpdb->prefix . 'icl_string_translations';
+
+        return "SELECT wist.value
+                FROM {$wist} wist
+                WHERE wist.string_id = '{$wpdb->_escape($stringId)}'
+        ";
+    }
+
+    /**
      * @param string $specificName
      * @return string
      */

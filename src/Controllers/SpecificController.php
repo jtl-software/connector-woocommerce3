@@ -17,6 +17,8 @@ use Jtl\Connector\Core\Model\Specific as SpecificModel;
 use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue as SpecificValueModel;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
+use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\Wpml;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\Wpml\WpmlSpecificValue;
@@ -119,6 +121,7 @@ class SpecificController extends AbstractBaseController implements
      * @throws \InvalidArgumentException
      * @throws InjectionException
      * @throws \WP_Exception
+     * @throws \Exception
      */
     public function push(AbstractModel ...$models): array
     {
@@ -160,7 +163,6 @@ class SpecificController extends AbstractBaseController implements
             if ($meta !== null) {
                 $attrName = \wc_sanitize_taxonomy_name(Util::removeSpecialchars($meta->getName()));
 
-                //STOP here if already exists
                 $existingTaxonomyId = Util::getAttributeTaxonomyIdByName($attrName);
                 $endpointId         = (int)$model->getId()->getEndpoint();
 
@@ -194,9 +196,6 @@ class SpecificController extends AbstractBaseController implements
                 }
 
                 if ($attributeId instanceof WP_Error) {
-                    //var_dump($attributeId);
-                    //die();
-                    //return $termId->get_error_message();
                     $this->logger->error(ErrorFormatter::formatError($attributeId));
 
                     $returnModels[] =   $model;
@@ -205,12 +204,10 @@ class SpecificController extends AbstractBaseController implements
 
                 $model->getId()->setEndpoint((string)$attributeId);
 
-                //Get taxonomy
                 $taxonomy = $attrName ?
                     'pa_' . \wc_sanitize_taxonomy_name(\substr(\trim($meta->getName()), 0, 27))
                     : '';
 
-                //Register taxonomy for current request
                 \register_taxonomy($taxonomy, []);
 
                 if ($this->wpml->canBeUsed()) {
@@ -286,8 +283,6 @@ class SpecificController extends AbstractBaseController implements
                         );
 
                         if ($newTerm instanceof WP_Error) {
-                            // var_dump($newTerm);
-                            // die();
                             $this->logger->error(ErrorFormatter::formatError($newTerm));
                             continue;
                         }
@@ -313,8 +308,6 @@ class SpecificController extends AbstractBaseController implements
                     }
 
                     if ($termId instanceof WP_Error) {
-                        // var_dump($termId);
-                        // die();
                         $this->logger->error(ErrorFormatter::formatError($termId));
                         continue;
                     }
@@ -324,6 +317,13 @@ class SpecificController extends AbstractBaseController implements
                     }
 
                     $value->getId()->setEndpoint((string)$termId);
+
+                    if ($this->wpml->canBeUsed()) {
+                        /** @var WpmlSpecificValue $wpmlSpecificValue */
+                        $wpmlSpecificValue = $this->wpml->getComponent(WpmlSpecificValue::class);
+
+                        $wpmlSpecificValue->setTranslations($taxonomy, $value, $metaValue, (int)$termId);
+                    }
                 }
             }
 

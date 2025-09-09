@@ -26,6 +26,8 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins as SupportedPluginsAlias;
 use JtlWooCommerceConnector\Utilities\Util;
+use PHPUnit\Framework\ExpectationFailedException;
+use Psr\Log\InvalidArgumentException;
 use WC_Product;
 use WC_Product_Attribute;
 
@@ -666,15 +668,21 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @param ProductI18n  $productI18n
+     * @param bool         $isTranslation
      * @return void
-     * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
-     * @throws \Psr\Log\InvalidArgumentException
+     * @throws TranslatableAttributeException
+     * @throws \InvalidArgumentException
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      * @throws \TypeError
-     * @throws \Exception
      */
-    public function pushDataNew(ProductModel $product, WC_Product $wcProduct, ProductI18n $productI18n): void
-    {
+    public function pushDataNew(
+        ProductModel $product,
+        WC_Product $wcProduct,
+        ProductI18n $productI18n,
+        bool $isTranslation = false
+    ): void {
         //Identify Master = parent/simple
         $isMaster = $product->getMasterProductId()->getHost() === 0;
 
@@ -721,13 +729,13 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             //Get updated attributes
             $wcProductAttributes = $wcProduct->get_attributes();
 
-            // handleSpecifics
             $productSpecifics = ( new ProductSpecificController($this->db, $this->util) )->pushData(
                 $productId,
                 $wcProductAttributes,
                 $jtlSpecifics,
                 $product->getSpecifics(),
-                $product->getAttributes()
+                $product->getAttributes(),
+                $isTranslation
             );
 
             $this->mergeAttributes($newWcProductAttributes, $productSpecifics);

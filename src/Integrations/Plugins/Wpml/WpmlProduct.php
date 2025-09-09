@@ -227,7 +227,7 @@ class WpmlProduct extends AbstractComponent
                     break;
                 case self::POST_TYPE:
                     (new ProductVaSpeAttrHandlerController($db, $util))
-                        ->pushDataNew($jtlProduct, $wcProduct, $productI18n);
+                        ->pushDataNew($jtlProduct, $wcProduct, $productI18n, true);
                     $productStockLevel->pushDataParent($jtlProduct);
                     break;
             }

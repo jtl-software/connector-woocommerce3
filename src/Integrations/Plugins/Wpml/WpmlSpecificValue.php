@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
+use Jtl\Connector\Core\Model\Specific;
+use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
+use PHPUnit\Framework\ExpectationFailedException;
+use WPML\Auryn\InjectionException;
 
 /**
  * Class WpmlSpecificValue
@@ -43,14 +47,20 @@ class WpmlSpecificValue extends AbstractComponent
     }
 
     /**
-     * @param string        $taxonomy
-     * @param SpecificValue $specificValue
-     * @param int           $mainSpecificValueId
+     * @param string                 $taxonomy
+     * @param SpecificValue          $specificValue
+     * @param SpecificValueI18nModel $defaultTranslation
+     * @param int                    $mainSpecificValueId
      * @return void
-     * @throws \Exception
+     * @throws ExpectationFailedException
+     * @throws InjectionException
      */
-    public function setTranslations(string $taxonomy, SpecificValue $specificValue, int $mainSpecificValueId): void
-    {
+    public function setTranslationsDeprecated(
+        string $taxonomy,
+        SpecificValue $specificValue,
+        SpecificValueI18nModel $defaultTranslation,
+        int $mainSpecificValueId
+    ): void {
         $type = 'tax_' . $taxonomy;
 
         /** @var Wpml $wpmlPlugin */
@@ -59,8 +69,39 @@ class WpmlSpecificValue extends AbstractComponent
 
         foreach ($specificValue->getI18ns() as $specificValueI18n) {
             $languageCode = $wpmlPlugin->convertLanguageToWpml($specificValueI18n->getLanguageISO());
+
             if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
                 continue;
+            }
+
+            $translatedName = \apply_filters(
+                'wpml_translate_single_string',
+                $defaultTranslation->getValue(),
+                'WordPress',
+                $defaultTranslation->getValue(),
+                $languageCode
+            );
+
+            if ($translatedName !== $specificValueI18n->getValue()) {
+                \icl_register_string(
+                    'WordPress',
+                    \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue()),
+                    $defaultTranslation->getValue(),
+                    false,
+                    $wpmlPlugin->getDefaultLanguage()
+                );
+
+                // Übersetzung hinzufügen
+                \icl_add_string_translation(
+                    \icl_get_string_id(
+                        $defaultTranslation->getValue(),
+                        'WordPress',
+                        \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue())
+                    ),
+                    $languageCode,
+                    $specificValueI18n->getValue(),
+                    \ICL_TM_COMPLETE
+                );
             }
 
             $specificTranslation = $this->findSpecificValueTranslation((int)$trid, $taxonomy, $languageCode);
@@ -88,6 +129,102 @@ class WpmlSpecificValue extends AbstractComponent
                     (int)$trid,
                     $languageCode
                 );
+
+                \do_action('wpml_add_term_translation', [
+                    'element_id'    => $specificValueId,
+                    'element_type'  => $type,
+                    'trid'          => $trid,
+                    'language_code' => $languageCode,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * @param string                 $taxonomy
+     * @param SpecificValue          $specificValue
+     * @param SpecificValueI18nModel $defaultTranslation
+     * @param int                    $mainSpecificValueId
+     * @return void
+     * @throws ExpectationFailedException
+     * @throws InjectionException
+     */
+    public function setTranslations(
+        string $taxonomy,
+        SpecificValue $specificValue,
+        SpecificValueI18nModel $defaultTranslation,
+        int $mainSpecificValueId
+    ): void {
+        $type = 'tax_' . $taxonomy;
+
+        /** @var Wpml $wpmlPlugin */
+        $wpmlPlugin = $this->getCurrentPlugin();
+        $trid       = $wpmlPlugin->getElementTrid($mainSpecificValueId, $type);
+
+        foreach ($specificValue->getI18ns() as $specificValueI18n) {
+            $languageCode = $wpmlPlugin->convertLanguageToWpml($specificValueI18n->getLanguageISO());
+
+            if ($wpmlPlugin->getDefaultLanguage() === $languageCode) {
+                continue;
+            }
+
+            $translatedName = \apply_filters(
+                'wpml_translate_single_string',
+                $defaultTranslation->getValue(),
+                'WordPress',
+                $defaultTranslation->getValue(),
+                $languageCode
+            );
+
+            if ($translatedName !== $specificValueI18n->getValue()) {
+                \icl_register_string(
+                    'WordPress',
+                    \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue()),
+                    $defaultTranslation->getValue(),
+                    false,
+                    $wpmlPlugin->getDefaultLanguage()
+                );
+
+                // Übersetzung hinzufügen
+                \icl_add_string_translation(
+                    \icl_get_string_id(
+                        $defaultTranslation->getValue(),
+                        'WordPress',
+                        \sprintf('taxonomy singular name: %s', $defaultTranslation->getValue())
+                    ),
+                    $languageCode,
+                    $specificValueI18n->getValue(),
+                    \ICL_TM_COMPLETE
+                );
+
+                $translated_term = \get_term_by('name', $specificValueI18n->getValue());
+
+                if (!$translated_term) {
+                    $term_result = \wp_insert_term($specificValueI18n->getValue(), $taxonomy);
+                    if (\is_wp_error($term_result)) {
+                        $this->logger->error("Error while creating term: " . $term_result->get_error_message());
+                        return;
+                    }
+                    $translated_term_id = $term_result['term_id'];
+                } else {
+                    $translated_term_id = $translated_term->term_id;
+                }
+
+                \do_action('wpml_add_term_translation', [
+                    'element_id'    => $translated_term_id,
+                    'element_type'  => $type,
+                    'trid'          => $trid,
+                    'language_code' => $languageCode,
+                ]);
+
+                #sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
+                \do_action('wpml_set_element_language_details', [
+                    'element_id'    => $translated_term_id,
+                    'element_type'  => $type,
+                    'trid'          => $trid,
+                    'language_code' => $languageCode,
+                    'source_language_code' => $wpmlPlugin->getDefaultLanguage(),
+                ]);
             }
         }
     }
