@@ -4,6 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 2.3.3 _2025-09-10_
+- CO-3155 - rename plugin
+
 ## 2.3.2 _2025-02-24_
 - CO-2818 - add time to end date for special price
 - CO-2820 - consider manufacturer name in address
