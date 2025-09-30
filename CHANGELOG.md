@@ -10,6 +10,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2912 - Fix setZipCode
 - CO-2886 - update variable types
 - CO-3065 - implement manufacturer logic for germanized
+- CO-3095 - add updated wpml plugin name
 
 ## 2.3.3 _2025-09-10_
 - CO-3155 - rename plugin
