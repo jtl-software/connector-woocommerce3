@@ -1,12 +1,12 @@
-=== WooCommerce JTL-Connector ===
+=== JTL-Connector for WooCommerce ===
 Contributors: papryk, ntbyk, platzkejtl
-Tags: warenwirtschaft, jtl, connector, wms, erp, woocommerce
+Tags: warenwirtschaft, jtl, connector, wms, erp
 Requires at least: 4.7
 Tested up to: 6.4
 Requires PHP: 8.0
 WC requires at least: 3.4
 WC tested up to: 8.2
-Stable tag: 2.3.2
+Stable tag: 2.3.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -142,13 +142,13 @@ This section describes how to install the plugin and get it working.
 
 == Screenshots ==
 
-1. The WooCommerce JTL-Connector (>=1.8.0) information & JTL-Wawi settings page.
-2. The WooCommerce JTL-Connector (>=1.8.0) advanced settings page.
-3. The WooCommerce JTL-Connector (>=1.8.0) delivery time settings page.
-4. The WooCommerce JTL-Connector (>=1.8.0) customer orders settings page.
-5. The WooCommerce JTL-Connector (>=1.8.0) developer settings page.
-6. The WooCommerce JTL-Connector (<=1.6.4) settings panel.
-7. The WooCommerce JTL-Connector (>=1.7.0) settings panel.
+1. The JTL-Connector for WooCommerce (>=1.8.0) information & JTL-Wawi settings page.
+2. The JTL-Connector for WooCommerce (>=1.8.0) advanced settings page.
+3. The JTL-Connector for WooCommerce (>=1.8.0) delivery time settings page.
+4. The JTL-Connector for WooCommerce (>=1.8.0) customer orders settings page.
+5. The JTL-Connector for WooCommerce (>=1.8.0) developer settings page.
+6. The JTL-Connector for WooCommerce (<=1.6.4) settings panel.
+7. The JTL-Connector for WooCommerce (>=1.7.0) settings panel.
 
 == Changelog ==
 
