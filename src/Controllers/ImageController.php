@@ -263,7 +263,7 @@ class ImageController extends AbstractBaseController implements
         }
         if (
             SupportedPlugins::isActive(
-                SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
+                SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOO
             )
         ) {
             if ($product->is_type('variation')) {
@@ -847,7 +847,7 @@ class ImageController extends AbstractBaseController implements
         } else {
             if (
                 SupportedPlugins::isActive(
-                    SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
+                    SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOO
                 )
             ) {
                 if ($wcProduct->get_type() === 'variation') {
@@ -1030,7 +1030,7 @@ class ImageController extends AbstractBaseController implements
             } else {
                 if (
                     SupportedPlugins::isActive(
-                        SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE
+                        SupportedPlugins::PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOO
                     )
                 ) {
                     if ($wcProduct->get_type() === 'variation') {
