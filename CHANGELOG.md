@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3161 - consider different customer languages
 
 ## 2.4.0 _2025-11-10_
 - CO-2919 - implement core updates in connector
