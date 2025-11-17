@@ -93,7 +93,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 $customer->setEMail($wcCustomer->get_billing_email());
             }
 
-            $customerLanguage = get_user_meta($wcCustomer->get_id(),'locale',true);
+            $customerLanguage = \get_user_meta($wcCustomer->get_id(), 'locale', true);
             if ($customerLanguage !== '') {
                 $customer->setLanguageIso(Service::create($customerLanguage)->toISO_639_2b());
             }
