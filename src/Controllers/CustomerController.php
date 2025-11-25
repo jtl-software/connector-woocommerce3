@@ -20,6 +20,7 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
+use WhiteCube\Lingua\Service;
 
 class CustomerController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
@@ -71,7 +72,6 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 ->setIsActive(true)
                 ->setHasCustomerAccount(true);
 
-
             $firstName = $wcCustomer->get_first_name();
             if (!empty($firstName)) {
                 $customer->setFirstName($wcCustomer->get_first_name());
@@ -91,6 +91,11 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 $customer->setEMail($wcCustomer->get_email());
             } else {
                 $customer->setEMail($wcCustomer->get_billing_email());
+            }
+
+            $customerLanguage = \get_user_meta($wcCustomer->get_id(), 'locale', true);
+            if ($customerLanguage !== '') {
+                $customer->setLanguageIso(Service::create($customerLanguage)->toISO_639_2b());
             }
 
             if (
