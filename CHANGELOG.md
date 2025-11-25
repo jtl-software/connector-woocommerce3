@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.4.1 _2025-11-25_
 - CO-3254 - fix wrong price update in quick sync
 
 ## 2.4.0 _2025-11-10_
