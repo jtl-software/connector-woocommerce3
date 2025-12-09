@@ -46,7 +46,7 @@ class Config
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
         OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than';
 
-    public const array JTLWCC_CONFIG_DEFAULTS = [
+    public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
         Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => true,
         Config::OPTIONS_SEND_CUSTOM_PROPERTIES => true,
@@ -86,7 +86,7 @@ class Config
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
     ];
 
-    public const array JTLWCC_CONFIG = [
+    public const JTLWCC_CONFIG = [
         //FIRSTPAGE
         Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE => 'bool',
         Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES => 'bool',
