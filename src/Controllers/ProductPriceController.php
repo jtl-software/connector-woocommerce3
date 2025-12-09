@@ -31,7 +31,8 @@ class ProductPriceController extends ProductPrice implements PushInterface
         $returnModels = [];
 
         foreach ($models as $model) {
-            $wcProduct = \wc_get_product($model->getId()->getEndpoint());
+            $wcProducts = [];
+            $wcProduct  = \wc_get_product($model->getId()->getEndpoint());
 
             if ($wcProduct !== false && $wcProduct !== null) {
                 $vat = $model->getVat();

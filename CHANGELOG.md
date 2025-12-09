@@ -3,6 +3,13 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3161 - consider different customer languages
+- CO-3095 - add updated wpml plugin name
+
+## 2.4.1 _2025-11-25_
+- CO-3254 - fix wrong price update in quick sync
+
+## 2.4.0 _2025-11-10_
 - CO-2919 - implement core updates in connector
 - CO-2875 - use the correct \InvalidArgumentException
 - CO-2909 - Fix array_map error in germanized fields
@@ -10,7 +17,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-2912 - Fix setZipCode
 - CO-2886 - update variable types
 - CO-3065 - implement manufacturer logic for germanized
-- CO-3095 - add updated wpml plugin name
+- CO-2862 - specific translation in wpml
 
 ## 2.3.3 _2025-09-10_
 - CO-3155 - rename plugin
