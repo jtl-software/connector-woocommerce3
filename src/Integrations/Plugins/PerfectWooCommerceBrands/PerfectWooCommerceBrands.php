@@ -24,7 +24,7 @@ use WP_Term;
  */
 class PerfectWooCommerceBrands extends AbstractPlugin
 {
-    public const string  TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
+    public const TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
 
     /**
      * @return bool

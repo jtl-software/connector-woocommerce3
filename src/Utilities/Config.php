@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Config
 {
-    public const string
+    public const
         OPTIONS_AUTO_B2B_MARKET_OPTIONS                  = 'jtlconnector_auto_b2b_market',
         OPTIONS_PULL_ORDERS_SINCE                        = 'jtlconnector_pull_orders_since',
         OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE = 'jtlconnector_show_variation_specifics_on_product_page',

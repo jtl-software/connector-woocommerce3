@@ -28,7 +28,7 @@ use WC_Product_Variation;
  */
 class WpmlProduct extends AbstractComponent
 {
-    public const string
+    public const
         POST_TYPE           = 'post_product',
         POST_TYPE_VARIATION = 'post_product_variation';
 
