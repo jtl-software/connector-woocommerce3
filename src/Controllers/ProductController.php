@@ -56,7 +56,7 @@ class ProductController extends AbstractBaseController implements
 {
     use WawiProductPriceSchmuddelTrait;
 
-    public const
+    public const string
         TYPE_PARENT = 'parent',
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
@@ -103,19 +103,9 @@ class ProductController extends AbstractBaseController implements
                 continue;
             }
 
-            $postDate      = $product->get_date_created();
-            $modDate       = $product->get_date_modified();
-            $status        = $product->get_status('view');
-            $considerStock = \is_string($managingStock = $product->managing_stock())
-                ? $product->managing_stock() === 'yes'
-                : (\is_bool($managingStock) ? $managingStock : null);
-
-            if ($considerStock === null) {
-                throw new \InvalidArgumentException(
-                    'Managing stock expected to be bool or string. Got '
-                    . \gettype($managingStock) . ' instead.'
-                );
-            }
+            $postDate = $product->get_date_created();
+            $modDate  = $product->get_date_modified();
+            $status   = $product->get_status('view');
 
             $productModel = (new ProductModel())
                 ->setId(new Identity((string)$product->get_id()))
@@ -143,7 +133,7 @@ class ProductController extends AbstractBaseController implements
                 ->setLength((double)$product->get_length())
                 ->setWidth((double)$product->get_width())
                 ->setShippingWeight((double)$product->get_weight())
-                ->setConsiderStock($product->managing_stock() === 'yes')
+                ->setConsiderStock($product->managing_stock())
                 ->setPermitNegativeStock($product->backorders_allowed())
                 ->setShippingClassId(new Identity((string)$product->get_shipping_class_id()));
 
@@ -267,7 +257,7 @@ class ProductController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel ...$models
-     * @phpstan-param Product ...$model
+     * @phpstan-param Product ...$models
      *
      * @return AbstractModel[]
      * @throws InvalidArgumentException
@@ -281,6 +271,7 @@ class ProductController extends AbstractBaseController implements
      * @throws \Psr\Log\InvalidArgumentException
      * @throws \TypeError
      * @throws \WP_Exception
+     * @throws Exception
      */
     public function push(AbstractModel ...$models): array
     {

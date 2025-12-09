@@ -40,14 +40,14 @@ class ImageController extends AbstractBaseController implements
     PushInterface,
     DeleteInterface
 {
-    public const GALLERY_DIVIDER    = ',';
-    public const PRODUCT_THUMBNAIL  = '_thumbnail_id';
-    public const CATEGORY_THUMBNAIL = 'thumbnail_id';
-    public const GALLERY_KEY        = '_product_image_gallery';
-    public const MANUFACTURER_KEY   = 'pwb_brand_image';
-    public const PRODUCT_IMAGE      = 'product';
-    public const CATEGORY_IMAGE     = 'category';
-    public const MANUFACTURER_IMAGE = 'manufacturer';
+    public const string GALLERY_DIVIDER    = ',';
+    public const string PRODUCT_THUMBNAIL  = '_thumbnail_id';
+    public const string CATEGORY_THUMBNAIL = 'thumbnail_id';
+    public const string GALLERY_KEY        = '_product_image_gallery';
+    public const string MANUFACTURER_KEY   = 'pwb_brand_image';
+    public const string PRODUCT_IMAGE      = 'product';
+    public const string CATEGORY_IMAGE     = 'category';
+    public const string MANUFACTURER_IMAGE = 'manufacturer';
 
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
@@ -564,11 +564,11 @@ class ImageController extends AbstractBaseController implements
                 $this->delete($model);
 
                 if ($model instanceof ProductImage) {
-                    $model->getId()->setEndpoint($this->pushProductImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushProductImage($model));
                 } elseif ($model instanceof CategoryImage) {
-                    $model->getId()->setEndpoint($this->pushCategoryImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushCategoryImage($model));
                 } elseif ($model instanceof ManufacturerImage) {
-                    $model->getId()->setEndpoint($this->pushManufacturerImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushManufacturerImage($model));
                 }
             }
 
@@ -948,9 +948,10 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel ...$models
-     * @param bool          $realDelete
      * @return AbstractModel[]
-     * @throws Exception
+     * @throws DefinitionException
+     * @throws RuntimeException
+     * @throws \InvalidArgumentException
      */
     public function delete(AbstractModel ...$models): array
     {

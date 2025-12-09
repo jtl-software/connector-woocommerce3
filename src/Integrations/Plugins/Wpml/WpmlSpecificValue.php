@@ -12,6 +12,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
 use PHPUnit\Framework\ExpectationFailedException;
+use WP_Term;
 use WPML\Auryn\InjectionException;
 
 /**
@@ -197,6 +198,7 @@ class WpmlSpecificValue extends AbstractComponent
                     \ICL_TM_COMPLETE
                 );
 
+                /** @var WP_Term|false $translated_term $translated_term */
                 $translated_term = \get_term_by('name', $specificValueI18n->getValue());
 
                 if (!$translated_term) {
@@ -217,7 +219,7 @@ class WpmlSpecificValue extends AbstractComponent
                     'language_code' => $languageCode,
                 ]);
 
-                #sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
+                // sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
                 \do_action('wpml_set_element_language_details', [
                     'element_id'    => $translated_term_id,
                     'element_type'  => $type,

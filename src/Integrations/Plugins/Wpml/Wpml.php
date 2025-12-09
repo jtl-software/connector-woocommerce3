@@ -199,7 +199,7 @@ class Wpml extends AbstractPlugin
             return false;
         }
 
-        #only one must be active,
+        // only one must be active,
         return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_MULTILUNGUAL)
         || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_MULTILINGUAL_FOR_WOOCOMMERCE);
     }

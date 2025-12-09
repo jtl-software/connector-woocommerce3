@@ -58,6 +58,7 @@ trait ManufacturerTrait
 */
 
     /**
+     * @param string $taxonomy
      * @return string
      */
     public static function manufacturerStats(string $taxonomy): string
@@ -77,7 +78,8 @@ trait ManufacturerTrait
     }
 
     /**
-     * @param int $limit
+     * @param int    $limit
+     * @param string $taxonomy
      * @return string
      */
     public static function manufacturerPull(int $limit, string $taxonomy): string

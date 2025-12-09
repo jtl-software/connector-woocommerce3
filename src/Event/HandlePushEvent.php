@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class HandlePushEvent extends Event
 {
-    public const EVENT_NAME = 'connector.handle.push';
+    public const string EVENT_NAME = 'connector.handle.push';
 
     protected mixed $result;
     protected string $controller;

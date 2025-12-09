@@ -18,7 +18,7 @@ use WC_Order_Item_Shipping;
 
 class CustomerOrderItemController extends AbstractBaseController
 {
-    public const PRICE_DECIMALS = 4;
+    public const int PRICE_DECIMALS = 4;
 
     /** @var array<int|string, float> $taxRateCache Map tax rate id to tax rate */
     protected static array $taxRateCache = [];
@@ -453,7 +453,7 @@ class CustomerOrderItemController extends AbstractBaseController
 
     /**
      * @param CustomerOrderItemModel[] $customerOrderItems
-     * @return array<int, float>
+     * @return array<int|string, float>
      */
     private function groupProductsByTaxRate(array $customerOrderItems): array
     {

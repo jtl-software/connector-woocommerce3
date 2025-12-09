@@ -24,6 +24,8 @@ use WP_Term;
  */
 class PerfectWooCommerceBrands extends AbstractPlugin
 {
+    public const string  TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
+
     /**
      * @return bool
      */
@@ -202,7 +204,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      */
     public function getManufacturers(int $limit): array
     {
-        $sql = SqlHelper::manufacturerPull($limit);
+        $sql = SqlHelper::manufacturerPull($limit, self::TAXONOMY_PERFECT_BRANDS);
 
         /** @var array<int, array<string, int|string|null>> $manufacturers */
         $manufacturers =  $this->getPluginsManager()->getDatabase()->query($sql) ?? [];
@@ -216,6 +218,8 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      */
     public function getStats(): int
     {
-        return (int) $this->getPluginsManager()->getDatabase()->queryOne(SqlHelper::manufacturerStats());
+        return (int) $this->getPluginsManager()->getDatabase()->queryOne(
+            SqlHelper::manufacturerStats(self::TAXONOMY_PERFECT_BRANDS)
+        );
     }
 }
