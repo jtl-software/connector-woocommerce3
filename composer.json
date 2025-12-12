@@ -68,7 +68,7 @@
     "phpcs:fix": "phpcbf --basepath=. --extensions=php --standard=JtlConnector src tests includes uninstall.php woo-jtl-connector.php",
     "phpcs:ci": "phpcs --basepath=. --extensions=php --standard=JtlConnector --report=full --report-\\\\Micheh\\\\PhpCodeSniffer\\\\Report\\\\Gitlab=phpcs-quality-report.json src tests",
     "phpstan": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon",
-    "phpstan:ci": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon --error-format gitlab > phpstan-quality-report.json",
+    "phpstan:ci": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon --memory-limit 2G --error-format gitlab > phpstan-quality-report.json",
     "tests": "phpunit",
     "tests:ci": "phpunit --log-junit junit.xml"
   }
