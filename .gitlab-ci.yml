@@ -24,47 +24,11 @@ include:
 
 stages:
   - createMR
-  - test
   - build
+  - test
   - deploy
   - extract-changelog
   - update-changelog
-
-code_quality:
-  stage: test
-  needs:
-    - build
-  script:
-    - composer run phpcs:ci
-  artifacts:
-    paths:
-      - phpcs-quality-report.json
-    when: always
-
-phpstan:
-  stage: test
-  needs:
-    - build
-  script:
-    - composer run phpstan:ci
-  artifacts:
-    paths:
-      - phpstan-quality-report.json
-    when: always
-
-
-test:unit:
-  parallel:
-    matrix:
-      - BASE: 'php'
-        VERSION: ['8.1', '8.2' ] # no image for 8.3 yet
-  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${VERSION}
-  stage: test
-  script:
-    - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
-  artifacts:
-    reports:
-      junit: junit.xml
 
 build:
   image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${BASE_PHP_VERSION}
@@ -109,6 +73,42 @@ build:zip:
     name: 'build'
     paths:
       - woo-jtl-connector-${VERSION}.zip
+
+code_quality:
+  stage: test
+  needs:
+    - build
+  script:
+    - composer run phpcs:ci
+  artifacts:
+    paths:
+      - phpcs-quality-report.json
+    when: always
+
+phpstan:
+  stage: test
+  needs:
+    - build
+  script:
+    - composer run phpstan:ci
+  artifacts:
+    paths:
+      - phpstan-quality-report.json
+    when: always
+
+
+test:unit:
+  parallel:
+    matrix:
+      - BASE: 'php'
+        VERSION: ['8.1', '8.2' ] # no image for 8.3 yet
+  image: ${CI_REGISTRY}/connector/connector-utils/ci-docker/php/cli:${VERSION}
+  stage: test
+  script:
+    - vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
 
 deploy:
   stage: deploy
