@@ -39,6 +39,9 @@ class ClassInitializationTest extends AbstractTestCase
     public function testClassInitialization(): void
     {
         $srcPath   = \sprintf('%s/src', \dirname(__DIR__, 2));
+        if (!defined('GLOB_BRACE')) {
+            $this->markTestSkipped('Glob brace is not supported by this system');
+        }
         $classList = $this->findClasses($srcPath);
 
 
@@ -71,6 +74,6 @@ class ClassInitializationTest extends AbstractTestCase
      */
     protected function findClasses(string $srcPath): bool|array
     {
-        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), 1024);
+        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), GLOB_BRACE);
     }
 }
