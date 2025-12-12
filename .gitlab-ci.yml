@@ -31,7 +31,27 @@ stages:
   - update-changelog
 
 code_quality:
-  before_script: []
+  stage: test
+  needs:
+    - build
+  script:
+    - composer run phpcs:ci
+  artifacts:
+    paths:
+      - phpcs-quality-report.json
+    when: always
+
+phpstan:
+  stage: test
+  needs:
+    - build
+  script:
+    - composer run phpstan:ci
+  artifacts:
+    paths:
+      - phpstan-quality-report.json
+    when: always
+
 
 test:unit:
   parallel:
