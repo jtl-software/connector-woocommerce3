@@ -31,8 +31,8 @@ class ManufacturerController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    public const string TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
-    public const string TAXONOMY_GERMANIZED     = 'product_manufacturer';
+    public const TAXONOMY_PERFECT_BRANDS = 'pwb-brand';
+    public const TAXONOMY_GERMANIZED     = 'product_manufacturer';
 
     /** @var array<int, int> */
     private static array $idCache = [];

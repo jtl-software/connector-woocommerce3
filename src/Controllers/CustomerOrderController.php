@@ -41,8 +41,8 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
         /** Already paid */
         STATUS_REFUNDED = 'refunded';
 
-    public const string BILLING_ID_PREFIX  = 'b_';
-    public const string SHIPPING_ID_PREFIX = 's_';
+    public const BILLING_ID_PREFIX  = 'b_';
+    public const SHIPPING_ID_PREFIX = 's_';
 
     /**
      * @param QueryFilter $query

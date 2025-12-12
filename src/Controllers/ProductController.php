@@ -56,7 +56,7 @@ class ProductController extends AbstractBaseController implements
 {
     use WawiProductPriceSchmuddelTrait;
 
-    public const string
+    public const
         TYPE_PARENT = 'parent',
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
