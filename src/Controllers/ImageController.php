@@ -567,8 +567,8 @@ class ImageController extends AbstractBaseController implements
                     $model->getId()->setEndpoint($this->pushProductImage($model));
                 } elseif ($model instanceof CategoryImage) {
                     $model->getId()->setEndpoint($this->pushCategoryImage($model));
-                } elseif ($model instanceof ManufacturerImage) {
                     $model->getId()->setEndpoint($this->pushManufacturerImage($model));
+                } elseif ($model instanceof ManufacturerImage) {
                 }
             }
 
