@@ -56,6 +56,7 @@ class ProductSpecificController extends AbstractBaseController
      * @param array<int, array<string, array<int, int|string>>> $specificData
      * @param ProductSpecificModel[]                            $pushedJtlSpecifics
      * @param TranslatableAttribute[]                           $pushedJtlAttributes
+     * @param bool                                              $isTranslation
      * @return array<string, array<string, bool|int|string|null>>
      * @throws TranslatableAttributeException
      * @throws MustNotBeNullException
@@ -138,7 +139,12 @@ class ProductSpecificController extends AbstractBaseController
 
             if (\count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
+                    /** @var \WP_Term|false $term */
                     $term = \get_term_by('id', $valId, $slug);
+
+                    if (!$term instanceof \WP_Term) {
+                        continue;
+                    }
 
                     if ($isTranslation) {
                         $getWpmlStringId = $this->db->queryOne(

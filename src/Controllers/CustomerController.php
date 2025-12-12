@@ -94,7 +94,7 @@ class CustomerController extends AbstractBaseController implements PullInterface
             }
 
             $customerLanguage = \get_user_meta($wcCustomer->get_id(), 'locale', true);
-            if ($customerLanguage !== '') {
+            if (\is_string($customerLanguage) && $customerLanguage !== '') {
                 $customer->setLanguageIso(Service::create($customerLanguage)->toISO_639_2b());
             }
 

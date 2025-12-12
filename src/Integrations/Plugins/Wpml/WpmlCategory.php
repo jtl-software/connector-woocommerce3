@@ -23,7 +23,7 @@ use Psr\Log\InvalidArgumentException;
  */
 class WpmlCategory extends AbstractComponent
 {
-    public const
+    public const string
         PRODUCT_CATEGORY_TYPE = 'tax_product_cat';
 
     /**

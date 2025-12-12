@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Integrations\Plugins\Wpml;
 
-use Jtl\Connector\Core\Model\Specific;
-use Jtl\Connector\Core\Model\SpecificI18n as SpecificI18nModel;
 use Jtl\Connector\Core\Model\SpecificValue;
 use Jtl\Connector\Core\Model\SpecificValueI18n as SpecificValueI18nModel;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
@@ -197,6 +195,7 @@ class WpmlSpecificValue extends AbstractComponent
                     \ICL_TM_COMPLETE
                 );
 
+                /** @var \WP_Term|false $translated_term $translated_term */
                 $translated_term = \get_term_by('name', $specificValueI18n->getValue());
 
                 if (!$translated_term) {
@@ -217,7 +216,7 @@ class WpmlSpecificValue extends AbstractComponent
                     'language_code' => $languageCode,
                 ]);
 
-                #sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
+                // sicher stellen, dass EN Produkt mit der term_id von clever verknüpft wird
                 \do_action('wpml_set_element_language_details', [
                     'element_id'    => $translated_term_id,
                     'element_type'  => $type,

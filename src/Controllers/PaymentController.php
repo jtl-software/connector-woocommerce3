@@ -26,7 +26,7 @@ use Psr\Log\InvalidArgumentException;
  */
 class PaymentController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
-    public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+    public const string PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
      * @param QueryFilter $query
