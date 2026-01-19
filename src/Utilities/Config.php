@@ -44,7 +44,8 @@ class Config
         OPTIONS_CUSTOM_CHECKOUT_FIELDS                   = 'jtlconnector_custom_checkout_fields',
         OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE                = 'jtlconnector_limit_customer_query',
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
-        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than';
+        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than',
+        OPTIONS_PULL_LINKED_PRODUCTS                     = 'jtlconnector_pull_linked_products';
 
     public const JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -84,6 +85,7 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => true,
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
+        Config::OPTIONS_PULL_LINKED_PRODUCTS => false,
     ];
 
     public const JTLWCC_CONFIG = [
@@ -116,6 +118,7 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => 'bool',
+        Config::OPTIONS_PULL_LINKED_PRODUCTS => 'bool',
         //Not displayed
         Config::OPTIONS_FEATURES_JSON => 'string',
     ];

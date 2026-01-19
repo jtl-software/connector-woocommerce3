@@ -255,10 +255,11 @@ class WpmlProduct extends AbstractComponent
 
     /**
      * @param int|null $limit
+     * @param bool     $includeLinked Include already linked products (for data refresh)
      * @return array<int, int|string>
      * @throws \Psr\Log\InvalidArgumentException
      */
-    public function getProducts(?int $limit = null): array
+    public function getProducts(?int $limit = null, bool $includeLinked = false): array
     {
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin      = $this->getCurrentPlugin();
@@ -267,15 +268,18 @@ class WpmlProduct extends AbstractComponent
         $translations    = $wpdb->prefix . 'icl_translations';
         $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
 
-        $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
-        $query      = "SELECT p.ID
+        $limitQuery  = \is_null($limit) ? '' : 'LIMIT ' . $limit;
+        $linkedQuery = $includeLinked ? '' : 'AND l.host_id IS NULL';
+
+        $query = "SELECT p.ID
             FROM {$wpdb->posts} p
             LEFT JOIN {$jclp} l ON p.ID = l.endpoint_id
             LEFT JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
             LEFT JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
             LEFT JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
             LEFT JOIN {$translations} wpmlt ON p.ID = wpmlt.element_id
-            WHERE l.host_id IS NULL
+            WHERE 1=1
+            {$linkedQuery}
             AND (
                 (p.post_type = 'product' AND (p.post_parent IS NULL OR p.post_parent = 0) )
                 OR (

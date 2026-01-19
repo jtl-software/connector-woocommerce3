@@ -15,14 +15,16 @@ trait ProductTrait
 {
     /**
      * @param int|null $limit
+     * @param bool     $includeLinked Include already linked products (for data refresh)
      * @return string
      */
-    public static function productPull(?int  $limit = null): string
+    public static function productPull(?int $limit = null, bool $includeLinked = false): string
     {
         global $wpdb;
         $jclp = $wpdb->prefix . 'jtl_connector_link_product';
 
-        $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
+        $limitQuery  = \is_null($limit) ? '' : 'LIMIT ' . $limit;
+        $linkedQuery = $includeLinked ? '' : 'AND l.host_id IS NULL';
 
         return "
             SELECT p.ID
@@ -31,7 +33,8 @@ trait ProductTrait
             LEFT JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
             LEFT JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
             LEFT JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
-            WHERE l.host_id IS NULL
+            WHERE 1=1
+            {$linkedQuery}
             AND (
                 (p.post_type = 'product' AND (p.post_parent IS NULL OR p.post_parent = 0) )
                 OR (

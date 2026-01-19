@@ -72,13 +72,15 @@ class ProductController extends AbstractBaseController implements
      */
     protected function getProductsIds(int $limit): array
     {
+        $includeLinked = Config::get(Config::OPTIONS_PULL_LINKED_PRODUCTS, false) === true;
+
         if ($this->wpml->canBeUsed()) {
             /** @var WpmlProduct $wpmlProduct */
             $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
 
-            $ids = $wpmlProduct->getProducts($limit);
+            $ids = $wpmlProduct->getProducts($limit, $includeLinked);
         } else {
-            $ids = $this->db->queryList(SqlHelper::productPull($limit));
+            $ids = $this->db->queryList(SqlHelper::productPull($limit, $includeLinked));
         }
 
         return $ids;
@@ -477,12 +479,14 @@ class ProductController extends AbstractBaseController implements
      */
     public function statistic(QueryFilter $query): int
     {
+        $includeLinked = Config::get(Config::OPTIONS_PULL_LINKED_PRODUCTS, false) === true;
+
         if ($this->wpml->canBeUsed()) {
             /** @var WpmlProduct $wpmlProduct */
             $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
-            $ids         = $wpmlProduct->getProducts();
+            $ids         = $wpmlProduct->getProducts(null, $includeLinked);
         } else {
-            $ids = $this->db->queryList(SqlHelper::productPull());
+            $ids = $this->db->queryList(SqlHelper::productPull(null, $includeLinked));
         }
         return \count($ids);
     }
