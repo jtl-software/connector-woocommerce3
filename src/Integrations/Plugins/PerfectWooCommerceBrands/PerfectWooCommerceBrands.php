@@ -29,7 +29,7 @@ class PerfectWooCommerceBrands extends AbstractPlugin
      */
     public function canBeUsed(): bool
     {
-        return SupportedPlugins::isPerfectWooCommerceBrandsActive();
+        return true;
     }
 
     /**

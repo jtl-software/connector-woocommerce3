@@ -215,11 +215,7 @@ class SupportedPlugins
      */
     public static function isPerfectWooCommerceBrandsActive(): bool
     {
-        return (
-            self::isActive(self::PLUGIN_PERFECT_WOO_BRANDS) ||
-            self::isActive(self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE) ||
-            self::isActive(self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE)
-        );
+        return true;
     }
 
     /**
