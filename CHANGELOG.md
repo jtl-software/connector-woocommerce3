@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-3161 - consider different customer languages
+- Enable PWB brand sync without requiring Perfect WooCommerce Brands plugin - The connector now always enables manufacturer/brand synchronization via the `pwb-brand` taxonomy, regardless of whether the actual Perfect WooCommerce Brands plugin is installed. The taxonomy is automatically registered if it doesn't exist.
 
 ## 2.4.1 _2025-11-25_
 - CO-3254 - fix wrong price update in quick sync

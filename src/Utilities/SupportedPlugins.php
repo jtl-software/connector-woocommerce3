@@ -211,15 +211,43 @@ class SupportedPlugins
     }
 
     /**
-     * @return bool
+     * Check if Perfect WooCommerce Brands functionality should be enabled.
+     *
+     * This method always returns true to enable manufacturer/brand sync via the pwb-brand taxonomy,
+     * regardless of whether the actual Perfect WooCommerce Brands plugin is installed.
+     * The pwb-brand taxonomy is registered automatically if it doesn't exist.
+     *
+     * @return bool Always returns true to enable PWB brand sync functionality
      */
     public static function isPerfectWooCommerceBrandsActive(): bool
     {
-        return (
-            self::isActive(self::PLUGIN_PERFECT_WOO_BRANDS) ||
-            self::isActive(self::PLUGIN_PERFECT_BRANDS_FOR_WOOCOMMERCE) ||
-            self::isActive(self::PLUGIN_PERFECT_BRANDS_WOOCOMMERCE)
-        );
+        self::ensurePwbBrandTaxonomyExists();
+
+        return true;
+    }
+
+    /**
+     * Registers the pwb-brand taxonomy if it doesn't already exist.
+     * This ensures manufacturer sync works even without the actual Perfect WooCommerce Brands plugin.
+     *
+     * @return void
+     */
+    private static function ensurePwbBrandTaxonomyExists(): void
+    {
+        if (!\taxonomy_exists('pwb-brand')) {
+            \register_taxonomy('pwb-brand', 'product', [
+                'label'              => 'Brand',
+                'hierarchical'       => false,
+                'public'             => true,
+                'show_ui'            => true,
+                'show_in_menu'       => true,
+                'show_in_nav_menus'  => true,
+                'show_tagcloud'      => true,
+                'show_in_quick_edit' => true,
+                'show_admin_column'  => true,
+                'rewrite'            => ['slug' => 'brand'],
+            ]);
+        }
     }
 
     /**
