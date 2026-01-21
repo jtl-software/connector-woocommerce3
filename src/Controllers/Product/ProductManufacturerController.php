@@ -21,17 +21,46 @@ class ProductManufacturerController extends AbstractBaseController
 
         if (SupportedPlugins::isPerfectWooCommerceBrandsActive()) {
             $manufacturerId = $product->getManufacturerId()->getEndpoint();
+
+            // If endpoint ID is empty, try to look it up from the link table using host ID
+            if ($manufacturerId === '') {
+                $hostId = $product->getManufacturerId()->getHost();
+                if ($hostId > 0) {
+                    $manufacturerId = $this->getManufacturerEndpointId($hostId);
+                }
+            }
+
             $this->removeManufacturerTerm($productId);
-            $term = \get_term_by('id', $manufacturerId, 'pwb-brand');
+
             if ($manufacturerId === '') {
                 return;
             }
+
+            $term = \get_term_by('id', $manufacturerId, 'pwb-brand');
             if ($term instanceof \WP_Term) {
                 \wp_set_object_terms((int)$productId, $term->term_id, $term->taxonomy, true);
             }
         } else {
             $this->removeManufacturerTerm($productId);
         }
+    }
+
+    /**
+     * Look up the manufacturer endpoint ID from the link table using the host ID.
+     *
+     * @param int $hostId
+     * @return string
+     */
+    private function getManufacturerEndpointId(int $hostId): string
+    {
+        global $wpdb;
+        $tableName = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+
+        $endpointId = $this->db->queryOne(
+            "SELECT endpoint_id FROM {$tableName} WHERE host_id = {$hostId}"
+        );
+
+        return $endpointId !== null ? (string)$endpointId : '';
     }
 
     /**
