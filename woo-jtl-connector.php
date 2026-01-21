@@ -32,6 +32,8 @@ if (!defined('ABSPATH')) {
 
 require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
+$jtlwcc_autoload_missing = false;
+
 try {
     if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
         if (is_writable(sys_get_temp_dir())) {
@@ -41,15 +43,38 @@ try {
                 $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
             }
         }
-    } else {
+    } elseif (file_exists(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php')) {
         $loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
         $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
         if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
             $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
         }
+    } else {
+        $jtlwcc_autoload_missing = true;
     }
 } catch (\Exception $e) {
     //loader failed
+}
+
+if ($jtlwcc_autoload_missing) {
+    add_action('admin_notices', 'jtlwcc_vendor_missing_notice');
+    return;
+}
+
+/**
+ * Show admin notice when vendor/autoload.php is missing.
+ *
+ * @return void
+ */
+function jtlwcc_vendor_missing_notice(): void
+{
+    echo '<div class="error"><h3>JTL-Connector</h3>';
+    echo '<p><strong>Fehler:</strong> Die Datei <code>vendor/autoload.php</code> fehlt.</p>';
+    echo '<p>Wenn Sie das Plugin direkt von GitHub installiert haben, müssen Sie zuerst ';
+    echo '<code>composer install</code> im Plugin-Verzeichnis ausführen.</p>';
+    echo '<p>Alternativ können Sie die offizielle Version von ';
+    echo '<a href="https://www.jtl-software.de" target="_blank">JTL-Software</a> herunterladen.</p>';
+    echo '</div>';
 }
 
 
