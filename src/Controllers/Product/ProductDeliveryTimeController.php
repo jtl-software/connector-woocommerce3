@@ -30,6 +30,11 @@ class ProductDeliveryTimeController extends AbstractBaseController
         $this->removeDeliveryTimeTerm((int)$productId, $germanizedDeliveryTimeTaxonomyName);
 
         if (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) !== 'deactivated') {
+            //Check if product is in stock and custom in-stock delivery time is configured
+            /** @var string $inStockDeliveryTime */
+            $inStockDeliveryTime = Config::get(Config::OPTIONS_IN_STOCK_DELIVERY_TIME, '');
+            $useInStockDeliveryTime = $product->getStockLevel() > 0 && !empty(\trim($inStockDeliveryTime));
+
             //FUNCTION ATTRIBUTE BY JTL
             $offset           = 0;
             $pushedAttributes = $product->getAttributes();
@@ -63,7 +68,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 }
             }
 
-            if ($offset !== 0) {
+            if ($offset !== 0 && !$useInStockDeliveryTime) {
                 $min  = $time - $offset <= 0 ? 1 : $time - $offset;
                 $max  = $time + $offset;
                 $time = \sprintf('%s-%s', $min, $max);
@@ -73,6 +78,7 @@ class ProductDeliveryTimeController extends AbstractBaseController
                 $time === 0
                 && Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME)
                 && Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_time_calc'
+                && !$useInStockDeliveryTime
             ) {
                 return;
             }
@@ -82,18 +88,23 @@ class ProductDeliveryTimeController extends AbstractBaseController
             /** @var string $suffixDeliveryTime */
             $suffixDeliveryTime = Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME);
 
-            //Build Term string
-            $deliveryTimeString = \trim(
-                \sprintf(
-                    '%s %s %s',
-                    $prefixDeliveryTime,
-                    $time,
-                    $suffixDeliveryTime
-                )
-            );
+            //Build Term string - use custom in-stock delivery time if configured and product is in stock
+            if ($useInStockDeliveryTime) {
+                $deliveryTimeString = \trim($inStockDeliveryTime);
+            } else {
+                $deliveryTimeString = \trim(
+                    \sprintf(
+                        '%s %s %s',
+                        $prefixDeliveryTime,
+                        $time,
+                        $suffixDeliveryTime
+                    )
+                );
+            }
 
             if (
-                (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_status')
+                !$useInStockDeliveryTime
+                && (Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC) === 'delivery_status')
                 && (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                     || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)

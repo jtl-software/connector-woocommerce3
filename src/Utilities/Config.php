@@ -41,6 +41,7 @@ class Config
         OPTIONS_AUTO_WOOCOMMERCE_OPTIONS                 = 'jtlconnector_auto_woocommerce',
         OPTIONS_AUTO_GERMAN_MARKET_OPTIONS               = 'jtlconnector_auto_german_market',
         OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE            = 'jtlconnector_consider_supplier_inflow_date',
+        OPTIONS_IN_STOCK_DELIVERY_TIME                   = 'jtlconnector_in_stock_delivery_time',
         OPTIONS_CUSTOM_CHECKOUT_FIELDS                   = 'jtlconnector_custom_checkout_fields',
         OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE                = 'jtlconnector_limit_customer_query',
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
@@ -62,6 +63,7 @@ class Config
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'ca. ',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => ' Werktage',
         Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => false,
+        Config::OPTIONS_IN_STOCK_DELIVERY_TIME => '',
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => true,
         Config::OPTIONS_PULL_ORDERS_SINCE => '',
@@ -106,6 +108,7 @@ class Config
         Config::OPTIONS_PRAEFIX_DELIVERYTIME => 'string',
         Config::OPTIONS_SUFFIX_DELIVERYTIME => 'string',
         Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE => 'bool',
+        Config::OPTIONS_IN_STOCK_DELIVERY_TIME => 'string',
         //PAGE
         Config::OPTIONS_COMPLETED_ORDERS => 'bool',
         Config::OPTIONS_PULL_ORDERS_SINCE => 'date',
