@@ -1315,6 +1315,20 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
         ];
 
+        //Add in-stock delivery time textinput field
+        $fields[] = [
+            'title'     => __('Delivery time for in-stock products', JTLWCC_TEXT_DOMAIN),
+            'type'      => 'jtl_text_input',
+            'id'        => Config::OPTIONS_IN_STOCK_DELIVERY_TIME,
+            'value'     => Config::get(Config::OPTIONS_IN_STOCK_DELIVERY_TIME),
+            'helpBlock' => __(
+                "Define a custom delivery time text for products that are in stock (stock > 0)." . PHP_EOL .
+                "Example: 'im Camplorer Lager' or 'sofort lieferbar'." . PHP_EOL .
+                "Leave empty to use the calculated delivery time.",
+                JTLWCC_TEXT_DOMAIN
+            ),
+        ];
+
         //Use next available inflow date if needed
         $fields[] = [
             'title'     => __('Consider available inflow date for shipping', JTLWCC_TEXT_DOMAIN),
