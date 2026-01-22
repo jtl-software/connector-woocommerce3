@@ -35,7 +35,8 @@ class SupportedPlugins
         PLUGIN_WPML_MULTILINGUAL_CMS                               = 'WPML Multilingual CMS',
         PLUGIN_WPML_STRING_TRANSLATION                             = 'WPML String Translation',
         PLUGIN_WPML_MEDIA_TRANSLATION                              = 'WPML Media Translation',
-        PLUGIN_WOOCOMMERCE_MULTILUNGUAL                            = 'WooCommerce Multilingual & Multicurrency',
+        PLUGIN_WOOCOMMERCE_MULTILUNGUAL
+            = 'WPML Multilingual & Multicurrency for WooCommerce',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE                = 'WPC Product Quantity for WooCommerce',
         PLUGIN_WPC_PRODUCT_QUANTITY_FOR_WOOCOMMERCE_PREMIUM        = 'WPC Product Quantity for WooCommerce (Premium)',
         PLUGIN_ADDITIONAL_VARIATION_IMAGES_GALLERY_FOR_WOOCOMMERCE

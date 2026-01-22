@@ -426,19 +426,27 @@ class WpmlProduct extends AbstractComponent
      */
     public function deleteTranslations(\WC_Product $wcProduct): bool
     {
+        /** @var Wpml $wpml */
+        $wpml           = $this->getCurrentPlugin();
+        $sourceLanguage = $wpml->getDefaultLanguage();
+
         $elementType            = $wcProduct->get_type() === 'variation'
             ? WpmlProduct::POST_TYPE_VARIATION
             : WpmlProduct::POST_TYPE;
         $productTranslationInfo = $this->getProductTranslationInfo($wcProduct->get_id(), $elementType);
-        /** @var Wpml $wpml */
-        $wpml = $this->getCurrentPlugin();
+        $trid = $wpml->getSitepress()->get_element_trid($wcProduct->get_id(), $elementType);
 
         foreach ($productTranslationInfo as $wpmlLanguageCode => $translationInfo) {
             \wp_delete_post($translationInfo->element_id, true);
             \wc_delete_product_transients($translationInfo->element_id);
 
-            $wpml->getSitepress()->delete_element_translation($translationInfo->trid, $elementType, $wpmlLanguageCode);
+            $trid = $trid ?? $wpml->getSitepress()->get_element_trid($translationInfo->element_id, $elementType);
+
+            $wpml->getSitepress()->delete_element_translation($trid, $elementType, $wpmlLanguageCode);
         }
+
+        $wpml->getSitepress()->delete_element_translation($trid, $elementType, $sourceLanguage);
+
         return true;
     }
 }
