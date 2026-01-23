@@ -434,7 +434,7 @@ class WpmlProduct extends AbstractComponent
             ? WpmlProduct::POST_TYPE_VARIATION
             : WpmlProduct::POST_TYPE;
         $productTranslationInfo = $this->getProductTranslationInfo($wcProduct->get_id(), $elementType);
-        $trid = $wpml->getSitepress()->get_element_trid($wcProduct->get_id(), $elementType);
+        $trid                   = $wpml->getSitepress()->get_element_trid($wcProduct->get_id(), $elementType);
 
         foreach ($productTranslationInfo as $wpmlLanguageCode => $translationInfo) {
             \wp_delete_post($translationInfo->element_id, true);
