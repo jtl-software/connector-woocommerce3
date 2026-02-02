@@ -5,6 +5,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 ## Unreleased
 - CO-3161 - consider different customer languages
 - CO-3262 - update wpml plugin name
+- CO-3283 - remove db translation entries during product delete
 
 ## 2.4.1 _2025-11-25_
 - CO-3254 - fix wrong price update in quick sync
