@@ -455,6 +455,7 @@ class ProductController extends AbstractBaseController implements
                 \wc_delete_product_transients($productId);
 
                 if ($this->wpml->canBeUsed()) {
+
                     /** @var WpmlProduct $wpmlProduct */
                     $wpmlProduct = $this->wpml->getComponent(WpmlProduct::class);
                     $wpmlProduct->deleteTranslations($wcProduct);
