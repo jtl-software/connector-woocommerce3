@@ -222,30 +222,46 @@ class ManufacturerController extends AbstractBaseController implements
 
                 \remove_filter('pre_term_description', 'wp_filter_kses');
 
-                if ($term === false) {
-                    //Add term
-                    $newTerm = \wp_insert_term(
-                        $model->getName(),
-                        $taxonomy,
-                        [
-                            'description' => $meta->getDescription(),
-                            'slug' => $name,
-                        ]
-                    );
+                try {
+                    if ($term === false) {
+                        //Add term
+                        $newTerm = \wp_insert_term(
+                            $model->getName(),
+                            $taxonomy,
+                            [
+                                'description' => $meta->getDescription(),
+                                'slug' => $name,
+                            ]
+                        );
 
-                    if ($newTerm instanceof WP_Error) {
-                        // var_dump($newTerm);
-                        // die();
-                        $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
-                        $this->logger->error(ErrorFormatter::formatError($error));
-                        $this->logger->error(ErrorFormatter::formatError($newTerm));
+                        if ($newTerm instanceof WP_Error) {
+                            $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
+                            $this->logger->error(ErrorFormatter::formatError($error));
+                            $this->logger->error(ErrorFormatter::formatError($newTerm));
+                        } elseif (\is_array($newTerm) && isset($newTerm['term_id'])) {
+                            // wp_insert_term() returns an array on success; convert to WP_Term so
+                            // the endpoint ID can be set below and all subsequent checks work.
+                            $fetchedTerm = \get_term((int)$newTerm['term_id'], $taxonomy);
+                            $term        = ($fetchedTerm instanceof \WP_Term) ? $fetchedTerm : $newTerm;
+                        }
+                    } elseif ($term instanceof \WP_Term) {
+                        \wp_update_term($term->term_id, $taxonomy, [
+                            'name' => $model->getName(),
+                            'description' => $meta->getDescription(),
+                        ]);
                     }
-                    $term = $newTerm;
-                } elseif ($term instanceof \WP_Term) {
-                    \wp_update_term($term->term_id, $taxonomy, [
-                        'name' => $model->getName(),
-                        'description' => $meta->getDescription(),
-                    ]);
+                } catch (\TypeError $typeError) {
+                    // A third-party plugin hook (e.g. CZB Meta Brand) may receive a term-ID
+                    // integer where it expects a WP_Term object and throw a TypeError.
+                    // Log a warning and recover: if the term was just created we re-fetch it
+                    // by slug so the endpoint ID is still set correctly.
+                    $this->logger->warning(
+                        'TypeError in third-party hook during manufacturer term operation: '
+                        . $typeError->getMessage()
+                    );
+                    if ($term === false) {
+                        $term = \get_term_by('slug', $name, $taxonomy);
+                    }
                 }
 
                 \add_filter('pre_term_description', 'wp_filter_kses');
