@@ -224,28 +224,57 @@ class ManufacturerController extends AbstractBaseController implements
 
                 if ($term === false) {
                     //Add term
-                    $newTerm = \wp_insert_term(
-                        $model->getName(),
-                        $taxonomy,
-                        [
-                            'description' => $meta->getDescription(),
-                            'slug' => $name,
-                        ]
-                    );
+                    $newTerm = null;
+                    try {
+                        $newTerm = \wp_insert_term(
+                            $model->getName(),
+                            $taxonomy,
+                            [
+                                'description' => $meta->getDescription(),
+                                'slug' => $name,
+                            ]
+                        );
+                    } catch (\TypeError $typeError) {
+                        // A third-party WordPress plugin hook callback declares WP_Term as
+                        // parameter type but receives an int term_id from WordPress term hooks
+                        // (e.g. created_{taxonomy}). The term was saved to the database;
+                        // re-fetch it by slug to recover.
+                        $this->logger->warning(
+                            \sprintf(
+                                'Manufacturer term hook type conflict (third-party plugin): %s',
+                                $typeError->getMessage()
+                            )
+                        );
+                    }
 
                     if ($newTerm instanceof WP_Error) {
-                        // var_dump($newTerm);
-                        // die();
                         $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
                         $this->logger->error(ErrorFormatter::formatError($error));
                         $this->logger->error(ErrorFormatter::formatError($newTerm));
                     }
-                    $term = $newTerm;
+
+                    // If wp_insert_term returned a WP_Term use it directly; otherwise
+                    // re-fetch by slug (covers TypeError and WP_Error cases where the
+                    // term may still have been persisted).
+                    $term = ($newTerm instanceof \WP_Term)
+                        ? $newTerm
+                        : \get_term_by('slug', $name, $taxonomy);
                 } elseif ($term instanceof \WP_Term) {
-                    \wp_update_term($term->term_id, $taxonomy, [
-                        'name' => $model->getName(),
-                        'description' => $meta->getDescription(),
-                    ]);
+                    try {
+                        \wp_update_term($term->term_id, $taxonomy, [
+                            'name' => $model->getName(),
+                            'description' => $meta->getDescription(),
+                        ]);
+                    } catch (\TypeError $typeError) {
+                        // Same third-party hook issue as above. The term was updated in
+                        // the database; only the hook callback failed with a type error.
+                        $this->logger->warning(
+                            \sprintf(
+                                'Manufacturer term hook type conflict (third-party plugin): %s',
+                                $typeError->getMessage()
+                            )
+                        );
+                    }
                 }
 
                 \add_filter('pre_term_description', 'wp_filter_kses');
