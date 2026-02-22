@@ -216,7 +216,7 @@ class CategoryController extends AbstractBaseController implements
                     throw new \Exception(\sprintf("Cannot find category %s", $categoryId));
                 }
                 // WordPress does not create a unique slug itself if the given already exists
-                if ($categoryTerm->slug !== $categoryData['slug']) {
+                if ($categoryTerm->slug !== wc_strtolower($categoryData['slug'])) {
                     $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
                 }
 
