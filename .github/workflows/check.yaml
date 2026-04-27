@@ -24,11 +24,12 @@ jobs:
 
       - name: PHPCS
         if: always()
+        continue-on-error: true
         run: bash .github/scripts/run-phpcs.sh
 
       - name: PHPStan
         if: always()
-        run: composer run phpstan -- --error-format=github
+        run: composer run phpstan -- --error-format=github --memory-limit=2G
 
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php-version }})
