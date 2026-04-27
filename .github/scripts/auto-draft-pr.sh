@@ -29,7 +29,8 @@ ACTOR="$4"
 REPO="$5"
 
 # skip on protected branches
-IS_PROTECTED="$(gh api "repos/$REPO/branches/$BRANCH" --jq '.protected')"
+BRANCH_ENCODED="$(printf '%s' "$BRANCH" | jq -sRr @uri)"
+IS_PROTECTED="$(gh api "repos/$REPO/branches/$BRANCH_ENCODED" --jq '.protected')"
 if [ "$IS_PROTECTED" = "true" ]; then
   echo "Branch $BRANCH is protected, skipping auto-draft-PR."
   exit 0
