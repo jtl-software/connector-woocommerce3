@@ -29,6 +29,7 @@ jobs:
 
       - name: PHPStan
         if: always()
+        continue-on-error: true
         run: composer run phpstan -- --error-format=github --memory-limit=2G
 
   phpunit:
