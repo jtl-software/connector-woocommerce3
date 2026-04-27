@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   update-changelog:
     uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@21926464ffba4e610cd0e2c0f9d277d3ffe8ca56 # v2

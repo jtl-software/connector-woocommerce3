@@ -22,7 +22,7 @@ cp -R dist/woo-jtl-connector/* woo-jtl-connector/trunk/
 cd woo-jtl-connector/trunk
 svn status
 svn add --force ./*
-svn status | grep '^!' | awk '{print $2}' | xargs -r svn delete --force
+svn status | awk '/^!/ { print substr($0, 9) }' | xargs -r -d '\n' svn delete --force
 
 if svn info --non-interactive "$SVN_URL/tags/$VERSION" >/dev/null 2>&1; then
   svn delete --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive \
