@@ -1,0 +1,66 @@
+name: Build and deploy
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install (prod)
+        run: composer update --no-dev --optimize-autoloader --no-progress --no-interaction
+
+      - name: Phing build
+        run: php ./phing.phar build -Dversion=${{ github.ref_name }} -Dtmpdir=.
+
+      - name: Phing release (ZIP)
+        run: php ./phing.phar release -Dversion=${{ github.ref_name }} -Dtmpdir=.
+
+      - name: Upload dist artefact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+      - name: Upload ZIP artefact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zip
+          path: woo-jtl-connector-${{ github.ref_name }}.zip
+          retention-days: 30
+
+  deploy:
+    name: SVN deploy to wordpress.org
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SVN_USERNAME: ${{ vars.SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+      VERSION: ${{ github.ref_name }}
+      SVN_URL: https://plugins.svn.wordpress.org/woo-jtl-connector
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
+      - name: Download dist artefact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+
+      - name: SVN checkout, sync and tag
+        run: bash .github/scripts/svn-deploy.sh

@@ -1,0 +1,19 @@
+name: Auto draft PR
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - '**/gh-readonly-queue/**'
+    tags-ignore:
+      - '**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  draft-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jtl-software/jtl-platform-gh-workflows/.github/actions/auto-draft-pr@f2112261248f1ba28478831ef288efc27bfb0cad # v1.1.0
