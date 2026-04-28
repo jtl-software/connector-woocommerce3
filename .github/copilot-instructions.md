@@ -100,3 +100,4 @@ Workflows in `.github/workflows/`:
 | `auto-draft-pr.yaml` | push to feature branches | Auto-creates draft PR |
 | `update-changelog.yaml` | release published | Calls reusable workflow in `changelog-extractor` repo |
 | `lint-actions.yaml` | workflow file changes | actionlint syntax validation |
+| `lint-scripts.yaml` | `.github/scripts/**` changes | shellcheck on shell scripts |
