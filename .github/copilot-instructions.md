@@ -16,10 +16,10 @@ composer install
 composer run tests
 
 # Run a single test file
-./vendor/bin/phpunit tests/src/Controllers/CategoryTest.php
+./vendor/bin/phpunit tests/src/Controllers/ImageTest.php
 
 # Run a single test method
-./vendor/bin/phpunit --filter testMethodName tests/src/Controllers/CategoryTest.php
+./vendor/bin/phpunit --filter testMethodName tests/src/Controllers/ImageTest.php
 
 # Code style check
 composer run phpcs

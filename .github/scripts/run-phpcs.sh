@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # Run PHPCS, write a checkstyle report, and emit GitHub PR annotations via
-# cs2pr. Captures both exit codes so a phpcs failure does not skip cs2pr
-# (which would lose the inline annotations) and a cs2pr failure does not
-# get swallowed by a successful phpcs.
+# cs2pr. Runs cs2pr even when phpcs fails (preserving inline annotations).
+# When phpcs fails its exit code is returned; when phpcs succeeds, cs2pr's
+# exit code is returned.
 
 set -uo pipefail
 
@@ -13,4 +13,8 @@ phpcs_exit=$?
 "$(composer global config home)/vendor/bin/cs2pr" phpcs-report.xml
 cs2pr_exit=$?
 
-exit $(( phpcs_exit + cs2pr_exit ))
+if [ "$phpcs_exit" -ne 0 ]; then
+  exit "$phpcs_exit"
+fi
+
+exit "$cs2pr_exit"
