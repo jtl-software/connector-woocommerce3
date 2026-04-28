@@ -3,7 +3,7 @@ name: Build and deploy
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]*.[0-9]*.[0-9]*'
 
 jobs:
   build:
