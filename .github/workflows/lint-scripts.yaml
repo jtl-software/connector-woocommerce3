@@ -1,0 +1,31 @@
+name: Lint shell scripts
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/scripts/**'
+  pull_request:
+    paths:
+      - '.github/scripts/**'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: reviewdog/action-shellcheck@f627b974d3005f993dc36f46d2cdf2684be18e5c # v1.9.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
+          path: .github/scripts
+          pattern: '*.sh'
+          fail_on_error: true

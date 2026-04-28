@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Sync dist/woo-jtl-connector/ to the wp.org SVN trunk and create a
+# release tag <VERSION>. 1:1 port of the GitLab deploy step (E5a.5).
+# The extra `svn delete --force` for "missing" files fixes a latent bug
+# in the GitLab source: without it, files removed from the build stay
+# tracked in SVN forever.
+#
+# Required environment variables (set by the workflow):
+#   SVN_USERNAME, SVN_PASSWORD, VERSION, SVN_URL
+
+set -euo pipefail
+
+svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --no-auth-cache \
+    "$SVN_URL" --depth immediates
+svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --no-auth-cache \
+    "$SVN_URL/trunk" woo-jtl-connector/trunk/ --depth infinity
+
+find woo-jtl-connector/trunk/ -mindepth 1 -maxdepth 1 ! -name '.svn' -exec rm -rf -- {} +
+cp -R dist/woo-jtl-connector/. woo-jtl-connector/trunk/
+
+cd woo-jtl-connector/trunk
+svn status
+svn add --force .
+svn status | awk '/^!/ { print substr($0, 9) }' | xargs -r -d '\n' svn delete --force
+
+if svn info --non-interactive "$SVN_URL/tags/$VERSION" >/dev/null 2>&1; then
+  svn delete --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --no-auth-cache \
+      --force "$SVN_URL/tags/$VERSION" -m "Removing old Tag $VERSION"
+fi
+
+svn commit --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --no-auth-cache \
+    -m "Tagging $VERSION"
+svn copy --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --no-auth-cache \
+    "$SVN_URL/trunk" "$SVN_URL/tags/$VERSION" -m "Tagging $VERSION"
