@@ -17,7 +17,7 @@ jobs:
       options: --user root
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - run: git config --global --add safe.directory '*'
+      - run: git config --global --add safe.directory "${{ github.workspace }}"
 
       - run: composer install --no-progress --no-interaction
       - run: composer global require "staabm/annotate-pull-request-from-checkstyle:^1.8"
