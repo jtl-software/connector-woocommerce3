@@ -10,4 +10,4 @@ on:
 
 jobs:
   draft-pr:
-    uses: jtl-software/actions/.github/workflows/auto-draft-pr.yaml@fba69471aba7cfd1a555a47c5dc9572ccd510d53 # v1.0.0
+    uses: jtl-software/actions/.github/workflows/auto-draft-pr.yaml@940b9882024f22a83826729324e8a8df9390ecdc # v1.0.0
