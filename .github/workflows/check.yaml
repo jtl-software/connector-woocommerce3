@@ -1,0 +1,84 @@
+name: Check
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  status-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      packages: read
+    container:
+      image: ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.3
+      options: --user root
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - run: git config --global --add safe.directory "${{ github.workspace }}"
+
+      - run: composer install --no-progress --no-interaction
+      - run: composer global require "staabm/annotate-pull-request-from-checkstyle:^1.8"
+
+      - name: PHPCS
+        if: always()
+        continue-on-error: true
+        run: bash .github/scripts/run-phpcs.sh
+
+      - name: PHPStan
+        if: always()
+        continue-on-error: true
+        run: composer run phpstan -- --error-format=github --memory-limit=2G
+
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php${{ matrix.php-version }}-
+
+      - name: Composer install
+        run: composer install --no-interaction --no-progress
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: junit-php-${{ matrix.php-version }}
+          path: junit.xml
+          retention-days: 7

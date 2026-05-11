@@ -38,7 +38,6 @@
     "jtl/connector-cq": "*",
     "phpstan/phpstan": "^1.11",
     "squizlabs/php_codesniffer": "^3.10",
-    "micheh/phpcs-gitlab": "^1.1",
     "slevomat/coding-standard": "^8.15",
     "10up/wp_mock": "^1.0"
   },
@@ -66,9 +65,7 @@
     ],
     "phpcs": "phpcs --basepath=. --extensions=php --standard=JtlConnector --report=full src tests includes uninstall.php woo-jtl-connector.php",
     "phpcs:fix": "phpcbf --basepath=. --extensions=php --standard=JtlConnector src tests includes uninstall.php woo-jtl-connector.php",
-    "phpcs:ci": "phpcs --basepath=. --extensions=php --standard=JtlConnector --report=full --report-\\\\Micheh\\\\PhpCodeSniffer\\\\Report\\\\Gitlab=phpcs-quality-report.json src tests",
     "phpstan": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon",
-    "phpstan:ci": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon --memory-limit 2G --error-format gitlab > phpstan-quality-report.json",
     "tests": "phpunit",
     "tests:ci": "phpunit --log-junit junit.xml"
   }

@@ -12,6 +12,8 @@ db/
 logs/
 !logs/.gitkeep
 .idea/
+.code
+.DS_Store
 *.mo
 *.temp
 *.zip
