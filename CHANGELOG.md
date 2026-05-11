@@ -4,7 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-3161 - consider different customer languages
+- CO-3308 - fix seo url changes on update
 - CO-3262 - update wpml plugin name
+- CO-3283 - remove db translation entries during product delete
 - CO-3095 - add updated wpml plugin name
 - CO-3255 - implement phpstan cd pipeline
 
