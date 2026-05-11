@@ -158,7 +158,6 @@ class ImageTest extends TestCase
      * @throws UnknownTypeException
      * @throws ReflectionException
      * @throws \Exception
-     * @return void
      * @covers ImageController::getNextAvailableImageFilename
      */
     public function testGetNextAvailableImageFilenameFileNotExisting(

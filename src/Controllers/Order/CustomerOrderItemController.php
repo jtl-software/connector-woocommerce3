@@ -453,7 +453,7 @@ class CustomerOrderItemController extends AbstractBaseController
 
     /**
      * @param CustomerOrderItemModel[] $customerOrderItems
-     * @return array<int, float>
+     * @return array<int|string, float>
      */
     private function groupProductsByTaxRate(array $customerOrderItems): array
     {

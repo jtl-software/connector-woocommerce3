@@ -20,7 +20,6 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
     /**
      * @param AbstractModel ...$models
      * @return array|AbstractModel[]
-     * @throws ContainerException
      * @throws \InvalidArgumentException
      */
     public function push(AbstractModel ...$models): array
@@ -57,10 +56,7 @@ class DeliveryNoteController extends AbstractBaseController implements PushInter
                         ? $model->getCreationDate()->format("Y-m-d")
                         : '';
 
-                    $trackingProviders = $shipmentTrackingActions
-                        ? $shipmentTrackingActions->get_providers()
-                        : null;
-
+                    $trackingProviders    = $shipmentTrackingActions->get_providers();
                     $shippingProviderName = \trim($trackingList->getName());
 
                     $providerSlug = $this->findTrackingProviderSlug(

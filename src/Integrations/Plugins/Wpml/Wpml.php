@@ -190,10 +190,17 @@ class Wpml extends AbstractPlugin
     {
         $plugins = [
             SupportedPlugins::PLUGIN_WPML_MULTILINGUAL_CMS,
-            SupportedPlugins::PLUGIN_WPML_STRING_TRANSLATION,
-            SupportedPlugins::PLUGIN_WOOCOMMERCE_MULTILUNGUAL
+            SupportedPlugins::PLUGIN_WPML_STRING_TRANSLATION
         ];
 
-        return SupportedPlugins::areAllActive(...$plugins);
+        $stringTranslationAndCmsActive = SupportedPlugins::areAllActive(...$plugins);
+
+        if ($stringTranslationAndCmsActive === false) {
+            return false;
+        }
+
+        // only one must be active,
+        return SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_MULTILUNGUAL)
+        || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_MULTILINGUAL_FOR_WOOCOMMERCE);
     }
 }

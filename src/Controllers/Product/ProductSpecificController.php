@@ -12,6 +12,8 @@ use Jtl\Connector\Core\Model\ProductSpecific as ProductSpecificModel;
 use Jtl\Connector\Core\Model\TranslatableAttribute;
 use JtlWooCommerceConnector\Controllers\AbstractBaseController;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
+use Mockery\Exception;
+use PHPUnit\Framework\ExpectationFailedException;
 use Psr\Log\InvalidArgumentException;
 use WC_Product_Attribute;
 
@@ -56,11 +58,15 @@ class ProductSpecificController extends AbstractBaseController
      * @param array<int, array<string, array<int, int|string>>> $specificData
      * @param ProductSpecificModel[]                            $pushedJtlSpecifics
      * @param TranslatableAttribute[]                           $pushedJtlAttributes
+     * @param bool                                              $isTranslation
      * @return array<string, array<string, bool|int|string|null>>
-     * @throws TranslatableAttributeException
+     * @throws InvalidArgumentException
      * @throws MustNotBeNullException
-     * @throws \TypeError
+     * @throws TranslatableAttributeException
      * @throws \InvalidArgumentException
+     * @throws ExpectationFailedException
+     * @throws \RuntimeException
+     * @throws \TypeError
      */
     public function pushData(
         int $productId,
@@ -138,7 +144,12 @@ class ProductSpecificController extends AbstractBaseController
 
             if (\count($specific['options']) > 0) {
                 foreach ($specific['options'] as $valId) {
+                    /** @var \WP_Term|false $term */
                     $term = \get_term_by('id', $valId, $slug);
+
+                    if (!$term instanceof \WP_Term) {
+                        continue;
+                    }
 
                     if ($isTranslation) {
                         $getWpmlStringId = $this->db->queryOne(
@@ -159,7 +170,6 @@ class ProductSpecificController extends AbstractBaseController
 
                         $term = \get_term_by('name', $getWpmlTranslatedSpecificValue, $slug);
                     }
-
 
                     if ($term instanceof \WP_Term) {
                         $values[] = $term->slug;

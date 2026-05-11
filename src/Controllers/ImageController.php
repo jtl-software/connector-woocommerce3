@@ -564,11 +564,11 @@ class ImageController extends AbstractBaseController implements
                 $this->delete($model);
 
                 if ($model instanceof ProductImage) {
-                    $model->getId()->setEndpoint($this->pushProductImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushProductImage($model));
                 } elseif ($model instanceof CategoryImage) {
-                    $model->getId()->setEndpoint($this->pushCategoryImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushCategoryImage($model));
                 } elseif ($model instanceof ManufacturerImage) {
-                    $model->getId()->setEndpoint($this->pushManufacturerImage($model) ?? '');
+                    $model->getId()->setEndpoint($this->pushManufacturerImage($model));
                 }
             }
 
@@ -948,9 +948,10 @@ class ImageController extends AbstractBaseController implements
 
     /**
      * @param AbstractModel ...$models
-     * @param bool          $realDelete
      * @return AbstractModel[]
-     * @throws Exception
+     * @throws DefinitionException
+     * @throws RuntimeException
+     * @throws \InvalidArgumentException
      */
     public function delete(AbstractModel ...$models): array
     {
