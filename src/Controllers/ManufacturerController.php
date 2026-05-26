@@ -234,13 +234,13 @@ class ManufacturerController extends AbstractBaseController implements
                     );
 
                     if ($newTerm instanceof WP_Error) {
-                        // var_dump($newTerm);
-                        // die();
                         $error = new WP_Error('invalid_taxonomy', 'Could not create manufacturer.');
                         $this->logger->error(ErrorFormatter::formatError($error));
                         $this->logger->error(ErrorFormatter::formatError($newTerm));
+                        $term = $newTerm;
+                    } elseif (\is_array($newTerm) && isset($newTerm['term_id'])) {
+                        $term = \get_term_by('id', $newTerm['term_id'], $taxonomy);
                     }
-                    $term = $newTerm;
                 } elseif ($term instanceof \WP_Term) {
                     \wp_update_term($term->term_id, $taxonomy, [
                         'name' => $model->getName(),
