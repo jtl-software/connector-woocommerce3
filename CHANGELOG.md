@@ -9,6 +9,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-3283 - remove db translation entries during product delete
 - CO-3095 - add updated wpml plugin name
 - CO-3255 - implement phpstan cd pipeline
+- CO-3440 - clear expired special prices on push so the shop removes the sale once the end date is reached
 
 
 ## 2.4.1 _2025-11-25_

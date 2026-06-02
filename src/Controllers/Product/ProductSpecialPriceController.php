@@ -25,8 +25,8 @@ use WP_Post;
 class ProductSpecialPriceController extends AbstractBaseController
 {
     /**
-     * @param WC_Product   $product
-     * @param ProductModel $model
+     * @param  WC_Product   $product
+     * @param  ProductModel $model
      * @return ProductSpecialPriceModel[]
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -46,29 +46,30 @@ class ProductSpecialPriceController extends AbstractBaseController
                     ->setConsiderDateLimit(!\is_null($product->get_date_on_sale_to()))
                     ->setActiveFromDate($product->get_date_on_sale_from())
                     ->setActiveUntilDate($product->get_date_on_sale_to())
-                    ->addItem((new ProductSpecialPriceItemModel())
-                        ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
-                        ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product)));
+                    ->addItem(
+                        (new ProductSpecialPriceItemModel())
+                            ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
+                            ->setPriceNet((float)$this->getPriceNet($product->get_sale_price(), $product))
+                    );
             }
         } else {
             $customerGroups = $groupController->pull();
 
-            /** @var CustomerGroupModel $customerGroup */
+            /**
+ * @var CustomerGroupModel $customerGroup 
+*/
             foreach ($customerGroups as $cKey => $customerGroup) {
                 $items = [];
 
                 $customerGroupEndpointId = $customerGroup->getId()->getEndpoint();
 
-                if (
-                    $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
-                    || (
-                        $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
-                        && SupportedPlugins::comparePluginVersion(
-                            SupportedPlugins::PLUGIN_B2B_MARKET,
-                            '<=',
-                            '1.0.3'
-                        )
-                    )
+                if ($customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
+                    || (                    $customerGroupEndpointId === CustomerGroupController::DEFAULT_GROUP
+                    && SupportedPlugins::comparePluginVersion(
+                        SupportedPlugins::PLUGIN_B2B_MARKET,
+                        '<=',
+                        '1.0.3'
+                    ))
                 ) {
                     $salePrice = $product->get_sale_price();
 
@@ -97,7 +98,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                             $product->get_id()
                         );
                     }
-                    /** @var string $specialPrice */
+                    /**
+ * @var string $specialPrice 
+*/
                     $specialPrice = \get_post_meta($productIdForMeta, $priceKeyForMeta, true);
 
                     if (!empty($specialPrice)) {
@@ -127,8 +130,8 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string     $priceNet
-     * @param WC_Product $product
+     * @param  string     $priceNet
+     * @param  WC_Product $product
      * @return float
      * @throws \InvalidArgumentException
      */
@@ -147,9 +150,9 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel $product
-     * @param WC_Product   $wcProduct
-     * @param string       $productType
+     * @param  ProductModel $product
+     * @param  WC_Product   $wcProduct
+     * @param  string       $productType
      * @return void
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -185,25 +188,26 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param ProductSpecialPrice[] $specialPrices
+     * @param  ProductSpecialPrice[] $specialPrices
      * @return void
      */
     public function addSpecialPricesItems(array $specialPrices): void
     {
-        if (
-            SupportedPlugins::comparePluginVersion(
-                SupportedPlugins::PLUGIN_B2B_MARKET,
-                '>',
-                '1.0.3'
-            )
+        if (SupportedPlugins::comparePluginVersion(
+            SupportedPlugins::PLUGIN_B2B_MARKET,
+            '>',
+            '1.0.3'
+        )
         ) {
             foreach ($specialPrices as $specialPrice) {
                 foreach ($specialPrice->getItems() as $item) {
                     $endpoint = $item->getCustomerGroupId()->getEndpoint();
                     if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
-                        $specialPrice->addItem((new ProductSpecialPriceItemModel())
-                            ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
-                            ->setPriceNet((float)$item->getPriceNet()));
+                        $specialPrice->addItem(
+                            (new ProductSpecialPriceItemModel())
+                                ->setCustomerGroupId(new Identity(CustomerGroupController::DEFAULT_GROUP))
+                                ->setPriceNet((float)$item->getPriceNet())
+                        );
                     }
                 }
             }
@@ -211,12 +215,12 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param ProductModel          $product
-     * @param ProductSpecialPrice[] $specialPrices
-     * @param string                $productId
-     * @param Identity              $masterProductId
-     * @param string                $productType
-     * @param int                   $pd
+     * @param  ProductModel          $product
+     * @param  ProductSpecialPrice[] $specialPrices
+     * @param  string                $productId
+     * @param  Identity              $masterProductId
+     * @param  string                $productType
+     * @param  int                   $pd
      * @return void
      * @throws \Psr\Log\InvalidArgumentException
      */
@@ -234,7 +238,8 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $current_time = \time();
 
                 if ($specialPrice->getConsiderDateLimit()) {
-                    $dateTo = \is_null($end = $specialPrice->getActiveUntilDate())
+                    $end    = $specialPrice->getActiveUntilDate();
+                    $dateTo = \is_null($end)
                         ? null
                         // @phpstan-ignore-next-line
                         : $end->setTime(
@@ -246,9 +251,15 @@ class ProductSpecialPriceController extends AbstractBaseController
                     $dateFrom = \is_null($start = $specialPrice->getActiveFromDate())
                         ? null
                         : $start->getTimestamp();
+
+                    $isExpired = $end instanceof \DateTimeInterface
+                        && $end->getTimestamp() < $current_time;
                 } else {
-                    $dateTo   = '';
-                    $dateFrom = \is_null($start = $specialPrice->getActiveFromDate()) ? '' : $start->getTimestamp();
+                    $dateTo    = '';
+                    $dateFrom  = \is_null($start = $specialPrice->getActiveFromDate())
+                        ? ''
+                        : $start->getTimestamp();
+                    $isExpired = false;
                 }
 
                 if (\wc_prices_include_tax()) {
@@ -267,6 +278,40 @@ class ProductSpecialPriceController extends AbstractBaseController
                     $salePriceDatesFromKey = '_sale_price_dates_from';
                     $priceMetaKey          = '_price';
                     $regularPriceKey       = '_regular_price';
+
+                    if ($isExpired) {
+                        \update_post_meta(
+                            (int)$productId,
+                            $salePriceMetaKey,
+                            '',
+                            \get_post_meta((int)$productId, $salePriceMetaKey, true)
+                        );
+                        \update_post_meta(
+                            (int)$productId,
+                            $salePriceDatesToKey,
+                            '',
+                            \get_post_meta((int)$productId, $salePriceDatesToKey, true)
+                        );
+                        \update_post_meta(
+                            (int)$productId,
+                            $salePriceDatesFromKey,
+                            '',
+                            \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
+                        );
+
+                        /**
+ * @var false|string $regularPrice 
+*/
+                        $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
+                        \update_post_meta(
+                            (int)$productId,
+                            $priceMetaKey,
+                            \wc_format_decimal((float)$regularPrice, $pd),
+                            \get_post_meta((int)$productId, $priceMetaKey, true)
+                        );
+
+                        continue;
+                    }
 
                     \update_post_meta(
                         (int)$productId,
@@ -296,8 +341,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                             \wc_format_decimal($salePrice, $pd),
                             \get_post_meta((int)$productId, $priceMetaKey, true)
                         );
-                    } elseif (
-                        $salePrice !== ''
+                    } elseif ($salePrice !== ''
                         && $dateFrom <= $current_time
                         && ($current_time <= $dateTo || $dateTo == '')
                     ) {
@@ -308,7 +352,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                             \get_post_meta((int)$productId, $priceMetaKey, true)
                         );
                     } else {
-                        /** @var false|string $regularPrice */
+                        /**
+ * @var false|string $regularPrice 
+*/
                         $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
                         \update_post_meta(
                             (int)$productId,
@@ -326,12 +372,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                             throw new \InvalidArgumentException("Customer group not found");
                         }
 
-                        if (
-                            SupportedPlugins::comparePluginVersion(
-                                SupportedPlugins::PLUGIN_B2B_MARKET,
-                                '<',
-                                '1.0.8.0'
-                            )
+                        if (SupportedPlugins::comparePluginVersion(
+                            SupportedPlugins::PLUGIN_B2B_MARKET,
+                            '<',
+                            '1.0.8.0'
+                        )
                         ) {
                             $priceMetaKey = \sprintf(
                                 'bm_%s_price',
@@ -355,12 +400,11 @@ class ProductSpecialPriceController extends AbstractBaseController
                         if ($productType === ProductController::TYPE_CHILD) {
                             $COPpriceMetaKey     = null;
                             $COPpriceTypeMetaKey = null;
-                            if (
-                                SupportedPlugins::comparePluginVersion(
-                                    SupportedPlugins::PLUGIN_B2B_MARKET,
-                                    '<',
-                                    '1.0.8.0'
-                                )
+                            if (SupportedPlugins::comparePluginVersion(
+                                SupportedPlugins::PLUGIN_B2B_MARKET,
+                                '<',
+                                '1.0.8.0'
+                            )
                             ) {
                                 $COPpriceMetaKey     = \sprintf(
                                     'bm_%s_%s_price',
@@ -403,6 +447,85 @@ class ProductSpecialPriceController extends AbstractBaseController
                             );
                         }
 
+                        if ($isExpired) {
+                            if ($productType === ProductController::TYPE_CHILD) {
+                                if (isset($COPsalePriceMetaKey)
+                                    && isset($COPsalePriceDatesToKey)
+                                    && isset($COPsalePriceDatesFromKey)
+                                ) {
+                                    \update_post_meta(
+                                        (int)$masterProductId->getEndpoint(),
+                                        $COPsalePriceMetaKey,
+                                        '',
+                                        \get_post_meta(
+                                            (int)$masterProductId->getEndpoint(),
+                                            $COPsalePriceMetaKey,
+                                            true
+                                        )
+                                    );
+                                    \update_post_meta(
+                                        (int)$masterProductId->getEndpoint(),
+                                        $COPsalePriceDatesToKey,
+                                        '',
+                                        \get_post_meta(
+                                            (int)$masterProductId->getEndpoint(),
+                                            $COPsalePriceDatesToKey,
+                                            true
+                                        )
+                                    );
+                                    \update_post_meta(
+                                        (int)$masterProductId->getEndpoint(),
+                                        $COPsalePriceDatesFromKey,
+                                        '',
+                                        \get_post_meta(
+                                            (int)$masterProductId->getEndpoint(),
+                                            $COPsalePriceDatesFromKey,
+                                            true
+                                        )
+                                    );
+                                }
+                            } else {
+                                if (isset($salePriceMetaKey)
+                                    && isset($salePriceDatesToKey)
+                                    && isset($salePriceDatesFromKey)
+                                ) {
+                                    \update_post_meta(
+                                        (int)$productId,
+                                        $salePriceMetaKey,
+                                        '',
+                                        \get_post_meta((int)$productId, $salePriceMetaKey, true)
+                                    );
+                                    \update_post_meta(
+                                        (int)$productId,
+                                        $salePriceDatesToKey,
+                                        '',
+                                        \get_post_meta((int)$productId, $salePriceDatesToKey, true)
+                                    );
+                                    \update_post_meta(
+                                        (int)$productId,
+                                        $salePriceDatesFromKey,
+                                        '',
+                                        \get_post_meta((int)$productId, $salePriceDatesFromKey, true)
+                                    );
+                                }
+                            }
+
+                            /**
+ * @var false|string $regularPrice 
+*/
+                            $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
+                            if (!\is_bool($regularPrice)) {
+                                \update_post_meta(
+                                    (int)$productId,
+                                    $priceMetaKey ?? '_price',
+                                    \wc_format_decimal((float)$regularPrice, $pd),
+                                    \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
+                                );
+                            }
+
+                            continue;
+                        }
+
                         if ($salePrice !== '' && $dateTo == '' && $dateFrom == '') {
                             if (isset($priceMetaKey)) {
                                 \update_post_meta(
@@ -413,11 +536,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 );
                             }
 
-                            if (
-                                $productType === ProductController::TYPE_CHILD
+                            if ($productType === ProductController::TYPE_CHILD
                             ) {
-                                if (
-                                    isset($COPpriceMetaKey)
+                                if (isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                 ) {
                                     //Update price on parent
@@ -469,8 +590,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     );
                                 }
                             }
-                        } elseif (
-                            $salePrice !== ''
+                        } elseif ($salePrice !== ''
                             && $dateFrom <= $current_time
                             && ($current_time <= $dateTo || $dateTo == '')
                         ) {
@@ -483,11 +603,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 );
                             }
 
-                            if (
-                                $productType === ProductController::TYPE_CHILD
+                            if ($productType === ProductController::TYPE_CHILD
                             ) {
-                                if (
-                                    isset($COPpriceMetaKey)
+                                if (isset($COPpriceMetaKey)
                                     && isset($COPpriceTypeMetaKey)
                                 ) {
                                     //Update price on parent
@@ -513,8 +631,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                                         )
                                     );
                                 }
-                                if (
-                                    isset($COPsalePriceMetaKey)
+                                if (isset($COPsalePriceMetaKey)
                                     && isset($COPsalePriceDatesToKey)
                                     && isset($COPsalePriceDatesFromKey)
                                 ) {
@@ -553,8 +670,7 @@ class ProductSpecialPriceController extends AbstractBaseController
                                     );
                                 }
                             } else {
-                                if (
-                                    isset($salePriceMetaKey)
+                                if (isset($salePriceMetaKey)
                                     && isset($salePriceDatesToKey)
                                     && isset($salePriceDatesFromKey)
                                 ) {
@@ -594,7 +710,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                                 }
                             }
                         } else {
-                            /** @var false|string $regularPrice */
+                            /**
+ * @var false|string $regularPrice 
+*/
                             $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
                             if (!\is_bool($regularPrice)) {
                                 \update_post_meta(
@@ -612,36 +730,37 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param CustomerGroup[] $customerGroups
+     * @param  CustomerGroup[] $customerGroups
      * @return void
      */
     public function setCustomerGroupNames(array $customerGroups): void
     {
-        if (
-            SupportedPlugins::comparePluginVersion(
-                SupportedPlugins::PLUGIN_B2B_MARKET,
-                '>',
-                '1.0.3'
-            )
+        if (SupportedPlugins::comparePluginVersion(
+            SupportedPlugins::PLUGIN_B2B_MARKET,
+            '>',
+            '1.0.3'
+        )
         ) {
             foreach ($customerGroups as $customerGroup) {
                 $endpoint = $customerGroup->getId()->getEndpoint();
                 if ($endpoint === Config::get('jtlconnector_default_customer_group')) {
                     $customerGroups[] = (new CustomerGroupModel())
                         ->setId(new Identity(CustomerGroupController::DEFAULT_GROUP))
-                        ->addI18n((new CustomerGroupI18nModel())
-                            ->setName('Customer'));
+                        ->addI18n(
+                            (new CustomerGroupI18nModel())
+                            ->setName('Customer')
+                        );
                 }
             }
         }
     }
 
     /**
-     * @param CustomerGroup[] $customerGroups
-     * @param string          $productId
-     * @param Identity        $masterProductId
-     * @param string          $productType
-     * @param int             $pd
+     * @param  CustomerGroup[] $customerGroups
+     * @param  string          $productId
+     * @param  Identity        $masterProductId
+     * @param  string          $productType
+     * @param  int             $pd
      * @return void
      */
     public function updateCustomerGroupPostMeta(
@@ -651,7 +770,9 @@ class ProductSpecialPriceController extends AbstractBaseController
         string $productType,
         int $pd
     ): void {
-        /** @var CustomerGroupModel $customerGroup */
+        /**
+ * @var CustomerGroupModel $customerGroup 
+*/
         foreach ($customerGroups as $groupKey => $customerGroup) {
             $customerGroupId = $customerGroup->getId()->getEndpoint();
             $post            = \get_post((int)$customerGroupId);
@@ -727,7 +848,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                     );
                 }
 
-                /** @var false|string $regularPrice */
+                /**
+ * @var false|string $regularPrice 
+*/
                 $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
             } elseif (\is_null($post) && $customerGroupId === CustomerGroupController::DEFAULT_GROUP) {
                 $salePriceMetaKey      = '_sale_price';
@@ -736,7 +859,9 @@ class ProductSpecialPriceController extends AbstractBaseController
                 $priceMetaKey          = '_price';
                 $regularPriceKey       = '_regular_price';
 
-                /** @var false|string $regularPrice */
+                /**
+ * @var false|string $regularPrice 
+*/
                 $regularPrice = \get_post_meta((int)$productId, $regularPriceKey, true);
 
                 \update_post_meta(
@@ -790,8 +915,8 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string $productId
-     * @param string $postName
+     * @param  string $productId
+     * @param  string $postName
      * @return string|null
      */
     public function setPostMetaKey(
@@ -799,12 +924,11 @@ class ProductSpecialPriceController extends AbstractBaseController
         string $postName
     ): ?string {
         $priceMetaKey = null;
-        if (
-            $this->comparePluginVersion(
-                SupportedPlugins::PLUGIN_B2B_MARKET,
-                '<',
-                '1.0.8.0'
-            )
+        if ($this->comparePluginVersion(
+            SupportedPlugins::PLUGIN_B2B_MARKET,
+            '<',
+            '1.0.8.0'
+        )
         ) {
             $priceMetaKey = \sprintf(
                 'bm_%s_price',
@@ -824,20 +948,19 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string   $productId
-     * @param \WP_Post $post
+     * @param  string   $productId
+     * @param  \WP_Post $post
      * @return array<int, string|null>
      */
     public function setPriceMetaKeysForTypeChild(string $productId, \WP_Post $post): array
     {
         $COPpriceMetaKey     = null;
         $COPpriceTypeMetaKey = null;
-        if (
-            SupportedPlugins::comparePluginVersion(
-                SupportedPlugins::PLUGIN_B2B_MARKET,
-                '<',
-                '1.0.8.0'
-            )
+        if (SupportedPlugins::comparePluginVersion(
+            SupportedPlugins::PLUGIN_B2B_MARKET,
+            '<',
+            '1.0.8.0'
+        )
         ) {
             $COPpriceMetaKey     = \sprintf(
                 'bm_%s_%s_price',
@@ -855,9 +978,9 @@ class ProductSpecialPriceController extends AbstractBaseController
     }
 
     /**
-     * @param string $pluginName
-     * @param string $operator
-     * @param string $version
+     * @param  string $pluginName
+     * @param  string $operator
+     * @param  string $version
      * @return bool
      */
     protected function comparePluginVersion(string $pluginName, string $operator, string $version): bool
