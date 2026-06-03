@@ -751,8 +751,8 @@ class ProductController extends AbstractBaseController implements
         $productId = (int)$wcProduct->get_id();
 
         $productTitle = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));
-        // translators: %1$s is the variation product ID, %2$s is the parent product title
         // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Third-party string from WooCommerce
+        // translators: %1$s is the variation product ID, %2$s is the parent product title
         $variation_post_title = \sprintf(\__('Variation #%1$s of %2$s', 'woocommerce'), $productId, $productTitle);
         \wp_update_post([
             'ID' => $productId,
