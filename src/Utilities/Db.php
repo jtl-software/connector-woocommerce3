@@ -127,12 +127,16 @@ class Db implements LoggerAwareInterface
      */
     public function checkIfFKExists(string $table, string $constraint): bool
     {
-        $sql  = "
-               SELECT COUNT(*)
-                  FROM information_schema.TABLE_CONSTRAINTS
-                  WHERE TABLE_SCHEMA = DATABASE()
-                    AND TABLE_NAME = '{$table}'
-                    AND CONSTRAINT_NAME = '{$constraint}';";
+        $wpdb = $this->getWpDb();
+        $sql  = (string) $wpdb->prepare(
+            "SELECT COUNT(*)
+                FROM information_schema.TABLE_CONSTRAINTS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = %s
+                  AND CONSTRAINT_NAME = %s",
+            $table,
+            $constraint
+        );
         $test = $this->queryOne($sql);
 
         return (bool)$test;

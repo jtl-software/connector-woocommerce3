@@ -26,7 +26,7 @@ use Psr\Log\InvalidArgumentException;
  */
 class PaymentController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
-    public const PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
+    public const string PAY_UPON_INVOICE = 'PAY_UPON_INVOICE';
 
     /**
      * @param QueryFilter $query
@@ -78,11 +78,11 @@ class PaymentController extends AbstractBaseController implements PullInterface,
      */
     public function getOrderHostId(int $endpointId): int
     {
-        $query = \sprintf(
-            "Select host_id from %sjtl_connector_link_order where endpoint_id = %s",
-            $this->db->getWpDb()->prefix,
-            $endpointId
-        );
+        /** @var string $table */
+        $table = \esc_sql($this->db->getWpDb()->prefix . 'jtl_connector_link_order');
+        /** @var literal-string $sql */
+        $sql   = "Select host_id from `{$table}` where endpoint_id = %d";
+        $query = (string)$this->db->getWpDb()->prepare($sql, $endpointId);
 
         return (int)$this->db->queryOne($query);
     }

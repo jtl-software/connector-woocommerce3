@@ -258,11 +258,12 @@ trait ImageTrait
             DELETE FROM {$jcli}
             WHERE (`type` = %d
             OR `type` = %d)
-            AND endpoint_id
-            LIKE '{$attachmentId}%s{$productId}'",
+            AND endpoint_id = '%d%s%d'",
             IdentityType::PRODUCT_IMAGE,
             IdentityType::PRODUCT,
-            Id::SEPARATOR
+            $attachmentId,
+            Id::SEPARATOR,
+            $productId
         );
     }
 }

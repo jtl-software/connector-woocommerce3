@@ -16,8 +16,8 @@ use JtlWooCommerceConnector\Utilities\Util;
  */
 class CrossSellingGroup
 {
-    public const TYPE_CROSS_SELL = "1";
-    public const TYPE_UP_SELL    = "2";
+    public const string TYPE_CROSS_SELL = "1";
+    public const string TYPE_UP_SELL    = "2";
 
     /** @var array<int, array<string, string>> */
     protected static array $groups = [

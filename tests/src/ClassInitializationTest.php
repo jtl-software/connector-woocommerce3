@@ -71,6 +71,6 @@ class ClassInitializationTest extends AbstractTestCase
      */
     protected function findClasses(string $srcPath): bool|array
     {
-        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), 1024);
+        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), \GLOB_BRACE);
     }
 }

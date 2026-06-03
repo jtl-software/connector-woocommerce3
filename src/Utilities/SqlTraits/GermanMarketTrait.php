@@ -32,8 +32,11 @@ trait GermanMarketTrait
 
         $wat = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
 
-        return "SELECT wat.attribute_id, wat.attribute_name, wat.attribute_label, wat.attribute_type
+        return (string) $wpdb->prepare(
+            "SELECT wat.attribute_id, wat.attribute_name, wat.attribute_label, wat.attribute_type
                 FROM {$wat} wat
-               WHERE wat.attribute_name = '{$slug}'";
+               WHERE wat.attribute_name = %s",
+            $slug
+        );
     }
 }

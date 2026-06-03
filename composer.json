@@ -18,9 +18,9 @@
     }
   ],
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.3",
     "jtl/connector": "dev-master",
-    "symfony/yaml": "^3.4",
+    "symfony/yaml": "^6.4",
     "twbs/bootstrap": "^4.3",
     "theiconic/name-parser": "^0.1.1",
     "php-units-of-measure/php-units-of-measure": "^2.1",

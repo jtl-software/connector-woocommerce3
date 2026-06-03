@@ -28,7 +28,7 @@ use WC_Product_Variation;
  */
 class WpmlProduct extends AbstractComponent
 {
-    public const
+    public const string
         POST_TYPE           = 'post_product',
         POST_TYPE_VARIATION = 'post_product_variation';
 
@@ -203,7 +203,9 @@ class WpmlProduct extends AbstractComponent
             $wcProduct = \wc_get_product($wcProductId);
 
             if (!$wcProduct instanceof \WC_Product) {
-                throw new \InvalidArgumentException("Product with ID {$wcProductId} not found");
+                throw new \InvalidArgumentException(
+                    "Product with ID " . \esc_html((string)$wcProductId) . " not found"
+                );
             }
 
             $wcProduct->set_parent_id($masterProductId);

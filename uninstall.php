@@ -23,8 +23,13 @@ $tables = [
 ];
 
 foreach ($tables as $table) {
-    $wpdb->query(sprintf('DROP TABLE IF EXISTS %s%s', $wpdb->prefix, $table));
+    $table_name = esc_sql($wpdb->prefix . $table);
+    $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names cannot be used with $wpdb->prepare() placeholders
 }
 
-
-$wpdb->query("DELETE FROM `{$wpdb->options}` WHERE `option_name` LIKE 'jtlconnector_%'");
+$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.DirectQuery
+    $wpdb->prepare(
+        "DELETE FROM `{$wpdb->options}` WHERE `option_name` LIKE %s",
+        'jtlconnector_%'
+    )
+);

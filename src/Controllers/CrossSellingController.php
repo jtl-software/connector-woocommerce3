@@ -29,8 +29,8 @@ class CrossSellingController extends AbstractBaseController implements
     DeleteInterface,
     StatisticInterface
 {
-    public const CROSSSELLING_META_KEY = '_crosssell_ids';
-    public const UPSELLING_META_KEY    = '_upsell_ids';
+    public const string CROSSSELLING_META_KEY = '_crosssell_ids';
+    public const string UPSELLING_META_KEY    = '_upsell_ids';
 
     /**
      * @param QueryFilter $query

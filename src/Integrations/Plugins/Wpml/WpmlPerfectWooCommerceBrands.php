@@ -84,7 +84,7 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
 
         if (!$manufacturerTerm instanceof \WP_Term) {
             throw new \InvalidArgumentException(
-                "Manufacturer with ID {$mainManufacturerId} not found."
+                "Manufacturer with ID " . \esc_html((string)$mainManufacturerId) . " not found."
             );
         }
 

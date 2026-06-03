@@ -9,7 +9,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class HandleDeleteEvent extends Event
 {
-    public const EVENT_NAME = 'connector.handle.delete';
+    public const string EVENT_NAME = 'connector.handle.delete';
 
     protected mixed $result = null;
     protected string $controller;

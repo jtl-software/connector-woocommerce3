@@ -28,8 +28,8 @@ class Germanized
     public function __construct()
     {
         $this->salutations = [
-            1 => \__('Mr.', 'woocommerce-germanized'),// m
-            2 => \__('Ms.', 'woocommerce-germanized') // f
+            1 => \__('Mr.', 'woo-jtl-connector'),// m
+            2 => \__('Ms.', 'woo-jtl-connector') // f
         ];
     }
 

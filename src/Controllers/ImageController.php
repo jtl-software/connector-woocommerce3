@@ -40,14 +40,14 @@ class ImageController extends AbstractBaseController implements
     PushInterface,
     DeleteInterface
 {
-    public const GALLERY_DIVIDER    = ',';
-    public const PRODUCT_THUMBNAIL  = '_thumbnail_id';
-    public const CATEGORY_THUMBNAIL = 'thumbnail_id';
-    public const GALLERY_KEY        = '_product_image_gallery';
-    public const MANUFACTURER_KEY   = 'pwb_brand_image';
-    public const PRODUCT_IMAGE      = 'product';
-    public const CATEGORY_IMAGE     = 'category';
-    public const MANUFACTURER_IMAGE = 'manufacturer';
+    public const string GALLERY_DIVIDER    = ',';
+    public const string PRODUCT_THUMBNAIL  = '_thumbnail_id';
+    public const string CATEGORY_THUMBNAIL = 'thumbnail_id';
+    public const string GALLERY_KEY        = '_product_image_gallery';
+    public const string MANUFACTURER_KEY   = 'pwb_brand_image';
+    public const string PRODUCT_IMAGE      = 'product';
+    public const string CATEGORY_IMAGE     = 'category';
+    public const string MANUFACTURER_IMAGE = 'manufacturer';
 
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
@@ -139,7 +139,7 @@ class ImageController extends AbstractBaseController implements
                     $model = new ManufacturerImage();
                     break;
                 default:
-                    throw new Exception(\sprintf("Invalid image type '%s'", $type));
+                    throw new Exception(\sprintf("Invalid image type '%s'", \esc_html((string)$type)));
             }
 
             $model->setId(new Identity($imageLinkId))
@@ -208,7 +208,7 @@ class ImageController extends AbstractBaseController implements
 
                         if (!\is_int($postId)) {
                             throw new \InvalidArgumentException(
-                                "Expected postId to be an integer but got " . \gettype($postId) . " instead."
+                                "Expected postId to be an integer but got " . \esc_html(\gettype($postId)) . " instead."
                             );
                         }
 
@@ -398,7 +398,7 @@ class ImageController extends AbstractBaseController implements
 
         if (!\is_array($images)) {
             throw new \InvalidArgumentException(
-                "Expected images to be an array but got " . \gettype($images) . " instead."
+                "Expected images to be an array but got " . \esc_html(\gettype($images)) . " instead."
             );
         }
 
@@ -697,7 +697,10 @@ class ImageController extends AbstractBaseController implements
                 $type        = IdentityType::CATEGORY_IMAGE;
                 break;
             default:
-                throw new \Exception(\sprintf('Relation type %s is not supported.', $image->getRelationType()));
+                throw new \Exception(\sprintf(
+                    'Relation type %s is not supported.',
+                    \esc_html($image->getRelationType())
+                ));
         }
 
         $primaryKeyMapper->delete(
@@ -982,8 +985,8 @@ class ImageController extends AbstractBaseController implements
                 throw new RuntimeException(
                     \sprintf(
                         "Invalid relation %s type for id %s when deleting image.",
-                        $image->getRelationType(),
-                        $endpointId
+                        \esc_html($image->getRelationType()),
+                        \esc_html($endpointId)
                     )
                 );
         }

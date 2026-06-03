@@ -16,7 +16,7 @@ use JtlWooCommerceConnector\Utilities\Util;
 
 class CustomerGroupController extends AbstractBaseController
 {
-    public const DEFAULT_GROUP = 'customer';
+    public const string DEFAULT_GROUP = 'customer';
 
     protected Db $db;
     protected Util $util;
@@ -42,7 +42,7 @@ class CustomerGroupController extends AbstractBaseController
                 ->setIsDefault(true);
 
             $defaultI18n = (new CustomerGroupI18n())
-                ->setName(\__('Customer', 'woocommerce'))
+                ->setName(\__('Customer', 'woo-jtl-connector'))
                 ->setLanguageISO($langIso);
 
             $isDefaultGroupSet = true;
@@ -71,7 +71,7 @@ class CustomerGroupController extends AbstractBaseController
 
                     if (!\is_array($meta)) {
                         throw new \InvalidArgumentException(
-                            "meta expected to be an array but got " . \gettype($meta) . " instead"
+                            "meta expected to be an array but got " . \esc_html(\gettype($meta)) . " instead"
                         );
                     }
 

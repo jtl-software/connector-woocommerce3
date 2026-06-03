@@ -10,8 +10,8 @@ use JtlWooCommerceConnector\Tests\TestCase;
  * Tests that authorization checks are present in security-critical functions.
  *
  * These tests verify the code structure rather than runtime behavior because
- * the vulnerable functions (JtlConnectorAdmin::save, downloadJTLLogs,
- * clearJTLLogs) are tightly coupled to WordPress and cannot be loaded in
+ * the vulnerable functions (JtlConnectorAdmin::save, jtlwcc_download_logs,
+ * jtlwcc_clear_logs) are tightly coupled to WordPress and cannot be loaded in
  * isolation without a full WordPress bootstrap.
  *
  * @covers \JtlConnectorAdmin
@@ -68,12 +68,12 @@ class AuthorizationTest extends TestCase
      */
     public function testDownloadJTLLogsContainsCapabilityCheck(): void
     {
-        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function downloadJTLLogs');
+        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function jtlwcc_download_logs');
 
         $this->assertStringContainsString(
             "current_user_can('manage_woocommerce')",
             $source,
-            'downloadJTLLogs() must check for manage_woocommerce capability'
+            'jtlwcc_download_logs() must check for manage_woocommerce capability'
         );
     }
 
@@ -82,12 +82,12 @@ class AuthorizationTest extends TestCase
      */
     public function testDownloadJTLLogsContainsNonceVerification(): void
     {
-        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function downloadJTLLogs');
+        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function jtlwcc_download_logs');
 
         $this->assertStringContainsString(
             "check_ajax_referer('jtl_logs_nonce')",
             $source,
-            'downloadJTLLogs() must verify the AJAX nonce'
+            'jtlwcc_download_logs() must verify the AJAX nonce'
         );
     }
 
@@ -96,12 +96,12 @@ class AuthorizationTest extends TestCase
      */
     public function testClearJTLLogsContainsCapabilityCheck(): void
     {
-        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function clearJTLLogs');
+        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function jtlwcc_clear_logs');
 
         $this->assertStringContainsString(
             "current_user_can('manage_woocommerce')",
             $source,
-            'clearJTLLogs() must check for manage_woocommerce capability'
+            'jtlwcc_clear_logs() must check for manage_woocommerce capability'
         );
     }
 
@@ -110,12 +110,12 @@ class AuthorizationTest extends TestCase
      */
     public function testClearJTLLogsContainsNonceVerification(): void
     {
-        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function clearJTLLogs');
+        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function jtlwcc_clear_logs');
 
         $this->assertStringContainsString(
             "check_ajax_referer('jtl_logs_nonce')",
             $source,
-            'clearJTLLogs() must verify the AJAX nonce'
+            'jtlwcc_clear_logs() must verify the AJAX nonce'
         );
     }
 
@@ -124,12 +124,12 @@ class AuthorizationTest extends TestCase
      */
     public function testDownloadJTLLogsDoesNotWriteToPublicPath(): void
     {
-        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function downloadJTLLogs');
+        $source = $this->extractFunctionSource(self::PLUGIN_FILE, 'function jtlwcc_download_logs');
 
         $this->assertStringNotContainsString(
             'wp-content/plugins',
             $source,
-            'downloadJTLLogs() must not write ZIP files to a publicly accessible path'
+            'jtlwcc_download_logs() must not write ZIP files to a publicly accessible path'
         );
     }
 
@@ -140,7 +140,7 @@ class AuthorizationTest extends TestCase
     {
         $source = $this->extractFunctionSource(
             self::PLUGIN_FILE,
-            'function woo_jtl_connector_settings_javascript'
+            'function jtlwcc_settings_javascript'
         );
 
         $this->assertStringContainsString(

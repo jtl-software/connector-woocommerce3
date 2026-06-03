@@ -63,7 +63,11 @@ abstract class AbstractPlugin implements PluginInterface, LoggerAwareInterface
     public function getComponent(string $name): ComponentInterface
     {
         if ($this->hasComponent($name) === false) {
-            throw new \Exception(\sprintf("Cannot find component %s in plugin %s", $name, $this->getName()));
+            throw new \Exception(\sprintf(
+                "Cannot find component %s in plugin %s",
+                \esc_html($name),
+                \esc_html($this->getName())
+            ));
         }
 
         return $this->components[$name];

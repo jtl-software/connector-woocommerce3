@@ -238,7 +238,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
             $wcProduct = \wc_get_product($productId);
 
             if (!$wcProduct instanceof WC_Product) {
-                throw new \InvalidArgumentException("Product with ID {$productId} not found");
+                throw new \InvalidArgumentException("Product with ID " . \esc_html($productId) . " not found");
             }
 
             $metaData = $this->getGermanMarketMeta($wcProduct, $metaKeys);
@@ -369,7 +369,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
         $wcProduct = \wc_get_product($productId);
 
         if (!$wcProduct instanceof WC_Product) {
-            throw new \InvalidArgumentException("Product with ID {$productId} not found");
+            throw new \InvalidArgumentException(\esc_html("Product with ID {$productId} not found"));
         }
 
         $metaData = $this->getGermanMarketMeta(
