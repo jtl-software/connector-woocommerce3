@@ -3012,10 +3012,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     && count($field['options']) > 0
                 ) {
                     foreach ($field['options'] as $key => $ovalue) {
-                        $selected = in_array($key, $statusValues)
-                            ? ' selected="selected"' : '';
                         ?>
-                        <option value="<?php echo esc_attr((string) $key); ?>"<?php echo esc_attr($selected); ?>>
+                        <option value="<?php echo esc_attr((string) $key); ?>"<?php selected(in_array($key, $statusValues)); ?>>
                             <?php echo esc_html((string) $ovalue); ?>
                         </option>
                     <?php }

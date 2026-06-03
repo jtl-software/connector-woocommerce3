@@ -179,12 +179,22 @@ function jtlwcc_download_logs(): void
     check_ajax_referer('jtl_logs_nonce');
 
     $logDir   = CONNECTOR_DIR . '/var/log';
-    $zip_file = wp_tempnam('connector_logs') . '.zip';
+    $tmp_file = wp_tempnam('connector_logs');
 
+    if ($tmp_file === '' || !is_writable(dirname($tmp_file))) {
+        wp_send_json_error(['message' => 'Failed to create temporary file.'], 500);
+    }
+
+    $zip_file = $tmp_file . '.zip';
     $rootPath = $logDir;
 
-    $zip = new ZipArchive();
-    $zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    $zip    = new ZipArchive();
+    $result = $zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+    if ($result !== true) {
+        wp_delete_file($tmp_file);
+        wp_send_json_error(['message' => 'Failed to create ZIP archive.'], 500);
+    }
 
     /** @var SplFileInfo[] $files */
     $files        = new RecursiveIteratorIterator(
@@ -214,10 +224,12 @@ function jtlwcc_download_logs(): void
         header('Content-Length: ' . filesize($zip_file));
         readfile($zip_file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming binary ZIP to browser output
         wp_delete_file($zip_file);
+        wp_delete_file($tmp_file);
         exit;
     }
 
     wp_delete_file($zip_file);
+    wp_delete_file($tmp_file);
     header('Content-Type: application/json; charset=UTF-8');
     header('HTTP/1.1 451 Internal Server Booboo');
     die(wp_json_encode([

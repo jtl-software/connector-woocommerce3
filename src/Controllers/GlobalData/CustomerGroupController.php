@@ -42,7 +42,7 @@ class CustomerGroupController extends AbstractBaseController
                 ->setIsDefault(true);
 
             $defaultI18n = (new CustomerGroupI18n())
-                ->setName(\__('Customer', 'woo-jtl-connector'))
+                ->setName(\__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
 
             $isDefaultGroupSet = true;
