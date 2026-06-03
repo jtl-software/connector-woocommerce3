@@ -5,7 +5,9 @@
  * Description: Connect your woocommerce-shop with JTL-Wawi, the free multichannel-erp for mail order business.
  * Version: 2.4.2
  * Requires PHP: 8.3
- * WC tested up to: 8.2
+ * Requires at least: 6.4
+ * Tested up to: 7.0
+ * WC tested up to: 10.8.1
  * Author: JTL-Software GmbH
  * Author URI: http://www.jtl-software.de
  * License: GPL3
