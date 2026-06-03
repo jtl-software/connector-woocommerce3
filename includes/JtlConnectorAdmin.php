@@ -948,6 +948,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                           action="<?php echo esc_html(admin_url('admin-post.php'));
                             ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
+                        <?php wp_nonce_field('settings_save_woo-jtl-connector'); ?>
                         <div class="form-group row">
                             <h2 class="col-12"><?php print $title ?></h2>
                         </div>
@@ -3006,6 +3007,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function save(): void
     {
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die('', '', ['response' => 403]);
+        }
+
+        check_admin_referer('settings_save_woo-jtl-connector');
+
         $settings = $_REQUEST;
 
         foreach ($settings as $key => $item) {

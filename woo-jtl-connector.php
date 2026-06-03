@@ -99,14 +99,15 @@ if (jtlwcc_rewriting_disabled()) {
  */
 function woo_jtl_connector_settings_javascript(): void
 {
+    $nonce = wp_create_nonce('jtl_logs_nonce');
     ?>
     <script type="text/javascript">
         jQuery(document).ready(($) => {
-            //console.log('Script Loaded ');
             $("#downloadLogBtn").click(
                 () => {
                     let data = {
                         'action': 'downloadJTLLogs',
+                        '_ajax_nonce': '<?php echo esc_js($nonce); ?>',
                     };
 
                     jQuery.ajax(
@@ -114,13 +115,24 @@ function woo_jtl_connector_settings_javascript(): void
                             url: ajaxurl,
                             type: 'POST',
                             data: data,
-                            success: (response) => {
-                                console.log(response);
-                                window.location.href = response;
+                            xhrFields: { responseType: 'blob' },
+                            success: (blob) => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'connector_logs.zip';
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                window.URL.revokeObjectURL(url);
                             },
                             error: (response) => {
-                                response = JSON.parse(response.responseText);
-                                alert(response.message);
+                                let msg = 'An error occurred.';
+                                try {
+                                    const parsed = JSON.parse(response.responseText);
+                                    msg = parsed.message;
+                                } catch (e) {}
+                                alert(msg);
                             }
                         }
                     );
@@ -134,6 +146,7 @@ function woo_jtl_connector_settings_javascript(): void
 
                         let data = {
                             'action': 'clearJTLLogs',
+                            '_ajax_nonce': '<?php echo esc_js($nonce); ?>',
                         };
 
                         jQuery.ajax(
@@ -142,7 +155,6 @@ function woo_jtl_connector_settings_javascript(): void
                                 type: 'POST',
                                 data: data,
                                 success: (response) => {
-                                    //console.log(response);
                                 },
                             }
                         );
@@ -160,18 +172,20 @@ function woo_jtl_connector_settings_javascript(): void
  */
 function downloadJTLLogs(): void
 {
-    $logDir   = CONNECTOR_DIR . '/var/log';
-    $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
-    $url      = get_site_url() . '/wp-content/plugins/woo-jtl-connector/tmp/connector_logs.zip';
+    if (!current_user_can('manage_woocommerce')) {
+        wp_die('', '', ['response' => 403]);
+    }
 
-    // Get real path for our folder
+    check_ajax_referer('jtl_logs_nonce');
+
+    $logDir   = CONNECTOR_DIR . '/var/log';
+    $zip_file = wp_tempnam('connector_logs') . '.zip';
+
     $rootPath = $logDir;
 
-    // Initialize archive object
     $zip = new ZipArchive();
     $zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-    // Create recursive directory iterator
     /** @var SplFileInfo[] $files */
     $files        = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($rootPath),
@@ -183,35 +197,33 @@ function downloadJTLLogs(): void
             continue;
         }
 
-        // Skip directories (they would be added automatically)
         if (!$file->isDir()) {
-            // Get real and relative path for current file
             $filePath     = $file->getRealPath();
             $relativePath = substr($filePath, strlen($rootPath) + 1);
 
-            // Add current file to archive
             $zip->addFile($filePath, $relativePath);
             $filesCounter++;
         }
     }
 
-    // Zip archive will be created only after closing object
     $zip->close();
 
-    header('Content-Type: application/json; charset=UTF-8');
-
     if ($filesCounter > 0) {
-        print json_encode($url);
-    } else {
-        header('HTTP/1.1 451 Internal Server Booboo');
-        die(json_encode([
-            'message' => 'Keine Logs Vorhanden!',
-            'code'    => 451,
-        ]));
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="connector_logs.zip"');
+        header('Content-Length: ' . filesize($zip_file));
+        readfile($zip_file);
+        unlink($zip_file);
+        exit;
     }
 
-    wp_die();
-    //self::display_page();
+    unlink($zip_file);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('HTTP/1.1 451 Internal Server Booboo');
+    die(json_encode([
+        'message' => 'Keine Logs Vorhanden!',
+        'code'    => 451,
+    ]));
 }
 
 /**
@@ -220,6 +232,12 @@ function downloadJTLLogs(): void
  */
 function clearJTLLogs(): void
 {
+    if (!current_user_can('manage_woocommerce')) {
+        wp_die('', '', ['response' => 403]);
+    }
+
+    check_ajax_referer('jtl_logs_nonce');
+
     $logDir   = CONNECTOR_DIR . '/var/log';
     $zip_file = CONNECTOR_DIR . '/tmp/connector_logs.zip';
 
