@@ -181,7 +181,7 @@ function jtlwcc_download_logs(): void
     $logDir   = CONNECTOR_DIR . '/var/log';
     $tmp_file = wp_tempnam('connector_logs');
 
-    if ($tmp_file === '') {
+    if ($tmp_file === '' || $tmp_file === false) {
         wp_send_json_error(['message' => 'Failed to create temporary file.'], 500);
     }
 
@@ -230,12 +230,7 @@ function jtlwcc_download_logs(): void
 
     wp_delete_file($zip_file);
     wp_delete_file($tmp_file);
-    header('Content-Type: application/json; charset=UTF-8');
-    header('HTTP/1.1 451 Internal Server Booboo');
-    die(wp_json_encode([
-        'message' => 'Keine Logs Vorhanden!',
-        'code'    => 451,
-    ]));
+    wp_send_json_error(['message' => 'No log files found.'], 404);
 }
 
 /**
