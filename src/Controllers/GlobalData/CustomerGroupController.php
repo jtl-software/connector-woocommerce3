@@ -42,6 +42,7 @@ class CustomerGroupController extends AbstractBaseController
                 ->setIsDefault(true);
 
             $defaultI18n = (new CustomerGroupI18n())
+                // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Third-party string from WooCommerce
                 ->setName(\__('Customer', 'woocommerce'))
                 ->setLanguageISO($langIso);
 

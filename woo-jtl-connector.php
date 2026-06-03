@@ -181,7 +181,7 @@ function jtlwcc_download_logs(): void
     $logDir   = CONNECTOR_DIR . '/var/log';
     $tmp_file = wp_tempnam('connector_logs');
 
-    if ($tmp_file === '' || !is_writable(dirname($tmp_file))) {
+    if ($tmp_file === '') {
         wp_send_json_error(['message' => 'Failed to create temporary file.'], 500);
     }
 

@@ -28,7 +28,9 @@ class Germanized
     public function __construct()
     {
         $this->salutations = [
+            // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Third-party string from WooCommerce Germanized
             1 => \__('Mr.', 'woocommerce-germanized'),// m
+            // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Third-party string from WooCommerce Germanized
             2 => \__('Ms.', 'woocommerce-germanized') // f
         ];
     }
