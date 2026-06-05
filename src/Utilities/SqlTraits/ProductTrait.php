@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
+
 trait ProductTrait
 {
     /**
@@ -20,7 +22,7 @@ trait ProductTrait
     public static function productPull(?int  $limit = null): string
     {
         global $wpdb;
-        $jclp = $wpdb->prefix . 'jtl_connector_link_product';
+        $jclp = $wpdb->prefix . LinkTableNames::PRODUCT;
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
 

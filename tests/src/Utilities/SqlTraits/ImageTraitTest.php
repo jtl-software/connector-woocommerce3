@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace src\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -70,7 +71,7 @@ class ImageTraitTest extends TestCase
         return [
             [
                 1111,
-                " DELETE FROM wp_jtl_connector_link_image" .
+                ' DELETE FROM wp_' . LinkTableNames::IMAGE .
                 " WHERE (`type` = 42" .
                 " OR `type` = 64)" .
                 " AND endpoint_id" .

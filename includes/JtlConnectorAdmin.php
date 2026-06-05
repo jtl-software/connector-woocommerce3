@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -311,7 +312,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
+            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::CUSTOMER . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 `is_guest` BIT,
@@ -328,7 +329,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer_group` (
+            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::CUSTOMER_GROUP . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -344,7 +345,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
+            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::IMAGE . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 `type` INT unsigned NOT NULL,
@@ -364,7 +365,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         global $wpdb;
 
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . 'jtl_connector_link_manufacturer') . "` (
+            CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::MANUFACTURER) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -382,13 +383,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         if ($engine === 'InnoDB') {
             if (
                 !$db->checkIfFKExists(
-                    $wpdb->prefix . 'jtl_connector_link_manufacturer',
+                    $wpdb->prefix . LinkTableNames::MANUFACTURER,
                     'jtl_connector_link_manufacturer_1'
                 )
             ) {
                 // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `" . esc_sql($wpdb->prefix) . "jtl_connector_link_manufacturer`
+                    "ALTER TABLE `" . esc_sql($wpdb->prefix) . LinkTableNames::MANUFACTURER . "`
                     ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`)
                     REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
@@ -405,7 +406,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query(
-            "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix) . "jtl_connector_link_tax_class` (
+            "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix) . LinkTableNames::TAX_CLASS . "` (
                 `endpoint_id` VARCHAR(200) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`),
@@ -1956,7 +1957,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 //hotfix
             case '1.8.2.4':
                 //hotfix
-                $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($wpdb->prefix . 'jtl_connector_link_customer_group') . "`");
+                $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::CUSTOMER_GROUP) . "`");
                 self::createCustomerGroupLinkingTable();
             // no break
             case '1.8.2.5':
@@ -2130,7 +2131,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         foreach ($imageMapping as $relationType => $identityType) {
             $updateIdentityQuery = sprintf(
-                'UPDATE `%sjtl_connector_link_image` SET `type` = %d WHERE `type` = %d',
+                'UPDATE `%s' . LinkTableNames::IMAGE . '` SET `type` = %d WHERE `type` = %d',
                 $db->getWpDb()->prefix,
                 $relationType,
                 $identityType
@@ -2151,49 +2152,49 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $wpdb->query('START TRANSACTION');
 
         /** @phpstan-ignore booleanAnd.leftAlwaysTrue */
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_category') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CATEGORY) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_customer') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CUSTOMER) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_product') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::PRODUCT) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_image') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::IMAGE) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_order') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::ORDER) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_payment') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::PAYMENT) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_crossselling') . "` (
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CROSSSELLING) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -2240,19 +2241,19 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         switch ($type) {
             case IdentityType::CATEGORY:
-                return 'jtl_connector_link_category';
+                return LinkTableNames::CATEGORY;
             case IdentityType::CUSTOMER:
-                return 'jtl_connector_link_customer';
+                return LinkTableNames::CUSTOMER;
             case IdentityType::PRODUCT:
-                return 'jtl_connector_link_product';
+                return LinkTableNames::PRODUCT;
             case 16:
-                return 'jtl_connector_link_image';
+                return LinkTableNames::IMAGE;
             case IdentityType::CUSTOMER_ORDER:
-                return 'jtl_connector_link_order';
+                return LinkTableNames::ORDER;
             case IdentityType::PAYMENT:
-                return 'jtl_connector_link_payment';
+                return LinkTableNames::PAYMENT;
             case IdentityType::CROSS_SELLING:
-                return 'jtl_connector_link_crossselling';
+                return LinkTableNames::CROSSSELLING;
         }
 
         return null;
@@ -2268,38 +2269,44 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         global $wpdb;
 
         // Modify varchar endpoint_id to integer
-        $wpdb->query("ALTER TABLE `" . esc_sql('jtl_connector_link_order') . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
-        $wpdb->query("ALTER TABLE `" . esc_sql('jtl_connector_link_payment') . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
-        $wpdb->query("ALTER TABLE `" . esc_sql('jtl_connector_link_product') . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
-        $wpdb->query("ALTER TABLE `" . esc_sql('jtl_connector_link_crossselling') . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
-        $wpdb->query("ALTER TABLE `" . esc_sql('jtl_connector_link_category') . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::ORDER) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::PAYMENT) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::PRODUCT) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query(
+            "ALTER TABLE `" . esc_sql(LinkTableNames::CROSSSELLING)
+            . "` MODIFY `endpoint_id` BIGINT(20) unsigned"
+        );
+        $wpdb->query(
+            "ALTER TABLE `" . esc_sql(LinkTableNames::CATEGORY)
+            . "` MODIFY `endpoint_id` BIGINT(20) unsigned"
+        );
 
         // Add is_guest column for customers instead of using a prefix
-        $wpdb->query('ALTER TABLE `jtl_connector_link_customer` ADD COLUMN `is_guest` BIT');
+        $wpdb->query('ALTER TABLE `' . LinkTableNames::CUSTOMER . '` ADD COLUMN `is_guest` BIT');
         $wpdb->query($wpdb->prepare(
-            'UPDATE `jtl_connector_link_customer` 
+            'UPDATE `' . LinkTableNames::CUSTOMER . '` 
             SET `is_guest` = 1
             WHERE `endpoint_id` LIKE %s',
             Id::GUEST_PREFIX . '_%'
         ));
         $wpdb->query($wpdb->prepare(
-            'UPDATE `jtl_connector_link_customer` 
+            'UPDATE `' . LinkTableNames::CUSTOMER . '` 
             SET `is_guest` = 0
             WHERE `endpoint_id` NOT LIKE %s',
             Id::GUEST_PREFIX . '_%'
         ));
 
         // Add type column for images instead of using a prefix
-        $wpdb->query('ALTER TABLE `jtl_connector_link_image` ADD COLUMN `type` INT(4) unsigned');
+        $wpdb->query('ALTER TABLE `' . LinkTableNames::IMAGE . '` ADD COLUMN `type` INT(4) unsigned');
         $wpdb->query($wpdb->prepare(
-            'UPDATE `jtl_connector_link_image` 
+            'UPDATE `' . LinkTableNames::IMAGE . '` 
             SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
             WHERE `endpoint_id` LIKE %s',
             IdentityType::CATEGORY,
             Id::CATEGORY_PREFIX . '_%'
         ));
         $wpdb->query($wpdb->prepare(
-            'UPDATE `jtl_connector_link_image` 
+            'UPDATE `' . LinkTableNames::IMAGE . '` 
             SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
             WHERE `endpoint_id` LIKE %s',
             IdentityType::PRODUCT,
@@ -2319,14 +2326,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $wpdb = $db->getWpDb();
 
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_specific') . "` (
+            CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::SPECIFIC) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `" . esc_sql('jtl_connector_link_specific_value') . "` (
+            CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::SPECIFIC_VALUE) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -2344,26 +2351,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         if ($engine === 'InnoDB') {
             if (
                 ! $db->checkIfFKExists(
-                    'jtl_connector_link_category',
+                    LinkTableNames::CATEGORY,
                     'jtl_connector_link_category_1'
                 )
             ) {
                 $wpdb->query(
-                    "ALTER TABLE `" . esc_sql('jtl_connector_link_category') . "`
-                            ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) 
-                            REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql(LinkTableNames::CATEGORY) . "`
+                            ADD CONSTRAINT `jtl_connector_link_category_1`
+                            FOREIGN KEY (`endpoint_id`) 
+                            REFERENCES `" . esc_sql($wpdb->terms)
+                            . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
 
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (
                 ! $db->checkIfFKExists(
-                    'jtl_connector_link_specific',
+                    LinkTableNames::SPECIFIC,
                     'jtl_connector_link_specific_1'
                 )
             ) {
                 $wpdb->query("
-                ALTER TABLE `" . esc_sql('jtl_connector_link_specific') . "`
+                ALTER TABLE `" . esc_sql(LinkTableNames::SPECIFIC) . "`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) 
                 REFERENCES `" . esc_sql($table) . "` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION");
             }
@@ -2379,16 +2388,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $tables = [
             'jtl_connector_category_level',
-            'jtl_connector_link_category',
-            'jtl_connector_link_crossselling',
-            'jtl_connector_link_customer',
-            'jtl_connector_link_image',
-            'jtl_connector_link_order',
-            'jtl_connector_link_payment',
-            'jtl_connector_link_product',
-            'jtl_connector_link_shipping_class',
-            'jtl_connector_link_specific',
-            'jtl_connector_link_specific_value',
+            LinkTableNames::CATEGORY,
+            LinkTableNames::CROSSSELLING,
+            LinkTableNames::CUSTOMER,
+            LinkTableNames::IMAGE,
+            LinkTableNames::ORDER,
+            LinkTableNames::PAYMENT,
+            LinkTableNames::PRODUCT,
+            LinkTableNames::SHIPPING_CLASS,
+            LinkTableNames::SPECIFIC,
+            LinkTableNames::SPECIFIC_VALUE,
             'jtl_connector_product_checksum',
         ];
         foreach ($tables as $table) {
@@ -3013,7 +3022,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 ) {
                     foreach ($field['options'] as $key => $ovalue) {
                         ?>
-                        <option value="<?php echo esc_attr((string) $key); ?>"<?php selected(in_array($key, $statusValues)); ?>>
+                        <option value="<?php echo esc_attr((string) $key); ?>"
+                            <?php selected(in_array($key, $statusValues)); ?>>
                             <?php echo esc_html((string) $ovalue); ?>
                         </option>
                     <?php }

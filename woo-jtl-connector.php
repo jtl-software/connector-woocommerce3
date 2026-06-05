@@ -224,7 +224,8 @@ function jtlwcc_download_logs(): void
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="connector_logs.zip"');
         header('Content-Length: ' . filesize($zip_file));
-        readfile($zip_file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming binary ZIP to browser output
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming binary ZIP
+        readfile($zip_file);
         wp_delete_file($zip_file);
         wp_delete_file($tmp_file);
         exit;

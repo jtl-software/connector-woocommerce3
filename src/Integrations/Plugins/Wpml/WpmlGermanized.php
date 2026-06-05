@@ -10,6 +10,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\PerfectWooCommerceBrands\Perfec
 use JtlWooCommerceConnector\Integrations\Plugins\RankMathSeo\RankMathSeo;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Logger\ErrorFormatter;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use Psr\Log\InvalidArgumentException;
 
 /**
@@ -30,7 +31,7 @@ class WpmlGermanized extends AbstractComponent
         $wpmlPlugin = $this->getCurrentPlugin();
         $wpdb       = $wpmlPlugin->getWpDb();
 
-        $jclm         = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+        $jclm         = $wpdb->prefix . LinkTableNames::MANUFACTURER;
         $translations = $wpdb->prefix . 'icl_translations';
 
         $sql = \sprintf(
@@ -175,7 +176,7 @@ class WpmlGermanized extends AbstractComponent
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();
         $wpdb       = $wpmlPlugin->getWpDb();
-        $jclm       = $wpdb->prefix . 'jtl_connector_link_manufacturer';
+        $jclm       = $wpdb->prefix . LinkTableNames::MANUFACTURER;
 
         $sql = \sprintf(
             "

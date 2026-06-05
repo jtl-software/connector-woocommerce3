@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 
 trait CustomerOrderTrait
@@ -16,7 +17,7 @@ trait CustomerOrderTrait
     public static function customerOrderPull(?int $limit): string
     {
         global $wpdb;
-        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclo = $wpdb->prefix . LinkTableNames::ORDER;
 
         if (\is_null($limit)) {
             $select     = 'COUNT(DISTINCT(p.ID))';

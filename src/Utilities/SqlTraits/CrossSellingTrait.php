@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
+
 /**
  * Trait CrossSellingTrait
  *
@@ -18,7 +20,7 @@ trait CrossSellingTrait
     public static function crossSellingPull(?int $limit = null): string
     {
         global $wpdb;
-        $jclc       = $wpdb->prefix . 'jtl_connector_link_crossselling';
+        $jclc       = $wpdb->prefix . LinkTableNames::CROSSSELLING;
         $limitQuery = \is_null($limit) ? '' : $wpdb->prepare(' LIMIT %d', $limit);
 
         $select = 'SELECT pm.post_id, GROUP_CONCAT(pm.meta_value SEPARATOR "||") 

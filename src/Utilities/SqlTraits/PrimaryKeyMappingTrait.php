@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
+
 trait PrimaryKeyMappingTrait
 {
     /**
@@ -14,7 +16,7 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingHostImage(string $endpointId, int $type): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return "SELECT host_id
                 FROM {$jcli}
@@ -29,7 +31,7 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingHostCustomer(string $endpointId, int $isGuest): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
+        $jclc = $wpdb->prefix . LinkTableNames::CUSTOMER;
 
         return "SELECT `host_id`
                 FROM {$jclc}
@@ -91,7 +93,7 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingSaveImage(string $endpointId, int $hostId, int $type): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return "INSERT INTO {$jcli} (endpoint_id, host_id, `type`)
                 VALUES ('{$wpdb->_escape($endpointId)}', {$hostId}, {$type})";
@@ -106,7 +108,7 @@ trait PrimaryKeyMappingTrait
     public static function primaryKeyMappingSaveCustomer(string $endpointId, int $hostId, int $isGuest): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
+        $jclc = $wpdb->prefix . LinkTableNames::CUSTOMER;
 
         return "INSERT INTO {$jclc} (endpoint_id, host_id, is_guest)
                 VALUES ('{$wpdb->_escape($endpointId)}', {$hostId}, {$isGuest})";
@@ -162,23 +164,23 @@ trait PrimaryKeyMappingTrait
     {
         global $wpdb;
         $tables = [
-            "jtl_connector_link_category",
-            "jtl_connector_link_crossselling",
-            "jtl_connector_link_crossselling_group",
-            "jtl_connector_link_currency",
-            "jtl_connector_link_customer",
-            "jtl_connector_link_customer_group",
-            "jtl_connector_link_image",
-            "jtl_connector_link_language",
-            "jtl_connector_link_manufacturer",
-            "jtl_connector_link_manufacturer_unit",
-            "jtl_connector_link_order",
-            "jtl_connector_link_payment",
-            "jtl_connector_link_product",
-            "jtl_connector_link_shipping_class",
-            "jtl_connector_link_shipping_method",
-            "jtl_connector_link_specific",
-            "jtl_connector_link_specific_value",
+            LinkTableNames::CATEGORY,
+            LinkTableNames::CROSSSELLING,
+            LinkTableNames::CROSSSELLING_GROUP,
+            LinkTableNames::CURRENCY,
+            LinkTableNames::CUSTOMER,
+            LinkTableNames::CUSTOMER_GROUP,
+            LinkTableNames::IMAGE,
+            LinkTableNames::LANGUAGE,
+            LinkTableNames::MANUFACTURER,
+            LinkTableNames::MANUFACTURER_UNIT,
+            LinkTableNames::ORDER,
+            LinkTableNames::PAYMENT,
+            LinkTableNames::PRODUCT,
+            LinkTableNames::SHIPPING_CLASS,
+            LinkTableNames::SHIPPING_METHOD,
+            LinkTableNames::SPECIFIC,
+            LinkTableNames::SPECIFIC_VALUE,
         ];
         $arr    = [];
 

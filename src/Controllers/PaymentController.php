@@ -15,6 +15,7 @@ use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\Payment as PaymentModel;
 use Jtl\Connector\Core\Model\QueryFilter;
 use Jtl\Connector\Core\Definition\PaymentType;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
@@ -79,7 +80,7 @@ class PaymentController extends AbstractBaseController implements PullInterface,
     public function getOrderHostId(int $endpointId): int
     {
         /** @var string $table */
-        $table = \esc_sql($this->db->getWpDb()->prefix . 'jtl_connector_link_order');
+        $table = \esc_sql($this->db->getWpDb()->prefix . LinkTableNames::ORDER);
         /** @var literal-string $sql */
         $sql   = "Select host_id from `{$table}` where endpoint_id = %d";
         $query = (string)$this->db->getWpDb()->prepare($sql, $endpointId);

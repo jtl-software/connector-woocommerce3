@@ -17,6 +17,7 @@ use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerControlle
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 use stdClass;
 use WC_Product_Variation;
@@ -265,7 +266,7 @@ class WpmlProduct extends AbstractComponent
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin      = $this->getCurrentPlugin();
         $wpdb            = $wpmlPlugin->getWpDb();
-        $jclp            = $wpdb->prefix . 'jtl_connector_link_product';
+        $jclp            = $wpdb->prefix . LinkTableNames::PRODUCT;
         $translations    = $wpdb->prefix . 'icl_translations';
         $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
 
