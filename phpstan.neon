@@ -13,7 +13,7 @@ parameters:
         -
             message: '#Binary operation "\."\s+between .+ and array\|string results in an error#'
             path: includes/JtlConnectorAdmin.php
-            count: 9
+            count: 7
         -
             message: '#Strict comparison using === between non-empty-string and false will always evaluate to false#'
             path: woo-jtl-connector.php

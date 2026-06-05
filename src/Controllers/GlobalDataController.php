@@ -53,8 +53,7 @@ class GlobalDataController extends AbstractBaseController implements PullInterfa
 
         if ($hasDefaultCustomerGroup === false) {
             throw new Exception(\esc_html(\__(
-                'The default customer is not set. Please update the B2B-Market default customer group'
-                . ' in the JTL-Connector settings in the Wordpress admin panel.',
+                'The default customer is not set. Please update the B2B-Market default customer group in the JTL-Connector settings in the Wordpress admin panel.', // phpcs:ignore Generic.Files.LineLength.TooLong
                 'woo-jtl-connector'
             )));
         }

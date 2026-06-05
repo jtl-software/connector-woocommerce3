@@ -312,7 +312,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::CUSTOMER . '` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 `is_guest` BIT,
@@ -329,7 +329,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::CUSTOMER_GROUP . '` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER_GROUP) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -345,7 +345,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `' . LinkTableNames::IMAGE . '` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::IMAGE) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 `type` INT unsigned NOT NULL,
@@ -387,9 +387,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     'jtl_connector_link_manufacturer_1'
                 )
             ) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `" . esc_sql($wpdb->prefix) . LinkTableNames::MANUFACTURER . "`
+                    "ALTER TABLE `" . esc_sql($wpdb->prefix . LinkTableNames::MANUFACTURER) . "`
                     ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`)
                     REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
@@ -404,9 +403,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query(
-            "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix) . LinkTableNames::TAX_CLASS . "` (
+            "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::TAX_CLASS) . "` (
                 `endpoint_id` VARCHAR(200) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`),
@@ -2282,31 +2280,31 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         );
 
         // Add is_guest column for customers instead of using a prefix
-        $wpdb->query('ALTER TABLE `' . LinkTableNames::CUSTOMER . '` ADD COLUMN `is_guest` BIT');
+        $wpdb->query('ALTER TABLE `' . esc_sql(LinkTableNames::CUSTOMER) . '` ADD COLUMN `is_guest` BIT');
         $wpdb->query($wpdb->prepare(
-            'UPDATE `' . LinkTableNames::CUSTOMER . '` 
+            'UPDATE `' . esc_sql(LinkTableNames::CUSTOMER) . '` 
             SET `is_guest` = 1
             WHERE `endpoint_id` LIKE %s',
             Id::GUEST_PREFIX . '_%'
         ));
         $wpdb->query($wpdb->prepare(
-            'UPDATE `' . LinkTableNames::CUSTOMER . '` 
+            'UPDATE `' . esc_sql(LinkTableNames::CUSTOMER) . '` 
             SET `is_guest` = 0
             WHERE `endpoint_id` NOT LIKE %s',
             Id::GUEST_PREFIX . '_%'
         ));
 
         // Add type column for images instead of using a prefix
-        $wpdb->query('ALTER TABLE `' . LinkTableNames::IMAGE . '` ADD COLUMN `type` INT(4) unsigned');
+        $wpdb->query('ALTER TABLE `' . esc_sql(LinkTableNames::IMAGE) . '` ADD COLUMN `type` INT(4) unsigned');
         $wpdb->query($wpdb->prepare(
-            'UPDATE `' . LinkTableNames::IMAGE . '` 
+            'UPDATE `' . esc_sql(LinkTableNames::IMAGE) . '` 
             SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
             WHERE `endpoint_id` LIKE %s',
             IdentityType::CATEGORY,
             Id::CATEGORY_PREFIX . '_%'
         ));
         $wpdb->query($wpdb->prepare(
-            'UPDATE `' . LinkTableNames::IMAGE . '` 
+            'UPDATE `' . esc_sql(LinkTableNames::IMAGE) . '` 
             SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
             WHERE `endpoint_id` LIKE %s',
             IdentityType::PRODUCT,
