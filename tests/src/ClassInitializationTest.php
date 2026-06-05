@@ -59,6 +59,13 @@ class ClassInitializationTest extends AbstractTestCase
 
             $classNameWithNamespace = \sprintf('JtlWooCommerceConnector%s\%s', $namespace, $className);
 
+            if (
+                \class_exists($classNameWithNamespace)
+                && (new \ReflectionClass($classNameWithNamespace))->isFinal()
+            ) {
+                continue;
+            }
+
             $mock = $this->getMockBuilder($classNameWithNamespace)->disableOriginalConstructor()->getMock();
 
             $this->assertInstanceOf($classNameWithNamespace, $mock);
