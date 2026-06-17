@@ -22,8 +22,11 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Composer update (prod)
-        run: composer update --no-dev --optimize-autoloader --no-progress --no-interaction
+      - name: Ensure composer.lock exists
+        run: test -f composer.lock
+
+      - name: Composer install (prod)
+        run: composer install --no-dev --prefer-dist --classmap-authoritative --no-progress --no-interaction
 
       - name: Phing build
         run: php ./phing.phar build -Dversion=${{ github.ref_name }} -Dtmpdir=.
