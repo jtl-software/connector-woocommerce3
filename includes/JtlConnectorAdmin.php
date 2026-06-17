@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Controllers\GlobalData\CustomerGroupController;
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
@@ -44,7 +45,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $version      = $woocommerce->version;
         $buildVersion = Config::getBuildVersion();
 
-        clearConnectorCache(false);
+        jtlwcc_clear_connector_cache(false);
 
         $parsedFile = (array) Yaml::parseFile(JTLWCC_CONNECTOR_DIR . '/build-config.yaml');
 
@@ -70,7 +71,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         } catch (MissingRequirementException $exc) {
             if (is_admin() && ( ! defined('DOING_AJAX') || ! DOING_AJAX )) {
                 jtlwcc_deactivate_plugin();
-                wp_die($exc->getMessage());
+                wp_die(esc_html($exc->getMessage()));
             } else {
                 return;
             }
@@ -149,7 +150,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             }
 
             if ($oldExists && $newExists) {
-                $wpdb->query(sprintf($dropOldQuery, $oldPrefix . $table));
+                $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($oldPrefix . $table) . "`");
             } elseif (! $oldExists && ! $newExists) {
                 if (strcmp($table, 'category_level') === 0) {
                     self::activate_category_tree($db);
@@ -166,7 +167,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 } elseif (strcmp($table, 'tax_class') === 0) {
                     self::createTaxClassLinkingTable();
                 } else {
-                    $wpdb->query(sprintf($createQuery, $prefix . $table));
+                    $wpdb->query("
+    CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix . $table) . "` (
+        `endpoint_id` BIGINT(20) unsigned NOT NULL,
+        `host_id` INT(10) unsigned NOT NULL,
+        PRIMARY KEY (`endpoint_id`, `host_id`),
+        INDEX (`host_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
                 }
                 /** @phpstan-ignore booleanNot.alwaysTrue */
             } elseif ($oldExists && !$newExists) {
@@ -217,10 +224,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $query = 'RENAME TABLE %s TO %s;';
-
-        $sql = sprintf($query, $oldName, $newName);
-        $wpdb->query($sql);
+        $wpdb->query("RENAME TABLE `" . esc_sql($oldName) . "` TO `" . esc_sql($newName) . "`");
     }
 
     /**
@@ -232,30 +236,34 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
-        $engine = $wpdb->get_var(sprintf(
+        $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->terms}' AND TABLE_SCHEMA = '%s'",
+            WHERE TABLE_NAME = %s AND TABLE_SCHEMA = %s",
+            $wpdb->terms,
             DB_NAME
         ));
 
-        $constraint = '';
-
-        if ($engine === 'InnoDB') {
-            if (!$db->checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
-                $constraint = ", CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`) 
-                               REFERENCES {$wpdb->terms} (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION";
-            }
-        }
-
+        // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `{$prefix}category_level` (
+            CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix) . "category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
                 `level` int(10) unsigned NOT NULL,
                 `sort` int(10) unsigned NOT NULL,
                 PRIMARY KEY (`category_id`),
-                INDEX (`level`) {$constraint}
+                INDEX (`level`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+
+        if ($engine === 'InnoDB') {
+            if (!$db->checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
+                $wpdb->query(
+                    "ALTER TABLE `" . esc_sql($prefix) . "category_level`
+                    ADD CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`)
+                    REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
+        }
     }
 
     /**
@@ -267,27 +275,34 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $engine = $wpdb->get_var(sprintf(
+        $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
+            WHERE TABLE_NAME = %s AND TABLE_SCHEMA = %s",
+            $wpdb->posts,
             DB_NAME
         ));
 
-        if ($engine === 'InnoDB') {
-            $constraint = ", CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) 
-                           REFERENCES {$wpdb->posts} (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION";
-        } else {
-            $constraint = '';
-        }
-
+        // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query("
-            CREATE TABLE IF NOT EXISTS `{$prefix}product_checksum` (
+            CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix) . "product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
                 `type` tinyint unsigned NOT NULL,
                 `checksum` varchar(255) NOT NULL,
-                PRIMARY KEY (`product_id`) {$constraint}
+                PRIMARY KEY (`product_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+
+        if ($engine === 'InnoDB') {
+            $db = new Db($wpdb);
+            if (!$db->checkIfFKExists($prefix . 'product_checksum', 'jtl_connector_product_checksum1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
+                $wpdb->query(
+                    "ALTER TABLE `" . esc_sql($prefix) . "product_checksum`
+                    ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`)
+                    REFERENCES `" . esc_sql($wpdb->posts) . "` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
+            }
+        }
     }
 
     /**
@@ -297,7 +312,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 `is_guest` BIT,
@@ -314,7 +329,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer_group` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER_GROUP) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
@@ -330,7 +345,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $wpdb->query('
-            CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
+            CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::IMAGE) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 `type` INT unsigned NOT NULL,
@@ -349,34 +364,34 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $query = '
-            CREATE TABLE IF NOT EXISTS `%s` (
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::MANUFACTURER) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 
-        $wpdb->query(sprintf($query, $wpdb->prefix . 'jtl_connector_link_manufacturer'));
-
-        $engine = $wpdb->get_var(sprintf(
+        $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
+            WHERE TABLE_NAME = %s AND TABLE_SCHEMA = %s",
+            $wpdb->posts,
             DB_NAME
         ));
 
         if ($engine === 'InnoDB') {
             if (
                 !$db->checkIfFKExists(
-                    $wpdb->prefix . 'jtl_connector_link_manufacturer',
+                    $wpdb->prefix . LinkTableNames::MANUFACTURER,
                     'jtl_connector_link_manufacturer_1'
                 )
             ) {
-                $wpdb->query("
-              ALTER TABLE `{$wpdb->prefix}jtl_connector_link_manufacturer`
-                ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`) 
-                REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION");
+                $wpdb->query(
+                    "ALTER TABLE `" . esc_sql($wpdb->prefix . LinkTableNames::MANUFACTURER) . "`
+                    ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                );
             }
         }
     }
@@ -388,15 +403,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $query = '
-            CREATE TABLE IF NOT EXISTS `%s%s` (
+        $wpdb->query(
+            "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::TAX_CLASS) . "` (
                 `endpoint_id` VARCHAR(200) NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`),
                 UNIQUE (`host_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-
-        $wpdb->query(sprintf($query, $wpdb->prefix, 'jtl_connector_link_tax_class'));
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
+        );
     }
 
     // </editor-fold>
@@ -411,56 +425,63 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $engine = $wpdb->get_var(sprintf(
+        $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
+            WHERE TABLE_NAME = %s AND TABLE_SCHEMA = %s",
+            $wpdb->posts,
             DB_NAME
         ));
 
         if ($engine === 'InnoDB') {
             if (! $db->checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}product`
-                ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY  (`endpoint_id`) 
-                REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "product`
+                    ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->posts) . "` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}order`
-                            ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`) 
-                            REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "order`
+                    ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->posts) . "` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}payment`
-                            ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`) 
-                            REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "payment`
+                    ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->posts) . "` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}crossselling`
-                            ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`) 
-                                REFERENCES `{$wpdb->posts}` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "crossselling`
+                    ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->posts) . "` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}category`
-                            ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY  (`endpoint_id`) 
-                            REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "category`
+                    ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `" . esc_sql($wpdb->terms) . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
-
-            $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (! $db->checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
+                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
-                    "ALTER TABLE `{$prefix}specific`
-                            ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) 
-                            REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql($prefix) . "specific`
+                    ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`)
+                    REFERENCES `"
+                    . esc_sql($wpdb->prefix . 'woocommerce_attribute_taxonomies')
+                    . "` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
         }
@@ -496,14 +517,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         return sprintf(
             '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
-            mt_rand(0, 65535),
-            mt_rand(0, 65535),
-            mt_rand(0, 65535),
-            mt_rand(16384, 20479),
-            mt_rand(32768, 49151),
-            mt_rand(0, 65535),
-            mt_rand(0, 65535),
-            mt_rand(0, 65535)
+            random_int(0, 65535),
+            random_int(0, 65535),
+            random_int(0, 65535),
+            random_int(16384, 20479),
+            random_int(32768, 49151),
+            random_int(0, 65535),
+            random_int(0, 65535),
+            random_int(0, 65535)
         );
     }
 
@@ -520,7 +541,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             if (is_array($featuresJson)) {
                 $saveResult = file_put_contents($featuresJsonPath, json_encode($featuresJson, JSON_PRETTY_PRINT));
                 if ($saveResult === false) {
-                    throw new Exception(sprintf("Cannot save features in %s file.", $featuresJsonPath), 100);
+                    throw new Exception(sprintf("Cannot save features in %s file.", esc_html($featuresJsonPath)), 100);
                 }
             }
         } else {
@@ -685,7 +706,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             wp_enqueue_style(
                 'bootstrap4',
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'
+                JTLWCC_CONNECTOR_DIR_URL . '/assets/css/bootstrap.min.css',
+                [],
+                '4.3.1'
             );
             wp_enqueue_style(
                 'custom-css-jtl',
@@ -693,9 +716,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             );
             wp_enqueue_script(
                 'boot1',
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js',
+                JTLWCC_CONNECTOR_DIR_URL . '/assets/js/bootstrap.bundle.min.js',
                 [ 'jquery' ],
-                '',
+                '4.3.1',
                 true
             );
         };
@@ -705,14 +728,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wooJtlConnectorInformationPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'information_page',
-                    __('Connector information', JTLWCC_TEXT_DOMAIN)
+                    __('Connector information', 'woo-jtl-connector')
                 );
             };
 
             $wooJtlConnectorAdvancedPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'advanced_page',
-                    __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
+                    __('Advanced Settings', 'woo-jtl-connector'),
                     true
                 );
             };
@@ -720,7 +743,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wooJtlConnectorDeliveryTimePage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'delivery_time_page',
-                    __('Delivery time', JTLWCC_TEXT_DOMAIN),
+                    __('Delivery time', 'woo-jtl-connector'),
                     true
                 );
             };
@@ -728,7 +751,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wooJtlConnectorCustomerOrderPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'customer_order_page',
-                    __('Customer order', JTLWCC_TEXT_DOMAIN),
+                    __('Customer order', 'woo-jtl-connector'),
                     true
                 );
             };
@@ -736,7 +759,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wooJtlConnectorCustomersPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'customers_page',
-                    __('Customers', JTLWCC_TEXT_DOMAIN),
+                    __('Customers', 'woo-jtl-connector'),
                     true
                 );
             };
@@ -744,14 +767,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             $wooJtlConnectorDeveloperSettingsPage = function (): void {
                 JtlConnectorAdmin::displayPageNew(
                     'developer_settings_page',
-                    __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                    __('Developer Settings', 'woo-jtl-connector'),
                     true
                 );
             };
 
             add_menu_page(
-                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
-                __('JTL-Connector', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector', 'woo-jtl-connector'),
+                __('JTL-Connector', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector',
                 function (): void {
@@ -762,8 +785,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Information', JTLWCC_TEXT_DOMAIN),
-                __('Information', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Information', 'woo-jtl-connector'),
+                __('Information', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-information',
                 function () use ($wooJtlConnectorInformationPage): void {
@@ -773,8 +796,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Advanced', JTLWCC_TEXT_DOMAIN),
-                __('Advanced Settings', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Advanced', 'woo-jtl-connector'),
+                __('Advanced Settings', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-advanced',
                 function () use ($wooJtlConnectorAdvancedPage): void {
@@ -784,8 +807,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Delivery times', JTLWCC_TEXT_DOMAIN),
-                __('Delivery times', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Delivery times', 'woo-jtl-connector'),
+                __('Delivery times', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-delivery-time',
                 function () use ($wooJtlConnectorDeliveryTimePage): void {
@@ -795,8 +818,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Customer orders', JTLWCC_TEXT_DOMAIN),
-                __('Customer orders', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Customer orders', 'woo-jtl-connector'),
+                __('Customer orders', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-customer-order',
                 function () use ($wooJtlConnectorCustomerOrderPage): void {
@@ -806,8 +829,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Customers', JTLWCC_TEXT_DOMAIN),
-                __('Customers', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Customers', 'woo-jtl-connector'),
+                __('Customers', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-customers',
                 function () use ($wooJtlConnectorCustomersPage): void {
@@ -817,8 +840,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
             add_submenu_page(
                 'woo-jtl-connector',
-                __('JTL-Connector:Developer Settings', JTLWCC_TEXT_DOMAIN),
-                __('Developer Settings', JTLWCC_TEXT_DOMAIN),
+                __('JTL-Connector:Developer Settings', 'woo-jtl-connector'),
+                __('Developer Settings', 'woo-jtl-connector'),
                 'manage_woocommerce',
                 'woo-jtl-connector-developer-settings',
                 function () use ($wooJtlConnectorDeveloperSettingsPage): void {
@@ -945,11 +968,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     <form method="post"
                           id="mainform"
                           class="form-horizontal col-10 bg-light"
-                          action="<?php echo esc_html(admin_url('admin-post.php'));
+                          action="<?php echo esc_url(admin_url('admin-post.php'));
                             ?>?action=settings_save_woo-jtl-connector"
                           enctype="multipart/form-data">
+                        <?php wp_nonce_field('settings_save_woo-jtl-connector'); ?>
                         <div class="form-group row">
-                            <h2 class="col-12"><?php print $title ?></h2>
+                            <h2 class="col-12"><?php echo esc_html($title); ?></h2>
                         </div>
 
                         <?php
@@ -962,7 +986,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                             </div>
                             <?php
                         }
-                        print '' . woocommerce_admin_fields($options) . '';
+                        woocommerce_admin_fields($options);
                         if ($submit) {
                             ?>
                             <div class="form-group row">
@@ -999,7 +1023,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 They help you to process more orders in a shorter time and offer a range of exciting functionalities. 
                 Basic information and credentials of the installed JTL-Connector. It is needed to configure the 
                 JTL-Connector in the jtl customer center and JTL-Wawi.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1014,37 +1038,19 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'type'      => 'connector_url',
             'helpBlock' => __(
                 'This URL should be placed in the JTL-Customer-Center and in your JTL-Wawi as "Onlineshop-URL".',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => 'connector_url',
-            'value'     => sprintf(
-                '%s%s%s',
-                $protocol = isset($_SERVER['HTTPS'])
-                            && ( $_SERVER['HTTPS'] == 'on'
-                                 || $_SERVER['HTTPS'] == 1 )
-                            || isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
-                               && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
-                    ? 'https://' : 'http://',
-                str_replace(
-                    'http://',
-                    '',
-                    str_replace(
-                        'https://',
-                        '',
-                        get_bloginfo('url')
-                    )
-                ),
-                '/index.php/jtlconnector/'
-            ),
+            'value'     => esc_url(get_bloginfo('url') . '/index.php/jtlconnector/'),
         ];
 
         //Add connector password field
         $fields[] = [
-            'title'     => __('Connector Password', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Connector Password', 'woo-jtl-connector'),
             'type'      => 'connector_password',
             'helpBlock' => __(
                 'This secret password will be used for identifying that your JTL-Wawi ist allowed to pull/push data.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => 'connector_password',
             'value'     => Config::get(Config::OPTIONS_TOKEN),
@@ -1054,7 +1060,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $fields[] = [
             'title'     => 'Connector Version',
             'type'      => 'paragraph',
-            'helpBlock' => __('This is your current installed connector version.', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('This is your current installed connector version.', 'woo-jtl-connector'),
             'desc'      => Config::get(Config::OPTIONS_INSTALLED_VERSION),
         ];
 
@@ -1066,7 +1072,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         //Add extend plugin informations
         if (\count(SupportedPlugins::getSupported()) > 0) {
             $fields[] = [
-                'title'   => __('These activated plugins extend the JTL-Connector:', JTLWCC_TEXT_DOMAIN),
+                'title'   => __('These activated plugins extend the JTL-Connector:', 'woo-jtl-connector'),
                 'type'    => 'compatible_plugins_field',
                 'plugins' => SupportedPlugins::getSupported(),
             ];
@@ -1074,13 +1080,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         //Add Incompatible plugin informations
         $fields[] = [
-            'title'   => __('Incompatible with these plugins:', JTLWCC_TEXT_DOMAIN),
+            'title'   => __('Incompatible with these plugins:', 'woo-jtl-connector'),
             'type'    => 'not_compatible_plugins_field',
             'plugins' => SupportedPlugins::getNotSupportedButActive(false, true, true),
         ];
 
         $fields[] = [
-            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'title'      => __('Important information', 'woo-jtl-connector'),
             'type'       => 'jtlwcc_card',
             'color'      => 'border-warning',
             'text-color' => 'text-warning',
@@ -1088,7 +1094,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'text'       => __(
                 'Similar plugins, like the <b>not compatible plugins</b> which 
                     are listed here, might be incompatible too!',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1112,7 +1118,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             if (\is_string($notSupportedButActiveAsString)) {
                 self::jtlwcc_show_wordpress_error(
                     sprintf(
-                        __('The listed plugins can cause problems when using the connector: %s', JTLWCC_TEXT_DOMAIN),
+                        // translators: %s: list of unsupported plugin names
+
+                        __('The listed plugins can cause problems when using the connector: %s', 'woo-jtl-connector'),
                         $notSupportedButActiveAsString
                     )
                 );
@@ -1128,7 +1136,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     public static function jtlwcc_show_wordpress_error(string $message): void //phpcs:ignore
     {
         echo '<div class="alert alert-danger" id="jtlwcc_plugin_error" role="alert">
-                    <p><b>JTL-Connector:</b>&nbsp;' . $message . '</p>
+                    <p><b>JTL-Connector:</b>&nbsp;'
+                    . wp_kses_post($message) . '</p>
                 </div>';
     }
 
@@ -1148,7 +1157,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop 
                 with the free JTL-Wawi ERP system by JTL-Software. These are the advanced settings of the 
                 installed JTL-Connector. Here you can configure how some data is handled while push/pull.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1159,73 +1168,73 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         //Add variation specific radio field
         $fields[] = [
-            'title'     => __('Variation specifics', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Variation specifics', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you want to show your customers the variation as specific (Default : Enabled).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE,
             'value'     => Config::get(Config::OPTIONS_SHOW_VARIATION_SPECIFICS_ON_PRODUCT_PAGE),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         $fields[] = [
-            'title'     => __('Delete unknown attributes', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Delete unknown attributes', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you want to delete unknown attributes on push (Default : Disabled).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES,
             'value'     => Config::get(Config::OPTIONS_DELETE_UNKNOWN_ATTRIBUTES),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add custom properties radio field
         $fields[] = [
-            'title'     => __('Custom properties', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Custom properties', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'If you activate this option, custom fields from JTL-Wawi will be handled 
                 as attributes in the shop. After changing this option, full-sync is required (Default : Enabled).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_SEND_CUSTOM_PROPERTIES,
             'value'     => Config::get(Config::OPTIONS_SEND_CUSTOM_PROPERTIES),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add gtin/ean radio field
         $fields[] = [
-            'title'     => __('GTIN / EAN', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('GTIN / EAN', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you want to use the GTIN field for ean. 
                 (Default : Enabled / Required plugin: WooCommerce Germanized).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_USE_GTIN_FOR_EAN,
             'value'     => Config::get(Config::OPTIONS_USE_GTIN_FOR_EAN),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Allow html in attributes
         $fields[] = [
-            'title'     => __('Allow HTML in product attributes', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Allow HTML in product attributes', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you want to allow saving HTML in product attributes (Default : Disabled)',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES,
             'value'     => Config::get(Config::OPTIONS_ALLOW_HTML_IN_PRODUCT_ATTRIBUTES),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add sectionend
@@ -1253,7 +1262,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop 
                 with the free JTL-Wawi ERP system by JTL-Software. Delivery time related settings of the 
                 installed JTL-Connector. Here you can set some options to modify the pull/psuh of delivery times.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1264,14 +1273,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         //Add delivery time calculation radio field
         $fields[] = [
-            'title'     => __('DeliveryTime Calculation', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('DeliveryTime Calculation', 'woo-jtl-connector'),
             'type'      => 'jtl_connector_select',
             'id'        => Config::OPTIONS_USE_DELIVERYTIME_CALC,
             'value'     => Config::get(Config::OPTIONS_USE_DELIVERYTIME_CALC),
             'options'   => [
-                'delivery_time_calc' => __('Lieferzeit Berechnung nutzen', JTLWCC_TEXT_DOMAIN),
-                'delivery_status'    => __('Lieferstatus nutzen', JTLWCC_TEXT_DOMAIN),
-                'deactivated'        => __('Deaktiviert', JTLWCC_TEXT_DOMAIN),
+                'delivery_time_calc' => __('Lieferzeit Berechnung nutzen', 'woo-jtl-connector'),
+                'delivery_status'    => __('Lieferstatus nutzen', 'woo-jtl-connector'),
+                'deactivated'        => __('Deaktiviert', 'woo-jtl-connector'),
             ],
             'helpBlock' => __(
                 "Enable if you want to use delivery time calculation. <br>
@@ -1279,55 +1288,55 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                         Delivery status: Use the delivery status as delivery time. <br>
                         Deactivated: Don't use delivery time. <br>
                         (Default : Delivery time calculation / Required plugin: WooCommerce Germanized).",
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
         //Add dont use zero values radio field
         $fields[] = [
-            'title'     => __('Dont use zero values for delivery time', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Dont use zero values for delivery time', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you dont want to use zero values for delivery time. (Default : Enabled).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME,
             'value'     => Config::get(Config::OPTIONS_DISABLED_ZERO_DELIVERY_TIME),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add prefix for delivery time textinput field
         $fields[] = [
-            'title'     => __('Prefix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Prefix for delivery time', 'woo-jtl-connector'),
             'type'      => 'jtl_text_input',
             'id'        => Config::OPTIONS_PRAEFIX_DELIVERYTIME,
             'value'     => Config::get(Config::OPTIONS_PRAEFIX_DELIVERYTIME),
-            'helpBlock' => __("Define the prefix like" . PHP_EOL . "'ca. 4 Days'.", JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __("Define the prefix like\n'ca. 4 Days'.", 'woo-jtl-connector'),
         ];
 
         //Add suffix for delivery time textinput field
         $fields[] = [
-            'title'     => __('Suffix for delivery time', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Suffix for delivery time', 'woo-jtl-connector'),
             'type'      => 'jtl_text_input',
             'id'        => Config::OPTIONS_SUFFIX_DELIVERYTIME,
             'value'     => Config::get(Config::OPTIONS_SUFFIX_DELIVERYTIME),
-            'helpBlock' => __("Define the Suffix like" . PHP_EOL . "'ca. 4 work days'.", JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __("Define the Suffix like\n'ca. 4 work days'.", 'woo-jtl-connector'),
         ];
 
         //Use next available inflow date if needed
         $fields[] = [
-            'title'     => __('Consider available inflow date for shipping', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Consider available inflow date for shipping', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable if you want that connector calculate shipping time based on next a
                 vailable inflow date from supplier when stock is 0',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE,
             'value'     => Config::get(Config::OPTIONS_CONSIDER_SUPPLIER_INFLOW_DATE),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add sectionend
@@ -1354,7 +1363,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'With JTL-Connector for WooCommerce, you can connect your WooCommerce online shop with the 
                 free JTL-Wawi ERP system by JTL-Software. Customer order related settings of the installed 
                 JTL-Connector. Here you can set some options to modify the import of customer orders.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1367,27 +1376,27 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         //Add pull order since date field
         $fields[] = [
-            'title'     => __('Pull orders since', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Pull orders since', 'woo-jtl-connector'),
             'type'      => 'jtl_date_field',
             // 'default'  => '2019-03-22',
             'value'     => Config::get(Config::OPTIONS_PULL_ORDERS_SINCE),
-            'helpBlock' => __('Define a start date for pulling of orders.', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('Define a start date for pulling of orders.', 'woo-jtl-connector'),
             'id'        => Config::OPTIONS_PULL_ORDERS_SINCE,
         ];
         $fields[] = [
-            'title'     => __('Recalculate order when has coupons', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Recalculate order when has coupons', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'When option is enabled, connector will recalculate order when coupons were applied to order.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL,
             'value'     => Config::get(Config::OPTIONS_RECALCULATE_COUPONS_ON_PULL),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
         $fields[] = [
-            'title'     => __('Default order statuses to import', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Default order statuses to import', 'woo-jtl-connector'),
             'type'      => 'jtl_connector_multiselect',
             'options'   => wc_get_order_statuses(),
             'id'        => Config::OPTIONS_DEFAULT_ORDER_STATUSES_TO_IMPORT,
@@ -1397,7 +1406,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             ),
             'helpBlock' => __(
                 'Order statuses that should be imported. Default: pending, processing, on hold, completed',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1411,7 +1420,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'title'   => __(
                 'Import payments with following payment types only when order 
                 is completed (usually manual payment types)',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'type'    => 'jtl_connector_multiselect',
             'options' => $paymentGateways,
@@ -1423,23 +1432,23 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ];
 
         $fields[] = [
-            'title'     => __('Delay time in seconds before order import'),
+            'title'     => __('Delay time in seconds before order import', 'woo-jtl-connector'),
             'type'      => 'jtl_number_input',
             'value'     => Config::get(Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN),
-            'helpBlock' => __('Define the delay time in seconds before new orders get imported.', JTLWCC_TEXT_DOMAIN),
+            'helpBlock' => __('Define the delay time in seconds before new orders get imported.', 'woo-jtl-connector'),
             'id'        => Config::OPTIONS_IGNORE_ORDERS_YOUNGER_THAN,
         ];
 
         //Add custom checkout fields input field
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_CHECKOUT_FIELD_EDITOR_FOR_WOOCOMMERCE)) {
             $fields[] = [
-                'title'     => __('Custom Checkout Fields', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Custom Checkout Fields', 'woo-jtl-connector'),
                 'type'      => 'jtl_text_input',
                 'id'        => Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS,
                 'value'     => Config::get(Config::OPTIONS_CUSTOM_CHECKOUT_FIELDS),
                 'helpBlock' => __(
                     "Define what custom fields should be imported to Wawi. Comma-separated.",
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ),
             ];
         }
@@ -1466,10 +1475,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         $fields[] = [
             'type' => 'title',
-            'desc' => __(
-                '',
-                JTLWCC_TEXT_DOMAIN
-            ),
+            'desc' => '',
         ];
 
 
@@ -1478,7 +1484,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ];
 
         $fields[] = [
-            'title'     => __('Limit Customer Pull', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Limit Customer Pull', 'woo-jtl-connector'),
             'type'      => 'jtl_connector_select',
             'id'        => Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE,
             'value'     => Config::get(
@@ -1486,10 +1492,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 Config::JTLWCC_CONFIG_DEFAULTS[ Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE ]
             ),
             'options'   => [
-                'no_filter'           => __('No Limit', JTLWCC_TEXT_DOMAIN),
-                'last_imported_order' => __('Since last pulled Order ID', JTLWCC_TEXT_DOMAIN),
-                'not_imported'        => __('Only from not pulled Order', JTLWCC_TEXT_DOMAIN),
-                'fixed_date'          => __('Since fixed Date', JTLWCC_TEXT_DOMAIN),
+                'no_filter'           => __('No Limit', 'woo-jtl-connector'),
+                'last_imported_order' => __('Since last pulled Order ID', 'woo-jtl-connector'),
+                'not_imported'        => __('Only from not pulled Order', 'woo-jtl-connector'),
+                'fixed_date'          => __('Since fixed Date', 'woo-jtl-connector'),
             ],
             'helpBlock' => __(
                 '"No Limit" will Pull all Users in the User Group "Customers" (with B2B Market, define Groups below), 
@@ -1505,7 +1511,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                                 Timeout Errors in JTL-WAWI. <br><br>
                                 Speeds decreases linearly with the number of Customers and/or Orders 
                                 except for "Only from not pulled Order" which decreases exponentially.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
@@ -1531,7 +1537,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             }
 
             $fields[] = [
-                'title'     => __('Customer Groups to Pull (only with no Limit)', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Customer Groups to Pull (only with no Limit)', 'woo-jtl-connector'),
                 'type'      => 'jtl_connector_multiselect',
                 'options'   => $roles,
                 'id'        => Config::OPTIONS_PULL_CUSTOMER_GROUPS,
@@ -1539,7 +1545,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 'helpBlock' => __(
                     'Pull Customers with this Customer Groups, only respected if no Limit is defined. 
                     <br> Guests are always pulled. ',
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ),
             ];
 
@@ -1556,12 +1562,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
 
             $fields[] = [
-                'title'     => __('B2B-Market/WooCommerce default customer group', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('B2B-Market/WooCommerce default customer group', 'woo-jtl-connector'),
                 'type'      => 'jtl_connector_select',
                 'id'        => Config::OPTIONS_DEFAULT_CUSTOMER_GROUP,
                 'value'     => Config::get(Config::OPTIONS_DEFAULT_CUSTOMER_GROUP),
                 'options'   => $options,
-                'helpBlock' => __('Define which customer group is default.', JTLWCC_TEXT_DOMAIN),
+                'helpBlock' => __('Define which customer group is default.', 'woo-jtl-connector'),
             ];
         }
 
@@ -1590,47 +1596,47 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 with the free JTL-Wawi ERP system by JTL-Software. Developer related settings of 
                 the installed JTL-Connector. Here you can enable/disable/reset/download the 
                 developer logs of the jtl connector.',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
         //Add dev log radio field
         $fields[] = [
-            'title'     => __('Dev-Logs', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Dev-Logs', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'Enable JTL-Connector dev-logs for debugging (Default : Disabled).',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_DEVELOPER_LOGGING,
             'value'     => Config::get(Config::OPTIONS_DEVELOPER_LOGGING),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
 
         //Add dev log buttons
         $fields[] = [
             'type'          => 'dev_log_btn',
-            'downloadText'  => __('Download', JTLWCC_TEXT_DOMAIN),
-            'clearLogsText' => __('Clear logs', JTLWCC_TEXT_DOMAIN),
+            'downloadText'  => __('Download', 'woo-jtl-connector'),
+            'clearLogsText' => __('Clear logs', 'woo-jtl-connector'),
         ];
 
         $fields[] = [
-            'title'     => __('Recommend WooCommerce Settings', JTLWCC_TEXT_DOMAIN),
+            'title'     => __('Recommend WooCommerce Settings', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
             'desc'      => __(
                 'JTL-Wawi set automatically stable settings (Default : Enabled). 
                 Disable this at your own risk!',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
             'id'        => Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS,
             'value'     => Config::get(Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS),
-            'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-            'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
         ];
         //phpcs:disable
         $fields[] = [
-            'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+            'title'      => __('Important information', 'woo-jtl-connector'),
             'type'       => 'jtlwcc_card',
             'color'      => 'border-info',
             'text-color' => 'text-danger',
@@ -1642,27 +1648,27 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                  <li class="list-group-item bg-transparent">Display prices in the shop: "Including tax" (Dont change this!)</li>
                  <li class="list-group-item bg-transparent">Display prices during cart and checkout: "Including tax" (Dont change this!)</li>
                  </ul>',
-                JTLWCC_TEXT_DOMAIN
+                'woo-jtl-connector'
             ),
         ];
 
         //phpcs:enable
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_GERMAN_MARKET)) {
             $fields[] = [
-                'title'     => __('Recommend German Market Settings', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Recommend German Market Settings', 'woo-jtl-connector'),
                 'type'      => 'active_true_false_radio',
                 'desc'      => __(
                     'JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ),
                 'id'        => Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS,
                 'value'     => Config::get(Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+                'trueText'  => __('Enabled', 'woo-jtl-connector'),
+                'falseText' => __('Disabled', 'woo-jtl-connector'),
             ];
             //phpcs:disable
             $fields[] = [
-                'title'      => __('Important information', JTLWCC_TEXT_DOMAIN),
+                'title'      => __('Important information', 'woo-jtl-connector'),
                 'type'       => 'jtlwcc_card',
                 'color'      => 'border-info',
                 'text-color' => 'text-danger',
@@ -1697,7 +1703,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     <li class="list-group-item bg-transparent">Global Options > Prorated Tax Calculation For Fees & Shipping Cost: "On" (Dont change this!)</li>
                     <li class="list-group-item bg-transparent">Global Options > Gross Shipping Costs and Gross Fees: "Off"</li>
                     </ul>',
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ),
             ];
             //phpcs:enable
@@ -1706,19 +1712,19 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         //CURRENT DISBALED THIS
         if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_B2B_MARKET)) {
             $fields[] = [
-                'title'     => __('Recommend B2B Market Settings', JTLWCC_TEXT_DOMAIN),
+                'title'     => __('Recommend B2B Market Settings', 'woo-jtl-connector'),
                 'type'      => 'active_true_false_radio',
                 'desc'      => __(
                     'JTL-Wawi set automatically stable settings (Default : Enabled). Disable this at your own risk!',
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ),
                 'id'        => Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS,
                 'value'     => Config::get(Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS),
-                'trueText'  => __('Enabled', JTLWCC_TEXT_DOMAIN),
-                'falseText' => __('Disabled', JTLWCC_TEXT_DOMAIN),
+                'trueText'  => __('Enabled', 'woo-jtl-connector'),
+                'falseText' => __('Disabled', 'woo-jtl-connector'),
             ];
 // $fields[] = [
-// 'title' => __('Important information', JTLWCC_TEXT_DOMAIN),
+// 'title' => __('Important information', 'woo-jtl-connector'),
 // 'type' => 'jtlwcc_card',
 // 'color' => 'border-info',
 // 'text-color' => 'text-info',
@@ -1759,35 +1765,35 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                                                                } ?>"
                    href="admin.php?page=woo-jtl-connector-information"><?php print __(
                        'Information',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'advanced_page') === 0) {
                     print 'active';
                                                                } ?>"
                    href="admin.php?page=woo-jtl-connector-advanced"><?php print __(
                        'Advanced Settings',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'delivery_time_page') === 0) {
                     print 'active';
                                                                } ?>"
                    href="admin.php?page=woo-jtl-connector-delivery-time"><?php print __(
                        'Delivery times',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'customer_order_page') === 0) {
                     print 'active';
                                                                } ?>"
                    href="admin.php?page=woo-jtl-connector-customer-order"><?php print __(
                        'Customer orders',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (strcmp($page, 'customers_page') === 0) {
                     print 'active';
                                                                } ?>"
                    href="admin.php?page=woo-jtl-connector-customers"><?php print __(
                        'Customers',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link <?php if (
                     strcmp(
@@ -1798,13 +1804,13 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                    } ?>"
                    href="admin.php?page=woo-jtl-connector-developer-settings"><?php print __(
                        'Developer Settings',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
                 <a class="flex-sm-fill text-sm-center nav-link"
                    href="https://guide.jtl-software.de/jtl-connector/woocommerce/"
                    target="_blank"><?php print __(
                        'JTL-Guide',
-                       JTLWCC_TEXT_DOMAIN
+                       'woo-jtl-connector'
                    ); ?></a>
 
 
@@ -1829,7 +1835,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if (!\is_string($installed_version)) {
             throw new \InvalidArgumentException(
-                "Expected installed_version to be a string, got " . gettype($installed_version) . "instead."
+                "Expected installed_version to be a string, got " . esc_html(gettype($installed_version)) . " instead."
             );
         }
 
@@ -1949,8 +1955,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 //hotfix
             case '1.8.2.4':
                 //hotfix
-                $dropOldQuery = 'DROP TABLE IF EXISTS `%s`;';
-                $wpdb->query(sprintf($dropOldQuery, $wpdb->prefix . 'jtl_connector_link_customer_group'));
+                $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::CUSTOMER_GROUP) . "`");
                 self::createCustomerGroupLinkingTable();
             // no break
             case '1.8.2.5':
@@ -2124,7 +2129,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         foreach ($imageMapping as $relationType => $identityType) {
             $updateIdentityQuery = sprintf(
-                'UPDATE `%sjtl_connector_link_image` SET `type` = %d WHERE `type` = %d',
+                'UPDATE `%s' . LinkTableNames::IMAGE . '` SET `type` = %d WHERE `type` = %d',
                 $db->getWpDb()->prefix,
                 $relationType,
                 $identityType
@@ -2141,36 +2146,73 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $query =
-            'CREATE TABLE IF NOT EXISTS `%s` (
+        $result = true;
+        $wpdb->query('START TRANSACTION');
+
+        /** @phpstan-ignore booleanAnd.leftAlwaysTrue */
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CATEGORY) . "` (
                 `endpoint_id` varchar(255) NOT NULL,
                 `host_id` INT(10) NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-
-        $result = true;
-        $wpdb->query('START TRANSACTION');
-
-        /** @phpstan-ignore booleanAnd.leftAlwaysTrue */
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_category'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_customer'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_product'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_image'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_order'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_payment'));
-        $result = $result && $wpdb->query(sprintf($query, 'jtl_connector_link_crossselling'));
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CUSTOMER) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::PRODUCT) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::IMAGE) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::ORDER) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::PAYMENT) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $result = $result && $wpdb->query("CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::CROSSSELLING) . "` (
+                `endpoint_id` varchar(255) NOT NULL,
+                `host_id` INT(10) NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`),
+                INDEX (`endpoint_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 
         $types = $wpdb->get_results('SELECT type FROM `jtl_connector_link` GROUP BY type');
 
         foreach ($types as $type) {
             $type      = (int) $type->type;
             $tableName = self::get_table_name($type);
-            $result    = $result && $wpdb->query("
-                INSERT INTO `{$tableName}` (`host_id`, `endpoint_id`)
-                SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = {$type}
-            ");
+            if ($tableName === null) {
+                continue;
+            }
+            $result = $result && $wpdb->query($wpdb->prepare(
+                "INSERT INTO `" . esc_sql($tableName) . "` (`host_id`, `endpoint_id`)
+                SELECT `host_id`, `endpoint_id` FROM `jtl_connector_link` WHERE `type` = %d",
+                $type
+            ));
         }
 
         if ($result) {
@@ -2182,7 +2224,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             add_action('admin_notices', function (): void {
                 self::jtlwcc_show_wordpress_error(__(
                     'The linking table migration was not successful. Please use the forum for help.',
-                    JTLWCC_TEXT_DOMAIN
+                    'woo-jtl-connector'
                 ));
             });
         }
@@ -2197,19 +2239,19 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         switch ($type) {
             case IdentityType::CATEGORY:
-                return 'jtl_connector_link_category';
+                return LinkTableNames::CATEGORY;
             case IdentityType::CUSTOMER:
-                return 'jtl_connector_link_customer';
+                return LinkTableNames::CUSTOMER;
             case IdentityType::PRODUCT:
-                return 'jtl_connector_link_product';
+                return LinkTableNames::PRODUCT;
             case 16:
-                return 'jtl_connector_link_image';
+                return LinkTableNames::IMAGE;
             case IdentityType::CUSTOMER_ORDER:
-                return 'jtl_connector_link_order';
+                return LinkTableNames::ORDER;
             case IdentityType::PAYMENT:
-                return 'jtl_connector_link_payment';
+                return LinkTableNames::PAYMENT;
             case IdentityType::CROSS_SELLING:
-                return 'jtl_connector_link_crossselling';
+                return LinkTableNames::CROSSSELLING;
         }
 
         return null;
@@ -2225,43 +2267,48 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         global $wpdb;
 
         // Modify varchar endpoint_id to integer
-        $modifyEndpointType = 'ALTER TABLE `%s` MODIFY `endpoint_id` BIGINT(20) unsigned';
-        $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_order'));
-        $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_payment'));
-        $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_product'));
-        $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_crossselling'));
-        $wpdb->query(sprintf($modifyEndpointType, 'jtl_connector_link_category'));
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::ORDER) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::PAYMENT) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::PRODUCT) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
+        $wpdb->query(
+            "ALTER TABLE `" . esc_sql(LinkTableNames::CROSSSELLING)
+            . "` MODIFY `endpoint_id` BIGINT(20) unsigned"
+        );
+        $wpdb->query(
+            "ALTER TABLE `" . esc_sql(LinkTableNames::CATEGORY)
+            . "` MODIFY `endpoint_id` BIGINT(20) unsigned"
+        );
 
         // Add is_guest column for customers instead of using a prefix
-        $wpdb->query('ALTER TABLE `jtl_connector_link_customer` ADD COLUMN `is_guest` BIT');
-        $wpdb->query(sprintf(
-            'UPDATE `jtl_connector_link_customer` 
+        $wpdb->query('ALTER TABLE `' . esc_sql(LinkTableNames::CUSTOMER) . '` ADD COLUMN `is_guest` BIT');
+        $wpdb->query($wpdb->prepare(
+            'UPDATE `' . esc_sql(LinkTableNames::CUSTOMER) . '` 
             SET `is_guest` = 1
-            WHERE `endpoint_id` LIKE "%s_%%"',
-            Id::GUEST_PREFIX
+            WHERE `endpoint_id` LIKE %s',
+            Id::GUEST_PREFIX . '_%'
         ));
-        $wpdb->query(sprintf(
-            'UPDATE `jtl_connector_link_customer` 
+        $wpdb->query($wpdb->prepare(
+            'UPDATE `' . esc_sql(LinkTableNames::CUSTOMER) . '` 
             SET `is_guest` = 0
-            WHERE `endpoint_id` NOT LIKE "%s_%%"',
-            Id::GUEST_PREFIX
+            WHERE `endpoint_id` NOT LIKE %s',
+            Id::GUEST_PREFIX . '_%'
         ));
 
         // Add type column for images instead of using a prefix
-        $wpdb->query('ALTER TABLE `jtl_connector_link_image` ADD COLUMN `type` INT(4) unsigned');
-        $updateImageLinkingTable = '
-            UPDATE `jtl_connector_link_image` 
+        $wpdb->query('ALTER TABLE `' . esc_sql(LinkTableNames::IMAGE) . '` ADD COLUMN `type` INT(4) unsigned');
+        $wpdb->query($wpdb->prepare(
+            'UPDATE `' . esc_sql(LinkTableNames::IMAGE) . '` 
             SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
-            WHERE `endpoint_id` LIKE "%s_%%"';
-        $wpdb->query(sprintf(
-            $updateImageLinkingTable,
+            WHERE `endpoint_id` LIKE %s',
             IdentityType::CATEGORY,
-            Id::CATEGORY_PREFIX
+            Id::CATEGORY_PREFIX . '_%'
         ));
-        $wpdb->query(sprintf(
-            $updateImageLinkingTable,
+        $wpdb->query($wpdb->prepare(
+            'UPDATE `' . esc_sql(LinkTableNames::IMAGE) . '` 
+            SET `type` = %d, `endpoint_id` = SUBSTRING(`endpoint_id`, 3)
+            WHERE `endpoint_id` LIKE %s',
             IdentityType::PRODUCT,
-            Id::PRODUCT_PREFIX
+            Id::PRODUCT_PREFIX . '_%'
         ));
 
         self::add_constraints_for_multi_linking_tables('jtl_connector_link_', $db);
@@ -2276,49 +2323,56 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         $wpdb = $db->getWpDb();
 
-        $query = '
-            CREATE TABLE IF NOT EXISTS `%s` (
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::SPECIFIC) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
                 `host_id` INT(10) unsigned NOT NULL,
                 PRIMARY KEY (`endpoint_id`, `host_id`),
                 INDEX (`host_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::SPECIFIC_VALUE) . "` (
+                `endpoint_id` BIGINT(20) unsigned NOT NULL,
+                `host_id` INT(10) unsigned NOT NULL,
+                PRIMARY KEY (`endpoint_id`, `host_id`),
+                INDEX (`host_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 
-        $wpdb->query(sprintf($query, 'jtl_connector_link_specific'));
-        $wpdb->query(sprintf($query, 'jtl_connector_link_specific_value'));
-
-        $engine = $wpdb->get_var(sprintf(
+        $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
-            WHERE TABLE_NAME = '{$wpdb->posts}' AND TABLE_SCHEMA = '%s'",
+            WHERE TABLE_NAME = %s AND TABLE_SCHEMA = %s",
+            $wpdb->posts,
             DB_NAME
         ));
 
         if ($engine === 'InnoDB') {
             if (
                 ! $db->checkIfFKExists(
-                    'jtl_connector_link_category',
+                    LinkTableNames::CATEGORY,
                     'jtl_connector_link_category_1'
                 )
             ) {
                 $wpdb->query(
-                    "ALTER TABLE `jtl_connector_link_category`
-                            ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`) 
-                            REFERENCES `{$wpdb->terms}` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
+                    "ALTER TABLE `" . esc_sql(LinkTableNames::CATEGORY) . "`
+                            ADD CONSTRAINT `jtl_connector_link_category_1`
+                            FOREIGN KEY (`endpoint_id`) 
+                            REFERENCES `" . esc_sql($wpdb->terms)
+                            . "` (`term_id`) ON DELETE CASCADE ON UPDATE NO ACTION"
                 );
             }
 
             $table = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
             if (
                 ! $db->checkIfFKExists(
-                    'jtl_connector_link_specific',
+                    LinkTableNames::SPECIFIC,
                     'jtl_connector_link_specific_1'
                 )
             ) {
                 $wpdb->query("
-                ALTER TABLE `jtl_connector_link_specific`
+                ALTER TABLE `" . esc_sql(LinkTableNames::SPECIFIC) . "`
                 ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`) 
-                REFERENCES `{$table}` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION");
+                REFERENCES `" . esc_sql($table) . "` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION");
             }
         }
     }
@@ -2330,25 +2384,22 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
-        $query = 'RENAME TABLE %s TO %s%s;';
-
         $tables = [
             'jtl_connector_category_level',
-            'jtl_connector_link_category',
-            'jtl_connector_link_crossselling',
-            'jtl_connector_link_customer',
-            'jtl_connector_link_image',
-            'jtl_connector_link_order',
-            'jtl_connector_link_payment',
-            'jtl_connector_link_product',
-            'jtl_connector_link_shipping_class',
-            'jtl_connector_link_specific',
-            'jtl_connector_link_specific_value',
+            LinkTableNames::CATEGORY,
+            LinkTableNames::CROSSSELLING,
+            LinkTableNames::CUSTOMER,
+            LinkTableNames::IMAGE,
+            LinkTableNames::ORDER,
+            LinkTableNames::PAYMENT,
+            LinkTableNames::PRODUCT,
+            LinkTableNames::SHIPPING_CLASS,
+            LinkTableNames::SPECIFIC,
+            LinkTableNames::SPECIFIC_VALUE,
             'jtl_connector_product_checksum',
         ];
         foreach ($tables as $table) {
-            $sql = sprintf($query, $table, $wpdb->prefix, $table);
-            $wpdb->query($sql);
+            $wpdb->query("RENAME TABLE `" . esc_sql($table) . "` TO `" . esc_sql($wpdb->prefix . $table) . "`");
         }
     }
 
@@ -2461,7 +2512,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         if (\str_contains($file, 'woo-jtl-connector.php')) {
             $url       = esc_url('https://guide.jtl-software.de/jtl/Kategorie:JTL-Connector:WooCommerce');
             $new_links = [
-                '<a target="_blank" href="' . $url . '">' . __('Documentation', JTLWCC_TEXT_DOMAIN) . '</a>',
+                '<a target="_blank" href="' . $url . '">' . __('Documentation', 'woo-jtl-connector') . '</a>',
             ];
             $links     = array_merge($links, $new_links);
         }
@@ -2477,7 +2528,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         $settings_link = '<a href="admin.php?page=woo-jtl-connector-information">' . __(
             'Settings',
-            JTLWCC_TEXT_DOMAIN
+            'woo-jtl-connector'
         ) . '</a>';
 
         array_unshift($links, $settings_link);
@@ -2494,24 +2545,33 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function jtl_date_field(array $field): void //phpcs:ignore
     {
-        $option_value = $field['default'];// get_option($field['id'], $field['default']);
+        $option_value = (string) $field['default'];
+        $fieldId      = esc_attr((string) $field['id']);
+        $fieldTitle   = esc_html((string) $field['title']);
+        $fieldValue   = isset($field['value'])
+            && $field['value'] !== ''
+            ? esc_attr((string) $field['value'])
+            : esc_attr($option_value);
 
         ?>
 
         <div class="form-group row">
-            <label for="<?= $field['id'] ?>" class="col-12 col-form-label"><?= $field['title'] ?></label>
+            <label for="<?php echo esc_attr($fieldId); ?>"
+                   class="col-12 col-form-label">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
             <div class="col-12">
                 <input class="form-control" type="date"
-                       value="<?= isset($field['value'])
-                                  && $field['value'] !== '' ? $field['value'] : $option_value ?>"
-                       id="<?= $field['id'] ?>"
-                       name="<?= $field['id'] ?>">
+                       value="<?php echo esc_attr($fieldValue); ?>"
+                       id="<?php echo esc_attr($fieldId); ?>"
+                       name="<?php echo esc_attr($fieldId); ?>">
             </div>
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['helpBlock']); ?>
                 </small>
                 <?php
             }
@@ -2529,22 +2589,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function connector_password_field(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
+        $fieldValue = esc_attr((string) $field['value']);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <label class="col-12"
+                   for="<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
             <div class="input-group col-12">
                 <input type="text"
                        class="form-control"
                        aria-label="Connector Password"
-                       aria-describedby="<?= $field['id'] ?>_btn"
-                       id="<?= $field['id'] ?>"
-                       value="<?= $field['value'] ?>"
+                       aria-describedby="<?php echo esc_attr($fieldId); ?>_btn"
+                       id="<?php echo esc_attr($fieldId); ?>"
+                       value="<?php echo esc_attr($fieldValue); ?>"
                        readonly="readonly">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary"
                             type="button"
                             title="Copy"
-                            id="<?= $field['id'] ?>_btn"
+                            id="<?php echo esc_attr($fieldId); ?>_btn"
                             onclick="
                                 let text = document.getElementById('connector_password').value;
                                 let dummy = document.createElement('textarea');
@@ -2560,8 +2626,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['helpBlock']); ?>
                 </small>
                 <?php
             }
@@ -2577,22 +2644,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function connector_url_field(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
+        $fieldValue = esc_url((string) $field['value']);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <label class="col-12"
+                   for="<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
             <div class="input-group col-12">
                 <input type="text"
                        class="form-control"
                        aria-label="Connector URL"
-                       aria-describedby="<?= $field['id'] ?>_btn"
-                       id="<?= $field['id'] ?>"
-                       value="<?= $field['value'] ?>"
+                       aria-describedby="<?php echo esc_attr($fieldId); ?>_btn"
+                       id="<?php echo esc_attr($fieldId); ?>"
+                       value="<?php echo esc_attr($fieldValue); ?>"
                        readonly="readonly">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary"
                             type="button"
                             title="Copy"
-                            id="<?= $field['id'] ?>_btn"
+                            id="<?php echo esc_attr($fieldId); ?>_btn"
                             onclick="
                                 let text = document.getElementById('connector_url').value;
                                 let dummy = document.createElement('textarea');
@@ -2608,8 +2681,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['helpBlock']); ?>
                 </small>
                 <?php
             }
@@ -2631,17 +2705,21 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo esc_html($title); ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
                 if (count($plugins) > 0) {
                     foreach ($plugins as $key => $value) {
-                        //phpcs:disable
+                        $liClass = $change
+                            ? 'list-group-item list-group-item-light'
+                            : 'list-group-item';
                         ?>
-                        <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>"><?php print $value; ?></li> <?php
+                        <li class="<?php echo esc_attr($liClass); ?>">
+                            <?php echo esc_html($value); ?>
+                        </li>
+                        <?php
                         $change = ! $change;
-                        //phpcs:enable
                     }
                 }
                 ?>
@@ -2657,20 +2735,30 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function jtlwcc_card(array $field): void //phpcs:ignore
     {
+        $center    = isset($field['center']) && $field['center']
+            ? 'text-center' : '';
+        $color     = isset($field['color']) && $field['color'] !== ''
+            ? esc_attr((string) $field['color']) : 'bg-light';
+        $textColor = isset($field['text-color'])
+            && $field['text-color'] !== ''
+            ? esc_attr((string) $field['text-color']) : '';
         ?>
-        <div class="card <?php echo isset($field['center']) && $field['center'] ? 'text-center' : ''; ?> col-12 pl-3
-        <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>">
+        <div class="card <?php echo esc_attr($center); ?> col-12 pl-3
+        <?php echo esc_attr($color); ?>">
             <div class="card-header bg-transparent
-             <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
-              <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
-                <h5 class="card-title"><?php echo $field['title']; ?></h5>
+             <?php echo esc_attr($color); ?>
+              <?php echo esc_attr($textColor); ?>">
+                <h5 class="card-title">
+                    <?php echo esc_html((string) $field['title']); ?>
+                </h5>
             </div>
             <div class="card-body bg-transparent
-            <?php echo isset($field['color']) && $field['color'] !== '' ? $field['color'] : 'bg-light'; ?>
-                <?php echo isset($field['text-color']) && $field['text-color'] !== '' ? $field['text-color'] : ''; ?>">
+            <?php echo esc_attr($color); ?>
+                <?php echo esc_attr($textColor); ?>">
 
-                <p class="card-text"><?php echo $field['text']; ?></p>
-                <!--  <a href="#" class="btn btn-primary">Go somewhere</a>-->
+                <p class="card-text">
+                    <?php echo wp_kses_post((string) $field['text']); ?>
+                </p>
             </div>
         </div>
         <?php
@@ -2689,25 +2777,37 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $plugins = $field['plugins'];
         ?>
         <div class="form-group row">
-            <h2 class="col-12 mb-4"><?php echo $title; ?></h2>
+            <h2 class="col-12 mb-4"><?php echo esc_html($title); ?></h2>
             <ul class="list-group col-12 pl-3">
                 <?php
                 $change = false;
                 if (count($plugins) > 0) {
                     foreach ($plugins as $key => $value) {
-                        //phpcs:disable
+                        $liClass   = $change
+                            ? 'list-group-item list-group-item-light'
+                            : 'list-group-item';
+                        $name      = esc_html((string) ($value['Name'] ?? ''));
+                        $version   = esc_html(
+                            (string) ($value['Version'] ?? '')
+                        );
+                        $authorUri = isset($value['AuthorURI'])
+                            && $value['AuthorURI'] !== ''
+                            ? esc_url((string) $value['AuthorURI'])
+                            : '#';
+                        $author    = esc_html(
+                            (string) ($value['Author'] ?? '')
+                        );
                         ?>
-                        <li class="list-group-item <?php $change ? print( 'list-group-item-light' ) : print( '' ); ?>">
-                            <?php print isset($value['Name']) && $value['Name'] !== '' ? $value['Name'] : $value['Name']; ?>
+                        <li class="<?php echo esc_attr($liClass); ?>">
+                            <?php echo esc_html($name); ?>
                             -
-                            <?php print isset($value['Version']) && $value['Version'] !== '' ? $value['Version'] : $value['Version']; ?>
+                            <?php echo esc_html($version); ?>
                             (<a target="_blank"
-                                href="<?php print isset($value['AuthorURI']) && $value['AuthorURI'] !== '' ? $value['AuthorURI'] : '#'; ?>">
-                                <?php print isset($value['Author']) && $value['Author'] !== '' ? $value['Author'] : $value['Author']; ?>
+                                href="<?php echo esc_url($authorUri); ?>">
+                                <?php echo esc_html($author); ?>
                             </a>)
                         </li>
                         <?php
-                        //phpcs:enable
                         $change = ! $change;
                     }
                 }
@@ -2725,20 +2825,29 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     public static function paragraph_field(array $field): void //phpcs:ignore
     {
         /** @var string $title */
-        $title = $field['title'];
+        $title          = $field['title'];
+        $sanitizedTitle = esc_attr(
+            wc_sanitize_taxonomy_name($title)
+        );
         ?>
         <div class="form-group row">
-            <label for="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
-                   class="col-12 col-form-label"><?= $title ?></label>
+            <label for="statictext_<?php echo esc_attr($sanitizedTitle); ?>"
+                   class="col-12 col-form-label">
+                <?php echo esc_html($title); ?>
+            </label>
             <div class="col-12">
                 <input type="text" readonly class="form-control-plaintext"
-                       id="statictext_<?= wc_sanitize_taxonomy_name($title) ?>"
-                       value="<?= $field['desc'] ?>">
+                       id="statictext_<?php echo esc_attr($sanitizedTitle); ?>"
+                       value="<?php echo esc_attr((string) $field['desc']); ?>">
                 <?php
                 if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
+                    $fieldId = esc_attr((string) $field['id']);
                     ?>
-                    <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted">
-                        <?= $field['helpBlock'] ?>
+                    <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                           class="form-text text-muted">
+                        <?php
+                        echo wp_kses_post((string) $field['helpBlock']);
+                        ?>
                     </small>
                     <?php
                 }
@@ -2757,13 +2866,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function active_true_false_radio_btn(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
+        $trueText   = esc_html((string) $field['trueText']);
+        $falseText  = esc_html((string) $field['falseText']);
         //phpcs:disable
         ?>
         <div class="form-group row">
-            <label class="col-12" for="true_false_radio_<?= $field['id'] ?>"><?= $field['title'] ?></label>
-            <div class="true_false_radio col-12 " name="true_false_radio_<?= $field['id'] ?>">
+            <label class="col-12"
+                   for="true_false_radio_<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
+            <div class="true_false_radio col-12 "
+                 name="true_false_radio_<?php echo esc_attr($fieldId); ?>">
                 <div class="custom-control custom-radio">
-                    <input type="radio" id="<?= $field['id'] ?>_1" name="<?= $field['id'] ?>" value="true"
+                    <input type="radio"
+                           id="<?php echo esc_attr($fieldId); ?>_1"
+                           name="<?php echo esc_attr($fieldId); ?>"
+                           value="true"
                            class="custom-control-input "
                         <?php if ($field['value']) {
                             print 'checked';
@@ -2771,10 +2891,16 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     >
                     <label class="custom-control-label <?php if ($field['value']) {
                         print 'active';
-                                                       } ?>" for="<?= $field['id'] ?>_1"><?= $field['trueText'] ?></label>
+                                                       } ?>"
+                           for="<?php echo esc_attr($fieldId); ?>_1">
+                        <?php echo esc_html($trueText); ?>
+                    </label>
                 </div>
                 <div class="custom-control custom-radio">
-                    <input type="radio" id="<?= $field['id'] ?>_2" name="<?= $field['id'] ?>" value="false"
+                    <input type="radio"
+                           id="<?php echo esc_attr($fieldId); ?>_2"
+                           name="<?php echo esc_attr($fieldId); ?>"
+                           value="false"
                            class="custom-control-input "
                         <?php if (! $field['value']) {
                             print 'checked';
@@ -2782,14 +2908,18 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                     >
                     <label class="custom-control-label  <?php if (! $field['value']) {
                         print 'active';
-                                                        } ?>" for="<?= $field['id'] ?>_2"><?= $field['falseText'] ?></label>
+                                                        } ?>"
+                           for="<?php echo esc_attr($fieldId); ?>_2">
+                        <?php echo esc_html($falseText); ?>
+                    </label>
                 </div>
             </div>
             <?php
             if (isset($field['desc']) && $field['desc'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_desc" class="form-text text-muted col-12">
-                    <?= $field['desc'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_desc"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['desc']); ?>
                 </small>
                 <?php
             }
@@ -2812,17 +2942,30 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $id = $field['id'];
         /** @var string $helpBlock */
         $helpBlock = $field['helpBlock'];
+        $escId     = esc_attr($id);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
-            <select required class="form-control custom-select col-12 ml-3" name="<?= $id ?>">
+            <label class="col-12"
+                   for="<?php echo esc_attr($escId); ?>">
+                <?php echo esc_html($title); ?>
+            </label>
+            <select required
+                    class="form-control custom-select col-12 ml-3"
+                    name="<?php echo esc_attr($escId); ?>">
                 <?php
-                if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
+                if (
+                    isset($field['options'])
+                    && is_array($field['options'])
+                    && count($field['options']) > 0
+                ) {
                     foreach ($field['options'] as $key => $ovalue) {
+                        $selected = (string) $key === $field['value']
+                            ? ' selected' : '';
                         ?>
-                        <option value="<?php print $key; ?>" <?php if ((string) $key === $field['value']) {
-                            print 'selected';
-                                       } ?>><?php print $ovalue; ?></option> <?php
+                        <option value="<?php echo esc_attr((string) $key); ?>"<?php echo esc_attr($selected); ?>>
+                            <?php echo esc_html((string) $ovalue); ?>
+                        </option>
+                        <?php
                     }
                 }
                 ?>
@@ -2830,8 +2973,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             <?php
             if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $helpBlock ?>
+                <small id="<?php echo esc_attr($escId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post($helpBlock); ?>
                 </small>
                 <?php
             }
@@ -2858,24 +3002,37 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         $helpBlock = $field['helpBlock'];
         /** @var array<int, string> $statusValues */
         $statusValues = $field['value'];
+        $escId        = esc_attr($id);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $id ?>"><?= $title ?></label>
-            <select required multiple class="form-control custom-select col-12 ml-3" name="<?= $id ?>[]">
+            <label class="col-12"
+                   for="<?php echo esc_attr($escId); ?>">
+                <?php echo esc_html($title); ?>
+            </label>
+            <select required multiple
+                    class="form-control custom-select col-12 ml-3"
+                    name="<?php echo esc_attr($escId); ?>[]">
                 <?php
-                if (isset($field['options']) && is_array($field['options']) && count($field['options']) > 0) {
-                    foreach ($field['options'] as $key => $ovalue) { ?>
-                        <option value="<?php print $key; ?>" <?php if (in_array($key, $statusValues)) {
-                            print 'selected="selected"';
-                                       } ?>><?php print $ovalue; ?> </option>
+                if (
+                    isset($field['options'])
+                    && is_array($field['options'])
+                    && count($field['options']) > 0
+                ) {
+                    foreach ($field['options'] as $key => $ovalue) {
+                        ?>
+                        <option value="<?php echo esc_attr((string) $key); ?>"
+                            <?php selected(in_array($key, $statusValues)); ?>>
+                            <?php echo esc_html((string) $ovalue); ?>
+                        </option>
                     <?php }
                 } ?>
             </select>
             <?php
             if ($helpBlock !== '') {
                 ?>
-                <small id="<?= $id ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $helpBlock ?>
+                <small id="<?php echo esc_attr($escId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post($helpBlock); ?>
                 </small>
                 <?php
             }
@@ -2885,7 +3042,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     }
 
     /**
-     * @param array<string, string|bool> $field
+     * @param array<string, string> $field
      *
      * @return void
      */
@@ -2895,9 +3052,9 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         <div class="form-group row">
             <div class="btn-group btn-group-lg col-12" role="group">
                 <button type="button" id="downloadLogBtn"
-                        class="btn btn-outline-success"><?= $field['downloadText'] ?></button>
+                        class="btn btn-outline-success"><?php echo esc_html($field['downloadText']); ?></button>
                 <button type="button" id="clearLogBtn"
-                        class="btn btn-outline-danger"><?= $field['clearLogsText'] ?></button>
+                        class="btn btn-outline-danger"><?php echo esc_html($field['clearLogsText']); ?></button>
             </div>
         </div>
         <?php
@@ -2914,21 +3071,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function jtl_text_input(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
+        $fieldValue = esc_attr((string) $field['value']);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <label class="col-12"
+                   for="<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
             <input
                 type="text"
                 class="form-control col-12 ml-3"
-                id="<?= $field['id'] ?>"
-                name="<?= $field['id'] ?>"
-                value="<?= $field['value'] ?>"
+                id="<?php echo esc_attr($fieldId); ?>"
+                name="<?php echo esc_attr($fieldId); ?>"
+                value="<?php echo esc_attr($fieldValue); ?>"
             >
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['helpBlock']); ?>
                 </small>
                 <?php
             }
@@ -2947,21 +3111,28 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function jtl_number_input(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
+        $fieldValue = esc_attr((string) $field['value']);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <label class="col-12"
+                   for="<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
             <input
                 type="number"
                 class="form-control col-12 ml-3"
-                id="<?= $field['id'] ?>"
-                name="<?= $field['id'] ?>"
-                value="<?= $field['value'] ?>"
+                id="<?php echo esc_attr($fieldId); ?>"
+                name="<?php echo esc_attr($fieldId); ?>"
+                value="<?php echo esc_attr($fieldValue); ?>"
             >
             <?php
             if (isset($field['helpBlock']) && $field['helpBlock'] !== '') {
                 ?>
-                <small id="<?= $field['id'] ?>_helpBlock" class="form-text text-muted col-12">
-                    <?= $field['helpBlock'] ?>
+                <small id="<?php echo esc_attr($fieldId); ?>_helpBlock"
+                       class="form-text text-muted col-12">
+                    <?php echo wp_kses_post((string) $field['helpBlock']); ?>
                 </small>
                 <?php
             }
@@ -2980,17 +3151,25 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function jtl_checkbox(array $field): void //phpcs:ignore
     {
+        $fieldId    = esc_attr((string) $field['id']);
+        $fieldTitle = esc_html((string) $field['title']);
         ?>
         <div class="form-group row">
-            <label class="col-12" for="<?= $field['id'] ?>"><?= $field['title'] ?></label>
+            <label class="col-12"
+                   for="<?php echo esc_attr($fieldId); ?>">
+                <?php echo esc_html($fieldTitle); ?>
+            </label>
 
-            <input type="checkbox" class="form-control col-12" id="<?= $field['id'] ?>" name="<?= $field['id'] ?>"
+            <input type="checkbox" class="form-control col-12"
+                   id="<?php echo esc_attr($fieldId); ?>"
+                   name="<?php echo esc_attr($fieldId); ?>"
                 <?php if ($field['value']) {
                     print 'checked';
                 } ?>>
 
-            <textarea type="text" class="form-control" aria-label="Text input with checkbox"
-                      readonly><?= $field['desc'] ?> </textarea>
+            <textarea type="text" class="form-control"
+                      aria-label="Text input with checkbox"
+                      readonly><?php echo esc_textarea((string) $field['desc']); ?> </textarea>
 
         </div>
         <?php
@@ -3006,6 +3185,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function save(): void
     {
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die('', '', ['response' => 403]);
+        }
+
+        check_admin_referer('settings_save_woo-jtl-connector');
+
         $settings = $_REQUEST;
 
         foreach ($settings as $key => $item) {
@@ -3048,9 +3233,14 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             )
         );
 
-        $request = $_SERVER["HTTP_REFERER"];
+        $request = wp_get_referer();
 
-        wp_redirect($request, 301);
+        if ($request) {
+            wp_safe_redirect($request, 301);
+        } else {
+            wp_safe_redirect(admin_url('admin.php?page=woo-jtl-connector'), 301);
+        }
+        exit;
     }
 
     /**
@@ -3058,19 +3248,20 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function default_customer_group_not_updated(): void //phpcs:ignore
     {
-        $message  = __(
+        $message  = esc_html(__(
             'The default customer is not set. Please update the B2B-Market 
             default customer group in the JTL-Connector settings',
-            JTLWCC_TEXT_DOMAIN
-        );
-        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">' . strtolower(__(
-            'Customer Settings',
-            JTLWCC_TEXT_DOMAIN
-        )) . '</a>';
+            'woo-jtl-connector'
+        ));
+        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">'
+            . esc_html(strtolower(__(
+                'Customer Settings',
+                'woo-jtl-connector'
+            ))) . '</a>';
 
         echo '<div class="notice notice-error">
                 <p class="pt-3 pb-3">
-                    ' . $message . '
+                    ' . wp_kses_post($message) . '
                 </p>
             </div>';
     }
@@ -3080,19 +3271,20 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public static function pull_customer_group_not_updated(): void //phpcs:ignore
     {
-        $message  = __(
+        $message  = esc_html(__(
             'The pull customer groups are not set. Please update the 
             B2B-Market customer pull groups in the JTL-Connector settings',
-            JTLWCC_TEXT_DOMAIN
-        );
-        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">' . strtolower(__(
-            'Customer Settings',
-            JTLWCC_TEXT_DOMAIN
-        )) . '</a>';
+            'woo-jtl-connector'
+        ));
+        $message .= ': <a href="admin.php?page=woo-jtl-connector-customers">'
+            . esc_html(strtolower(__(
+                'Customer Settings',
+                'woo-jtl-connector'
+            ))) . '</a>';
 
         echo '<div class="notice notice-error">
                 <p class="pt-3 pb-3">
-                    ' . $message . '
+                    ' . wp_kses_post($message) . '
                 </p>
             </div>';
     }
@@ -3104,7 +3296,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         self::jtlwcc_show_wordpress_error(__(
             'The linking table migration was not successful. Please use the forum for help.',
-            JTLWCC_TEXT_DOMAIN
+            'woo-jtl-connector'
         ));
     }
 
@@ -3114,11 +3306,12 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     public function directory_no_write_access(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         self::jtlwcc_show_wordpress_error(sprintf(
+            // translators: %s: temporary directory path
             __(
                 'Directory %s has no write access.',
-                sys_get_temp_dir()
+                'woo-jtl-connector'
             ),
-            JTLWCC_TEXT_DOMAIN
+            esc_html(sys_get_temp_dir())
         ));
     }
 
@@ -3127,7 +3320,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     public function phar_extension(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        self::jtlwcc_show_wordpress_error(__('PHP extension "phar" could not be found.', JTLWCC_TEXT_DOMAIN));
+        self::jtlwcc_show_wordpress_error(__('PHP extension "phar" could not be found.', 'woo-jtl-connector'));
     }
 
     /**
@@ -3137,7 +3330,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         self::jtlwcc_show_wordpress_error(__(
             'PHP extension "phar" is not on the suhosin whitelist.',
-            JTLWCC_TEXT_DOMAIN
+            'woo-jtl-connector'
         ));
     }
     // </editor-fold>

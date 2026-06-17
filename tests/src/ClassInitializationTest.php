@@ -59,6 +59,13 @@ class ClassInitializationTest extends AbstractTestCase
 
             $classNameWithNamespace = \sprintf('JtlWooCommerceConnector%s\%s', $namespace, $className);
 
+            if (
+                \class_exists($classNameWithNamespace)
+                && (new \ReflectionClass($classNameWithNamespace))->isFinal()
+            ) {
+                continue;
+            }
+
             $mock = $this->getMockBuilder($classNameWithNamespace)->disableOriginalConstructor()->getMock();
 
             $this->assertInstanceOf($classNameWithNamespace, $mock);
@@ -71,6 +78,6 @@ class ClassInitializationTest extends AbstractTestCase
      */
     protected function findClasses(string $srcPath): bool|array
     {
-        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), 1024);
+        return \glob(\sprintf("%s/{,*/,*/*/,*/*/*/}*.php", $srcPath), \GLOB_BRACE);
     }
 }

@@ -8,11 +8,11 @@ use Jtl\Connector\Core\Definition\IdentityType;
 
 class Id
 {
-    public const SEPARATOR           = '_';
-    public const PRODUCT_PREFIX      = 'p';
-    public const CATEGORY_PREFIX     = 'c';
-    public const GUEST_PREFIX        = 'g';
-    public const MANUFACTURER_PREFIX = 'm';
+    public const string SEPARATOR           = '_';
+    public const string PRODUCT_PREFIX      = 'p';
+    public const string CATEGORY_PREFIX     = 'c';
+    public const string GUEST_PREFIX        = 'g';
+    public const string MANUFACTURER_PREFIX = 'm';
 
     /**
      * @param array<int, int|string> $endpointIds

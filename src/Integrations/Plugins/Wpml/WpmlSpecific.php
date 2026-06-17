@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecific;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceSpecificValue;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
 use WPML\Auryn\InjectionException;
@@ -33,7 +34,7 @@ class WpmlSpecific extends AbstractComponent
 
         $wpdb = $wpmlPlugin->getWpDb();
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC;
 
         $sql = \sprintf("
             SELECT COUNT(at.attribute_id)
@@ -129,7 +130,7 @@ class WpmlSpecific extends AbstractComponent
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin   = $this->getCurrentPlugin();
         $wpdb         = $wpmlPlugin->getWpDb();
-        $jclsv        = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jclsv        = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
         $iclt         = $wpdb->prefix . 'icl_translations';
         $languageCode = $wpmlPlugin->getDefaultLanguage();
         $elementType  = 'tax_' . \esc_sql($specificName);

@@ -204,7 +204,10 @@ class WpmlSpecificValue extends AbstractComponent
                 if (!$translated_term) {
                     $term_result = \wp_insert_term($specificValueI18n->getValue(), $taxonomy);
                     if (\is_wp_error($term_result)) {
-                        $this->logger->error("Error while creating term: " . $term_result->get_error_message());
+                        $this->logger->error(
+                            "Error while creating term: "
+                            . \esc_html($term_result->get_error_message())
+                        );
                         return;
                     }
                     $translated_term_id = $term_result['term_id'];

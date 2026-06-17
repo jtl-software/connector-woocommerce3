@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
+
 trait SpecificTrait
 {
     /**
@@ -14,7 +16,7 @@ trait SpecificTrait
     {
         global $wpdb;
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC;
 
         return "SELECT wat.attribute_id, wat.attribute_name, wat.attribute_label, wat.attribute_type
                 FROM {$wat} wat
@@ -30,7 +32,7 @@ trait SpecificTrait
     public static function specificValuePull(string $specificName): string
     {
         global $wpdb;
-        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jclsv = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
 
         return "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug, tt.description
                 FROM {$wpdb->terms} t
@@ -50,7 +52,7 @@ trait SpecificTrait
     public static function forceSpecificValuePull(string $specificName): string
     {
         global $wpdb;
-        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jclsv = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
 
         return "SELECT t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
@@ -67,7 +69,7 @@ trait SpecificTrait
     {
         global $wpdb;
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC;
 
         return \sprintf("
             SELECT COUNT(at.attribute_id)
@@ -84,7 +86,7 @@ trait SpecificTrait
     public static function getSpecificValueId(string $specificName, string $specificValueName): string
     {
         global $wpdb;
-        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jclsv = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
 
         return "SELECT  lsv.host_id , lsv.endpoint_id, t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
@@ -103,7 +105,7 @@ trait SpecificTrait
     public static function getSpecificValueIdBySlug(string $specificName, string $specificValueName): string
     {
         global $wpdb;
-        $jclsv = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jclsv = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
 
         return "SELECT  lsv.host_id , lsv.endpoint_id, t.term_id, t.name, tt.term_taxonomy_id, tt.taxonomy, t.slug
                 FROM {$wpdb->terms} t
@@ -155,7 +157,7 @@ trait SpecificTrait
         global $wpdb;
 
         $wat  = $wpdb->prefix . 'woocommerce_attribute_taxonomies';
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC;
 
         return "SELECT wat.attribute_id
                   FROM {$wat} wat
@@ -172,7 +174,7 @@ trait SpecificTrait
     {
         global $wpdb;
 
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC;
 
         return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
     }
@@ -185,7 +187,7 @@ trait SpecificTrait
     {
         global $wpdb;
 
-        $jcls = $wpdb->prefix . 'jtl_connector_link_specific_value';
+        $jcls = $wpdb->prefix . LinkTableNames::SPECIFIC_VALUE;
 
         return "DELETE FROM {$jcls} WHERE endpoint_id = '{$id}';";
     }

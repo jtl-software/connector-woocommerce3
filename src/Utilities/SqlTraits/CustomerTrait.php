@@ -6,6 +6,7 @@ namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Psr\Log\InvalidArgumentException;
@@ -41,7 +42,7 @@ trait CustomerTrait
     private static function customerNotLinkedNoCondition(?int $limit): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
+        $jclc = $wpdb->prefix . LinkTableNames::CUSTOMER;
 
         if (\is_null($limit)) {
             $select     = 'COUNT(DISTINCT(um.user_id))';
@@ -83,7 +84,7 @@ trait CustomerTrait
     private static function customerNotLinkedCondition(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
+        $jclc = $wpdb->prefix . LinkTableNames::CUSTOMER;
 
         $status = Util::getOrderStatusesToImport();
 
@@ -127,7 +128,7 @@ trait CustomerTrait
     public static function guestNotLinked(?int $limit, LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_customer';
+        $jclc = $wpdb->prefix . LinkTableNames::CUSTOMER;
 
         $guestPrefix = Id::GUEST_PREFIX . Id::SEPARATOR;
 
@@ -174,7 +175,7 @@ trait CustomerTrait
     private static function getCustomerPullCondition(LoggerInterface|NullLogger $logger): string
     {
         global $wpdb;
-        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclo = $wpdb->prefix . LinkTableNames::ORDER;
 
         $logger->debug('Customer Pull Condition: ' . Config::get(Config::OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE));
 

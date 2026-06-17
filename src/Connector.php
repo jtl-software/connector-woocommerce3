@@ -2,8 +2,6 @@
 
 namespace JtlWooCommerceConnector;
 
-\ini_set('display_errors', 'off');
-
 use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
@@ -97,7 +95,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
                 if (!\is_string($featuresPath)) {
                     throw new \InvalidArgumentException(
-                        "Expected featuresPath to be string but got " . \gettype($featuresPath) . " instead"
+                        "Expected featuresPath to be string but got " . \esc_html(\gettype($featuresPath)) . " instead"
                     );
                 }
 

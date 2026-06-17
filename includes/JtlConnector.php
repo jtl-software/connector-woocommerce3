@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
@@ -43,7 +47,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
 
             if (!\is_string($features)) {
                 throw new \InvalidArgumentException(
-                    "Expected features to be a string but got " . \gettype($features) . " instead."
+                    \esc_html("Expected features to be a string but got " . \gettype($features) . " instead.")
                 );
             }
 
@@ -61,10 +65,12 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
      */
     private static function unslash_gpc(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification.Recommended -- Intentional: reverse WordPress magic quotes for JTL Connector request processing
         $_GET     = array_map('stripslashes_deep', $_GET);
         $_POST    = array_map('stripslashes_deep', $_POST);
         $_COOKIE  = array_map('stripslashes_deep', $_COOKIE);
         $_SERVER  = array_map('stripslashes_deep', $_SERVER);
         $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
+        // phpcs:enable
     }
 }

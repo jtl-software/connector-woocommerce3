@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
+
 trait CustomerGroupTrait
 {
     /**
@@ -12,7 +14,7 @@ trait CustomerGroupTrait
     public static function customerGroupPull(): string
     {
         global $wpdb;
-        $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';
+        $jclcg = $wpdb->prefix . LinkTableNames::CUSTOMER_GROUP;
 
         return "
             SELECT p.ID, p.post_title, p.post_name
@@ -30,7 +32,7 @@ trait CustomerGroupTrait
     public static function customerGroupPullRole(): string
     {
         global $wpdb;
-        $jclcg = $wpdb->prefix . 'jtl_connector_link_customer_group';
+        $jclcg = $wpdb->prefix . LinkTableNames::CUSTOMER_GROUP;
 
         return "
             SELECT p.ID, p.post_title, p.post_name

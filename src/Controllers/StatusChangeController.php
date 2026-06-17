@@ -10,6 +10,7 @@ use Jtl\Connector\Core\Model\AbstractModel;
 use Jtl\Connector\Core\Model\CustomerOrder;
 use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\StatusChange as StatusChangeModel;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use Mockery\Exception;
 use PHPUnit\Framework\ExpectationFailedException;
 use Psr\Log\InvalidArgumentException;
@@ -69,7 +70,7 @@ class StatusChangeController extends AbstractBaseController implements PushInter
     protected function linkIfPaymentIsNotLinked(StatusChangeModel $statusChange): void
     {
         global $wpdb;
-        $jclp            = $wpdb->prefix . 'jtl_connector_link_payment';
+        $jclp            = $wpdb->prefix . LinkTableNames::PAYMENT;
         $customerOrderId = $statusChange->getCustomerOrderId();
         $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : "0";
 

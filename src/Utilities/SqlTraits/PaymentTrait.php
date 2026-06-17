@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Config;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 
 use function Symfony\Component\String\s;
@@ -20,8 +21,8 @@ trait PaymentTrait
     public static function paymentCompletedPull(bool $includeCompletedOrders, ?int $limit = null): string
     {
         global $wpdb;
-        $jclp = $wpdb->prefix . 'jtl_connector_link_payment';
-        $jclo = $wpdb->prefix . 'jtl_connector_link_order';
+        $jclp = $wpdb->prefix . LinkTableNames::PAYMENT;
+        $jclo = $wpdb->prefix . LinkTableNames::ORDER;
 
         /** @var string $since */
         $since       = Config::get(Config::OPTIONS_PULL_ORDERS_SINCE);

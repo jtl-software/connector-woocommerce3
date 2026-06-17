@@ -11,6 +11,7 @@ use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 
 /**
  * Class WpmlMedia
@@ -19,7 +20,7 @@ use JtlWooCommerceConnector\Utilities\Id;
  */
 class WpmlMedia extends AbstractComponent
 {
-    public const
+    public const string
         ELEMENT_TYPE = 'post_attachment';
 
     /**
@@ -99,7 +100,7 @@ class WpmlMedia extends AbstractComponent
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin = $this->getCurrentPlugin();
         $wpdb       = $wpmlPlugin->getWpDb();
-        $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli       = $wpdb->prefix . LinkTableNames::IMAGE;
         $wpmlt      = $wpdb->prefix . 'icl_translations';
 
         $sql = \sprintf(
@@ -208,7 +209,7 @@ class WpmlMedia extends AbstractComponent
         $wpdb       = $wpmlPlugin->getWpDb();
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
-        $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli       = $wpdb->prefix . LinkTableNames::IMAGE;
         $wpmlt      = $wpdb->prefix . 'icl_translations';
 
         $sql = \sprintf(

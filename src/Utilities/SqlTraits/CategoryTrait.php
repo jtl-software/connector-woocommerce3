@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Utilities\SqlTraits;
 
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 
 trait CategoryTrait
 {
@@ -129,7 +130,7 @@ trait CategoryTrait
     public static function categoryPull(int $limit): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_category';
+        $jclc = $wpdb->prefix . LinkTableNames::CATEGORY;
 
         return \sprintf(
             "
@@ -153,7 +154,7 @@ trait CategoryTrait
     public static function categoryStats(): string
     {
         global $wpdb;
-        $jclc = $wpdb->prefix . 'jtl_connector_link_category';
+        $jclc = $wpdb->prefix . LinkTableNames::CATEGORY;
 
         return \sprintf(
             "

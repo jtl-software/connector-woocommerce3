@@ -71,7 +71,7 @@ class ProductManufacturerController extends AbstractBaseController
 
         if (!\is_array($terms)) {
             throw new \InvalidArgumentException(
-                'Array type expected. Got ' . \gettype($terms) . ' instead.'
+                'Array type expected. Got ' . \esc_html(\gettype($terms)) . ' instead.'
             );
         }
 

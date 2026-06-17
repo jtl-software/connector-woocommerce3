@@ -213,10 +213,10 @@ class CategoryController extends AbstractBaseController implements
             } else {
                 $categoryTerm = \get_term($categoryId, CategoryUtil::TERM_TAXONOMY);
                 if (!$categoryTerm instanceof \WP_Term) {
-                    throw new \Exception(\sprintf("Cannot find category %s", $categoryId));
+                    throw new \Exception(\sprintf("Cannot find category %s", \esc_html((string)$categoryId)));
                 }
                 // WordPress does not create a unique slug itself if the given already exists
-                if ($categoryTerm->slug !== wc_strtolower($categoryData['slug'])) {
+                if ($categoryTerm->slug !== \wc_strtolower($categoryData['slug'])) {
                     $categoryData['slug'] = \wp_unique_term_slug($categoryData['slug'], (object)$categoryData);
                 }
 

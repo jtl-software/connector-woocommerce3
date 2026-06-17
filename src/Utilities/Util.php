@@ -21,9 +21,9 @@ use WhiteCube\Lingua\Service;
  */
 class Util extends WordpressUtils
 {
-    public const TO_SYNC       = 'jtlconnector_master_products_to_sync';
-    public const TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
-    public const TO_SYNC_MOD   = 100;
+    public const string TO_SYNC       = 'jtlconnector_master_products_to_sync';
+    public const string TO_SYNC_COUNT = 'jtlconnector_master_products_to_sync_count';
+    public const int TO_SYNC_MOD      = 100;
 
     private string $locale;
 
@@ -69,7 +69,8 @@ class Util extends WordpressUtils
 
         if (!\is_string($wcDefaultCountry)) {
             throw new \InvalidArgumentException(
-                "Expected wcDefaultCountry to be a string but got " . \gettype($wcDefaultCountry) . " instead."
+                "Expected wcDefaultCountry to be a string but got "
+                . \esc_html(\gettype($wcDefaultCountry)) . " instead."
             );
         }
 
@@ -263,7 +264,7 @@ class Util extends WordpressUtils
         if (!\is_int($masterProductsToSyncCount)) {
             throw new \InvalidArgumentException(
                 "Expected masterProductsToSyncCount to be an integer but got " .
-                \gettype($masterProductsToSyncCount) . " instead."
+                \esc_html(\gettype($masterProductsToSyncCount)) . " instead."
             );
         }
 
@@ -273,7 +274,7 @@ class Util extends WordpressUtils
         if (!\is_array($masterProductsToSync)) {
             throw new \InvalidArgumentException(
                 "Expected masterProductsToSync to be an array but got " .
-                \gettype($masterProductsToSync) . " instead."
+                \esc_html(\gettype($masterProductsToSync)) . " instead."
             );
         }
 
@@ -299,8 +300,10 @@ class Util extends WordpressUtils
 
                 if (!\is_array($masterProductsToSync)) {
                     throw new \InvalidArgumentException(
-                        "Expected masterProductsToSync to be an array but got " .
-                        \gettype($masterProductsToSync) . " instead."
+                        \esc_html(
+                            "Expected masterProductsToSync to be an array but got " .
+                            \gettype($masterProductsToSync) . " instead."
+                        )
                     );
                 }
 
@@ -534,7 +537,7 @@ class Util extends WordpressUtils
         if (!\is_array($orderImportStatuses)) {
             throw new \InvalidArgumentException(
                 "Expected orderImportStatuses to be an array but got "
-                . \gettype($orderImportStatuses) . " instead."
+                . \esc_html(\gettype($orderImportStatuses)) . " instead."
             );
         }
 
@@ -554,7 +557,7 @@ class Util extends WordpressUtils
         if (!\is_array($manualPaymentTypes)) {
             throw new \InvalidArgumentException(
                 "Expected manualPaymentTypes to be an array but got "
-                . \gettype($manualPaymentTypes) . " instead."
+                . \esc_html(\gettype($manualPaymentTypes)) . " instead."
             );
         }
 
@@ -723,7 +726,7 @@ class Util extends WordpressUtils
 
         if (!\is_string($value)) {
             throw new \InvalidArgumentException(
-                "Expected value to be a string but got " . \gettype($value) . " instead."
+                "Expected value to be a string but got " . \esc_html(\gettype($value)) . " instead."
             );
         }
 

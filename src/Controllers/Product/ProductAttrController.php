@@ -18,7 +18,7 @@ use Psr\Log\InvalidArgumentException;
 
 class ProductAttrController extends AbstractBaseController
 {
-    public const
+    public const string
         VISIBILITY_HIDDEN  = 'hidden',
         VISIBILITY_CATALOG = 'catalog',
         VISIBILITY_SEARCH  = 'search',

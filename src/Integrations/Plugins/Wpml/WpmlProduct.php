@@ -17,6 +17,7 @@ use JtlWooCommerceConnector\Controllers\Product\ProductVaSpeAttrHandlerControlle
 use JtlWooCommerceConnector\Integrations\Plugins\AbstractComponent;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceProduct;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 use stdClass;
 use WC_Product_Variation;
@@ -28,7 +29,7 @@ use WC_Product_Variation;
  */
 class WpmlProduct extends AbstractComponent
 {
-    public const
+    public const string
         POST_TYPE           = 'post_product',
         POST_TYPE_VARIATION = 'post_product_variation';
 
@@ -203,7 +204,9 @@ class WpmlProduct extends AbstractComponent
             $wcProduct = \wc_get_product($wcProductId);
 
             if (!$wcProduct instanceof \WC_Product) {
-                throw new \InvalidArgumentException("Product with ID {$wcProductId} not found");
+                throw new \InvalidArgumentException(
+                    "Product with ID " . \esc_html((string)$wcProductId) . " not found"
+                );
             }
 
             $wcProduct->set_parent_id($masterProductId);
@@ -263,7 +266,7 @@ class WpmlProduct extends AbstractComponent
         /** @var Wpml $wpmlPlugin */
         $wpmlPlugin      = $this->getCurrentPlugin();
         $wpdb            = $wpmlPlugin->getWpDb();
-        $jclp            = $wpdb->prefix . 'jtl_connector_link_product';
+        $jclp            = $wpdb->prefix . LinkTableNames::PRODUCT;
         $translations    = $wpdb->prefix . 'icl_translations';
         $defaultLanguage = $wpmlPlugin->getDefaultLanguage();
 

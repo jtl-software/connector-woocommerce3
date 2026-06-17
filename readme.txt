@@ -1,12 +1,12 @@
 === JTL-Connector for WooCommerce ===
-Contributors: papryk, ntbyk, platzkejtl
+Contributors: papryk, ntbyk, platzkejtl, patrick-gugelsberger
 Tags: warenwirtschaft, jtl, connector, wms, erp
-Requires at least: 4.7
-Tested up to: 6.4
-Requires PHP: 8.0
-WC requires at least: 3.4
-WC tested up to: 8.2
-Stable tag: 2.4.1
+Requires at least: 6.4
+Tested up to: 7.0
+Requires PHP: 8.3
+WC requires at least: 3.4.7
+WC tested up to: 10.8.1
+Stable tag: 2.4.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -151,6 +151,14 @@ This section describes how to install the plugin and get it working.
 7. The JTL-Connector for WooCommerce (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 2.4.2 =
+* Security: Added capability checks and nonce verification to all admin endpoints (CVE-2026-9234)
+* Security: Log download now streams via temporary file instead of writing to public directory
+* Fix: Replaced external CDN resources with locally bundled assets
+* Fix: Added proper SQL preparation and output escaping throughout the plugin
+* Fix: Global functions now use jtlwcc_ prefix to avoid naming conflicts
+* Fix: Replaced deprecated PHP functions with WordPress alternatives
 
 Find the newest Changelog here: http://changelog.jtl-software.de/en/systems/connector/woocommerce
 

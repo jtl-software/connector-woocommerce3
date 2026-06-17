@@ -8,6 +8,7 @@ use Jtl\Connector\Core\Definition\IdentityType;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
 use JtlWooCommerceConnector\Controllers\ImageController as ImageCtrl;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 
 trait ImageTrait
 {
@@ -21,7 +22,7 @@ trait ImageTrait
 
         $limitQuery           = \is_null($limit) ? '' : 'LIMIT ' . $limit;
         list($table, $column) = CategoryUtil::getTermMetaData();
-        $jcli                 = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli                 = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return \sprintf(
             "
@@ -58,7 +59,7 @@ trait ImageTrait
         global $wpdb;
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
-        $jcli       = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli       = $wpdb->prefix . LinkTableNames::IMAGE;
         $sql        = \sprintf(
             "
             SELECT CONCAT_WS('%s', '%s', p.ID) as id, p.ID as ID, tt.term_id as parent, p.guid
@@ -91,7 +92,7 @@ trait ImageTrait
     public static function imageProductThumbnail(): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return \sprintf(
             "
@@ -139,7 +140,7 @@ trait ImageTrait
     public static function linkedProductImages(): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return \sprintf(
             "
@@ -157,7 +158,7 @@ trait ImageTrait
     public static function imageVariationCombinationPull(?int $limit = null): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         $limitQuery = \is_null($limit) ? '' : 'LIMIT ' . $limit;
 
@@ -228,7 +229,7 @@ trait ImageTrait
     public static function imageDeleteLinks(int $productId): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return \sprintf(
             "
@@ -251,18 +252,19 @@ trait ImageTrait
     public static function imageDeleteLink(int $attachmentId, int $productId): string
     {
         global $wpdb;
-        $jcli = $wpdb->prefix . 'jtl_connector_link_image';
+        $jcli = $wpdb->prefix . LinkTableNames::IMAGE;
 
         return \sprintf(
             "
             DELETE FROM {$jcli}
             WHERE (`type` = %d
             OR `type` = %d)
-            AND endpoint_id
-            LIKE '{$attachmentId}%s{$productId}'",
+            AND endpoint_id = '%d%s%d'",
             IdentityType::PRODUCT_IMAGE,
             IdentityType::PRODUCT,
-            Id::SEPARATOR
+            $attachmentId,
+            Id::SEPARATOR,
+            $productId
         );
     }
 }

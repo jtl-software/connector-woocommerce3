@@ -12,6 +12,7 @@ use Jtl\Connector\Core\Model\ImageI18n;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\Util;
 use phpmock\MockBuilder;
 use phpmock\MockEnabledException;
@@ -108,7 +109,7 @@ class ImageTest extends TestCase
                 (new ProductImage())->setName('Default name')->setId(new Identity("1111_2222", 1)),
                 true,
                 "
-            DELETE FROM wp_jtl_connector_link_image
+            DELETE FROM wp_" . LinkTableNames::IMAGE . "
             WHERE (`type` = 42
             OR `type` = 64)
             AND endpoint_id

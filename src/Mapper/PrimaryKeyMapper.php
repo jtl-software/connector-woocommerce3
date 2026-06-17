@@ -9,6 +9,7 @@ use Jtl\Connector\Core\Definition\IdentityType;
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Id;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -249,21 +250,21 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
 
         switch ($type) {
             case IdentityType::CATEGORY:
-                return 'jtl_connector_link_category';
+                return LinkTableNames::CATEGORY;
             case IdentityType::CROSS_SELLING:
-                return 'jtl_connector_link_crossselling';
+                return LinkTableNames::CROSSSELLING;
             case IdentityType::CROSS_SELLING_GROUP:
-                return 'jtl_connector_link_crossselling_group';
+                return LinkTableNames::CROSSSELLING_GROUP;
 
             /*
              * case IdentityLinker::TYPE_CURRENCY:
-             * return 'jtl_connector_link_currency';
+             * return LinkTableNames::CURRENCY;
              */
 
             case IdentityType::CUSTOMER:
-                return 'jtl_connector_link_customer';
+                return LinkTableNames::CUSTOMER;
             case IdentityType::CUSTOMER_GROUP:
-                return 'jtl_connector_link_customer_group';
+                return LinkTableNames::CUSTOMER_GROUP;
             case IdentityType::CONFIG_GROUP_IMAGE:
             case IdentityType::PRODUCT_VARIATION_VALUE_IMAGE:
             case IdentityType::SPECIFIC_IMAGE:
@@ -271,41 +272,41 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             case IdentityType::MANUFACTURER_IMAGE:
             case IdentityType::CATEGORY_IMAGE:
             case IdentityType::PRODUCT_IMAGE:
-                return 'jtl_connector_link_image';
+                return LinkTableNames::IMAGE;
 
             /*
              * case IdentityLinker::TYPE_LANGUAGE:
-             * return 'jtl_connector_link_language';
+             * return LinkTableNames::LANGUAGE;
              */
 
             case IdentityType::MANUFACTURER:
-                return 'jtl_connector_link_manufacturer';
+                return LinkTableNames::MANUFACTURER;
 
             /*
              * case IdentityLinker::TYPE_MEASUREMENT_UNIT:
-             * return 'jtl_connector_link_measurement_unit';
+             * return LinkTableNames::MEASUREMENT_UNIT;
              */
 
             case IdentityType::CUSTOMER_ORDER:
-                return 'jtl_connector_link_order';
+                return LinkTableNames::ORDER;
             case IdentityType::PAYMENT:
-                return 'jtl_connector_link_payment';
+                return LinkTableNames::PAYMENT;
             case IdentityType::PRODUCT:
-                return 'jtl_connector_link_product';
+                return LinkTableNames::PRODUCT;
             case IdentityType::SHIPPING_CLASS:
-                return 'jtl_connector_link_shipping_class';
+                return LinkTableNames::SHIPPING_CLASS;
 
             /*
              * case IdentityLinker::TYPE_SHIPPING_METHOD:
-             * return 'jtl_connector_link_shipping_method';
+             * return LinkTableNames::SHIPPING_METHOD;
              */
 
             case IdentityType::SPECIFIC:
-                return 'jtl_connector_link_specific';
+                return LinkTableNames::SPECIFIC;
             case IdentityType::SPECIFIC_VALUE:
-                return 'jtl_connector_link_specific_value';
+                return LinkTableNames::SPECIFIC_VALUE;
             case IdentityType::TAX_CLASS:
-                return 'jtl_connector_link_tax_class';
+                return LinkTableNames::TAX_CLASS;
         }
 
         return null;

@@ -51,6 +51,7 @@
         <copy todir="${tmpdir}/dist/woo-jtl-connector/">
             <fileset dir="./">
                 <include name="src/"/>
+                <include name="assets/"/>
                 <include name="plugins/jtl/"/>
                 <include name="vendor/"/>
             </fileset>

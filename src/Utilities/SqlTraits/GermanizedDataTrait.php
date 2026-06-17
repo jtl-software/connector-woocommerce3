@@ -35,12 +35,15 @@ trait GermanizedDataTrait
     {
         global $wpdb;
 
-        return "
+        return (string) $wpdb->prepare(
+            "
             SELECT tt.term_id
             FROM {$wpdb->terms} t
             LEFT JOIN {$wpdb->term_taxonomy} tt
             ON tt.term_id = t.term_id
             WHERE tt.taxonomy = 'product_delivery_time'
-            AND t.name = '{$status}'";
+            AND t.name = %s",
+            $status
+        );
     }
 }

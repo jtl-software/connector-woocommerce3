@@ -56,7 +56,7 @@ class ProductController extends AbstractBaseController implements
 {
     use WawiProductPriceSchmuddelTrait;
 
-    public const
+    public const string
         TYPE_PARENT = 'parent',
         TYPE_CHILD  = 'child',
         TYPE_SINGLE = 'single';
@@ -124,7 +124,7 @@ class ProductController extends AbstractBaseController implements
                 ->setProductTypeId(new Identity($product->get_type()))
                 ->setKeywords(
                     ($tags = \wc_get_product_tag_list($product->get_id(), ' '))
-                        ? \strip_tags($tags) : ''
+                        ? \wp_strip_all_tags($tags) : ''
                 )
                 ->setCreationDate($postDate)
                 ->setModified($modDate)
@@ -750,8 +750,13 @@ class ProductController extends AbstractBaseController implements
     ): void {
         $productId = (int)$wcProduct->get_id();
 
-        $productTitle         = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));
-        $variation_post_title = \sprintf(\__('Variation #%s of %s', 'woocommerce'), $productId, $productTitle);
+        $productTitle = \esc_html(\get_the_title((int)$product->getMasterProductId()->getEndpoint()));
+        // translators: %1$s is the variation product ID, %2$s is the parent product title
+        $translatedFormat     = \__( // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+            'Variation #%1$s of %2$s',
+            'woocommerce'
+        );
+        $variation_post_title = \sprintf($translatedFormat, $productId, $productTitle);
         \wp_update_post([
             'ID' => $productId,
             'post_title' => $variation_post_title,

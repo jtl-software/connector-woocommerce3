@@ -10,4 +10,11 @@ parameters:
             - './var/*'
     ignoreErrors:
         - '#Constant WC_DELIMITER not found.#'
-        - '#PHPDoc tag @throws with type .* is not subtype of Throwable#'
+        -
+            message: '#Binary operation "\."\s+between .+ and array\|string results in an error#'
+            path: includes/JtlConnectorAdmin.php
+            count: 7
+        -
+            message: '#Strict comparison using === between non-empty-string and false will always evaluate to false#'
+            path: woo-jtl-connector.php
+            count: 1

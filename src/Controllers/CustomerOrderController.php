@@ -26,7 +26,7 @@ use TheIconic\NameParser\Parser;
 class CustomerOrderController extends AbstractBaseController implements PullInterface, StatisticInterface
 {
     /** Order received (unpaid) */
-    public const
+    public const string
         STATUS_PENDING = 'pending',
         /** Payment received – the order is awaiting fulfillment */
         STATUS_PROCESSING = 'processing',
@@ -41,8 +41,8 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
         /** Already paid */
         STATUS_REFUNDED = 'refunded';
 
-    public const BILLING_ID_PREFIX  = 'b_';
-    public const SHIPPING_ID_PREFIX = 's_';
+    public const string BILLING_ID_PREFIX  = 'b_';
+    public const string SHIPPING_ID_PREFIX = 's_';
 
     /**
      * @param QueryFilter $query
@@ -178,7 +178,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
             if (!\is_array($payPalPlusSettings)) {
                 throw new \InvalidArgumentException(
-                    "payPalSettings expected to be an array but got " . \gettype($payPalPlusSettings)
+                    "payPalSettings expected to be an array but got " . \esc_html(\gettype($payPalPlusSettings))
                 );
             }
 
@@ -188,7 +188,7 @@ class CustomerOrderController extends AbstractBaseController implements PullInte
 
                 if (!\is_array($orderMetaData)) {
                     throw new \InvalidArgumentException(
-                        "orderMetaData expected to be an array but got " . \gettype($orderMetaData)
+                        "orderMetaData expected to be an array but got " . \esc_html(\gettype($orderMetaData))
                     );
                 }
 

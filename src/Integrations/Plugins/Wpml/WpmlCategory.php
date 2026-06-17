@@ -13,6 +13,7 @@ use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerce;
 use JtlWooCommerceConnector\Integrations\Plugins\WooCommerce\WooCommerceCategory;
 use JtlWooCommerceConnector\Integrations\Plugins\YoastSeo\YoastSeo;
 use JtlWooCommerceConnector\Utilities\Category as CategoryUtil;
+use JtlWooCommerceConnector\Utilities\LinkTableNames;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use Psr\Log\InvalidArgumentException;
 
@@ -23,7 +24,7 @@ use Psr\Log\InvalidArgumentException;
  */
 class WpmlCategory extends AbstractComponent
 {
-    public const
+    public const string
         PRODUCT_CATEGORY_TYPE = 'tax_product_cat';
 
     /**
@@ -131,7 +132,7 @@ class WpmlCategory extends AbstractComponent
                 LEFT JOIN
             `%sjtl_connector_category_level` cl ON tt.term_taxonomy_id = cl.category_id
                 LEFT JOIN
-            `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
+            `%s' . LinkTableNames::CATEGORY . '` l ON t.term_id = l.endpoint_id
                 LEFT JOIN
             `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
         WHERE
@@ -173,7 +174,7 @@ class WpmlCategory extends AbstractComponent
                     LEFT JOIN
                 `%sjtl_connector_category_level` cl ON tt.term_id = cl.category_id
                     LEFT JOIN
-                `%sjtl_connector_link_category` l ON t.term_id = l.endpoint_id
+                `%s' . LinkTableNames::CATEGORY . '` l ON t.term_id = l.endpoint_id
                     LEFT JOIN
                 `%sicl_translations` wpmlt ON tt.term_taxonomy_id = wpmlt.element_id
             WHERE
