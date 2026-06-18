@@ -166,7 +166,7 @@ jobs:
 
       - name: Create wp-env override with WooCommerce dependency
         run: |
-          echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"]}' > .wp-env.override.json
+          echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"],"testsEnvironment":false}' > .wp-env.override.json
 
       - name: Create plugin directory with correct WP.org slug
         run: |
