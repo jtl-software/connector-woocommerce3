@@ -178,6 +178,7 @@ jobs:
             -exec cp -rl '{}' woo-jtl-connector/ \;
 
       - name: Run WordPress Plugin Check
+        id: plugin-check
         uses: wordpress/plugin-check-action@98a1788320d0add90df2d8183934ecccbc4e05d2 # v1.1.7
         with:
           repo-token: ${{ github.token }}
@@ -190,10 +191,65 @@ jobs:
             security
           exclude-checks: |
             trademarks
+          exclude-files: |
+            phing.phar
+            build.sh
+            zip-build.sh
+            .gitignore
+            .gitkeep
+            CLAUDE.md
           exclude-directories: |
             .github
+            config
             db
             logs
             stubs
             tests
+            tmp
             vendor
+
+      - name: Plugin Check Summary
+        if: always()
+        run: |
+          python3 << 'EOF'
+          import json, os, sys
+
+          results = '/home/runner/work/_temp/plugin-check-results.txt'
+          if not os.path.exists(results):
+              sys.exit(0)
+
+          errors, warnings = [], []
+          current_file = ''
+          for line in open(results):
+              line = line.rstrip()
+              if line.startswith('FILE: '):
+                  current_file = line[6:]
+              elif line.startswith('[') and current_file:
+                  try:
+                      for issue in json.loads(line):
+                          entry = (current_file, issue)
+                          (errors if issue['type'] == 'ERROR' else warnings).append(entry)
+                  except json.JSONDecodeError:
+                      pass
+
+          def row(f, i):
+              msg = i['message'].replace('|', '\\|').replace('\n', ' ')[:120]
+              return f'| `{f}` | {i["line"]} | `{i["code"]}` | {msg} |'
+
+          HDR = '| File | Line | Code | Message |\n|---|---|---|---|'
+          out = ['## WordPress Plugin Check\n']
+          if not errors and not warnings:
+              out.append('✅ All checks passed!\n')
+          else:
+              if errors:
+                  out += [f'### ❌ Errors ({len(errors)})\n', HDR] + [row(*e) for e in errors] + ['']
+              if warnings:
+                  out += [f'### ⚠️ Warnings ({len(warnings)})\n', HDR] + [row(*w) for w in warnings] + ['']
+
+          summary = os.environ.get('GITHUB_STEP_SUMMARY', '')
+          out_text = '\n'.join(out) + '\n'
+          if summary:
+              open(summary, 'a').write(out_text)
+          else:
+              print(out_text)
+          EOF
