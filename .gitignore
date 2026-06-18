@@ -20,3 +20,4 @@ logs/
 /junit.xml
 /phpcs-quality-report.json
 var/
+.phpunit.cache/
