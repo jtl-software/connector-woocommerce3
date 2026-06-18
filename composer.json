@@ -39,7 +39,8 @@
     "phpstan/phpstan": "^1.11",
     "squizlabs/php_codesniffer": "^3.10",
     "slevomat/coding-standard": "^8.15",
-    "10up/wp_mock": "^1.0"
+    "10up/wp_mock": "^1.0",
+    "wp-coding-standards/wpcs": "^3.1"
   },
   "autoload": {
     "psr-4": {
@@ -65,6 +66,7 @@
     ],
     "phpcs": "phpcs --basepath=. --extensions=php --standard=JtlConnector --report=full src tests includes uninstall.php woo-jtl-connector.php",
     "phpcs:fix": "phpcbf --basepath=. --extensions=php --standard=JtlConnector src tests includes uninstall.php woo-jtl-connector.php",
+    "phpcs:wp": "phpcs --standard=phpcs-wordpress.xml --report=full",
     "phpstan": "phpstan analyse src includes uninstall.php woo-jtl-connector.php --level max -c ./phpstan.neon",
     "tests": "phpunit",
     "tests:ci": "phpunit --log-junit junit.xml"
