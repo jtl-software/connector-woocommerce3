@@ -1,21 +1,13 @@
 {
   "permissions": {
     "allow": [
+      "Bash(rm -rf /home/akempe/Projekte/connector-woocommerce3/plugins/JtlWooCommerceConnector)",
+      "Bash(git mv *)",
       "Bash(./vendor/bin/phpcs --standard=JtlConnector -e)",
-      "Bash(./vendor/bin/phpcs -i)"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "file=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty'); if [[ \"$file\" == *.php ]]; then cd /home/akempe/Projekte/connector-woocommerce3 && ./vendor/bin/phpcs --standard=JtlConnector \"$file\"; ./vendor/bin/phpcs --standard=phpcs-wordpress.xml \"$file\"; fi"
-          }
-        ]
-      }
+      "Bash(xargs cat)",
+      "Bash(./vendor/bin/phpcs -i)",
+      "Bash(composer require *)",
+      "Bash(./vendor/bin/phpcs --standard=phpcs-wordpress.xml woo-jtl-connector.php)"
     ]
   }
 }

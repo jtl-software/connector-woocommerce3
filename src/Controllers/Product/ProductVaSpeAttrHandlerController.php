@@ -82,7 +82,7 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
     public function __construct(Db $db, Util $util)
     {
         if (! \defined('WC_DELIMITER')) {
-            \define('WC_DELIMITER', '|');
+            \define('WC_DELIMITER', '|'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WooCommerce constant fallback
         }
 
         parent::__construct($db, $util);

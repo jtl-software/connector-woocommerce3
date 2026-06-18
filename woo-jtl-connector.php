@@ -29,7 +29,7 @@ define('JTLWCC_CONNECTOR_DIR', __DIR__);
 define('JTLWCC_EXT_CONNECTOR_PLUGIN_DIR', dirname(__DIR__) . '/' . JTLWCC_TEXT_DOMAIN . '-custom-plugins');
 /** @phpstan-ignore constant.notFound */
 define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAIN);
-define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
+define('CONNECTOR_DIR', __DIR__); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- required by connector core, cannot be renamed
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);
 
 require_once ABSPATH . '/wp-admin/includes/plugin.php';

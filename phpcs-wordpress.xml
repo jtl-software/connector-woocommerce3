@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="WooJtlConnector-WordPress">
-    <description>WordPress coding standards check for WooCommerce JTL Connector plugin</description>
+<ruleset name="WooJtlConnector-PluginCheck">
+    <description>WordPress Plugin Check relevant sniffs for local pre-check</description>
 
     <file>src</file>
     <file>includes</file>
@@ -11,9 +11,7 @@
     <arg name="extensions" value="php"/>
     <arg name="basepath" value="."/>
 
-    <rule ref="WordPress-Extra">
-        <exclude name="WordPress.Files.FileName"/>
-    </rule>
+    <rule ref="WordPress.DB.DirectDatabaseQuery"/>
 
     <rule ref="WordPress.WP.I18n">
         <properties>
@@ -27,11 +25,18 @@
         <properties>
             <property name="prefixes" type="array">
                 <element value="JtlWooCommerceConnector"/>
+                <element value="JtlConnector"/>
                 <element value="jtl_connector"/>
                 <element value="woo_jtl"/>
+                <element value="JTLWCC"/>
+                <element value="jtlwcc"/>
             </property>
         </properties>
     </rule>
+
+    <rule ref="WordPress.Security.EscapeOutput"/>
+    <rule ref="WordPress.Security.NonceVerification"/>
+    <rule ref="WordPress.Security.ValidatedSanitizedInput"/>
 
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/tests/*</exclude-pattern>
