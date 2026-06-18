@@ -61,6 +61,7 @@ jobs:
 
   phpunit:
     if: github.event_name != 'schedule'
+    needs: [status-check]
     name: PHPUnit (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
     permissions:
@@ -144,6 +145,7 @@ jobs:
           fail_level: error
 
   plugin-check:
+    needs: [status-check]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -152,6 +154,15 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install (prod)
+        run: composer install --no-dev --prefer-dist --no-progress --no-interaction
 
       - name: Run WordPress Plugin Check
         uses: wordpress/plugin-check-action@98a1788320d0add90df2d8183934ecccbc4e05d2 # v1.1.7

@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
