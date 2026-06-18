@@ -204,7 +204,6 @@ jobs:
             config
             db
             logs
-            plugins
             stubs
             tests
             tmp
