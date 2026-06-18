@@ -104,7 +104,7 @@ jobs:
         with:
           name: junit-php-${{ matrix.php-version }}
           path: junit.xml
-          retention-days: 7
+          retention-days: 5
 
   actionlint:
     if: github.event_name != 'schedule'
