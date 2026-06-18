@@ -53,7 +53,7 @@ class Db implements LoggerAwareInterface
         }
 
         /** @var array<string, bool|int|string|null>|null $results */
-        $results = $wpdb->get_results($wpdb->prepare($query), \ARRAY_A);
+        $results = $wpdb->get_results($query, \ARRAY_A);
         return $results;
     }
 
@@ -74,7 +74,7 @@ class Db implements LoggerAwareInterface
             $this->logger->debug($query);
         }
 
-        return $wpdb->get_var($wpdb->prepare($query));
+        return $wpdb->get_var($query);
     }
 
     /**
@@ -97,7 +97,7 @@ class Db implements LoggerAwareInterface
         }
 
         /** @var array<int, array<int, int|string>> $result */
-        $result = $wpdb->get_results($wpdb->prepare($query), \ARRAY_N);
+        $result = $wpdb->get_results($query, \ARRAY_N);
 
         if (!empty($result)) {
             foreach ($result as $row) {
