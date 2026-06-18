@@ -168,19 +168,26 @@ jobs:
         run: |
           echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"]}' > .wp-env.override.json
 
+      - name: Create plugin directory with correct WP.org slug
+        run: |
+          mkdir woo-jtl-connector
+          find . -maxdepth 1 -mindepth 1 \
+            ! -name '.git' \
+            ! -name 'woo-jtl-connector' \
+            ! -name '.wp-env.override.json' \
+            -exec cp -rl '{}' woo-jtl-connector/ \;
+
       - name: Run WordPress Plugin Check
         uses: wordpress/plugin-check-action@98a1788320d0add90df2d8183934ecccbc4e05d2 # v1.1.7
         with:
           repo-token: ${{ github.token }}
           strict: true
+          build-dir: woo-jtl-connector
           wp-version: latest
           categories: |
             general
             plugin_repo
             security
-          exclude-checks: |
-            textdomain_mismatch
-            trademarked_term
           exclude-directories: |
             .github
             db
