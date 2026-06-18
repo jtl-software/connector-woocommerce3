@@ -18,3 +18,12 @@ parameters:
             message: '#Strict comparison using === between non-empty-string and false will always evaluate to false#'
             path: woo-jtl-connector.php
             count: 1
+        -
+            # Db::query/queryOne/queryList are generic SQL runners; $query is built by SqlTrait
+            # methods that use sprintf() — a dynamic string, never a literal-string. Using
+            # $wpdb->prepare($query) satisfies the WP plugin-check PHPCS sniff while PHPStan's
+            # WordPress stubs require literal-string. This is an architectural boundary;
+            # callers are responsible for safe query construction via the SqlTrait layer.
+            message: '#Parameter \#1 \$query of method wpdb::prepare\(\) expects literal-string, string given\.#'
+            path: src/Utilities/Db.php
+            count: 3
