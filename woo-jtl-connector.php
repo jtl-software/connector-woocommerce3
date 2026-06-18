@@ -32,8 +32,6 @@ define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAI
 define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);
 
-require_once ABSPATH . '/wp-admin/includes/plugin.php';
-
 try {
     if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
         if (wp_is_writable(sys_get_temp_dir())) {
@@ -350,7 +348,7 @@ function jtlwcc_deactivate_plugin(): void
  */
 function jtlwcc_woocommerce_deactivated(): bool
 {
-    return !is_plugin_active(JTLWCC_WOOCOMMERCE_PLUGIN_FILE);
+    return !in_array(JTLWCC_WOOCOMMERCE_PLUGIN_FILE, (array) get_option('active_plugins', []), true);
 }
 
 /**
@@ -372,7 +370,7 @@ function jtlwcc_menu_link(): void
  */
 function jtlwcc_connector_activated(): bool
 {
-    return is_plugin_active('woo-jtl-connector/woo-jtl-connector.php');
+    return in_array('woo-jtl-connector/woo-jtl-connector.php', (array) get_option('active_plugins', []), true);
 }
 
 /**
