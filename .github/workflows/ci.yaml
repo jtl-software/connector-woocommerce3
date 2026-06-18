@@ -198,7 +198,6 @@ jobs:
             .gitignore
             .gitkeep
             CLAUDE.md
-            Db.php
           exclude-directories: |
             .github
             config
