@@ -54,6 +54,7 @@
                 <include name="assets/"/>
                 <include name="plugins/jtl/"/>
                 <include name="vendor/"/>
+                <exclude name=".claude/**"/>
             </fileset>
         </copy>
     </target>

@@ -29,6 +29,7 @@ jobs:
           mkdir woo-jtl-connector
           find . -maxdepth 1 -mindepth 1 \
             ! -name '.git' \
+            ! -name '.claude' \
             ! -name 'woo-jtl-connector' \
             ! -name '.wp-env.override.json' \
             -exec cp -rl '{}' woo-jtl-connector/ \;
