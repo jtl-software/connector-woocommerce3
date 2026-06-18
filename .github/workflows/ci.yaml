@@ -166,7 +166,7 @@ jobs:
 
       - name: Create wp-env override with WooCommerce dependency
         run: |
-          echo '{"plugins":["woocommerce"]}' > .wp-env.override.json
+          echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"]}' > .wp-env.override.json
 
       - name: Run WordPress Plugin Check
         uses: wordpress/plugin-check-action@98a1788320d0add90df2d8183934ecccbc4e05d2 # v1.1.7
