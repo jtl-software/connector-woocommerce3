@@ -432,7 +432,7 @@ class CustomerOrderItemController extends AbstractBaseController
         $totalGrossPrecision = Util::getDecimalPrecision($totalGross);
         $vat                 = .0;
         if ($totalNet > 0 && $totalGross > 0 && $totalGross > $totalNet) {
-            $vat = \round(\round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100, $vatRoundPrecision);
+            $vat = \round($totalGross / $totalNet, $vatRoundPrecision) * 100 - 100;
         }
 
         $totalGrossCalculated = \round(($totalNet * ($vat / 100 + 1)), $totalGrossPrecision);

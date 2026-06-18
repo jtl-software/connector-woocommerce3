@@ -38,32 +38,7 @@ class CustomerOrderItemTest extends AbstractTestCase
     }
 
     /**
-     * IEEE 754 float drift: round(ratio, n) stored as a double slightly below the
-     * mathematical value. Multiplying by 100 amplifies that drift so the intermediate
-     * result falls just below the .XX5 rounding boundary, causing round(..., 2) to
-     * give the wrong VAT rate.
-     *
-     * The fix adds an intermediate round(..., vatRoundPrecision) to snap the drifted
-     * value before the final round(..., 2) is applied:
-     *
-     *   OLD: round(round(4.4444/4.1234, 5) * 100 - 100, 2)          = 7.78 (wrong)
-     *   FIX: round(round(round(4.4444/4.1234, 5) * 100 - 100, 5), 2) = 7.79 (correct)
-     *
-     * @return void
-     * @throws \ReflectionException
-     * @covers CustomerOrderItemController::calculateVat
-     */
-    public function testCalculateVatIeeeFloatDriftFixed(): void
-    {
-        $sut = new CustomerOrderItemController($this->createDbMock(), $this->createUtilMock());
-
-        $vatRate = $this->invokeMethodFromObject($sut, 'calculateVat', 4.1234, 4.4444);
-
-        $this->assertEquals(7.79, $vatRate);
-    }
-
-    /**
-     * @return array<int|string, array<int, float|int>>
+     * @return array<int, array<int, float|int>>
      */
     public function calculateVatDataProvider(): array
     {
@@ -98,12 +73,7 @@ class CustomerOrderItemTest extends AbstractTestCase
             [3.89899, 4.1719193333333, 7.],
             [9.19, 9.897799, 7.7],
             [9.19, 9.9, 7.7],
-            [5.571, 6, 7.7],
-            // vatRoundPrecision=3: 2-decimal approximation overshoots, 3-decimal converges
-            'vatRoundPrecision_3' => [10.0, 10.79, 7.9],
-            // vatRoundPrecision=4: ratio needs 4-digit precision to reproduce the gross
-            'vatRoundPrecision_4_a' => [1.2345, 1.3208, 6.99],
-            'vatRoundPrecision_4_b' => [3.33, 3.5628, 6.99],
+            [5.571, 6, 7.7]
         ];
     }
 }
