@@ -1,6 +1,6 @@
 <?php
 
-namespace jtl\CustomProductTabs;
+namespace JtlWooCommerceConnector\Plugins\CustomProductTabs;
 
 use Jtl\Connector\Core\Event\ProductEvent;
 use Jtl\Connector\Core\Model\TranslatableAttributeI18n;
@@ -9,7 +9,7 @@ use Nette\Utils\RegexpException;
 
 /**
  * Class ProductListener
- * @package jtl\CustomProductTabs
+ * @package JtlWooCommerceConnector\Plugins\CustomProductTabs
  */
 class ProductListener
 {

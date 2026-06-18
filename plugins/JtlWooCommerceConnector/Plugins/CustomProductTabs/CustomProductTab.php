@@ -1,13 +1,13 @@
 <?php
 
-namespace jtl\CustomProductTabs;
+namespace JtlWooCommerceConnector\Plugins\CustomProductTabs;
 
 use Nette\Utils\RegexpException;
 use Nette\Utils\Strings;
 
 /**
  * Class CustomProductTab
- * @package jtl\CustomProductTabs
+ * @package JtlWooCommerceConnector\Plugins\CustomProductTabs
  */
 class CustomProductTab
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace jtl\CustomProductTabs;
+namespace JtlWooCommerceConnector\Plugins\CustomProductTabs;
 
 use DI\Container;
 use Jtl\Connector\Core\Definition\Action;

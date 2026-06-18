@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf /home/akempe/Projekte/connector-woocommerce3/plugins/JtlWooCommerceConnector)",
+      "Bash(git mv *)"
+    ]
+  }
+}
