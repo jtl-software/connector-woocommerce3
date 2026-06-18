@@ -497,10 +497,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         Config::set(Config::OPTIONS_TOKEN, self::create_password());
         Config::set(Config::OPTIONS_INSTALLED_VERSION, $buildVersion);
 
-        foreach (Config::JTLWCC_CONFIG as $name => $castItem) {
-            $currentValue = Config::get($name);
-            if ($currentValue === null) {
-                $defaultValue = Config::JTLWCC_CONFIG_DEFAULTS[ $name ];
+        foreach (Config::JTLWCC_CONFIG_DEFAULTS as $name => $defaultValue) {
+            if (Config::get($name) === null) {
                 Config::set($name, $defaultValue);
             }
         }
