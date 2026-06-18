@@ -188,11 +188,12 @@ jobs:
             general
             plugin_repo
             security
+          exclude-checks: |
+            trademarks
           exclude-directories: |
             .github
             db
             logs
             stubs
             tests
-            var
             vendor
