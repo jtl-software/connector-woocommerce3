@@ -1,13 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rm -rf /home/akempe/Projekte/connector-woocommerce3/plugins/JtlWooCommerceConnector)",
-      "Bash(git mv *)",
       "Bash(./vendor/bin/phpcs --standard=JtlConnector -e)",
-      "Bash(xargs cat)",
-      "Bash(./vendor/bin/phpcs -i)",
       "Bash(composer require *)",
-      "Bash(./vendor/bin/phpcs --standard=phpcs-wordpress.xml woo-jtl-connector.php)"
+      "Bash(./vendor/bin/phpcs --standard=phpcs-wordpress.xml woo-jtl-connector.php)",
+      "Bash(./vendor/bin/phpcs --basepath=. --extensions=php --standard=JtlConnector --report=full src tests includes uninstall.php woo-jtl-connector.php)"
     ]
   }
 }
