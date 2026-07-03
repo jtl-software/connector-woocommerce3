@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
+
 namespace JtlWooCommerceConnector\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -14,12 +16,18 @@ require_once __DIR__ . '/../../includes/JtlConnectorAdmin.php';
  */
 class JtlConnectorAdminTest extends TestCase
 {
+    /**
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
         WP_Mock::setUp();
     }
 
+    /**
+     * @return void
+     */
     protected function tearDown(): void
     {
         WP_Mock::tearDown();
@@ -56,7 +64,7 @@ class JtlConnectorAdminTest extends TestCase
         ]);
 
         $reflection = new \ReflectionClass(\JtlConnectorAdmin::class);
-        $method = $reflection->getMethod('setDefaultWooCommerceTaxOptions');
+        $method     = $reflection->getMethod('setDefaultWooCommerceTaxOptions');
         $method->invoke(null);
 
         \Mockery::close();
@@ -87,7 +95,7 @@ class JtlConnectorAdminTest extends TestCase
         ]);
 
         $reflection = new \ReflectionClass(\JtlConnectorAdmin::class);
-        $method = $reflection->getMethod('setDefaultWooCommerceTaxOptions');
+        $method     = $reflection->getMethod('setDefaultWooCommerceTaxOptions');
         $method->invoke(null);
 
         \Mockery::close();
