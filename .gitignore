@@ -1,7 +1,6 @@
 plugins/*
 !plugins/.gitkeep
 !plugins/jtl
-composer.lock
 vendor/**
 config/config.json
 config/features.json
@@ -19,3 +18,5 @@ logs/
 *.zip
 /junit.xml
 /phpcs-quality-report.json
+var/
+.phpunit.cache
