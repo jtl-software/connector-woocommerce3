@@ -83,7 +83,7 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: PHPCS
-        run: bash .github/scripts/run-phpcs.sh
+        run: composer run phpcs
 
       - name: PHPStan
         run: composer run phpstan -- --error-format=github --memory-limit=2G
