@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+// phpcs:disable PSR1.Files.SideEffects
 if (!defined('ABSPATH')) {
     exit;
 }
+// phpcs:enable PSR1.Files.SideEffects
 
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;

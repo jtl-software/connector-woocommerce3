@@ -1,48 +1,58 @@
 name: Check
 
 on:
+  workflow_call:
   push:
-    branches: [master]
+    branches: [main, master, develop]
     paths-ignore:
       - '**.md'
   pull_request:
+    branches: [main, master, develop]
     paths-ignore:
       - '**.md'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
-  status-check:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
       checks: write
-      packages: read
-    container:
-      image: ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.3
-      options: --user root
+      pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - run: git config --global --add safe.directory "${{ github.workspace }}"
+          sparse-checkout: |
+            .github
 
-      - run: composer install --no-progress --no-interaction
-      - run: composer global require "staabm/annotate-pull-request-from-checkstyle:^1.8"
+      - name: Lint GitHub Actions
+        uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
+          fail_level: error
 
-      - name: PHPCS
-        if: always()
-        continue-on-error: true
-        run: bash .github/scripts/run-phpcs.sh
+      - name: Lint shell scripts
+        if: ${{ hashFiles('.github/scripts/*.sh') != '' }}
+        uses: reviewdog/action-shellcheck@4c07458293ac342d477251099501a718ae5ef86e # v1.32.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
+          path: .github/scripts
+          pattern: '*.sh'
+          fail_level: error
 
-      - name: PHPStan
-        if: always()
-        continue-on-error: true
-        run: composer run phpstan -- --error-format=github --memory-limit=2G
-
-  phpunit:
-    name: PHPUnit (PHP ${{ matrix.php-version }})
+  php-static-analysis:
+    name: PHP Static Analysis (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
+    needs: lint
     permissions:
       contents: read
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +75,49 @@ jobs:
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ steps.composer-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php${{ matrix.php-version }}-
+
+      - name: Composer install
+        run: composer install --no-interaction --no-progress
+
+      - name: PHPCS
+        run: composer run phpcs
+
+      - name: PHPStan
+        run: composer run phpstan -- --error-format=github --memory-limit=2G
+
+  php-tests:
+    name: PHP Tests (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.3']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-php${{ matrix.php-version }}-
 
@@ -73,12 +125,30 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: PHPUnit
-        run: vendor/bin/phpunit --configuration phpunit.xml --bootstrap vendor/autoload.php --log-junit junit.xml
+        run: composer run tests:ci
 
-      - name: Upload JUnit results
+      - name: Report test results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         with:
-          name: junit-php-${{ matrix.php-version }}
+          name: PHPUnit Results (PHP ${{ matrix.php-version }})
           path: junit.xml
-          retention-days: 7
+          reporter: java-junit
+
+  check:
+    name: Check status
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [lint, php-static-analysis, php-tests]
+    permissions:
+      checks: write
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.php-static-analysis.result }}" != "success" ]] || \
+             [[ "${{ needs.php-tests.result }}" != "success" ]]; then
+            echo "❌ One or more checks failed"
+            exit 1
+          fi
+          echo "✅ All checks passed"

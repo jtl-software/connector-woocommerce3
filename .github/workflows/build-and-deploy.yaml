@@ -6,8 +6,14 @@ on:
       - '[0-9]*.[0-9]*.[0-9]*'
 
 jobs:
+  qa:
+    name: QA gate
+    uses: ./.github/workflows/check.yaml
+    secrets: inherit
+
   build:
     name: Build
+    needs: qa
     runs-on: ubuntu-latest
     permissions:
       contents: read
