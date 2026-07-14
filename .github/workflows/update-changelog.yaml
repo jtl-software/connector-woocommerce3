@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   update-changelog:
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@CO-3490-changelog-extractor-not-working # v2
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@21926464ffba4e610cd0e2c0f9d277d3ffe8ca56 # v2
     with:
       system-name: woocommerce
       jira-release-prefix: WC
