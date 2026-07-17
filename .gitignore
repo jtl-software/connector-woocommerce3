@@ -12,6 +12,7 @@ db/
 logs/
 !logs/.gitkeep
 .idea/
+.claude/
 .code
 .DS_Store
 *.mo
