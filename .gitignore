@@ -1,6 +1,6 @@
 plugins/*
 !plugins/.gitkeep
-!plugins/jtl
+!plugins/JtlWooCommerceConnector
 composer.lock
 vendor/**
 config/config.json
@@ -20,5 +20,6 @@ logs/
 *.zip
 /junit.xml
 /phpcs-quality-report.json
+/phpcs-report.xml
 var/
 .phpunit.cache/
