@@ -1,4 +1,4 @@
-name: Check
+name: CI
 
 on:
   push:
@@ -8,9 +8,20 @@ on:
   pull_request:
     paths-ignore:
       - '**.md'
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   status-check:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,22 +34,34 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+
       - run: git config --global --add safe.directory "${{ github.workspace }}"
+
+      - name: Get Composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-php83-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php83-
 
       - run: composer install --no-progress --no-interaction
       - run: composer global require "staabm/annotate-pull-request-from-checkstyle:^1.8"
 
       - name: PHPCS
         if: always()
-        continue-on-error: true
         run: bash .github/scripts/run-phpcs.sh
 
       - name: PHPStan
         if: always()
-        continue-on-error: true
         run: composer run phpstan -- --error-format=github --memory-limit=2G
 
   phpunit:
+    if: github.event_name != 'schedule'
+    needs: [status-check]
     name: PHPUnit (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
     permissions:
@@ -65,7 +88,7 @@ jobs:
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ steps.composer-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-php${{ matrix.php-version }}-
 
@@ -81,4 +104,50 @@ jobs:
         with:
           name: junit-php-${{ matrix.php-version }}
           path: junit.xml
-          retention-days: 7
+          retention-days: 5
+
+  actionlint:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github
+
+      - uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
+          fail_level: error
+
+  shellcheck:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - uses: reviewdog/action-shellcheck@4c07458293ac342d477251099501a718ae5ef86e # v1.32.0
+        with:
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
+          path: .github/scripts
+          pattern: '*.sh'
+          fail_level: error
+
+  plugin-check:
+    needs: [status-check]
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/plugin-check.yaml
+    secrets: inherit

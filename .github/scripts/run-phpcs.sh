@@ -7,6 +7,8 @@
 
 set -uo pipefail
 
+git config --global --add safe.directory "$(pwd)"
+
 composer run phpcs -- --report-checkstyle=phpcs-report.xml
 phpcs_exit=$?
 

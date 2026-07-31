@@ -7,7 +7,7 @@
         <mkdir dir="${tmpdir}/dist/woo-jtl-connector/config"/>
         <mkdir dir="${tmpdir}/dist/woo-jtl-connector/db"/>
         <mkdir dir="${tmpdir}/dist/woo-jtl-connector/logs"/>
-        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/plugins/jtl/"/>
+        <mkdir dir="${tmpdir}/dist/woo-jtl-connector/plugins/JtlWooCommerceConnector/"/>
         <mkdir dir="${tmpdir}/dist/woo-jtl-connector/tmp"/>
 
         <copy todir="${tmpdir}/dist/woo-jtl-connector/config">
@@ -52,8 +52,9 @@
             <fileset dir="./">
                 <include name="src/"/>
                 <include name="assets/"/>
-                <include name="plugins/jtl/"/>
+                <include name="plugins/JtlWooCommerceConnector/"/>
                 <include name="vendor/"/>
+                <exclude name=".claude/**"/>
             </fileset>
         </copy>
     </target>

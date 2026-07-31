@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
@@ -65,7 +61,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
      */
     private static function unslash_gpc(): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        // phpcs:disable WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification.Recommended -- Intentional: reverse WordPress magic quotes for JTL Connector request processing
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- Intentional: reverse WordPress magic quotes for JTL Connector request processing; connector uses token-based auth, not WP nonces
         $_GET     = array_map('stripslashes_deep', $_GET);
         $_POST    = array_map('stripslashes_deep', $_POST);
         $_COOKIE  = array_map('stripslashes_deep', $_COOKIE);

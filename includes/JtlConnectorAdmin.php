@@ -150,6 +150,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             }
 
             if ($oldExists && $newExists) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
                 $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($oldPrefix . $table) . "`");
             } elseif (! $oldExists && ! $newExists) {
                 if (strcmp($table, 'category_level') === 0) {
@@ -167,6 +168,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 } elseif (strcmp($table, 'tax_class') === 0) {
                     self::createTaxClassLinkingTable();
                 } else {
+                    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
                     $wpdb->query("
     CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix . $table) . "` (
         `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -174,6 +176,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         PRIMARY KEY (`endpoint_id`, `host_id`),
         INDEX (`host_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+                    // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
                 }
                 /** @phpstan-ignore booleanNot.alwaysTrue */
             } elseif ($oldExists && !$newExists) {
@@ -201,7 +204,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
         $existingTables = [];
-        $tableDataSet   = $wpdb->get_results('SHOW TABLES');
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- metadata query, no WP API available
+        $tableDataSet = $wpdb->get_results('SHOW TABLES');
 
         if (count($tableDataSet) !== 0) {
             foreach ($tableDataSet as $tableData) {
@@ -224,6 +228,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
         $wpdb->query("RENAME TABLE `" . esc_sql($oldName) . "` TO `" . esc_sql($newName) . "`");
     }
 
@@ -236,6 +241,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         $wpdb   = $db->getWpDb();
         $prefix = $wpdb->prefix . 'jtl_connector_';
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
@@ -244,7 +250,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             DB_NAME
         ));
 
-        // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix) . "category_level` (
                 `category_id` BIGINT(20) unsigned NOT NULL,
@@ -256,7 +261,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (!$db->checkIfFKExists($prefix . 'category_level', 'jtl_connector_category_level1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "category_level`
                     ADD CONSTRAINT `jtl_connector_category_level1` FOREIGN KEY (`category_id`)
@@ -264,6 +268,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -275,6 +280,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
@@ -283,7 +289,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             DB_NAME
         ));
 
-        // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `" . esc_sql($prefix) . "product_checksum` (
                 `product_id` BIGINT(20) unsigned NOT NULL,
@@ -295,7 +300,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         if ($engine === 'InnoDB') {
             $db = new Db($wpdb);
             if (!$db->checkIfFKExists($prefix . 'product_checksum', 'jtl_connector_product_checksum1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "product_checksum`
                     ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`)
@@ -303,6 +307,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -311,6 +316,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function createCustomerLinkingTable(): void
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -320,6 +326,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 INDEX (`host_id`, `is_guest`),
                 INDEX (`endpoint_id`, `is_guest`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -328,6 +335,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function createCustomerGroupLinkingTable(): void
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::CUSTOMER_GROUP) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -336,6 +344,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 INDEX (`host_id`),
                 INDEX (`endpoint_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -344,6 +353,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     private static function createImageLinkingTable(): void
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
         $wpdb->query('
             CREATE TABLE IF NOT EXISTS `' . esc_sql(LinkTableNames::IMAGE) . '` (
                 `endpoint_id` VARCHAR(255) NOT NULL,
@@ -353,6 +363,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 INDEX (`host_id`, `type`),
                 INDEX (`endpoint_id`, `type`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -364,6 +375,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::MANUFACTURER) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -394,6 +406,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -403,6 +416,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL operation, no WP API available
         $wpdb->query(
             "CREATE TABLE IF NOT EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::TAX_CLASS) . "` (
                 `endpoint_id` VARCHAR(200) NOT NULL,
@@ -411,6 +425,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 UNIQUE (`host_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
         );
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     // </editor-fold>
@@ -425,6 +440,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $engine = $wpdb->get_var($wpdb->prepare(
             "SELECT ENGINE
             FROM information_schema.TABLES
@@ -435,7 +451,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
 
         if ($engine === 'InnoDB') {
             if (! $db->checkIfFKExists($prefix . 'product', 'jtl_connector_link_product_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "product`
                     ADD CONSTRAINT `jtl_connector_link_product_1` FOREIGN KEY (`endpoint_id`)
@@ -443,7 +458,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'order', 'jtl_connector_link_order_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "order`
                     ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`endpoint_id`)
@@ -451,7 +465,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'payment', 'jtl_connector_link_payment_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "payment`
                     ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`endpoint_id`)
@@ -459,7 +472,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'crossselling', 'jtl_connector_link_crossselling_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "crossselling`
                     ADD CONSTRAINT `jtl_connector_link_crossselling_1` FOREIGN KEY (`endpoint_id`)
@@ -467,7 +479,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'category', 'jtl_connector_link_category_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "category`
                     ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`endpoint_id`)
@@ -475,7 +486,6 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
             if (! $db->checkIfFKExists($prefix . 'specific', 'jtl_connector_link_specific_1')) {
-                // phpcs:ignore WordPress.DB -- esc_sql returns string for string input
                 $wpdb->query(
                     "ALTER TABLE `" . esc_sql($prefix) . "specific`
                     ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`endpoint_id`)
@@ -485,6 +495,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 );
             }
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -497,10 +508,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         Config::set(Config::OPTIONS_TOKEN, self::create_password());
         Config::set(Config::OPTIONS_INSTALLED_VERSION, $buildVersion);
 
-        foreach (Config::JTLWCC_CONFIG as $name => $castItem) {
-            $currentValue = Config::get($name);
-            if ($currentValue === null) {
-                $defaultValue = Config::JTLWCC_CONFIG_DEFAULTS[ $name ];
+        foreach (Config::JTLWCC_CONFIG_DEFAULTS as $name => $defaultValue) {
+            if (Config::get($name) === null) {
                 Config::set($name, $defaultValue);
             }
         }
@@ -1955,6 +1964,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 //hotfix
             case '1.8.2.4':
                 //hotfix
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration operation, no WP API available
                 $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($wpdb->prefix . LinkTableNames::CUSTOMER_GROUP) . "`");
                 self::createCustomerGroupLinkingTable();
             // no break
@@ -2146,6 +2156,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $result = true;
         $wpdb->query('START TRANSACTION');
 
@@ -2228,6 +2239,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 ));
             });
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -2266,6 +2278,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         // Modify varchar endpoint_id to integer
         $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::ORDER) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
         $wpdb->query("ALTER TABLE `" . esc_sql(LinkTableNames::PAYMENT) . "` MODIFY `endpoint_id` BIGINT(20) unsigned");
@@ -2312,6 +2325,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         ));
 
         self::add_constraints_for_multi_linking_tables('jtl_connector_link_', $db);
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -2323,6 +2337,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         $wpdb = $db->getWpDb();
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $wpdb->query("
             CREATE TABLE IF NOT EXISTS `" . esc_sql(LinkTableNames::SPECIFIC) . "` (
                 `endpoint_id` BIGINT(20) unsigned NOT NULL,
@@ -2375,6 +2390,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 REFERENCES `" . esc_sql($table) . "` (`attribute_id`) ON DELETE CASCADE ON UPDATE NO ACTION");
             }
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**
@@ -2384,6 +2400,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
     {
         global $wpdb;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- DDL migration, no WP API available
         $tables = [
             'jtl_connector_category_level',
             LinkTableNames::CATEGORY,
@@ -2401,6 +2418,7 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
         foreach ($tables as $table) {
             $wpdb->query("RENAME TABLE `" . esc_sql($table) . "` TO `" . esc_sql($wpdb->prefix . $table) . "`");
         }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
     }
 
     /**

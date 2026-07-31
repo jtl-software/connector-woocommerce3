@@ -29,7 +29,8 @@ define('JTLWCC_CONNECTOR_DIR', __DIR__);
 define('JTLWCC_EXT_CONNECTOR_PLUGIN_DIR', dirname(__DIR__) . '/' . JTLWCC_TEXT_DOMAIN . '-custom-plugins');
 /** @phpstan-ignore constant.notFound */
 define('JTLWCC_CONNECTOR_DIR_URL', WP_PLUGIN_URL . JTLWCC_DS . JTLWCC_TEXT_DOMAIN);
-define('CONNECTOR_DIR', __DIR__); // NEED CONNECTOR CORE CHANGES
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- required by connector core
+define('CONNECTOR_DIR', __DIR__);
 define('JTLWCC_INCLUDES_DIR', plugin_dir_path(__FILE__) . 'includes' . JTLWCC_DS);
 
 require_once ABSPATH . '/wp-admin/includes/plugin.php';
@@ -37,17 +38,17 @@ require_once ABSPATH . '/wp-admin/includes/plugin.php';
 try {
     if (file_exists(JTLWCC_CONNECTOR_DIR . '/connector.phar')) {
         if (wp_is_writable(sys_get_temp_dir())) {
-            $loader = require('phar://' . JTLWCC_CONNECTOR_DIR . '/connector.phar/vendor/autoload.php');
-            $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
+            $jtlwcc_loader = require('phar://' . JTLWCC_CONNECTOR_DIR . '/connector.phar/vendor/autoload.php');
+            $jtlwcc_loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
             if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
-                $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
+                $jtlwcc_loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
             }
         }
     } else {
-        $loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
-        $loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
+        $jtlwcc_loader = require(JTLWCC_CONNECTOR_DIR . '/vendor/autoload.php');
+        $jtlwcc_loader->add('', JTLWCC_CONNECTOR_DIR . '/plugins');
         if (is_dir(JTLWCC_EXT_CONNECTOR_PLUGIN_DIR)) {
-            $loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
+            $jtlwcc_loader->add('', JTLWCC_EXT_CONNECTOR_PLUGIN_DIR);
         }
     }
 } catch (\Exception $e) {
@@ -60,7 +61,6 @@ add_action('before_woocommerce_init', function (): void {
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
     }
 });
-add_action('init', 'jtlwcc_load_internationalization');
 add_action('plugins_loaded', 'jtlwcc_validate_plugins');
 
 if (jtlwcc_rewriting_disabled()) {
@@ -318,15 +318,6 @@ function jtlwcc_clear_connector_cache(bool $exit = true): void
         }
     }
 }
-/**
- * Register the languages folder thus the DE and CH German translations are available based on the WP setting.
- *
- * @return void
- */
-function jtlwcc_load_internationalization(): void
-{
-    load_plugin_textdomain('woo-jtl-connector', false, basename(dirname(__FILE__)) . '/languages');
-}
 
 /**
  * Check the status of WC, connector and the WC version.
@@ -360,10 +351,7 @@ function jtlwcc_deactivate_plugin(): void
  */
 function jtlwcc_woocommerce_deactivated(): bool
 {
-    return !in_array(
-        JTLWCC_WOOCOMMERCE_PLUGIN_FILE,
-        apply_filters('active_plugins', get_option('active_plugins'))
-    );
+    return !is_plugin_active(JTLWCC_WOOCOMMERCE_PLUGIN_FILE);
 }
 
 /**
@@ -385,10 +373,7 @@ function jtlwcc_menu_link(): void
  */
 function jtlwcc_connector_activated(): bool
 {
-    return in_array(
-        'woo-jtl-connector/woo-jtl-connector.php',
-        apply_filters('active_plugins', get_option('active_plugins'))
-    );
+    return is_plugin_active('woo-jtl-connector/woo-jtl-connector.php');
 }
 
 /**
