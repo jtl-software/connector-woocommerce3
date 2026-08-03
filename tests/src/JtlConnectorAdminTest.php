@@ -43,14 +43,14 @@ class JtlConnectorAdminTest extends TestCase
     {
         WP_Mock::userFunction('get_option', [
             'times' => 1,
-            'args' => ['woocommerce_tax_display_shop'],
-            'return' => 'excl',
+            'args' => ['woocommerce_tax_display_shop', false],
+            'return' => false,
         ]);
 
         WP_Mock::userFunction('get_option', [
             'times' => 1,
-            'args' => ['woocommerce_tax_display_cart'],
-            'return' => 'excl',
+            'args' => ['woocommerce_tax_display_cart', false],
+            'return' => false,
         ]);
 
         WP_Mock::userFunction('update_option', [
@@ -79,13 +79,13 @@ class JtlConnectorAdminTest extends TestCase
     {
         WP_Mock::userFunction('get_option', [
             'times' => 1,
-            'args' => ['woocommerce_tax_display_shop'],
+            'args' => ['woocommerce_tax_display_shop', false],
             'return' => 'incl',
         ]);
 
         WP_Mock::userFunction('get_option', [
             'times' => 1,
-            'args' => ['woocommerce_tax_display_cart'],
+            'args' => ['woocommerce_tax_display_cart', false],
             'return' => 'incl',
         ]);
 
