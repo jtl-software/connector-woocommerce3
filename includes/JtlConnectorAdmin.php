@@ -513,6 +513,24 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
                 Config::set($name, $defaultValue);
             }
         }
+
+        self::setDefaultWooCommerceTaxOptions();
+    }
+
+    /**
+     * @return void
+     */
+    private static function setDefaultWooCommerceTaxOptions(): void
+    {
+        $shopDisplay = \get_option('woocommerce_tax_display_shop', false);
+        if ($shopDisplay === false) {
+            \update_option('woocommerce_tax_display_shop', 'incl', true);
+        }
+
+        $cartDisplay = \get_option('woocommerce_tax_display_cart', false);
+        if ($cartDisplay === false) {
+            \update_option('woocommerce_tax_display_cart', 'incl', true);
+        }
     }
 
     /**
