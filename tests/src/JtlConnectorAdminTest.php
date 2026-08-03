@@ -67,7 +67,6 @@ class JtlConnectorAdminTest extends TestCase
         $method     = $reflection->getMethod('setDefaultWooCommerceTaxOptions');
         $method->invoke(null);
 
-        \Mockery::close();
         $this->addToAssertionCount(1);
     }
 
