@@ -44,7 +44,9 @@ class Config
         OPTIONS_CUSTOM_CHECKOUT_FIELDS                   = 'jtlconnector_custom_checkout_fields',
         OPTIONS_LIMIT_CUSTOMER_QUERY_TYPE                = 'jtlconnector_limit_customer_query',
         OPTIONS_FEATURES_JSON                            = 'jtlconnector_features_json',
-        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than';
+        OPTIONS_IGNORE_ORDERS_YOUNGER_THAN               = 'jtlconnector_ignore_orders_younger_than',
+        OPTIONS_TELEMETRY_ENABLED                        = 'jtlconnector_telemetry_enabled',
+        OPTIONS_TELEMETRY_ENDPOINT                       = 'jtlconnector_telemetry_endpoint';
 
     public const array JTLWCC_CONFIG_DEFAULTS = [
         //FIRSTPAGE
@@ -84,6 +86,9 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => true,
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => true,
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => true,
+        //Telemetry
+        Config::OPTIONS_TELEMETRY_ENABLED => false,
+        Config::OPTIONS_TELEMETRY_ENDPOINT => '',
     ];
 
     public const array JTLWCC_CONFIG = [
@@ -116,8 +121,11 @@ class Config
         Config::OPTIONS_AUTO_WOOCOMMERCE_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_GERMAN_MARKET_OPTIONS => 'bool',
         Config::OPTIONS_AUTO_B2B_MARKET_OPTIONS => 'bool',
+        //Telemetry
+        Config::OPTIONS_TELEMETRY_ENABLED => 'bool',
         //Not displayed
         Config::OPTIONS_FEATURES_JSON => 'string',
+        Config::OPTIONS_TELEMETRY_ENDPOINT => 'string',
     ];
 
     /**

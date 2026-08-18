@@ -1621,6 +1621,21 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             'clearLogsText' => __('Clear logs', 'woo-jtl-connector'),
         ];
 
+        //Add telemetry participation toggle
+        $fields[] = [
+            'title'     => __('Telemetry', 'woo-jtl-connector'),
+            'type'      => 'active_true_false_radio',
+            'desc'      => __(
+                'Transmit anonymous operational telemetry data (transaction, synchronization and
+                technical request statistics) to the JTL telemetry platform (Default : Disabled).',
+                'woo-jtl-connector'
+            ),
+            'id'        => Config::OPTIONS_TELEMETRY_ENABLED,
+            'value'     => Config::get(Config::OPTIONS_TELEMETRY_ENABLED, false),
+            'trueText'  => __('Enabled', 'woo-jtl-connector'),
+            'falseText' => __('Disabled', 'woo-jtl-connector'),
+        ];
+
         $fields[] = [
             'title'     => __('Recommend WooCommerce Settings', 'woo-jtl-connector'),
             'type'      => 'active_true_false_radio',
