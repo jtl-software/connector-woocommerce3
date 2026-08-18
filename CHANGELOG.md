@@ -10,6 +10,11 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-3095 - add updated wpml plugin name
 - CO-3255 - implement phpstan cd pipeline
 
+## 2.4.3 _2026-08-18_
+- CO-3586 - update connector core version (security fix from CO-3583, session tokens hashed with SHA-256)
+
+## 2.4.2 _2026-06-17_
+- CO-3478 - security update
 
 ## 2.4.1 _2025-11-25_
 - CO-3254 - fix wrong price update in quick sync
