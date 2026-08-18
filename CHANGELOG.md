@@ -11,7 +11,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 - CO-3255 - implement phpstan cd pipeline
 
 ## 2.4.3 _2026-08-18_
-- CO-3586 - include connector core security fix (session tokens are stored as SHA-256 hashes instead of plaintext)
+- CO-3586 - update connector core version (security fix from CO-3583, session tokens hashed with SHA-256)
 
 ## 2.4.2 _2026-06-17_
 - CO-3478 - security update
