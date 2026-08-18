@@ -6,7 +6,7 @@ Tested up to: 7.0
 Requires PHP: 8.3
 WC requires at least: 3.4.7
 WC tested up to: 10.8.1
-Stable tag: 2.4.2
+Stable tag: 2.4.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -151,6 +151,9 @@ This section describes how to install the plugin and get it working.
 7. The JTL-Connector for WooCommerce (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 2.4.3 =
+* Security: Updated Connector Core to fix plaintext session token storage — tokens are now hashed with SHA-256 in the local SQLite database
 
 = 2.4.2 =
 * Security: Added capability checks and nonce verification to all admin endpoints (CVE-2026-9234)
