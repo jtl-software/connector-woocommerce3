@@ -3,15 +3,15 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.4.3 _2026-08-18_
+- CO-3586 - update connector core version (security fix from CO-3583, session tokens hashed with SHA-256)
 - CO-3161 - consider different customer languages
 - CO-3308 - fix seo url changes on update
 - CO-3262 - update wpml plugin name
 - CO-3283 - remove db translation entries during product delete
 - CO-3095 - add updated wpml plugin name
 - CO-3255 - implement phpstan cd pipeline
-
-## 2.4.3 _2026-08-18_
-- CO-3586 - update connector core version (security fix from CO-3583, session tokens hashed with SHA-256)
 
 ## 2.4.2 _2026-06-17_
 - CO-3478 - security update
