@@ -1,17 +1,22 @@
 name: Update changelog
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   update-changelog:
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@21926464ffba4e610cd0e2c0f9d277d3ffe8ca56 # v2
+    # NOTE: merge only AFTER changelog-extractor v2.1.0 is released — it introduces the
+    # secrets-based interface (APP_ID) and the authenticated PHAR download. @v2 is the
+    # rolling pointer; switch to an immutable v2.1.0 commit SHA if you prefer strict pinning.
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@v2
     with:
       system-name: woocommerce
-      app-id: ${{ vars.GH_APP_ID }}
     secrets:
+      APP_ID: ${{ secrets.GH_APP_ID }}
       APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
