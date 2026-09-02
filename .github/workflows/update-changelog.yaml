@@ -11,10 +11,11 @@ permissions:
 
 jobs:
   update-changelog:
-    # NOTE: merge only AFTER changelog-extractor v2.1.0 is released — it introduces the
-    # secrets-based interface (APP_ID) and the authenticated PHAR download. @v2 is the
-    # rolling pointer; switch to an immutable v2.1.0 commit SHA if you prefer strict pinning.
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@v2
+    # TEST-ONLY BRANCH — DO NOT MERGE. Points at changelog-extractor's
+    # test/verify-token-fix (a no-op-PR fork of the fixChangelogUpdate PR #18
+    # branch) to live-verify the token-scope fix without writing a real PR
+    # into changelog-page. Revert to @v2 before this branch is deleted.
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@test/verify-token-fix
     with:
       system-name: woocommerce
     secrets:
