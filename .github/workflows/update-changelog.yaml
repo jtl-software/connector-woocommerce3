@@ -14,7 +14,7 @@ jobs:
     # TEST-ONLY BRANCH — DO NOT MERGE. Exact-match test: points at the SHA of
     # changelog-extractor's throwaway test-exact-match-noop tag, to verify
     # PR #20's release-resolution step finds it via the tags API.
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@ff9f22f84730ff2dc9e265fad167bd4264c1cee3
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@967397ffb53b71e1851648d6d5bf8ce272a2554b
     with:
       system-name: woocommerce
     secrets:
