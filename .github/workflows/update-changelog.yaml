@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   update-changelog:
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@e4c939fe6535edeb4b432e6a6945664bd2a6d036 # v2.2.0
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@94bcca4160818f110843ff273d43b86f406c586f # v2.2.1
     with:
       system-name: woocommerce
     secrets:
