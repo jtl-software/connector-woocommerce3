@@ -11,10 +11,7 @@ permissions:
 
 jobs:
   update-changelog:
-    # Pinned to the changelog-extractor#18 merge commit (App token scope fix +
-    # jtl-changelog-page-writer App switch). The rolling v2 tag hasn't been
-    # moved past that yet - switch back to @v2 once it has.
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@e4c939fe6535edeb4b432e6a6945664bd2a6d036 # main, post-#18
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@e4c939fe6535edeb4b432e6a6945664bd2a6d036 # v2.2.0
     with:
       system-name: woocommerce
     secrets:
