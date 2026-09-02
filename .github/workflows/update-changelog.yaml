@@ -11,10 +11,10 @@ permissions:
 
 jobs:
   update-changelog:
-    # NOTE: merge only AFTER changelog-extractor v2.1.0 is released — it introduces the
-    # secrets-based interface (APP_ID) and the authenticated PHAR download. @v2 is the
-    # rolling pointer; switch to an immutable v2.1.0 commit SHA if you prefer strict pinning.
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@v2
+    # Pinned to the changelog-extractor#18 merge commit (App token scope fix +
+    # jtl-changelog-page-writer App switch). The rolling v2 tag hasn't been
+    # moved past that yet - switch back to @v2 once it has.
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@e4c939fe6535edeb4b432e6a6945664bd2a6d036 # main, post-#18
     with:
       system-name: woocommerce
     secrets:
