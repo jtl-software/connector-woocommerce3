@@ -8,6 +8,13 @@ use Jtl\Connector\Core\Authentication\TokenValidatorInterface;
 
 class TokenValidator implements TokenValidatorInterface
 {
+    /**
+     * Session key set once a connector token has been validated successfully.
+     * Consumed by AuthenticatedSqliteSessionHandler::validateId() to reject the
+     * replay of session ids that were minted on a failed authentication attempt.
+     */
+    public const string AUTH_SESSION_KEY = 'jtl_authenticated';
+
     protected string $endpointToken;
 
     /**
@@ -24,6 +31,12 @@ class TokenValidator implements TokenValidatorInterface
      */
     public function validate(string $token): bool
     {
-        return \hash_equals($this->endpointToken, $token);
+        $isValid = \hash_equals($this->endpointToken, $token);
+
+        if ($isValid && \session_status() === \PHP_SESSION_ACTIVE) {
+            $_SESSION[self::AUTH_SESSION_KEY] = true;
+        }
+
+        return $isValid;
     }
 }

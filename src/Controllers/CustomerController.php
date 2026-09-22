@@ -25,6 +25,19 @@ use WhiteCube\Lingua\Service;
 class CustomerController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
     /**
+     * Capabilities that identify a privileged (non-customer) account. A push
+     * targeting such an account is rejected, and a customer group must never
+     * resolve to a role granting any of these capabilities.
+     */
+    private const array PROTECTED_CAPABILITIES = [
+        'manage_options',
+        'promote_users',
+        'edit_users',
+        'delete_users',
+        'manage_woocommerce',
+    ];
+
+    /**
      * @param QueryFilter $query
      * @return array|AbstractModel[]
      * @throws \InvalidArgumentException
@@ -192,7 +205,18 @@ class CustomerController extends AbstractBaseController implements PullInterface
             }
 
             try {
-                $wcCustomer = new \WC_Customer((int)$model->getId()->getEndpoint());
+                $endpointId = (int)$model->getId()->getEndpoint();
+
+                if ($this->isProtectedUser($endpointId)) {
+                    $this->logger->warning(
+                        'Rejected customer push targeting a protected (privileged) user account with id ({id})',
+                        ['id' => $endpointId]
+                    );
+                    $returnModels[] = $model;
+                    continue;
+                }
+
+                $wcCustomer = new \WC_Customer($endpointId);
                 $wcCustomer->set_first_name($model->getFirstName());
                 $wcCustomer->set_billing_first_name($model->getFirstName());
                 $wcCustomer->set_last_name($model->getLastName());
@@ -214,12 +238,15 @@ class CustomerController extends AbstractBaseController implements PullInterface
                     throw new \InvalidArgumentException("Customer group not found");
                 }
 
-                $wcCustomer->set_role($customerGroup->post_name);
+                if ($this->isAssignableCustomerRole($customerGroup->post_name)) {
+                    $wcCustomer->set_role($customerGroup->post_name);
+                }
 
                 $wcCustomer->save();
 
                 if (
                     ($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null
+                    && $this->isAssignableCustomerRole($wpCustomerRole->name)
                 ) {
                     \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
                 }
@@ -230,6 +257,68 @@ class CustomerController extends AbstractBaseController implements PullInterface
             $returnModels[] = $model;
         }
         return $returnModels;
+    }
+
+    /**
+     * Determines whether the given user id belongs to a privileged account that
+     * must not be modified through a customer push (e.g. an administrator).
+     *
+     * @param int $userId
+     * @return bool
+     */
+    protected function isProtectedUser(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $user = \get_user_by('id', $userId);
+
+        if (!$user instanceof \WP_User) {
+            return false;
+        }
+
+        if (\in_array('administrator', (array)$user->roles, true)) {
+            return true;
+        }
+
+        foreach (self::PROTECTED_CAPABILITIES as $capability) {
+            if (\user_can($user, $capability)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether the given role slug may be assigned to a customer. Only
+     * existing, non-privileged roles are allowed; this prevents deriving a
+     * privileged role (e.g. "administrator") from an attacker-controlled post
+     * slug via the customer group.
+     *
+     * @param string $roleSlug
+     * @return bool
+     */
+    protected function isAssignableCustomerRole(string $roleSlug): bool
+    {
+        if ($roleSlug === '' || $roleSlug === 'administrator') {
+            return false;
+        }
+
+        $role = \get_role($roleSlug);
+
+        if (!$role instanceof \WP_Role) {
+            return false;
+        }
+
+        foreach (self::PROTECTED_CAPABILITIES as $capability) {
+            if (!empty($role->capabilities[$capability])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
