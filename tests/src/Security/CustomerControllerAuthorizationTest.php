@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JtlWooCommerceConnector\Tests\Security;
 
+use Jtl\Connector\Core\Model\Customer;
+use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\CustomerController;
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
 
@@ -27,6 +29,13 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
 
         $GLOBALS['__jtlwcc_test_users'] = [];
         $GLOBALS['__jtlwcc_test_roles'] = [];
+        $GLOBALS['__jtlwcc_test_posts'] = [];
+        $GLOBALS['__jtlwcc_test_wc_customer_calls'] = [
+            'construct' => [],
+            'save'      => [],
+            'set_role'  => [],
+        ];
+        $GLOBALS['__jtlwcc_test_wp_update_user_calls'] = [];
     }
 
     /**
@@ -34,7 +43,13 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
      */
     protected function tearDown(): void
     {
-        unset($GLOBALS['__jtlwcc_test_users'], $GLOBALS['__jtlwcc_test_roles']);
+        unset(
+            $GLOBALS['__jtlwcc_test_users'],
+            $GLOBALS['__jtlwcc_test_roles'],
+            $GLOBALS['__jtlwcc_test_posts'],
+            $GLOBALS['__jtlwcc_test_wc_customer_calls'],
+            $GLOBALS['__jtlwcc_test_wp_update_user_calls']
+        );
 
         parent::tearDown();
     }
@@ -70,12 +85,81 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
     }
 
     /**
-     * @return CustomerController
-     * @throws \Exception
+     * @param int    $id
+     * @param string $slug
+     * @return void
      */
-    private function createController(): CustomerController
+    private function registerCustomerGroupPost(int $id, string $slug): void
     {
-        return new CustomerController($this->createDbMock(), $this->createUtilMock());
+        $post            = new \WP_Post();
+        $post->ID        = $id;
+        $post->post_name = $slug;
+
+        $GLOBALS['__jtlwcc_test_posts'][$id] = $post;
+    }
+
+    /**
+     * @param int    $endpointId
+     * @param string $customerGroupId
+     * @return Customer
+     */
+    private function createCustomerModel(int $endpointId, string $customerGroupId = '100'): Customer
+    {
+        return (new Customer())
+            ->setId(new Identity((string)$endpointId))
+            ->setHasCustomerAccount(true)
+            ->setCustomerGroupId(new Identity($customerGroupId))
+            ->setFirstName('Jane')
+            ->setLastName('Doe')
+            ->setCompany('Example Inc.')
+            ->setStreet('Main Street 1')
+            ->setExtraAddressLine('')
+            ->setZipCode('12345')
+            ->setCity('Sample City')
+            ->setState('NW')
+            ->setCountryIso('DE')
+            ->setEMail('jane.doe@example.invalid')
+            ->setPhone('123456789');
+    }
+
+    /**
+     * @param \WP_Role|null $wpCustomerRole
+     * @throws \Exception
+     * @return CustomerController
+     */
+    private function createController(?\WP_Role $wpCustomerRole = null): CustomerController
+    {
+        if ($wpCustomerRole === null) {
+            return new CustomerController($this->createDbMock(), $this->createUtilMock());
+        }
+
+        return new class ($this->createDbMock(), $this->createUtilMock(), $wpCustomerRole) extends CustomerController {
+            private ?\WP_Role $wpCustomerRole;
+
+            /**
+             * @param \JtlWooCommerceConnector\Utilities\Db   $db
+             * @param \JtlWooCommerceConnector\Utilities\Util $util
+             * @param \WP_Role|null                           $wpCustomerRole
+             * @throws \Exception
+             */
+            public function __construct(
+                \JtlWooCommerceConnector\Utilities\Db $db,
+                \JtlWooCommerceConnector\Utilities\Util $util,
+                ?\WP_Role $wpCustomerRole
+            ) {
+                $this->wpCustomerRole = $wpCustomerRole;
+                parent::__construct($db, $util);
+            }
+
+            /**
+             * @param string $customerGroupId
+             * @return \WP_Role|null
+             */
+            protected function getWpCustomerRole(string $customerGroupId): ?\WP_Role
+            {
+                return $this->wpCustomerRole;
+            }
+        };
     }
 
     /**
@@ -308,5 +392,48 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
         $this->assertTrue(
             (bool)$this->invokeMethodFromObject($this->createController(), 'isAssignableCustomerRole', 'customer')
         );
+    }
+
+    /**
+     * @return void
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\CustomerController::push
+     */
+    public function testPushDoesNotConstructOrSaveProtectedUser(): void
+    {
+        $this->registerUser(11, ['administrator']);
+
+        $controller = $this->createController();
+        $model      = $this->createCustomerModel(11);
+
+        $this->assertSame([$model], $controller->push($model));
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wc_customer_calls']['construct']);
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wc_customer_calls']['save']);
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wc_customer_calls']['set_role']);
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wp_update_user_calls']);
+    }
+
+    /**
+     * @return void
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\CustomerController::push
+     */
+    public function testPushDoesNotPassPrivilegedRoleToRoleAssignmentApis(): void
+    {
+        $this->registerUser(12, ['customer'], ['read' => true]);
+        $this->registerCustomerGroupPost(100, 'administrator');
+        $this->registerRole('administrator', ['manage_options' => true]);
+
+        $role       = new \WP_Role();
+        $role->name = 'administrator';
+
+        $controller = $this->createController($role);
+        $model      = $this->createCustomerModel(12);
+
+        $this->assertSame([$model], $controller->push($model));
+        $this->assertSame([12], $GLOBALS['__jtlwcc_test_wc_customer_calls']['construct']);
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wc_customer_calls']['set_role']);
+        $this->assertSame([12], $GLOBALS['__jtlwcc_test_wc_customer_calls']['save']);
+        $this->assertSame([], $GLOBALS['__jtlwcc_test_wp_update_user_calls']);
     }
 }
