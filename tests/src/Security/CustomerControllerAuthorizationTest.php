@@ -27,10 +27,10 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $GLOBALS['__jtlwcc_test_users'] = [];
-        $GLOBALS['__jtlwcc_test_roles'] = [];
-        $GLOBALS['__jtlwcc_test_posts'] = [];
-        $GLOBALS['__jtlwcc_test_wc_customer_calls'] = [
+        $GLOBALS['__jtlwcc_test_users']                = [];
+        $GLOBALS['__jtlwcc_test_roles']                = [];
+        $GLOBALS['__jtlwcc_test_posts']                = [];
+        $GLOBALS['__jtlwcc_test_wc_customer_calls']    = [
             'construct' => [],
             'save'      => [],
             'set_role'  => [],
