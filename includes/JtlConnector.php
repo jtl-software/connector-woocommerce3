@@ -7,6 +7,7 @@ use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
 use Jtl\Connector\Core\Utilities\Validator\Validate;
 use JtlWooCommerceConnector\Connector;
+use JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler;
 use Psr\Log\LogLevel;
 
 final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
@@ -28,6 +29,9 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
 
             $connector   = new Connector();
             $application = new Application(CONNECTOR_DIR, $config);
+            $application->setSessionHandler(
+                new AuthenticatedSqliteSessionHandler(\sprintf('%s/var', CONNECTOR_DIR))
+            );
 
             // abort existing session
             if (\session_status() === PHP_SESSION_ACTIVE) {
