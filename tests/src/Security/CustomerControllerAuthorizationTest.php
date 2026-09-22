@@ -124,6 +124,55 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
     }
 
     /**
+     * An editor holds content-administration capabilities but none of the
+     * classic administrator/shop-manager capabilities; it must still be
+     * treated as privileged.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\CustomerController::isProtectedUser
+     */
+    public function testIsProtectedUserRejectsEditorRole(): void
+    {
+        $this->registerUser(8, ['editor'], [
+            'read'              => true,
+            'edit_posts'        => true,
+            'edit_others_posts' => true,
+            'publish_posts'     => true,
+            'manage_categories' => true,
+            'moderate_comments' => true,
+            'unfiltered_html'   => true,
+        ]);
+
+        $this->assertTrue(
+            (bool)$this->invokeMethodFromObject($this->createController(), 'isProtectedUser', 8)
+        );
+    }
+
+    /**
+     * A contributor only holds edit_posts/delete_posts but must still be
+     * classified as privileged.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\CustomerController::isProtectedUser
+     */
+    public function testIsProtectedUserRejectsContributorRole(): void
+    {
+        $this->registerUser(9, ['contributor'], [
+            'read'         => true,
+            'edit_posts'   => true,
+            'delete_posts' => true,
+        ]);
+
+        $this->assertTrue(
+            (bool)$this->invokeMethodFromObject($this->createController(), 'isProtectedUser', 9)
+        );
+    }
+
+    /**
      * @return void
      * @throws \ReflectionException
      * @throws \Exception
@@ -195,6 +244,28 @@ class CustomerControllerAuthorizationTest extends AbstractTestCase
 
         $this->assertFalse(
             (bool)$this->invokeMethodFromObject($this->createController(), 'isAssignableCustomerRole', 'sneaky')
+        );
+    }
+
+    /**
+     * A role carrying editor-level content-administration capabilities must not
+     * be assignable to a customer.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     * @covers \JtlWooCommerceConnector\Controllers\CustomerController::isAssignableCustomerRole
+     */
+    public function testIsAssignableCustomerRoleRejectsEditorLikeRole(): void
+    {
+        $this->registerRole('shop_editor', [
+            'read'              => true,
+            'edit_others_posts' => true,
+            'publish_pages'     => true,
+        ]);
+
+        $this->assertFalse(
+            (bool)$this->invokeMethodFromObject($this->createController(), 'isAssignableCustomerRole', 'shop_editor')
         );
     }
 

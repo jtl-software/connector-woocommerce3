@@ -33,10 +33,22 @@ class TokenValidator implements TokenValidatorInterface
     {
         $isValid = \hash_equals($this->endpointToken, $token);
 
-        if ($isValid && \session_status() === \PHP_SESSION_ACTIVE) {
+        if ($isValid && $this->isSessionActive()) {
             $_SESSION[self::AUTH_SESSION_KEY] = true;
         }
 
         return $isValid;
+    }
+
+    /**
+     * Seam over the global session state. Extracted so the authenticated-marker
+     * side effect can be verified without bootstrapping a real PHP session
+     * (which is not possible once the test runner has produced output).
+     *
+     * @return bool
+     */
+    protected function isSessionActive(): bool
+    {
+        return \session_status() === \PHP_SESSION_ACTIVE;
     }
 }

@@ -51,12 +51,36 @@ class AuthenticatedSqliteSessionHandlerTest extends TestCase
 
     /**
      * @param string $databaseDir
+     * @param string $serializeHandler
      * @return AuthenticatedSqliteSessionHandler
      * @throws \Throwable
      */
-    private function createHandler(string $databaseDir): AuthenticatedSqliteSessionHandler
-    {
-        $this->handler = new AuthenticatedSqliteSessionHandler($databaseDir);
+    private function createHandler(
+        string $databaseDir,
+        string $serializeHandler = 'php'
+    ): AuthenticatedSqliteSessionHandler {
+        $this->handler = new class ($databaseDir, $serializeHandler) extends AuthenticatedSqliteSessionHandler {
+            private string $serializeHandlerOverride;
+
+            /**
+             * @param string $databaseDir
+             * @param string $serializeHandler
+             * @throws \Throwable
+             */
+            public function __construct(string $databaseDir, string $serializeHandler)
+            {
+                parent::__construct($databaseDir);
+                $this->serializeHandlerOverride = $serializeHandler;
+            }
+
+            /**
+             * @return string
+             */
+            protected function getSerializeHandler(): string
+            {
+                return $this->serializeHandlerOverride;
+            }
+        };
 
         return $this->handler;
     }
@@ -89,7 +113,7 @@ class AuthenticatedSqliteSessionHandlerTest extends TestCase
      */
     public function testValidateIdAcceptsAuthenticatedSessionPhpSerializeHandler(): void
     {
-        $handler   = $this->createHandler($this->databaseDir);
+        $handler   = $this->createHandler($this->databaseDir, 'php_serialize');
         $sessionId = 'authenticated-session-serialize';
 
         $handler->write(
@@ -146,7 +170,7 @@ class AuthenticatedSqliteSessionHandlerTest extends TestCase
      */
     public function testValidateIdAcceptsAuthenticatedSessionPhpBinaryHandler(): void
     {
-        $handler   = $this->createHandler($this->databaseDir);
+        $handler   = $this->createHandler($this->databaseDir, 'php_binary');
         $sessionId = 'authenticated-session-binary';
 
         $handler->write(
@@ -190,5 +214,94 @@ class AuthenticatedSqliteSessionHandlerTest extends TestCase
         $handler->write($sessionId, TokenValidator::AUTH_SESSION_KEY . '|b:0;');
 
         $this->assertFalse($handler->validateId($sessionId));
+    }
+
+    /**
+     * The marker bytes hidden inside an unrelated string value (php handler)
+     * must not be accepted as a genuine top-level authentication marker.
+     *
+     * @return void
+     * @throws \Throwable
+     * @covers \JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler::validateId
+     */
+    public function testValidateIdRejectsMarkerNestedInStringValuePhpHandler(): void
+    {
+        $handler   = $this->createHandler($this->databaseDir);
+        $sessionId = 'decoy-string-session';
+
+        $payload = TokenValidator::AUTH_SESSION_KEY . '|b:1;';
+        $decoy   = \sprintf('decoy|s:%d:"%s";', \strlen($payload), $payload);
+
+        $handler->write($sessionId, $decoy);
+
+        $this->assertFalse($handler->validateId($sessionId));
+    }
+
+    /**
+     * The marker bytes hidden inside an unrelated string value (php_serialize
+     * handler) must not be accepted either.
+     *
+     * @return void
+     * @throws \Throwable
+     * @covers \JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler::validateId
+     */
+    public function testValidateIdRejectsMarkerNestedInStringValuePhpSerializeHandler(): void
+    {
+        $handler   = $this->createHandler($this->databaseDir, 'php_serialize');
+        $sessionId = 'decoy-string-serialize-session';
+
+        $payload = TokenValidator::AUTH_SESSION_KEY . '|b:1;';
+        $decoy   = \sprintf('a:1:{s:5:"decoy";s:%d:"%s";}', \strlen($payload), $payload);
+
+        $handler->write($sessionId, $decoy);
+
+        $this->assertFalse($handler->validateId($sessionId));
+    }
+
+    /**
+     * A genuine marker key that only appears nested inside another value (here
+     * an array) must not satisfy the top-level authentication requirement.
+     *
+     * @return void
+     * @throws \Throwable
+     * @covers \JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler::validateId
+     */
+    public function testValidateIdRejectsMarkerNestedInArrayValuePhpHandler(): void
+    {
+        $handler   = $this->createHandler($this->databaseDir);
+        $sessionId = 'decoy-array-session';
+
+        $nested = \sprintf(
+            'wrapper|a:1:{s:%d:"%s";b:1;}',
+            \strlen(TokenValidator::AUTH_SESSION_KEY),
+            TokenValidator::AUTH_SESSION_KEY
+        );
+
+        $handler->write($sessionId, $nested);
+
+        $this->assertFalse($handler->validateId($sessionId));
+    }
+
+    /**
+     * A legitimate authenticated marker accompanied by additional session
+     * values (php handler) must still be accepted.
+     *
+     * @return void
+     * @throws \Throwable
+     * @covers \JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler::validateId
+     */
+    public function testValidateIdAcceptsAuthenticatedSessionWithAdditionalValues(): void
+    {
+        $handler   = $this->createHandler($this->databaseDir);
+        $sessionId = 'authenticated-with-extra';
+
+        $payload = \sprintf(
+            'user_id|i:42;%s|b:1;note|s:5:"hello";',
+            TokenValidator::AUTH_SESSION_KEY
+        );
+
+        $handler->write($sessionId, $payload);
+
+        $this->assertTrue($handler->validateId($sessionId));
     }
 }

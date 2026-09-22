@@ -28,13 +28,76 @@ class CustomerController extends AbstractBaseController implements PullInterface
      * Capabilities that identify a privileged (non-customer) account. A push
      * targeting such an account is rejected, and a customer group must never
      * resolve to a role granting any of these capabilities.
+     *
+     * This intentionally covers not only administrator/shop-manager level
+     * capabilities but every content-administration capability that lifts an
+     * account above a plain shop customer (contributor, author and editor).
+     * A default WooCommerce customer only holds "read", so no legitimate
+     * customer role is affected, while privileged built-in roles such as
+     * "editor" (which holds none of the classic admin capabilities) can no
+     * longer slip through.
      */
     private const array PROTECTED_CAPABILITIES = [
+        // Site, options and core administration
         'manage_options',
-        'promote_users',
+        'manage_woocommerce',
+        'edit_dashboard',
+        'update_core',
+        'export',
+        'import',
+        'customize',
+        'edit_theme_options',
+        // Plugin and theme administration
+        'activate_plugins',
+        'edit_plugins',
+        'install_plugins',
+        'update_plugins',
+        'delete_plugins',
+        'switch_themes',
+        'edit_themes',
+        'install_themes',
+        'update_themes',
+        'delete_themes',
+        // User administration
         'edit_users',
         'delete_users',
-        'manage_woocommerce',
+        'create_users',
+        'list_users',
+        'promote_users',
+        'remove_users',
+        'add_users',
+        // Multisite / network administration
+        'manage_network',
+        'manage_sites',
+        'manage_network_users',
+        'manage_network_plugins',
+        'manage_network_themes',
+        'manage_network_options',
+        // Content administration (contributor, author, editor)
+        'edit_posts',
+        'edit_others_posts',
+        'edit_published_posts',
+        'edit_private_posts',
+        'publish_posts',
+        'delete_posts',
+        'delete_others_posts',
+        'delete_published_posts',
+        'delete_private_posts',
+        'read_private_posts',
+        'edit_pages',
+        'edit_others_pages',
+        'edit_published_pages',
+        'edit_private_pages',
+        'publish_pages',
+        'delete_pages',
+        'delete_others_pages',
+        'delete_published_pages',
+        'delete_private_pages',
+        'read_private_pages',
+        'manage_categories',
+        'manage_links',
+        'moderate_comments',
+        'unfiltered_html',
     ];
 
     /**
