@@ -9,8 +9,6 @@ use Jtl\Connector\Core\Model\Identity;
 use JtlWooCommerceConnector\Controllers\CustomerController;
 use JtlWooCommerceConnector\Tests\AbstractTestCase;
 
-require_once __DIR__ . '/WpUserRoleStubs.php';
-
 /**
  * Verifies the object-level authorization added to CustomerController::push()
  * that prevents an attacker from hijacking privileged (administrator) accounts
@@ -20,6 +18,16 @@ require_once __DIR__ . '/WpUserRoleStubs.php';
  */
 class CustomerControllerAuthorizationTest extends AbstractTestCase
 {
+    /**
+     * @return void
+     */
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        require_once __DIR__ . '/WpUserRoleStubs.php';
+    }
+
     /**
      * @return void
      */
