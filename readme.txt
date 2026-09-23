@@ -132,6 +132,30 @@ evolving connected shop systems. This ensures trouble-free compatibility with fu
 * [Video tutorials on the JTL connectors](https://www.youtube.com/watch?v=8DEX2xHoqtM&index=11&list=PL44cp2iiTsTXfN18-sZgAKIiaD2wSI4xl)
 
 
+== German Market warranty label (EU GARAN label) ==
+
+If the German Market plugin (version 4.0 or higher) is active, JTL-Connector transfers the data for
+German Market's warranty label (EU GARAN label) from JTL-Wawi to your shop. Maintain the values in
+JTL-Wawi as function attributes on the item. During synchronisation they are written to the
+corresponding German Market product meta keys:
+
+* `jtl_garan_label_producer` is written to `_german_market_garan_label_producer` (manufacturer)
+* `jtl_garan_label_model_identifier` is written to `_german_market_garan_label_model_identifier` (model identifier)
+* `jtl_garan_label_warranty_years` is written to `_german_market_garan_label_warranty_years` (warranty duration in years, numeric)
+
+Please note:
+
+* The feature is optional. If German Market is not active or the attributes are not maintained,
+  nothing is transferred and no error is raised.
+* A function attribute left empty in JTL-Wawi does not overwrite a value maintained directly in
+  WooCommerce, so existing shop data is never lost.
+* `jtl_garan_label_warranty_years` must be numeric; non-numeric values are ignored.
+* For variable products, German Market inherits the manufacturer and the warranty duration from the
+  parent product, while the model identifier can be maintained per variation.
+* Whether the label is displayed depends on German Market's own logic (for example, it is only shown
+  for a warranty duration of more than two years). JTL-Connector only supplies the raw data.
+
+
 == Installation ==
 
 This section describes how to install the plugin and get it working.

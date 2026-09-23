@@ -20,6 +20,22 @@ use function DI\string;
 class ProductGermanMarketFieldsController extends AbstractBaseController
 {
     /**
+     * JTL function attribute that carries the warranty duration in years for the German Market
+     * warranty label (EU GARAN label). Its value must be numeric.
+     */
+    public const string GARAN_LABEL_WARRANTY_YEARS_ATTRIBUTE = 'jtl_garan_label_warranty_years';
+
+    /**
+     * Maps the JTL function attribute names maintained in JTL-Wawi to the German Market warranty
+     * label (EU GARAN label) meta keys on the WooCommerce product.
+     */
+    public const array GARAN_LABEL_ATTRIBUTE_META_MAP = [
+        'jtl_garan_label_producer'                 => '_german_market_garan_label_producer',
+        'jtl_garan_label_model_identifier'         => '_german_market_garan_label_model_identifier',
+        self::GARAN_LABEL_WARRANTY_YEARS_ATTRIBUTE => '_german_market_garan_label_warranty_years',
+    ];
+
+    /**
      * @param ProductModel $product
      * @param WC_Product   $wcProduct
      * @return void
@@ -214,6 +230,7 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
     {
         $this->updateGermanMarketPPU($product);
         $this->updateGermanMarketGpsrData($product);
+        $this->updateGermanMarketGaranLabel($product);
     }
 
     /**
@@ -416,6 +433,82 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
 
         \update_post_meta((int)$postId, '_german_market_gpsr_manufacturer', $gpsrManufacturerAddress);
         \update_post_meta((int)$postId, '_german_market_gpsr_responsible_person', $gpsrResponsibleAddress);
+    }
+
+    /**
+     * Transfers the German Market warranty label (EU GARAN label) values maintained as JTL function
+     * attributes in JTL-Wawi into the corresponding German Market meta keys of the WooCommerce
+     * product. Empty JTL values are skipped so that data maintained directly in WooCommerce is never
+     * overwritten with an empty value (see CO-3606). For variations German Market inherits producer
+     * and warranty duration from the parent; the model identifier may be maintained per variation.
+     *
+     * @param ProductModel $product
+     * @return void
+     */
+    private function updateGermanMarketGaranLabel(ProductModel $product): void
+    {
+        $metaValues = $this->collectGaranLabelMetaValues($product);
+
+        if ($metaValues === []) {
+            return;
+        }
+
+        $postId = (int)$product->getId()->getEndpoint();
+
+        foreach ($metaValues as $metaKey => $value) {
+            \update_post_meta($postId, $metaKey, $value);
+        }
+    }
+
+    /**
+     * Extracts the warranty label meta values from the product's JTL function attributes. Only
+     * non-empty values are returned; the warranty duration is validated to be numeric and normalized
+     * to a non-negative integer string.
+     *
+     * @param ProductModel $product
+     * @return array<string, string> Map of German Market meta key to value, only for provided fields.
+     */
+    private function collectGaranLabelMetaValues(ProductModel $product): array
+    {
+        $result = [];
+
+        foreach ($product->getAttributes() as $attribute) {
+            foreach ($attribute->getI18ns() as $i18n) {
+                if (!$this->util->isWooCommerceLanguage($i18n->getLanguageIso())) {
+                    continue;
+                }
+
+                $attributeName = $i18n->getName();
+
+                if (!isset(self::GARAN_LABEL_ATTRIBUTE_META_MAP[$attributeName])) {
+                    continue;
+                }
+
+                $rawValue = $i18n->getValue();
+
+                if (!\is_scalar($rawValue)) {
+                    continue;
+                }
+
+                $value = \trim((string)$rawValue);
+
+                if ($value === '') {
+                    continue;
+                }
+
+                if ($attributeName === self::GARAN_LABEL_WARRANTY_YEARS_ATTRIBUTE) {
+                    if (!\is_numeric($value) || (float)$value < 0) {
+                        continue;
+                    }
+
+                    $value = (string)(int)$value;
+                }
+
+                $result[self::GARAN_LABEL_ATTRIBUTE_META_MAP[$attributeName]] = $value;
+            }
+        }
+
+        return $result;
     }
 
     /**
