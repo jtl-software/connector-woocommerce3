@@ -484,7 +484,13 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
                     continue;
                 }
 
-                $value = \trim($i18n->getValue());
+                $rawValue = $i18n->getValue();
+
+                if (!\is_scalar($rawValue)) {
+                    continue;
+                }
+
+                $value = \trim((string)$rawValue);
 
                 if ($value === '') {
                     continue;
