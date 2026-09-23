@@ -484,14 +484,14 @@ class ProductGermanMarketFieldsController extends AbstractBaseController
                     continue;
                 }
 
-                $value = \trim($i18n->getValueAsString());
+                $value = \trim($i18n->getValue());
 
                 if ($value === '') {
                     continue;
                 }
 
                 if ($attributeName === self::GARAN_LABEL_WARRANTY_YEARS_ATTRIBUTE) {
-                    if (!\is_numeric($value)) {
+                    if (!\is_numeric($value) || (float)$value < 0) {
                         continue;
                     }
 
