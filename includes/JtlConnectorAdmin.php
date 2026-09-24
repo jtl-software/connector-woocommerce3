@@ -505,6 +505,8 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
      */
     private static function initDefaultConfigValues(string $buildVersion): void
     {
+        $isFirstInstall = self::isFirstInstall();
+
         Config::set(Config::OPTIONS_TOKEN, self::create_password());
         Config::set(Config::OPTIONS_INSTALLED_VERSION, $buildVersion);
 
@@ -514,21 +516,34 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             }
         }
 
-        self::setDefaultWooCommerceTaxOptions();
+        if ($isFirstInstall) {
+            self::setDefaultWooCommerceTaxOptions();
+        }
     }
 
     /**
+     * @return bool
+     */
+    private static function isFirstInstall(): bool
+    {
+        return Config::get(Config::OPTIONS_INSTALLED_VERSION) === null;
+    }
+
+    /**
+     * WooCommerce writes its own default of 'excl' for these options during its own
+     * installation, so an explicit 'incl' has to be forced once on first activation of
+     * this plugin. Gated behind $isFirstInstall so a later, deliberate change by the
+     * shop owner is not reverted on every plugin re-activation.
+     *
      * @return void
      */
     private static function setDefaultWooCommerceTaxOptions(): void
     {
-        $shopDisplay = \get_option('woocommerce_tax_display_shop', false);
-        if ($shopDisplay === false) {
+        if (\get_option('woocommerce_tax_display_shop') !== 'incl') {
             \update_option('woocommerce_tax_display_shop', 'incl', true);
         }
 
-        $cartDisplay = \get_option('woocommerce_tax_display_cart', false);
-        if ($cartDisplay === false) {
+        if (\get_option('woocommerce_tax_display_cart') !== 'incl') {
             \update_option('woocommerce_tax_display_cart', 'incl', true);
         }
     }
