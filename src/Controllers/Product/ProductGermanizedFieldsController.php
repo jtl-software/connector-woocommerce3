@@ -429,6 +429,11 @@ class ProductGermanizedFieldsController extends AbstractBaseController
 
         if (!empty(\str_replace([' ', "\n"], '', $gpsrResponsiblePersonAddress))) {
             \update_term_meta($termId, 'formatted_eu_address', $gpsrResponsiblePersonAddress);
+        } else {
+            // The responsible person was removed in JTL-Wawi, so no gpsr_responsibleperson_* attributes
+            // are sent. Delete the stored EU address so outdated GPSR data no longer shows in the shop
+            // (see CO-3573).
+            \delete_term_meta($termId, 'formatted_eu_address');
         }
 
         // remove existing product to gpsr manufacturer link
