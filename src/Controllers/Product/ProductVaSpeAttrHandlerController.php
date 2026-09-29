@@ -53,8 +53,15 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         GM_SUPPRESS_SHIPPPING_NOTICE = 'wc_gm_suppress_shipping_notice',
 
         //GERMANIZED
-        GZD_IS_SERVICE = 'wc_gzd_is_service',
-        GZD_MIN_AGE    = 'wc_minimum_age',
+        GZD_IS_SERVICE       = 'wc_gzd_is_service',
+        GZD_MIN_AGE          = 'wc_minimum_age',
+        GZD_GUARANTEE_LENGTH = 'wc_gzd_guarantee_length',
+
+        /**
+         * Minimum Germanized version that ships the EU GARAN label and therefore the
+         * `_guarantee_length` product field this connector maps (see CO-3605).
+         */
+        GZD_GUARANTEE_LABEL_MIN_VERSION = '4.1.0',
 
         //GERMANIZED PRO
         GZD_IS_FOOD = 'wc_gzd_is_food',
@@ -282,6 +289,22 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             $gzdProduct = \wc_gzd_get_product($product);
             if ($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_min_age')) {
                 $functionAttributes[] = $this->getMinimumAgeAttribute(
+                    $gzdProduct,
+                    $languageIso
+                );
+            }
+        }
+
+        if (
+            SupportedPlugins::comparePluginVersion(
+                SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                '>=',
+                self::GZD_GUARANTEE_LABEL_MIN_VERSION
+            )
+        ) {
+            $gzdProduct = \wc_gzd_get_product($product);
+            if ($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_guarantee_length')) {
+                $functionAttributes[] = $this->getGuaranteeLengthAttribute(
                     $gzdProduct,
                     $languageIso
                 );
@@ -576,6 +599,33 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
 
         return ( new ProductAttrModel() )
             ->setId(new Identity($product->get_wc_product()->get_id() . '_' . self::GZD_MIN_AGE))
+            ->setIsCustomProperty(false)
+            ->addI18n($i18n);
+    }
+
+    /**
+     * Exposes the Germanized guarantee length (in months, used for the EU GARAN label) as a JTL
+     * function attribute so that the value round-trips during delta sync (see CO-3605).
+     *
+     * @param \WC_GZD_Product $product
+     * @param string          $languageIso
+     *
+     * @return ProductAttrModel
+     * @throws \InvalidArgumentException
+     */
+    private function getGuaranteeLengthAttribute(
+        \WC_GZD_Product $product,
+        string $languageIso = ''
+    ): ProductAttrModel {
+        $value = (string) $product->get_guarantee_length();
+
+        $i18n = ( new ProductAttrI18nModel() )
+            ->setName(self::GZD_GUARANTEE_LENGTH)
+            ->setValue($value)
+            ->setLanguageISO($languageIso);
+
+        return ( new ProductAttrModel() )
+            ->setId(new Identity($product->get_wc_product()->get_id() . '_' . self::GZD_GUARANTEE_LENGTH))
             ->setIsCustomProperty(false)
             ->addI18n($i18n);
     }

@@ -25,6 +25,12 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
+     * Minimum guarantee length in months required by Germanized (version 4.1+) to display the EU
+     * GARAN label at product level (see CO-3605).
+     */
+    public const int GARAN_LABEL_MIN_GUARANTEE_MONTHS = 30;
+
+    /**
      * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
      * @param string                $slug
@@ -109,6 +115,20 @@ class ProductAttrController extends AbstractBaseController
                         }
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18nValue);
+                        }
+                        if (
+                            $i18n->getName() === ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LENGTH
+                            && SupportedPlugins::comparePluginVersion(
+                                SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                                '>=',
+                                ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LABEL_MIN_VERSION
+                            )
+                        ) {
+                            $guaranteeLength = $this->normalizeGuaranteeLengthValue((string)$i18nValue);
+                            if ($guaranteeLength !== null) {
+                                $this->addOrUpdateMetaField($productId, '_guarantee_length', $guaranteeLength);
+                                $this->logGaranLabelDataCompleteness($productId, (int)$guaranteeLength, $product);
+                            }
                         }
                     }
 
@@ -530,6 +550,72 @@ class ProductAttrController extends AbstractBaseController
         if (!$this->addPostMeta($productId, $metaKey, $value)) {
             $this->updatePostMeta($productId, $metaKey, $value);
         }
+    }
+
+    /**
+     * Normalizes the Germanized guarantee length (EU GARAN label, value in months) coming from a
+     * JTL-Wawi function attribute. Empty or non-numeric values are rejected (returned as null) so
+     * that a value maintained directly in WooCommerce is never overwritten with an invalid value
+     * (see CO-3605). Valid values are cast to a non-negative integer string, matching Germanized's
+     * own absint handling of the `_guarantee_length` meta.
+     *
+     * @param string $value
+     * @return string|null Non-negative integer string, or null when the value must be skipped.
+     */
+    protected function normalizeGuaranteeLengthValue(string $value): ?string
+    {
+        $value = \trim($value);
+
+        if ($value === '' || !\is_numeric($value)) {
+            return null;
+        }
+
+        return (string)\abs((int)$value);
+    }
+
+    /**
+     * Emits a clear warning when a product carries a guarantee length that is high enough for the
+     * Germanized EU GARAN label (>= self::GARAN_LABEL_MIN_GUARANTEE_MONTHS months) but is missing
+     * data that Germanized also requires to actually display the label, i.e. an assigned
+     * manufacturer and a model number/GTIN. This surfaces incomplete JTL-Wawi master data early so
+     * the merchant can react instead of silently ending up without a label (see CO-3605).
+     *
+     * @param int          $productId
+     * @param int          $guaranteeLength Guarantee length in months already written to WooCommerce.
+     * @param ProductModel $product
+     * @return void
+     */
+    protected function logGaranLabelDataCompleteness(
+        int $productId,
+        int $guaranteeLength,
+        ProductModel $product
+    ): void {
+        if ($guaranteeLength < self::GARAN_LABEL_MIN_GUARANTEE_MONTHS) {
+            return;
+        }
+
+        $missing = [];
+
+        if ($product->getManufacturerId()->getHost() === 0) {
+            $missing[] = 'manufacturer';
+        }
+
+        if (\trim($product->getEan()) === '' && \trim($product->getManufacturerNumber()) === '') {
+            $missing[] = 'model number/GTIN';
+        }
+
+        if ($missing === []) {
+            return;
+        }
+
+        $this->logger->warning(\sprintf(
+            'Germanized GARAN label for product %d may not be displayed although a guarantee length of '
+            . '%d months (>= %d) is set: missing %s in JTL-Wawi.',
+            $productId,
+            $guaranteeLength,
+            self::GARAN_LABEL_MIN_GUARANTEE_MONTHS,
+            \implode(' and ', $missing)
+        ));
     }
 
     /**

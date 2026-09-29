@@ -156,6 +156,33 @@ Please note:
   for a warranty duration of more than two years). JTL-Connector only supplies the raw data.
 
 
+== Germanized warranty guarantee (EU GARAN label) ==
+
+If the Germanized plugin (version 4.1 or higher) is active, JTL-Connector transfers the guarantee
+length required for Germanized's EU GARAN label from JTL-Wawi to your shop. Maintain the value in
+JTL-Wawi as a function attribute on the item:
+
+* `wc_gzd_guarantee_length` is written to the Germanized `_guarantee_length` product meta (guarantee
+  duration in months, numeric).
+
+The manufacturer and the model number/GTIN that Germanized also needs for the GARAN label are
+already synchronised through the regular product sync (manufacturer assignment and GTIN/MPN), so no
+additional attributes are required for them.
+
+Please note:
+
+* The feature is optional. If Germanized is not active or the attribute is not maintained, nothing is
+  transferred and no error is raised.
+* A guarantee length left empty or non-numeric in JTL-Wawi does not overwrite a value maintained
+  directly in WooCommerce, so existing shop data is never lost.
+* Germanized only displays the GARAN label for a guarantee length of at least 30 months together with
+  an assigned manufacturer and a model number/GTIN. If a product reaches the 30 month threshold but
+  is missing the manufacturer or the model number/GTIN, JTL-Connector writes a warning to the log so
+  the incomplete master data can be corrected in JTL-Wawi.
+* Whether the label is finally displayed depends on Germanized's own logic. JTL-Connector only
+  supplies the raw data.
+
+
 == Installation ==
 
 This section describes how to install the plugin and get it working.

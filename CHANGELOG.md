@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3605 - transfer Germanized guarantee length (EU GARAN label) to the shop
 - CO-3573 - delete stored GPSR EU address when the responsible person is removed in JTL-Wawi
 - CO-3606 - transfer German Market warranty label (EU GARAN) fields to the shop
 - CO-3161 - consider different customer languages
