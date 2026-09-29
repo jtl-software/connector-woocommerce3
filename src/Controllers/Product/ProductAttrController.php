@@ -116,7 +116,14 @@ class ProductAttrController extends AbstractBaseController
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18nValue);
                         }
-                        if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LENGTH) {
+                        if (
+                            $i18n->getName() === ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LENGTH
+                            && SupportedPlugins::comparePluginVersion(
+                                SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                                '>=',
+                                ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LABEL_MIN_VERSION
+                            )
+                        ) {
                             $guaranteeLength = $this->normalizeGuaranteeLengthValue((string)$i18nValue);
                             if ($guaranteeLength !== null) {
                                 $this->addOrUpdateMetaField($productId, '_guarantee_length', $guaranteeLength);

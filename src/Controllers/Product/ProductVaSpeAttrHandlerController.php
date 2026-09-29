@@ -57,6 +57,12 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
         GZD_MIN_AGE          = 'wc_minimum_age',
         GZD_GUARANTEE_LENGTH = 'wc_gzd_guarantee_length',
 
+        /**
+         * Minimum Germanized version that ships the EU GARAN label and therefore the
+         * `_guarantee_length` product field this connector maps (see CO-3605).
+         */
+        GZD_GUARANTEE_LABEL_MIN_VERSION = '4.1.0',
+
         //GERMANIZED PRO
         GZD_IS_FOOD = 'wc_gzd_is_food',
 
@@ -289,7 +295,13 @@ class ProductVaSpeAttrHandlerController extends AbstractBaseController
             }
         }
 
-        if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)) {
+        if (
+            SupportedPlugins::comparePluginVersion(
+                SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2,
+                '>=',
+                self::GZD_GUARANTEE_LABEL_MIN_VERSION
+            )
+        ) {
             $gzdProduct = \wc_gzd_get_product($product);
             if ($gzdProduct instanceof \WC_GZD_Product && $product->meta_exists('_guarantee_length')) {
                 $functionAttributes[] = $this->getGuaranteeLengthAttribute(
