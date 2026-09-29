@@ -25,6 +25,12 @@ class ProductAttrController extends AbstractBaseController
         VISIBILITY_VISIBLE = 'visible';
 
     /**
+     * Minimum guarantee length in months required by Germanized (version 4.1+) to display the EU
+     * GARAN label at product level (see CO-3605).
+     */
+    public const int GARAN_LABEL_MIN_GUARANTEE_MONTHS = 30;
+
+    /**
      * @param \WC_Product           $product
      * @param \WC_Product_Attribute $attribute
      * @param string                $slug
@@ -114,6 +120,7 @@ class ProductAttrController extends AbstractBaseController
                             $guaranteeLength = $this->normalizeGuaranteeLengthValue((string)$i18nValue);
                             if ($guaranteeLength !== null) {
                                 $this->addOrUpdateMetaField($productId, '_guarantee_length', $guaranteeLength);
+                                $this->logGaranLabelDataCompleteness($productId, (int)$guaranteeLength, $product);
                             }
                         }
                     }
@@ -557,6 +564,51 @@ class ProductAttrController extends AbstractBaseController
         }
 
         return (string)\abs((int)$value);
+    }
+
+    /**
+     * Emits a clear warning when a product carries a guarantee length that is high enough for the
+     * Germanized EU GARAN label (>= self::GARAN_LABEL_MIN_GUARANTEE_MONTHS months) but is missing
+     * data that Germanized also requires to actually display the label, i.e. an assigned
+     * manufacturer and a model number/GTIN. This surfaces incomplete JTL-Wawi master data early so
+     * the merchant can react instead of silently ending up without a label (see CO-3605).
+     *
+     * @param int          $productId
+     * @param int          $guaranteeLength Guarantee length in months already written to WooCommerce.
+     * @param ProductModel $product
+     * @return void
+     */
+    protected function logGaranLabelDataCompleteness(
+        int $productId,
+        int $guaranteeLength,
+        ProductModel $product
+    ): void {
+        if ($guaranteeLength < self::GARAN_LABEL_MIN_GUARANTEE_MONTHS) {
+            return;
+        }
+
+        $missing = [];
+
+        if ($product->getManufacturerId()->getHost() === 0) {
+            $missing[] = 'manufacturer';
+        }
+
+        if (\trim($product->getEan()) === '' && \trim($product->getManufacturerNumber()) === '') {
+            $missing[] = 'model number/GTIN';
+        }
+
+        if ($missing === []) {
+            return;
+        }
+
+        $this->logger->warning(\sprintf(
+            'Germanized GARAN label for product %d may not be displayed although a guarantee length of '
+            . '%d months (>= %d) is set: missing %s in JTL-Wawi.',
+            $productId,
+            $guaranteeLength,
+            self::GARAN_LABEL_MIN_GUARANTEE_MONTHS,
+            \implode(' and ', $missing)
+        ));
     }
 
     /**

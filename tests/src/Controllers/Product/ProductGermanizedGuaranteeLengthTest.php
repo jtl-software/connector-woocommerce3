@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Tests\Controllers\Product {
 
     use Jtl\Connector\Core\Model\Identity;
+    use Jtl\Connector\Core\Model\Product as ProductModel;
     use Jtl\Connector\Core\Model\TranslatableAttribute as ProductAttrModel;
     use Jtl\Connector\Core\Model\TranslatableAttributeI18n as ProductAttrI18nModel;
     use JtlWooCommerceConnector\Controllers\Product\ProductAttrController;
@@ -12,6 +13,7 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
     use JtlWooCommerceConnector\Tests\AbstractTestCase;
     use JtlWooCommerceConnector\Utilities\Db;
     use JtlWooCommerceConnector\Utilities\Util;
+    use Psr\Log\LoggerInterface;
 
     /**
      * CO-3605: transfer the Germanized guarantee length (EU GARAN label, value in months) from a
@@ -137,6 +139,80 @@ namespace JtlWooCommerceConnector\Tests\Controllers\Product {
                 'zero length round-trips'                         => [0, 'ger', '0', 'ger'],
                 'missing language iso falls back to empty string' => [48, '', '48', ''],
                 'string value is preserved'                       => ['24', 'ger', '24', 'ger'],
+            ];
+        }
+
+        /**
+         * @param int    $guaranteeLength
+         * @param int    $manufacturerHost
+         * @param string $ean
+         * @param string $manufacturerNumber
+         * @param bool   $expectsWarning
+         * @param string $expectedMissing
+         * @dataProvider garanLabelDataCompletenessDataProvider
+         * @covers       \JtlWooCommerceConnector\Controllers\Product\ProductAttrController::logGaranLabelDataCompleteness
+         * @return void
+         * @throws \ReflectionException
+         */
+        public function testLogGaranLabelDataCompleteness(
+            int $guaranteeLength,
+            int $manufacturerHost,
+            string $ean,
+            string $manufacturerNumber,
+            bool $expectsWarning,
+            string $expectedMissing
+        ): void {
+            $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+            $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+
+            $logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+
+            if ($expectsWarning) {
+                $logger->expects($this->once())
+                    ->method('warning')
+                    ->with($this->callback(function (string $message) use ($expectedMissing): bool {
+                        return \str_contains($message, 'missing ' . $expectedMissing . ' in JTL-Wawi.');
+                    }));
+            } else {
+                $logger->expects($this->never())->method('warning');
+            }
+
+            $controller = new ProductAttrController($db, $util);
+            $controller->setLogger($logger);
+
+            $product = new ProductModel();
+            $product->setManufacturerId(new Identity('', $manufacturerHost));
+            $product->setEan($ean);
+            $product->setManufacturerNumber($manufacturerNumber);
+
+            $this->invokeMethodFromObject(
+                $controller,
+                'logGaranLabelDataCompleteness',
+                42,
+                $guaranteeLength,
+                $product
+            );
+        }
+
+        /**
+         * @return array<string, array{0: int, 1: int, 2: string, 3: string, 4: bool, 5: string}>
+         */
+        public function garanLabelDataCompletenessDataProvider(): array
+        {
+            return [
+                'below threshold never warns'              => [24, 0, '', '', false, ''],
+                'complete data on threshold does not warn' => [30, 5, '4006381333931', '', false, ''],
+                'complete data via mpn does not warn'      => [36, 5, '', 'MODEL-123', false, ''],
+                'missing manufacturer warns'               => [30, 0, '4006381333931', '', true, 'manufacturer'],
+                'missing model number and gtin warns'      => [36, 5, '', '', true, 'model number/GTIN'],
+                'missing both warns about both'            => [
+                    48,
+                    0,
+                    '',
+                    '',
+                    true,
+                    'manufacturer and model number/GTIN',
+                ],
             ];
         }
     }
