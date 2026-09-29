@@ -110,6 +110,12 @@ class ProductAttrController extends AbstractBaseController
                         if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_MIN_AGE) {
                             $this->addOrUpdateMetaField($productId, '_min_age', $i18nValue);
                         }
+                        if ($i18n->getName() === ProductVaSpeAttrHandlerController::GZD_GUARANTEE_LENGTH) {
+                            $guaranteeLength = $this->normalizeGuaranteeLengthValue((string)$i18nValue);
+                            if ($guaranteeLength !== null) {
+                                $this->addOrUpdateMetaField($productId, '_guarantee_length', $guaranteeLength);
+                            }
+                        }
                     }
 
                     if (SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)) {
@@ -530,6 +536,27 @@ class ProductAttrController extends AbstractBaseController
         if (!$this->addPostMeta($productId, $metaKey, $value)) {
             $this->updatePostMeta($productId, $metaKey, $value);
         }
+    }
+
+    /**
+     * Normalizes the Germanized guarantee length (EU GARAN label, value in months) coming from a
+     * JTL-Wawi function attribute. Empty or non-numeric values are rejected (returned as null) so
+     * that a value maintained directly in WooCommerce is never overwritten with an invalid value
+     * (see CO-3605). Valid values are cast to a non-negative integer string, matching Germanized's
+     * own absint handling of the `_guarantee_length` meta.
+     *
+     * @param string $value
+     * @return string|null Non-negative integer string, or null when the value must be skipped.
+     */
+    protected function normalizeGuaranteeLengthValue(string $value): ?string
+    {
+        $value = \trim($value);
+
+        if ($value === '' || !\is_numeric($value)) {
+            return null;
+        }
+
+        return (string)\abs((int)$value);
     }
 
     /**

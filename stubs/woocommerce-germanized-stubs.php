@@ -27489,6 +27489,12 @@ namespace {
         public function set_min_age($min_age)
         {
         }
+        public function get_guarantee_length($context = 'view')
+        {
+        }
+        public function set_guarantee_length($length)
+        {
+        }
         protected function attribute_is_checkout_visible($attribute)
         {
         }
