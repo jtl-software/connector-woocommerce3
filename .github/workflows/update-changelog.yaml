@@ -1,17 +1,19 @@
 name: Update changelog
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   update-changelog:
-    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@21926464ffba4e610cd0e2c0f9d277d3ffe8ca56 # v2
+    uses: jtl-software/changelog-extractor/.github/workflows/update-changelog.yaml@94bcca4160818f110843ff273d43b86f406c586f # v2.2.1
     with:
       system-name: woocommerce
-      app-id: ${{ vars.GH_APP_ID }}
     secrets:
-      APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      APP_ID: ${{ secrets.CHANGELOG_PAGE_APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.CHANGELOG_PAGE_APP_PRIVATE_KEY }}
