@@ -25,6 +25,82 @@ use WhiteCube\Lingua\Service;
 class CustomerController extends AbstractBaseController implements PullInterface, PushInterface, StatisticInterface
 {
     /**
+     * Capabilities that identify a privileged (non-customer) account. A push
+     * targeting such an account is rejected, and a customer group must never
+     * resolve to a role granting any of these capabilities.
+     *
+     * This intentionally covers not only administrator/shop-manager level
+     * capabilities but every content-administration capability that lifts an
+     * account above a plain shop customer (contributor, author and editor).
+     * A default WooCommerce customer only holds "read", so no legitimate
+     * customer role is affected, while privileged built-in roles such as
+     * "editor" (which holds none of the classic admin capabilities) can no
+     * longer slip through.
+     */
+    private const array PROTECTED_CAPABILITIES = [
+        // Site, options and core administration
+        'manage_options',
+        'manage_woocommerce',
+        'edit_dashboard',
+        'update_core',
+        'export',
+        'import',
+        'customize',
+        'edit_theme_options',
+        // Plugin and theme administration
+        'activate_plugins',
+        'edit_plugins',
+        'install_plugins',
+        'update_plugins',
+        'delete_plugins',
+        'switch_themes',
+        'edit_themes',
+        'install_themes',
+        'update_themes',
+        'delete_themes',
+        // User administration
+        'edit_users',
+        'delete_users',
+        'create_users',
+        'list_users',
+        'promote_users',
+        'remove_users',
+        'add_users',
+        // Multisite / network administration
+        'manage_network',
+        'manage_sites',
+        'manage_network_users',
+        'manage_network_plugins',
+        'manage_network_themes',
+        'manage_network_options',
+        // Content administration (contributor, author, editor)
+        'edit_posts',
+        'edit_others_posts',
+        'edit_published_posts',
+        'edit_private_posts',
+        'publish_posts',
+        'delete_posts',
+        'delete_others_posts',
+        'delete_published_posts',
+        'delete_private_posts',
+        'read_private_posts',
+        'edit_pages',
+        'edit_others_pages',
+        'edit_published_pages',
+        'edit_private_pages',
+        'publish_pages',
+        'delete_pages',
+        'delete_others_pages',
+        'delete_published_pages',
+        'delete_private_pages',
+        'read_private_pages',
+        'manage_categories',
+        'manage_links',
+        'moderate_comments',
+        'unfiltered_html',
+    ];
+
+    /**
      * @param QueryFilter $query
      * @return array|AbstractModel[]
      * @throws \InvalidArgumentException
@@ -192,7 +268,18 @@ class CustomerController extends AbstractBaseController implements PullInterface
             }
 
             try {
-                $wcCustomer = new \WC_Customer((int)$model->getId()->getEndpoint());
+                $endpointId = (int)$model->getId()->getEndpoint();
+
+                if ($this->isProtectedUser($endpointId)) {
+                    $this->logger->warning(
+                        'Rejected customer push targeting a protected (privileged) user account with id ({id})',
+                        ['id' => $endpointId]
+                    );
+                    $returnModels[] = $model;
+                    continue;
+                }
+
+                $wcCustomer = new \WC_Customer($endpointId);
                 $wcCustomer->set_first_name($model->getFirstName());
                 $wcCustomer->set_billing_first_name($model->getFirstName());
                 $wcCustomer->set_last_name($model->getLastName());
@@ -214,12 +301,15 @@ class CustomerController extends AbstractBaseController implements PullInterface
                     throw new \InvalidArgumentException("Customer group not found");
                 }
 
-                $wcCustomer->set_role($customerGroup->post_name);
+                if ($this->isAssignableCustomerRole($customerGroup->post_name)) {
+                    $wcCustomer->set_role($customerGroup->post_name);
+                }
 
                 $wcCustomer->save();
 
                 if (
                     ($wpCustomerRole = $this->getWpCustomerRole($model->getCustomerGroupId()->getEndpoint())) !== null
+                    && $this->isAssignableCustomerRole($wpCustomerRole->name)
                 ) {
                     \wp_update_user(['ID' => $wcCustomer->get_id(), 'role' => $wpCustomerRole->name]);
                 }
@@ -230,6 +320,68 @@ class CustomerController extends AbstractBaseController implements PullInterface
             $returnModels[] = $model;
         }
         return $returnModels;
+    }
+
+    /**
+     * Determines whether the given user id belongs to a privileged account that
+     * must not be modified through a customer push (e.g. an administrator).
+     *
+     * @param int $userId
+     * @return bool
+     */
+    protected function isProtectedUser(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $user = \get_user_by('id', $userId);
+
+        if (!$user instanceof \WP_User) {
+            return false;
+        }
+
+        if (\in_array('administrator', (array)$user->roles, true)) {
+            return true;
+        }
+
+        foreach (self::PROTECTED_CAPABILITIES as $capability) {
+            if (\user_can($user, $capability)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines whether the given role slug may be assigned to a customer. Only
+     * existing, non-privileged roles are allowed; this prevents deriving a
+     * privileged role (e.g. "administrator") from an attacker-controlled post
+     * slug via the customer group.
+     *
+     * @param string $roleSlug
+     * @return bool
+     */
+    protected function isAssignableCustomerRole(string $roleSlug): bool
+    {
+        if ($roleSlug === '' || $roleSlug === 'administrator') {
+            return false;
+        }
+
+        $role = \get_role($roleSlug);
+
+        if (!$role instanceof \WP_Role) {
+            return false;
+        }
+
+        foreach (self::PROTECTED_CAPABILITIES as $capability) {
+            if (!empty($role->capabilities[$capability])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

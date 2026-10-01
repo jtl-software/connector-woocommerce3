@@ -1,6 +1,6 @@
 <?php
 
-namespace jtl\ProductCustomOptions;
+namespace JtlWooCommerceConnector\Plugins\ProductCustomOptions;
 
 use Jtl\Connector\Core\Event\CustomerOrderEvent;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -8,7 +8,7 @@ use Psr\Log\InvalidArgumentException;
 
 /**
  * Class CustomerOrderListener
- * @package jtl\ProductCustomOptions
+ * @package JtlWooCommerceConnector\Plugins\ProductCustomOptions
  */
 class CustomerOrderListener
 {

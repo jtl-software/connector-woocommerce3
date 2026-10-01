@@ -1,6 +1,6 @@
 <?php
 
-namespace jtl\ProductCustomOptions;
+namespace JtlWooCommerceConnector\Plugins\ProductCustomOptions;
 
 use DI\Container;
 use Jtl\Connector\Core\Definition\Action;
@@ -14,7 +14,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Class Bootstrap
- * @package jtl\ProductCustomOptions
+ * @package JtlWooCommerceConnector\Plugins\ProductCustomOptions
  */
 class Bootstrap implements PluginInterface
 {
