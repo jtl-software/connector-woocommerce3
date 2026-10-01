@@ -13,7 +13,7 @@ jobs:
 
       - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -22,7 +22,7 @@ jobs:
 
       - name: Create wp-env override with WooCommerce dependency
         run: |
-          echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"],"testsEnvironment":false}' > .wp-env.override.json
+          echo '{"plugins":["https://downloads.wordpress.org/plugin/woocommerce.zip"],"phpVersion":"8.4","testsEnvironment":false}' > .wp-env.override.json
 
       - name: Create plugin directory with correct WP.org slug
         run: |

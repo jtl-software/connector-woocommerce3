@@ -3,7 +3,7 @@ Contributors: papryk, ntbyk, platzkejtl, patrick-gugelsberger
 Tags: warenwirtschaft, jtl, connector, wms, erp
 Requires at least: 6.4
 Tested up to: 7.1
-Requires PHP: 8.3
+Requires PHP: 8.4
 WC requires at least: 3.4.7
 WC tested up to: 10.8.1
 Stable tag: 2.4.3
