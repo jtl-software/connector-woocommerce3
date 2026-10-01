@@ -18,7 +18,7 @@
     }
   ],
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "jtl/connector": "dev-master",
     "symfony/yaml": "^6.4",
     "twbs/bootstrap": "^4.3",
@@ -53,6 +53,9 @@
     }
   },
   "config": {
+    "platform": {
+      "php": "8.4.0"
+    },
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "phpstan/extension-installer": true

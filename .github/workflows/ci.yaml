@@ -28,7 +28,7 @@ jobs:
       checks: write
       packages: read
     container:
-      image: ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.3
+      image: ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.4
       options: --user root
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,9 +44,9 @@ jobs:
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ steps.composer-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-composer-php83-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-composer-php84-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-composer-php83-
+            ${{ runner.os }}-composer-php84-
 
       - run: composer install --no-progress --no-interaction
       - run: composer global require "staabm/annotate-pull-request-from-checkstyle:^1.8"
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.3']
+        php-version: ['8.4']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
