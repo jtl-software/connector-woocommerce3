@@ -205,8 +205,8 @@ This section describes how to install the plugin and get it working.
 
 = 2.4.4 =
 * Feature: transfer German Market warranty label (EU GARAN) fields to the shop
-- Feature: transfer Germanized guarantee length (EU GARAN label) to the shop
-- Feature: delete stored GPSR EU address when the responsible person is removed in JTL-Wawi
+* Feature: transfer Germanized guarantee length (EU GARAN label) to the shop
+* Feature: delete stored GPSR EU address when the responsible person is removed in JTL-Wawi
 
 = 2.4.3 =
 * Security: Updated Connector Core to fix plaintext session token storage — tokens are now hashed with SHA-256 in the local SQLite database
