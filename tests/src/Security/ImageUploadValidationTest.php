@@ -275,6 +275,62 @@ class ImageUploadValidationTest extends TestCase
     }
 
     /**
+     * Updating a legacy attachment with an executable filename must use a safe
+     * destination even when the pushed file is a genuine image.
+     *
+     * @return void
+     * @throws \phpmock\MockEnabledException
+     * @throws \Exception
+     */
+    public function testSaveImageUsesSafeDestinationForLegacyAttachment(): void
+    {
+        $db               = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util             = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+        $controller       = new class ($db, $util, $primaryKeyMapper) extends ImageController {
+            protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
+            {
+                return false;
+            }
+        };
+        $source = $this->createTempFile('png', $this->pngBytes());
+        $image  = (new ProductImage())
+            ->setId(new Identity('42', 0))
+            ->setForeignKey(new Identity('123', 0))
+            ->setName('updated image')
+            ->setFilename($source);
+
+        WP_Mock::userFunction('get_term')->andReturn(null);
+        WP_Mock::userFunction('wp_upload_dir')->andReturn([
+            'path' => \sys_get_temp_dir(),
+            'url'  => 'https://example.test/uploads',
+        ]);
+        WP_Mock::userFunction('get_post')->with(42, \ARRAY_A)->andReturn(['ID' => 42]);
+        WP_Mock::userFunction('get_attached_file')->with(42)->andReturn('/uploads/legacy-shell.php');
+
+        $destination = null;
+        $copyMock    = (new MockBuilder())
+            ->setNamespace('JtlWooCommerceConnector\Controllers')
+            ->setName('copy')
+            ->setFunction(static function (string $source, string $target) use (&$destination): bool {
+                $destination = $target;
+
+                return false;
+            })->build();
+        $copyMock->enable();
+
+        try {
+            $controller->saveImage($image);
+        } finally {
+            $copyMock->disable();
+        }
+
+        $this->assertIsString($destination);
+        $this->assertStringEndsWith('.png', $destination);
+        $this->assertStringNotContainsString('.php', $destination);
+    }
+
+    /**
      * saveImage()-level regression test guarding the real security boundary: a
      * pushed source that fails validation must be rejected (return null) before
      * the file is copied or any attachment API is touched. Unlike the helper
