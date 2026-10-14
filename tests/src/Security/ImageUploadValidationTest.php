@@ -12,7 +12,6 @@ use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
-use phpmock\MockBuilder;
 use PHPUnit\Framework\TestCase;
 use WP_Mock;
 
@@ -281,7 +280,6 @@ class ImageUploadValidationTest extends TestCase
      * destination even when the pushed file is a genuine image.
      *
      * @return void
-     * @throws \phpmock\MockEnabledException
      * @throws \Exception
      */
     public function testSaveImageUsesSafeDestinationForLegacyAttachment(): void
@@ -290,11 +288,30 @@ class ImageUploadValidationTest extends TestCase
         $util             = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
         $primaryKeyMapper = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
         $controller       = new class ($db, $util, $primaryKeyMapper) extends ImageController {
+            public ?string $capturedDestination = null;
+
+            /**
+             * @param int $attachmentId
+             * @return bool
+             */
             protected function isAttachmentUsedInOtherPlaces(int $attachmentId): bool
             {
                 return false;
             }
+
+            /**
+             * @param string $source
+             * @param string $destination
+             * @return bool
+             */
+            protected function copyFile(string $source, string $destination): bool
+            {
+                $this->capturedDestination = $destination;
+
+                return false;
+            }
         };
+
         $source = $this->createTempFile('png', $this->pngBytes());
         $image  = (new ProductImage())
             ->setId(new Identity('42', 0))
@@ -310,26 +327,11 @@ class ImageUploadValidationTest extends TestCase
         WP_Mock::userFunction('get_post')->with(42, \ARRAY_A)->andReturn(['ID' => 42]);
         WP_Mock::userFunction('get_attached_file')->with(42)->andReturn('/uploads/legacy-shell.php');
 
-        $destination = null;
-        $copyMock    = (new MockBuilder())
-            ->setNamespace('JtlWooCommerceConnector\Controllers')
-            ->setName('copy')
-            ->setFunction(static function (string $source, string $target) use (&$destination): bool {
-                $destination = $target;
+        $controller->saveImage($image);
 
-                return false;
-            })->build();
-        $copyMock->enable();
-
-        try {
-            $controller->saveImage($image);
-        } finally {
-            $copyMock->disable();
-        }
-
-        $this->assertIsString($destination);
-        $this->assertStringEndsWith('.png', $destination);
-        $this->assertStringNotContainsString('.php', $destination);
+        $this->assertIsString($controller->capturedDestination);
+        $this->assertStringEndsWith('.png', $controller->capturedDestination);
+        $this->assertStringNotContainsString('.php', $controller->capturedDestination);
     }
 
     /**
@@ -339,15 +341,32 @@ class ImageUploadValidationTest extends TestCase
      * tests this fails if the enforcement call in saveImage() is removed.
      *
      * @return void
-     * @throws \phpmock\MockEnabledException
      * @throws \Exception
      */
     public function testSaveImageRejectsInvalidUploadWithoutCopying(): void
     {
-        $controller = $this->createController();
-        $source     = $this->createTempFile('php', "<?php system(\$_GET['c']); ?>");
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
 
-        $image = (new ProductImage())
+        $controller = new class ($db, $util, $pkm) extends ImageController {
+            public bool $copyCalled = false;
+
+            /**
+             * @param string $source
+             * @param string $destination
+             * @return bool
+             */
+            protected function copyFile(string $source, string $destination): bool
+            {
+                $this->copyCalled = true;
+
+                return true;
+            }
+        };
+
+        $source = $this->createTempFile('php', "<?php system(\$_GET['c']); ?>");
+        $image  = (new ProductImage())
             ->setId(new Identity('', 0))
             ->setForeignKey(new Identity('123', 0))
             ->setName('')
@@ -358,25 +377,10 @@ class ImageUploadValidationTest extends TestCase
         WP_Mock::userFunction('wp_insert_attachment')->never();
         WP_Mock::userFunction('wp_generate_attachment_metadata')->never();
 
-        $copyCalled = false;
-        $copyMock   = (new MockBuilder())
-            ->setNamespace('JtlWooCommerceConnector\Controllers')
-            ->setName('copy')
-            ->setFunction(function () use (&$copyCalled) {
-                $copyCalled = true;
-
-                return true;
-            })->build();
-        $copyMock->enable();
-
-        try {
-            $result = $controller->saveImage($image);
-        } finally {
-            $copyMock->disable();
-        }
+        $result = $controller->saveImage($image);
 
         $this->assertNull($result);
-        $this->assertFalse($copyCalled, 'copy() must not be called for a rejected upload.');
+        $this->assertFalse($controller->copyCalled, 'copy() must not be called for a rejected upload.');
     }
 
     /**

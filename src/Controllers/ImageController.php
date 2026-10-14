@@ -692,7 +692,7 @@ class ImageController extends AbstractBaseController implements
         );
         $destination = self::createFilePath($uploadDir['path'], $fileName);
 
-        if (\copy($image->getFilename(), $destination)) {
+        if ($this->copyFile($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(\basename($destination), null);
 
             $attachment = \array_merge($attachment, [
@@ -733,6 +733,20 @@ class ImageController extends AbstractBaseController implements
         }
 
         return $post;
+    }
+
+    /**
+     * Thin seam over the native copy() call so the file write can be controlled
+     * in tests without touching the real filesystem. Global function call is
+     * kept fully qualified here to satisfy the coding standard.
+     *
+     * @param string $source
+     * @param string $destination
+     * @return bool
+     */
+    protected function copyFile(string $source, string $destination): bool
+    {
+        return \copy($source, $destination);
     }
 
     /**
