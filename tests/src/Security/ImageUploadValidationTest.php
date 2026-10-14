@@ -199,4 +199,75 @@ class ImageUploadValidationTest extends TestCase
             $this->invokeValidator($controller, \sys_get_temp_dir() . '/does-not-exist.png', 'png')
         );
     }
+
+    /**
+     * @param ImageController $controller
+     * @param string          $fileName
+     * @param string          $fallback
+     * @param string          $extension
+     * @param string          $uploadPath
+     * @return string
+     * @throws \ReflectionException
+     */
+    private function invokeEnsureSafe(
+        ImageController $controller,
+        string $fileName,
+        string $fallback,
+        string $extension,
+        string $uploadPath
+    ): string {
+        $method = (new \ReflectionClass($controller))->getMethod('ensureSafeDestinationFilename');
+        $method->setAccessible(true);
+
+        return (string)$method->invoke($controller, $fileName, $fallback, $extension, $uploadPath);
+    }
+
+    /**
+     * A legacy attachment created through the original vulnerability can carry an
+     * executable destination name (e.g. shell.php). Updating it via image.push
+     * must not copy the pushed file onto that executable name; the destination is
+     * regenerated with the already-validated image extension instead.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testExistingAttachmentWithExecutableExtensionIsRegenerated(): void
+    {
+        $controller = $this->createController();
+
+        $result = $this->invokeEnsureSafe(
+            $controller,
+            'legacy-shell.php',
+            'pushed-image',
+            'png',
+            \sys_get_temp_dir()
+        );
+
+        $this->assertStringEndsWith('.png', $result);
+        $this->assertStringNotContainsString('.php', $result);
+    }
+
+    /**
+     * A destination name that already carries a permitted image extension must be
+     * left untouched so in-place attachment updates keep overwriting the same file.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testExistingAttachmentWithImageExtensionIsKept(): void
+    {
+        $controller = $this->createController();
+
+        $result = $this->invokeEnsureSafe(
+            $controller,
+            'photo.jpg',
+            'pushed-image',
+            'jpg',
+            \sys_get_temp_dir()
+        );
+
+        $this->assertSame('photo.jpg', $result);
+    }
 }

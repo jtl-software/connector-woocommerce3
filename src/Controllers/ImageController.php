@@ -655,6 +655,12 @@ class ImageController extends AbstractBaseController implements
             }
         }
 
+        $fileName    = $this->ensureSafeDestinationFilename(
+            $fileName,
+            $fileInfo['filename'],
+            \strtolower(\trim($extension)),
+            $uploadDir['path']
+        );
         $destination = self::createFilePath($uploadDir['path'], $fileName);
 
         if (\copy($image->getFilename(), $destination)) {
@@ -785,6 +791,36 @@ class ImageController extends AbstractBaseController implements
         $imageInfo = @\getimagesize($filePath);
 
         return $imageInfo !== false;
+    }
+
+    /**
+     * Guarantees the destination file name carries a permitted image extension.
+     *
+     * The update path reuses the base name of an existing attachment
+     * (basename(get_attached_file(...))). A legacy attachment created before this
+     * hardening can carry an executable extension (e.g. .php); copying a pushed
+     * file onto such a name would allow remote code execution even though the
+     * pushed file itself is a valid image. In that case fall back to a freshly
+     * generated, sanitized name based on the already-validated push extension.
+     *
+     * @param string $fileName      Candidate destination file name.
+     * @param string $fallbackName  Base name used when the candidate must be replaced.
+     * @param string $safeExtension Already-validated extension of the pushed file.
+     * @param string $uploadPath    Target upload directory.
+     * @return string
+     */
+    private function ensureSafeDestinationFilename(
+        string $fileName,
+        string $fallbackName,
+        string $safeExtension,
+        string $uploadPath
+    ): string {
+        $extension = \strtolower((string)\pathinfo($fileName, \PATHINFO_EXTENSION));
+        if (\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+            return $fileName;
+        }
+
+        return $this->getNextAvailableImageFilename($fallbackName, $safeExtension, $uploadPath);
     }
 
     /**
