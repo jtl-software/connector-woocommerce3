@@ -6,8 +6,8 @@ namespace JtlWooCommerceConnector\Tests\Security;
 
 use Jtl\Connector\Core\Model\Checksum;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
+use JtlWooCommerceConnector\Tests\AbstractTestCase;
 use JtlWooCommerceConnector\Utilities\Db;
-use PHPUnit\Framework\TestCase;
 use WP_Mock;
 
 /**
@@ -18,7 +18,7 @@ use WP_Mock;
  *
  * @covers \JtlWooCommerceConnector\Checksum\ChecksumLoader
  */
-class ChecksumLoaderSqlInjectionTest extends TestCase
+class ChecksumLoaderSqlInjectionTest extends AbstractTestCase
 {
     private ChecksumLoader $loader;
 

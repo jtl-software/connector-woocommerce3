@@ -10,9 +10,9 @@ use Jtl\Connector\Core\Model\Identity;
 use Jtl\Connector\Core\Model\ManufacturerImage;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
+use JtlWooCommerceConnector\Tests\AbstractTestCase;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
-use PHPUnit\Framework\TestCase;
 use WP_Mock;
 
 /**
@@ -23,7 +23,7 @@ use WP_Mock;
  *
  * @covers \JtlWooCommerceConnector\Controllers\ImageController
  */
-class ImageUploadValidationTest extends TestCase
+class ImageUploadValidationTest extends AbstractTestCase
 {
     /** @var array<int, string> */
     private array $tempFiles = [];
@@ -531,5 +531,128 @@ class ImageUploadValidationTest extends TestCase
         $method->setAccessible(true);
 
         $this->assertSame('', $method->invoke($controller, $image));
+    }
+
+    /**
+     * A legacy attachment name carrying an executable intermediate extension
+     * (e.g. shell.php.jpg) must be regenerated with the validated image
+     * extension; the ".php" segment must not survive into the destination name.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testExistingAttachmentWithIntermediateExecutableExtensionIsRegenerated(): void
+    {
+        $controller = $this->createController();
+
+        $result = $this->invokeEnsureSafe(
+            $controller,
+            'shell.php.jpg',
+            'pushed-image',
+            'png',
+            \sys_get_temp_dir()
+        );
+
+        $this->assertStringEndsWith('.png', $result);
+        $this->assertStringNotContainsString('.php', $result);
+    }
+
+    /**
+     * When a generated destination name collides with an existing file, the next
+     * candidate must stay sanitized and must not reintroduce an executable
+     * intermediate extension from the original (unsanitized) name.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testCollisionCandidateKeepsSanitizedName(): void
+    {
+        $controller = $this->createController();
+
+        $dir = \sprintf('%s/jtl-collide-%s', \sys_get_temp_dir(), \uniqid('', true));
+        \mkdir($dir);
+        $existing          = $dir . '/shell-php.png';
+        \file_put_contents($existing, $this->pngBytes());
+        $this->tempFiles[] = $existing;
+
+        $method = (new \ReflectionClass($controller))->getMethod('getNextAvailableImageFilename');
+        $method->setAccessible(true);
+        $result = (string)$method->invoke($controller, 'shell.php', 'png', $dir);
+
+        \unlink($existing);
+        \rmdir($dir);
+
+        $this->assertSame('shell-php-1.png', $result);
+        $this->assertStringNotContainsString('.php', $result);
+    }
+
+    /**
+     * A rejected category image must be stopped in the public push() path before
+     * delete() runs, so the existing thumbnail and its meta are never touched.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testPushCategoryImageRejectedThroughPushPreservesThumbnail(): void
+    {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $controller = $this->getMockBuilder(ImageController::class)
+            ->setConstructorArgs([$db, $util, $pkm])
+            ->onlyMethods(['delete'])
+            ->getMock();
+        $controller->expects($this->never())->method('delete');
+
+        WP_Mock::userFunction('term_exists')->never();
+        WP_Mock::userFunction('update_term_meta')->never();
+
+        $source = $this->createTempFile('php', "<?php echo 'x'; ?>");
+        $image  = (new CategoryImage())
+            ->setId(new Identity('c_7', 0))
+            ->setForeignKey(new Identity('7', 0))
+            ->setName('')
+            ->setFilename($source);
+
+        $result = $controller->push($image);
+
+        $this->assertSame('c_7', $result[0]->getId()->getEndpoint());
+    }
+
+    /**
+     * A rejected manufacturer image must be stopped in the public push() path
+     * before delete() runs, so the existing image and its meta are preserved.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testPushManufacturerImageRejectedThroughPushPreservesImage(): void
+    {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $controller = $this->getMockBuilder(ImageController::class)
+            ->setConstructorArgs([$db, $util, $pkm])
+            ->onlyMethods(['delete'])
+            ->getMock();
+        $controller->expects($this->never())->method('delete');
+
+        WP_Mock::userFunction('term_exists')->never();
+        WP_Mock::userFunction('update_term_meta')->never();
+
+        $source = $this->createTempFile('php', "<?php echo 'x'; ?>");
+        $image  = (new ManufacturerImage())
+            ->setId(new Identity('m_7', 0))
+            ->setForeignKey(new Identity('7', 0))
+            ->setName('')
+            ->setFilename($source);
+
+        $result = $controller->push($image);
+
+        $this->assertSame('m_7', $result[0]->getId()->getEndpoint());
     }
 }

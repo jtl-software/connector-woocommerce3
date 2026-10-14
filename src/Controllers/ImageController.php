@@ -863,10 +863,11 @@ class ImageController extends AbstractBaseController implements
      *
      * The update path reuses the base name of an existing attachment
      * (basename(get_attached_file(...))). A legacy attachment created before this
-     * hardening can carry an executable extension (e.g. .php); copying a pushed
-     * file onto such a name would allow remote code execution even though the
-     * pushed file itself is a valid image. In that case fall back to a freshly
-     * generated, sanitized name based on the already-validated push extension.
+     * hardening can carry an executable extension (e.g. .php) or an executable
+     * intermediate extension (e.g. shell.php.jpg); copying a pushed file onto
+     * such a name would allow remote code execution even though the pushed file
+     * itself is a valid image. In both cases fall back to a freshly generated,
+     * sanitized name based on the already-validated push extension.
      *
      * @param string $fileName      Candidate destination file name.
      * @param string $fallbackName  Base name used when the candidate must be replaced.
@@ -880,8 +881,9 @@ class ImageController extends AbstractBaseController implements
         string $safeExtension,
         string $uploadPath
     ): string {
+        $baseName  = (string)\pathinfo($fileName, \PATHINFO_FILENAME);
         $extension = \strtolower((string)\pathinfo($fileName, \PATHINFO_EXTENSION));
-        if (\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+        if (\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true) && !\str_contains($baseName, '.')) {
             return $fileName;
         }
 
@@ -897,8 +899,8 @@ class ImageController extends AbstractBaseController implements
     protected function getNextAvailableImageFilename(string $name, string $extension, string $uploadDir): string
     {
         $i            = 1;
+        $name         = (string)\preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         $originalName = $name;
-        $name         = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         do {
             $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
@@ -1056,7 +1058,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = $this->saveImage($image);
         if ($attachmentId === null) {
             $this->logger->error(\sprintf(
-                'Image push for category (%s) was rejected; the existing thumbnail is preserved.',
+                'Saving the pushed image for category (%s) failed; no new thumbnail was linked.',
                 $categoryId
             ));
 
@@ -1084,7 +1086,7 @@ class ImageController extends AbstractBaseController implements
         $attachmentId = $this->saveImage($image);
         if ($attachmentId === null) {
             $this->logger->error(\sprintf(
-                'Image push for manufacturer (%s) was rejected; the existing image is preserved.',
+                'Saving the pushed image for manufacturer (%s) failed; no new image was linked.',
                 $termId
             ));
 
