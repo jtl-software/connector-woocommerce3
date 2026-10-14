@@ -200,7 +200,9 @@ class PrimaryKeyMapper implements PrimaryKeyMapperInterface
             \sprintf('Delete: endpoint (%s), host (%s) and type (%s)', $endpointId, $hostId, $type)
         );
 
-        $endpoint = "'{$endpointId}'";
+        global $wpdb;
+
+        $endpoint = "'{$wpdb->_escape((string)$endpointId)}'";
 
         if ($endpointId !== null && $hostId !== null) {
             $where = "WHERE endpoint_id = {$endpoint} AND host_id = {$hostId}";

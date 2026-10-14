@@ -49,6 +49,23 @@ class ImageController extends AbstractBaseController implements
     public const string CATEGORY_IMAGE     = 'category';
     public const string MANUFACTURER_IMAGE = 'manufacturer';
 
+    /**
+     * Image file extensions that may be written to the uploads directory.
+     */
+    private const array ALLOWED_IMAGE_EXTENSIONS = [
+        'jpg',
+        'jpeg',
+        'jpe',
+        'png',
+        'gif',
+        'bmp',
+        'webp',
+        'tif',
+        'tiff',
+        'ico',
+        'avif',
+    ];
+
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
 
@@ -601,6 +618,17 @@ class ImageController extends AbstractBaseController implements
         $extension = (\is_array($fileInfo) && \array_key_exists('extension', $fileInfo))
             ? $fileInfo['extension']
             : '';
+
+        if (!$this->isAllowedImageFile($image->getFilename(), $extension)) {
+            $this->logger->error(\sprintf(
+                'Rejected image push for foreign key (%s): "%s" is not a permitted image file.',
+                $image->getForeignKey()->getEndpoint(),
+                \basename($image->getFilename())
+            ));
+
+            return null;
+        }
+
         $uploadDir = \wp_upload_dir();
 
         $attachment  = [];
@@ -726,6 +754,37 @@ class ImageController extends AbstractBaseController implements
         $name = \trim((string)$name, '-');
 
         return \mb_substr($name, 0, 180);
+    }
+
+    /**
+     * Validates that a pushed file is a genuine image before it is written to the
+     * publicly accessible uploads directory. Guards against arbitrary file upload
+     * (e.g. PHP web shells) via the image.push endpoint.
+     *
+     * @param string $filePath  Path to the pushed source file.
+     * @param string $extension File extension derived from the pushed file name.
+     * @return bool
+     */
+    private function isAllowedImageFile(string $filePath, string $extension): bool
+    {
+        $extension = \strtolower(\trim($extension));
+
+        if (!\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+            return false;
+        }
+
+        $fileType = \wp_check_filetype('image.' . $extension, null);
+        if (!\is_string($fileType['type']) || !\str_starts_with($fileType['type'], 'image/')) {
+            return false;
+        }
+
+        if (!\is_file($filePath) || !\is_readable($filePath)) {
+            return false;
+        }
+
+        $imageInfo = @\getimagesize($filePath);
+
+        return $imageInfo !== false;
     }
 
     /**
