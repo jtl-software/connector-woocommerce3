@@ -49,6 +49,40 @@ class ImageController extends AbstractBaseController implements
     public const string CATEGORY_IMAGE     = 'category';
     public const string MANUFACTURER_IMAGE = 'manufacturer';
 
+    /**
+     * Image file extensions that may be written to the uploads directory.
+     */
+    private const array ALLOWED_IMAGE_EXTENSIONS = [
+        'jpg',
+        'jpeg',
+        'jpe',
+        'png',
+        'gif',
+        'bmp',
+        'webp',
+        'tif',
+        'tiff',
+        'ico',
+        'avif',
+    ];
+
+    /**
+     * Maps the image type reported by getimagesize() to the extensions that
+     * legitimately represent it. Used to reject files whose declared extension
+     * does not match their actual content (e.g. a PNG pushed as .jpg).
+     */
+    private const array IMAGE_TYPE_EXTENSIONS = [
+        \IMAGETYPE_JPEG    => ['jpg', 'jpeg', 'jpe'],
+        \IMAGETYPE_PNG     => ['png'],
+        \IMAGETYPE_GIF     => ['gif'],
+        \IMAGETYPE_BMP     => ['bmp'],
+        \IMAGETYPE_WEBP    => ['webp'],
+        \IMAGETYPE_TIFF_II => ['tif', 'tiff'],
+        \IMAGETYPE_TIFF_MM => ['tif', 'tiff'],
+        \IMAGETYPE_ICO     => ['ico'],
+        \IMAGETYPE_AVIF    => ['avif'],
+    ];
+
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
 
@@ -561,6 +595,18 @@ class ImageController extends AbstractBaseController implements
             $foreignKey = $model->getForeignKey()->getEndpoint();
 
             if (!empty($foreignKey)) {
+                if (!$this->isValidImagePush($model)) {
+                    $this->logger->error(\sprintf(
+                        'Rejected image push for foreign key (%s): "%s" is not a permitted image '
+                        . 'file. Existing image and metadata are preserved.',
+                        $foreignKey,
+                        \basename($model->getFilename())
+                    ));
+
+                    $returnModels[] = $model;
+                    continue;
+                }
+
                 $this->delete($model);
 
                 if ($model instanceof ProductImage) {
@@ -601,6 +647,17 @@ class ImageController extends AbstractBaseController implements
         $extension = (\is_array($fileInfo) && \array_key_exists('extension', $fileInfo))
             ? $fileInfo['extension']
             : '';
+
+        if (!$this->isAllowedImageFile($image->getFilename(), $extension)) {
+            $this->logger->error(\sprintf(
+                'Rejected image push for foreign key (%s): "%s" is not a permitted image file.',
+                $image->getForeignKey()->getEndpoint(),
+                \basename($image->getFilename())
+            ));
+
+            return null;
+        }
+
         $uploadDir = \wp_upload_dir();
 
         $attachment  = [];
@@ -627,9 +684,15 @@ class ImageController extends AbstractBaseController implements
             }
         }
 
+        $fileName    = $this->ensureSafeDestinationFilename(
+            $fileName,
+            $fileInfo['filename'],
+            \strtolower(\trim($extension)),
+            $uploadDir['path']
+        );
         $destination = self::createFilePath($uploadDir['path'], $fileName);
 
-        if (\copy($image->getFilename(), $destination)) {
+        if ($this->copyFile($image->getFilename(), $destination)) {
             $fileType = \wp_check_filetype(\basename($destination), null);
 
             $attachment = \array_merge($attachment, [
@@ -670,6 +733,20 @@ class ImageController extends AbstractBaseController implements
         }
 
         return $post;
+    }
+
+    /**
+     * Thin seam over the native copy() call so the file write can be controlled
+     * in tests without touching the real filesystem. Global function call is
+     * kept fully qualified here to satisfy the coding standard.
+     *
+     * @param string $source
+     * @param string $destination
+     * @return bool
+     */
+    protected function copyFile(string $source, string $destination): bool
+    {
+        return \copy($source, $destination);
     }
 
     /**
@@ -729,6 +806,91 @@ class ImageController extends AbstractBaseController implements
     }
 
     /**
+     * Validates that a pushed file is a genuine image before it is written to the
+     * publicly accessible uploads directory. Guards against arbitrary file upload
+     * (e.g. PHP web shells) via the image.push endpoint.
+     *
+     * @param string $filePath  Path to the pushed source file.
+     * @param string $extension File extension derived from the pushed file name.
+     * @return bool
+     */
+    private function isAllowedImageFile(string $filePath, string $extension): bool
+    {
+        $extension = \strtolower(\trim($extension));
+
+        if (!\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+            return false;
+        }
+
+        $fileType = \wp_check_filetype('image.' . $extension, null);
+        if (!\is_string($fileType['type']) || !\str_starts_with($fileType['type'], 'image/')) {
+            return false;
+        }
+
+        if (!\is_file($filePath) || !\is_readable($filePath)) {
+            return false;
+        }
+
+        $imageInfo = @\getimagesize($filePath);
+        if ($imageInfo === false) {
+            return false;
+        }
+
+        $detectedExtensions = self::IMAGE_TYPE_EXTENSIONS[$imageInfo[2]] ?? [];
+
+        return \in_array($extension, $detectedExtensions, true);
+    }
+
+    /**
+     * Validates a pushed image model before any destructive change (such as
+     * deleting the currently linked image) is performed. Guards the category,
+     * manufacturer and product push paths against arbitrary file upload.
+     *
+     * @param AbstractImage $image
+     * @return bool
+     */
+    private function isValidImagePush(AbstractImage $image): bool
+    {
+        /** @var array<string, string> $fileInfo */
+        $fileInfo  = \pathinfo($image->getFilename());
+        $extension = \array_key_exists('extension', $fileInfo) ? $fileInfo['extension'] : '';
+
+        return $this->isAllowedImageFile($image->getFilename(), $extension);
+    }
+
+    /**
+     * Guarantees the destination file name carries a permitted image extension.
+     *
+     * The update path reuses the base name of an existing attachment
+     * (basename(get_attached_file(...))). A legacy attachment created before this
+     * hardening can carry an executable extension (e.g. .php) or an executable
+     * intermediate extension (e.g. shell.php.jpg); copying a pushed file onto
+     * such a name would allow remote code execution even though the pushed file
+     * itself is a valid image. In both cases fall back to a freshly generated,
+     * sanitized name based on the already-validated push extension.
+     *
+     * @param string $fileName      Candidate destination file name.
+     * @param string $fallbackName  Base name used when the candidate must be replaced.
+     * @param string $safeExtension Already-validated extension of the pushed file.
+     * @param string $uploadPath    Target upload directory.
+     * @return string
+     */
+    private function ensureSafeDestinationFilename(
+        string $fileName,
+        string $fallbackName,
+        string $safeExtension,
+        string $uploadPath
+    ): string {
+        $baseName  = (string)\pathinfo($fileName, \PATHINFO_FILENAME);
+        $extension = \strtolower((string)\pathinfo($fileName, \PATHINFO_EXTENSION));
+        if (\in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true) && !\str_contains($baseName, '.')) {
+            return $fileName;
+        }
+
+        return $this->getNextAvailableImageFilename($fallbackName, $safeExtension, $uploadPath);
+    }
+
+    /**
      * @param string $name
      * @param string $extension
      * @param string $uploadDir
@@ -737,8 +899,8 @@ class ImageController extends AbstractBaseController implements
     protected function getNextAvailableImageFilename(string $name, string $extension, string $uploadDir): string
     {
         $i            = 1;
+        $name         = (string)\preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         $originalName = $name;
-        $name         = \preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
         do {
             $fileName     = \sprintf('%s.%s', $name, $extension);
             $fileFullPath = self::createFilePath($uploadDir, $fileName);
@@ -893,7 +1055,16 @@ class ImageController extends AbstractBaseController implements
             return '';
         }
 
-        $attachmentId = $this->saveImage($image) ?? 0;
+        $attachmentId = $this->saveImage($image);
+        if ($attachmentId === null) {
+            $this->logger->error(\sprintf(
+                'Saving the pushed image for category (%s) failed; no new thumbnail was linked.',
+                $categoryId
+            ));
+
+            return '';
+        }
+
         \update_term_meta($categoryId, self::CATEGORY_THUMBNAIL, $attachmentId);
 
         return Id::linkCategoryImage($attachmentId);
@@ -912,7 +1083,16 @@ class ImageController extends AbstractBaseController implements
             return '';
         }
 
-        $attachmentId = $this->saveImage($image) ?? 0;
+        $attachmentId = $this->saveImage($image);
+        if ($attachmentId === null) {
+            $this->logger->error(\sprintf(
+                'Saving the pushed image for manufacturer (%s) failed; no new image was linked.',
+                $termId
+            ));
+
+            return '';
+        }
+
         \update_term_meta($termId, self::MANUFACTURER_KEY, $attachmentId);
 
         return Id::linkManufacturerImage($attachmentId);

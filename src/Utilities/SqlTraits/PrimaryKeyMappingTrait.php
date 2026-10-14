@@ -65,7 +65,7 @@ trait PrimaryKeyMappingTrait
 
         return "SELECT host_id
                 FROM {$jcl}
-                WHERE endpoint_id = {$wpdb->_escape($endpointId)}";
+                WHERE endpoint_id = " . (int)$endpointId;
     }
 
     /**
@@ -126,7 +126,7 @@ trait PrimaryKeyMappingTrait
         $jcl = $wpdb->prefix . $wpdb->_escape($tableName);
 
         return "INSERT INTO {$jcl} (endpoint_id, host_id)
-                VALUES ({$wpdb->_escape($endpointId)}, {$hostId})";
+                VALUES (" . (int)$endpointId . ", {$hostId})";
     }
 
     /**
