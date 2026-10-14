@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Tests\Security;
 
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\Util;
+use phpmock\MockBuilder;
 use PHPUnit\Framework\TestCase;
 use WP_Mock;
 
@@ -269,5 +272,52 @@ class ImageUploadValidationTest extends TestCase
         );
 
         $this->assertSame('photo.jpg', $result);
+    }
+
+    /**
+     * saveImage()-level regression test guarding the real security boundary: a
+     * pushed source that fails validation must be rejected (return null) before
+     * the file is copied or any attachment API is touched. Unlike the helper
+     * tests this fails if the enforcement call in saveImage() is removed.
+     *
+     * @return void
+     * @throws \phpmock\MockEnabledException
+     * @throws \Exception
+     */
+    public function testSaveImageRejectsInvalidUploadWithoutCopying(): void
+    {
+        $controller = $this->createController();
+        $source     = $this->createTempFile('php', "<?php system(\$_GET['c']); ?>");
+
+        $image = (new ProductImage())
+            ->setId(new Identity('', 0))
+            ->setForeignKey(new Identity('123', 0))
+            ->setName('')
+            ->setFilename($source);
+
+        WP_Mock::userFunction('get_term')->andReturn(null);
+        WP_Mock::userFunction('wp_upload_dir')->never();
+        WP_Mock::userFunction('wp_insert_attachment')->never();
+        WP_Mock::userFunction('wp_generate_attachment_metadata')->never();
+
+        $copyCalled = false;
+        $copyMock   = (new MockBuilder())
+            ->setNamespace('JtlWooCommerceConnector\Controllers')
+            ->setName('copy')
+            ->setFunction(function () use (&$copyCalled) {
+                $copyCalled = true;
+
+                return true;
+            })->build();
+        $copyMock->enable();
+
+        try {
+            $result = $controller->saveImage($image);
+        } finally {
+            $copyMock->disable();
+        }
+
+        $this->assertNull($result);
+        $this->assertFalse($copyCalled, 'copy() must not be called for a rejected upload.');
     }
 }
