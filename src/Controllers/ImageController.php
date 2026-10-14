@@ -66,6 +66,23 @@ class ImageController extends AbstractBaseController implements
         'avif',
     ];
 
+    /**
+     * Maps the image type reported by getimagesize() to the extensions that
+     * legitimately represent it. Used to reject files whose declared extension
+     * does not match their actual content (e.g. a PNG pushed as .jpg).
+     */
+    private const array IMAGE_TYPE_EXTENSIONS = [
+        \IMAGETYPE_JPEG    => ['jpg', 'jpeg', 'jpe'],
+        \IMAGETYPE_PNG     => ['png'],
+        \IMAGETYPE_GIF     => ['gif'],
+        \IMAGETYPE_BMP     => ['bmp'],
+        \IMAGETYPE_WEBP    => ['webp'],
+        \IMAGETYPE_TIFF_II => ['tif', 'tiff'],
+        \IMAGETYPE_TIFF_MM => ['tif', 'tiff'],
+        \IMAGETYPE_ICO     => ['ico'],
+        \IMAGETYPE_AVIF    => ['avif'],
+    ];
+
     /** @var array<int, int|string> */
     private array $alreadyLinked = [];
 
@@ -578,6 +595,18 @@ class ImageController extends AbstractBaseController implements
             $foreignKey = $model->getForeignKey()->getEndpoint();
 
             if (!empty($foreignKey)) {
+                if (!$this->isValidImagePush($model)) {
+                    $this->logger->error(\sprintf(
+                        'Rejected image push for foreign key (%s): "%s" is not a permitted image '
+                        . 'file. Existing image and metadata are preserved.',
+                        $foreignKey,
+                        \basename($model->getFilename())
+                    ));
+
+                    $returnModels[] = $model;
+                    continue;
+                }
+
                 $this->delete($model);
 
                 if ($model instanceof ProductImage) {
@@ -789,8 +818,30 @@ class ImageController extends AbstractBaseController implements
         }
 
         $imageInfo = @\getimagesize($filePath);
+        if ($imageInfo === false) {
+            return false;
+        }
 
-        return $imageInfo !== false;
+        $detectedExtensions = self::IMAGE_TYPE_EXTENSIONS[$imageInfo[2]] ?? [];
+
+        return \in_array($extension, $detectedExtensions, true);
+    }
+
+    /**
+     * Validates a pushed image model before any destructive change (such as
+     * deleting the currently linked image) is performed. Guards the category,
+     * manufacturer and product push paths against arbitrary file upload.
+     *
+     * @param AbstractImage $image
+     * @return bool
+     */
+    private function isValidImagePush(AbstractImage $image): bool
+    {
+        /** @var array<string, string> $fileInfo */
+        $fileInfo  = \pathinfo($image->getFilename());
+        $extension = \array_key_exists('extension', $fileInfo) ? $fileInfo['extension'] : '';
+
+        return $this->isAllowedImageFile($image->getFilename(), $extension);
     }
 
     /**
@@ -988,7 +1039,16 @@ class ImageController extends AbstractBaseController implements
             return '';
         }
 
-        $attachmentId = $this->saveImage($image) ?? 0;
+        $attachmentId = $this->saveImage($image);
+        if ($attachmentId === null) {
+            $this->logger->error(\sprintf(
+                'Image push for category (%s) was rejected; the existing thumbnail is preserved.',
+                $categoryId
+            ));
+
+            return '';
+        }
+
         \update_term_meta($categoryId, self::CATEGORY_THUMBNAIL, $attachmentId);
 
         return Id::linkCategoryImage($attachmentId);
@@ -1007,7 +1067,16 @@ class ImageController extends AbstractBaseController implements
             return '';
         }
 
-        $attachmentId = $this->saveImage($image) ?? 0;
+        $attachmentId = $this->saveImage($image);
+        if ($attachmentId === null) {
+            $this->logger->error(\sprintf(
+                'Image push for manufacturer (%s) was rejected; the existing image is preserved.',
+                $termId
+            ));
+
+            return '';
+        }
+
         \update_term_meta($termId, self::MANUFACTURER_KEY, $attachmentId);
 
         return Id::linkManufacturerImage($attachmentId);

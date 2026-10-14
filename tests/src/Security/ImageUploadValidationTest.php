@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace JtlWooCommerceConnector\Tests\Security;
 
 use Jtl\Connector\Core\Mapper\PrimaryKeyMapperInterface;
+use Jtl\Connector\Core\Model\CategoryImage;
 use Jtl\Connector\Core\Model\Identity;
+use Jtl\Connector\Core\Model\ManufacturerImage;
 use Jtl\Connector\Core\Model\ProductImage;
 use JtlWooCommerceConnector\Controllers\ImageController;
 use JtlWooCommerceConnector\Utilities\Db;
@@ -375,5 +377,155 @@ class ImageUploadValidationTest extends TestCase
 
         $this->assertNull($result);
         $this->assertFalse($copyCalled, 'copy() must not be called for a rejected upload.');
+    }
+
+    /**
+     * @return string
+     */
+    private function jpegBytes(): string
+    {
+        return (string)\base64_decode(
+            '/9j/4AAQSkZJRgABAQEAYABgAAD//gA7Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2ODApLCBxdWFsaXR5' .
+            'ID0gOTAK/9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU' .
+            '/9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/8AA' .
+            'EQgAAgACAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQ' .
+            'RBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGl' .
+            'qc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP' .
+            '09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQd' .
+            'hcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl' .
+            '6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9o' .
+            'ADAMBAAIRAxEAPwD8qqKKKAP/2Q=='
+        );
+    }
+
+    /**
+     * A PNG renamed to .jpg must be rejected: the declared extension and the
+     * actual image content do not match.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testImageContentExtensionMismatchIsRejected(): void
+    {
+        $controller = $this->createController();
+        $file       = $this->createTempFile('jpg', $this->pngBytes());
+
+        $this->assertFalse($this->invokeValidator($controller, $file, 'jpg'));
+    }
+
+    /**
+     * A genuine JPEG with a matching .jpg extension must be accepted.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testMatchingJpegExtensionIsAllowed(): void
+    {
+        $controller = $this->createController();
+        $file       = $this->createTempFile('jpg', $this->jpegBytes());
+
+        $this->assertTrue($this->invokeValidator($controller, $file, 'jpg'));
+    }
+
+    /**
+     * push() must not delete the currently linked image before the pushed file
+     * has been validated. A rejected upload must leave the existing image (and
+     * the model endpoint) untouched.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testPushDoesNotDeleteExistingImageWhenUploadRejected(): void
+    {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $controller = $this->getMockBuilder(ImageController::class)
+            ->setConstructorArgs([$db, $util, $pkm])
+            ->onlyMethods(['delete'])
+            ->getMock();
+        $controller->expects($this->never())->method('delete');
+
+        $source = $this->createTempFile('php', "<?php echo 'x'; ?>");
+        $image  = (new ProductImage())
+            ->setId(new Identity('p_1_2', 0))
+            ->setForeignKey(new Identity('2', 0))
+            ->setName('')
+            ->setFilename($source);
+
+        $result = $controller->push($image);
+
+        $this->assertSame('p_1_2', $result[0]->getId()->getEndpoint());
+    }
+
+    /**
+     * A rejected category image push must not overwrite the existing thumbnail
+     * meta with attachment id 0, and must return an empty endpoint.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testPushCategoryImageRejectionPreservesThumbnail(): void
+    {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $controller = $this->getMockBuilder(ImageController::class)
+            ->setConstructorArgs([$db, $util, $pkm])
+            ->onlyMethods(['saveImage'])
+            ->getMock();
+        $controller->method('saveImage')->willReturn(null);
+
+        WP_Mock::userFunction('term_exists')->andReturn(1);
+        WP_Mock::userFunction('update_term_meta')->never();
+
+        $image = (new CategoryImage())
+            ->setId(new Identity('', 0))
+            ->setForeignKey(new Identity('7', 0))
+            ->setFilename('whatever.png');
+
+        $method = (new \ReflectionClass(ImageController::class))->getMethod('pushCategoryImage');
+        $method->setAccessible(true);
+
+        $this->assertSame('', $method->invoke($controller, $image));
+    }
+
+    /**
+     * A rejected manufacturer image push must not overwrite the existing image
+     * meta with attachment id 0, and must return an empty endpoint.
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testPushManufacturerImageRejectionPreservesImage(): void
+    {
+        $db   = $this->getMockBuilder(Db::class)->disableOriginalConstructor()->getMock();
+        $util = $this->getMockBuilder(Util::class)->disableOriginalConstructor()->getMock();
+        $pkm  = $this->getMockBuilder(PrimaryKeyMapperInterface::class)->getMock();
+
+        $controller = $this->getMockBuilder(ImageController::class)
+            ->setConstructorArgs([$db, $util, $pkm])
+            ->onlyMethods(['saveImage'])
+            ->getMock();
+        $controller->method('saveImage')->willReturn(null);
+
+        WP_Mock::userFunction('term_exists')->andReturn(1);
+        WP_Mock::userFunction('update_term_meta')->never();
+
+        $image = (new ManufacturerImage())
+            ->setId(new Identity('', 0))
+            ->setForeignKey(new Identity('7', 0))
+            ->setFilename('whatever.png');
+
+        $method = (new \ReflectionClass(ImageController::class))->getMethod('pushManufacturerImage');
+        $method->setAccessible(true);
+
+        $this->assertSame('', $method->invoke($controller, $image));
     }
 }
