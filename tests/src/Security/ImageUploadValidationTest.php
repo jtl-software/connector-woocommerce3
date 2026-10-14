@@ -573,7 +573,7 @@ class ImageUploadValidationTest extends AbstractTestCase
 
         $dir = \sprintf('%s/jtl-collide-%s', \sys_get_temp_dir(), \uniqid('', true));
         \mkdir($dir);
-        $existing          = $dir . '/shell-php.png';
+        $existing = $dir . '/shell-php.png';
         \file_put_contents($existing, $this->pngBytes());
         $this->tempFiles[] = $existing;
 
