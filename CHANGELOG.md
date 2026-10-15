@@ -4,6 +4,9 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
+## 2.4.5 _2026-10-15_
+- CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method
+
 ## 2.4.4 _2026-10-01_
 - CO-3606 - transfer German Market warranty label (EU GARAN) fields to the shop
 - CO-3605 - transfer Germanized guarantee length (EU GARAN label) to the shop
