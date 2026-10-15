@@ -111,11 +111,11 @@ class ChecksumLoader implements ChecksumLoaderInterface
         return \sprintf(
             'SELECT checksum
                 FROM %s%s
-                WHERE product_id = %s
+                WHERE product_id = %d
                 AND type = %s;',
             $wpdb->prefix,
             'jtl_connector_product_checksum',
-            \esc_sql($endpointId),
+            (int)$endpointId,
             $type
         );
     }
@@ -131,10 +131,10 @@ class ChecksumLoader implements ChecksumLoaderInterface
         global $wpdb;
 
         return \sprintf(
-            "INSERT IGNORE INTO %s%s VALUES(%s,%s,'%s')",
+            "INSERT IGNORE INTO %s%s VALUES(%d,%s,'%s')",
             $wpdb->prefix,
             'jtl_connector_product_checksum',
-            \esc_sql($endpointId),
+            (int)$endpointId,
             $type,
             \esc_sql($checksum)
         );
@@ -152,10 +152,10 @@ class ChecksumLoader implements ChecksumLoaderInterface
 
         return \sprintf(
             "DELETE FROM %s
-                WHERE `product_id` = %s
+                WHERE `product_id` = %d
                 AND `type` = %s",
             $jcpc,
-            \esc_sql($endpointId),
+            (int)$endpointId,
             $type
         );
     }
