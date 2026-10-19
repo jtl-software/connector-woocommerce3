@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- fix authentication bypass: reject all RPC calls except connector.auth unless the session was authenticated, closing unauthenticated access to controller actions (e.g. product.push) via an empty or array jtlauth parameter
 
 ## 2.4.5 _2026-10-15_
 - CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method
