@@ -157,7 +157,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         }
 
         if (!$sessionActive || ($session[TokenValidator::AUTH_SESSION_KEY] ?? null) !== true) {
-            throw new SessionException('No session', ErrorCode::NO_SESSION);
+            throw new SessionException('No session', (int)ErrorCode::NO_SESSION);
         }
     }
 
