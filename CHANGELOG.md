@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+
+## 2.4.6 _2026-10-20_
 - CO-3671 - fix authentication bypass: reject all RPC calls except connector.auth unless the session was authenticated, closing unauthenticated access to controller actions (e.g. product.push) via an empty or array jtlauth parameter
 - CO-3671 - remove stack traces, exception details and server paths from error responses
 
