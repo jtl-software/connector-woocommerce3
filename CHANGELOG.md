@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3671 - require jtl/connector 6, which authenticates RPC calls before the requested method is resolved, so unauthenticated requests can no longer probe which methods exist
 
 ## 2.4.5 _2026-10-15_
 - CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method
