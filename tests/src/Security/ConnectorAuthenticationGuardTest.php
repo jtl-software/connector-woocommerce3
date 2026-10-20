@@ -130,6 +130,7 @@ class ConnectorAuthenticationGuardTest extends TestCase
                 $handledRpcs[] = $event->getController() . '.' . $event->getAction();
             });
 
+            \WP_Mock::userFunction('get_locale')->andReturn('de_DE');
             (new Connector())->initialize($config, $container, $dispatcher);
 
             try {
