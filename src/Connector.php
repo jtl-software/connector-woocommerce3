@@ -146,6 +146,55 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
+     * Registers a listener that strips internals (stack traces, server paths,
+     * exception details) from error responses before they are sent. Needs to be
+     * registered before Application::run() so that errors raised before the
+     * connector is initialized (e.g. invalid requests, fatal errors) are covered.
+     *
+     * @param EventDispatcher $dispatcher
+     * @return void
+     */
+    public static function registerErrorSanitizer(EventDispatcher $dispatcher): void
+    {
+        $dispatcher->addListener(Event::createRpcEventName(Event::AFTER), static function (RpcEvent $event): void {
+            $data = $event->getData();
+            if (\is_array($data)) {
+                $event->setData(self::sanitizeErrorData($data));
+            }
+        }, -100);
+    }
+
+    /**
+     * Removes the exception details from a serialized RPC error, i.e. an array that
+     * consists of exactly "code", "message" and "data". Any other payload is returned
+     * unchanged.
+     *
+     * @param array<array-key, mixed> $data
+     * @return array<array-key, mixed>
+     */
+    public static function sanitizeErrorData(array $data): array
+    {
+        $keys = \array_keys($data);
+        \sort($keys);
+        if ($keys !== ['code', 'data', 'message']) {
+            return $data;
+        }
+
+        $message = \is_string($data['message']) ? $data['message'] : '';
+        $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
+        $message = (string)\preg_replace(
+            ['~(?<![\w/])/(?:[\w.\-@+]+/)+[\w.\-@+]*~', '~[A-Za-z]:\\\\(?:[^\\\\\s\'"]+\\\\)*[^\\\\\s\'"]*~'],
+            '[path]',
+            $message
+        );
+
+        $data['message'] = $message;
+        $data['data']    = null;
+
+        return $data;
+    }
+
+    /**
      * Rejects every RPC call except connector.auth unless the current session
      * was flagged as authenticated by a successful token validation. The core
      * framework starts a fresh session when jtlauth is missing, empty or not a

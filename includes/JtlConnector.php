@@ -29,6 +29,7 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
 
             $connector   = new Connector();
             $application = new Application(CONNECTOR_DIR, $config);
+            Connector::registerErrorSanitizer($application->getEventDispatcher());
             $application->setSessionHandler(
                 new AuthenticatedSqliteSessionHandler(\sprintf('%s/var', CONNECTOR_DIR))
             );
