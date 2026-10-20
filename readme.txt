@@ -205,6 +205,7 @@ This section describes how to install the plugin and get it working.
 
 = 2.4.6 =
 * Security: Fixed authentication bypass allowing unauthenticated access to controller actions via an empty jtlauth parameter
+* Security: Authentication is now checked before any other request processing
 * Security: Error responses no longer contain stack traces, exception details or server paths
 
 = 2.4.5 =
