@@ -89,16 +89,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         $container->set(Db::class, $db);
         $container->set(Util::class, $util);
 
-        $dispatcher->addListener(Event::createRpcEventName(
-            Event::BEFORE
-        ), static function (RpcEvent $event): void {
-            self::assertAuthenticated(
-                $event->getController(),
-                $event->getAction(),
-                \session_status() === \PHP_SESSION_ACTIVE,
-                $_SESSION ?? []
-            );
-        }, 100);
+        $this->registerAuthenticationGuard($dispatcher);
 
         $dispatcher->addListener(Event::createRpcEventName(
             Event::BEFORE
@@ -131,6 +122,27 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             $util->countProductTags();
             $util->syncMasterProducts();
         });
+    }
+
+    /**
+     * Registers the authentication guard as the first RPC BEFORE listener so that
+     * no controller action is handled for an unauthenticated session.
+     *
+     * @param EventDispatcher $dispatcher
+     * @return void
+     */
+    public function registerAuthenticationGuard(EventDispatcher $dispatcher): void
+    {
+        $dispatcher->addListener(Event::createRpcEventName(
+            Event::BEFORE
+        ), static function (RpcEvent $event): void {
+            self::assertAuthenticated(
+                $event->getController(),
+                $event->getAction(),
+                \session_status() === \PHP_SESSION_ACTIVE,
+                $_SESSION ?? []
+            );
+        }, 100);
     }
 
     /**
