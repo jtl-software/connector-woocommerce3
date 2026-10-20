@@ -107,8 +107,9 @@ class ConnectorAuthenticationGuardTest extends TestCase
         try {
             $_SESSION = [];
 
-            WP_Mock::userFunction('get_option')->andReturn(false);
-            WP_Mock::userFunction('update_option')->andReturn(true);
+            \WP_Mock::userFunction('get_option')->andReturn(false);
+            \WP_Mock::userFunction('update_option')->andReturn(true);
+            \WP_Mock::userFunction('get_locale')->andReturn('en_US');
             require_once __DIR__ . '/../../../includes/JtlConnectorAdmin.php';
 
             $config = $this->createMock(ConfigInterface::class);
@@ -122,9 +123,9 @@ class ConnectorAuthenticationGuardTest extends TestCase
                     ->getMock()
             );
 
-            $dispatcher     = new EventDispatcher();
-            $handledRpcs    = [];
-            $rpcEventName   = Event::createRpcEventName(Event::BEFORE);
+            $dispatcher    = new EventDispatcher();
+            $handledRpcs   = [];
+            $rpcEventName  = Event::createRpcEventName(Event::BEFORE);
             $dispatcher->addListener($rpcEventName, static function (RpcEvent $event) use (&$handledRpcs): void {
                 $handledRpcs[] = $event->getController() . '.' . $event->getAction();
             });
