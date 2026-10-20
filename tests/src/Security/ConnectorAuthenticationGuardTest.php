@@ -123,9 +123,9 @@ class ConnectorAuthenticationGuardTest extends TestCase
                     ->getMock()
             );
 
-            $dispatcher    = new EventDispatcher();
-            $handledRpcs   = [];
-            $rpcEventName  = Event::createRpcEventName(Event::BEFORE);
+            $dispatcher   = new EventDispatcher();
+            $handledRpcs  = [];
+            $rpcEventName = Event::createRpcEventName(Event::BEFORE);
             $dispatcher->addListener($rpcEventName, static function (RpcEvent $event) use (&$handledRpcs): void {
                 $handledRpcs[] = $event->getController() . '.' . $event->getAction();
             });
