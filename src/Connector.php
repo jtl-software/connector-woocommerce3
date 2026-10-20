@@ -23,6 +23,8 @@ use Jtl\Connector\Core\Event\RpcEvent;
 use Jtl\Connector\Core\Exception\ApplicationException;
 use Jtl\Connector\Core\Exception\DefinitionException;
 use Jtl\Connector\Core\Exception\MustNotBeNullException;
+use Jtl\Connector\Core\Exception\SessionException;
+use Jtl\Connector\Core\Definition\ErrorCode;
 use Jtl\Connector\Core\Logger\LoggerService;
 use Jtl\Connector\Core\Model\Category;
 use Jtl\Connector\Core\Model\Product;
@@ -87,6 +89,8 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         $container->set(Db::class, $db);
         $container->set(Util::class, $util);
 
+        $this->registerAuthenticationGuard($dispatcher);
+
         $dispatcher->addListener(Event::createRpcEventName(
             Event::BEFORE
         ), static function (RpcEvent $event) use ($config): void {
@@ -118,6 +122,55 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             $util->countProductTags();
             $util->syncMasterProducts();
         });
+    }
+
+    /**
+     * Registers the authentication guard as the first RPC BEFORE listener so that
+     * no controller action is handled for an unauthenticated session.
+     *
+     * @param EventDispatcher $dispatcher
+     * @return void
+     */
+    public function registerAuthenticationGuard(EventDispatcher $dispatcher): void
+    {
+        $dispatcher->addListener(Event::createRpcEventName(
+            Event::BEFORE
+        ), static function (RpcEvent $event): void {
+            self::assertAuthenticated(
+                $event->getController(),
+                $event->getAction(),
+                \session_status() === \PHP_SESSION_ACTIVE,
+                $_SESSION ?? []
+            );
+        }, 100);
+    }
+
+    /**
+     * Rejects every RPC call except connector.auth unless the current session
+     * was flagged as authenticated by a successful token validation. The core
+     * framework starts a fresh session when jtlauth is missing, empty or not a
+     * string, so the session id check alone does not guarantee authentication.
+     *
+     * @param string                  $controller
+     * @param string                  $action
+     * @param bool                    $sessionActive
+     * @param array<array-key, mixed> $session
+     * @return void
+     * @throws SessionException
+     */
+    public static function assertAuthenticated(
+        string $controller,
+        string $action,
+        bool $sessionActive,
+        array $session
+    ): void {
+        if (\strtolower($controller) === 'connector' && \strtolower($action) === 'auth') {
+            return;
+        }
+
+        if (!$sessionActive || ($session[TokenValidator::AUTH_SESSION_KEY] ?? null) !== true) {
+            throw new SessionException('No session', (int)ErrorCode::NO_SESSION);
+        }
     }
 
     /**
