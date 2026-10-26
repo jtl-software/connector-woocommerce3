@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3668 - fix stored XSS via unfiltered product, category and manufacturer descriptions
 
 ## 2.4.5 _2026-10-15_
 - CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method

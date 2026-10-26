@@ -349,13 +349,7 @@ class ProductController extends AbstractBaseController implements
                 $endpoint['comment_status'] = \get_post_field('comment_status', $endpoint['ID']);
             }
 
-            // Post filtering
-            \remove_filter('content_save_pre', 'wp_filter_post_kses');
-            \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
             $newPostId = \wp_insert_post($endpoint, true);
-            // Post filtering
-            \add_filter('content_save_pre', 'wp_filter_post_kses');
-            \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
             if (!\is_int($newPostId)) {
                 $this->logger->error(ErrorFormatter::formatError($newPostId));
@@ -407,17 +401,11 @@ class ProductController extends AbstractBaseController implements
                 (new ProductAdvancedCustomFieldsController($this->db, $this->util))->pushData($model);
             }
 
-            \remove_filter('content_save_pre', 'wp_filter_post_kses');
-            \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-
             \wp_update_post([
                 'ID' => $newPostId,
                 'post_content' => $tmpI18n->getDescription(),
                 'post_excerpt' => $tmpI18n->getShortDescription()
             ]);
-
-            \add_filter('content_save_pre', 'wp_filter_post_kses');
-            \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
             $returnModels[] = $model;
         }
@@ -761,8 +749,8 @@ class ProductController extends AbstractBaseController implements
             'ID' => $productId,
             'post_title' => $variation_post_title,
         ]);
-        \update_post_meta($productId, '_variation_description', $meta->getDescription());
-        \update_post_meta($productId, '_mini_dec', $meta->getShortDescription());
+        \update_post_meta($productId, '_variation_description', \wp_kses_post($meta->getDescription()));
+        \update_post_meta($productId, '_mini_dec', \wp_kses_post($meta->getShortDescription()));
 
         (new \JtlWooCommerceConnector\Controllers\Product\ProductStockLevelController($this->db, $this->util))
             ->pushDataChild($product);
