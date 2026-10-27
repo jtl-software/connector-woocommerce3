@@ -19,13 +19,13 @@
   ],
   "require": {
     "php": ">=8.4",
-    "jtl/connector": "dev-master",
+    "jtl/connector": "^6.0",
     "symfony/yaml": "^6.4",
     "twbs/bootstrap": "^4.3",
     "theiconic/name-parser": "^0.1.1",
     "php-units-of-measure/php-units-of-measure": "^2.1",
     "nette/utils": "^3.1",
-    "psr/log": "^1.1"
+    "psr/log": "^3.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",
