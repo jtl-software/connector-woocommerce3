@@ -128,6 +128,17 @@ class ConnectorErrorSanitizerTest extends TestCase
                 "Copy '/a b/c.php' to '/d e/f.php'",
                 "Copy '[path]' to '[path]'",
             ],
+            'quoted windows path, forward slashes' => [
+                'Failed opening "C:/var/www/My Great Shop/private/config.php" for product/push',
+                'Failed opening "[path]" for product/push',
+            ],
+            'windows path, forward slashes'      => ['C:/Users/Max Muster/shop/a.php', '[path]'],
+            'windows path, mixed separators'     => ['C:\\Users/Max Muster\\a.php', '[path]'],
+            'windows root level file, slash'     => ['Error in C:/a.php:3', 'Error in [path]:3'],
+            'no path: url'                       => [
+                'Cannot reach https://example.com/api/product for product/push',
+                'Cannot reach https://example.com/api/product for product/push',
+            ],
             'quoted windows path with spaces'    => [
                 'Failed opening "C:\\Program Files\\My Shop\\c.php" for product/push',
                 'Failed opening "[path]" for product/push',

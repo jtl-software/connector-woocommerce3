@@ -170,19 +170,21 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
      */
     private const array QUOTED_PATH_PATTERNS = [
         '~([\'"])/(?:(?!\1)[^\r\n])*\1~u',
-        '~([\'"])[A-Za-z]:\\\\(?:(?!\1)[^\r\n])*\1~u',
+        '~([\'"])[A-Za-z]:[\\\\/](?:(?!\1)[^\r\n])*\1~u',
     ];
 
     /**
      * Unquoted paths: a directory name may contain one space ("Shop Name/"), i.e. a space is only part of the path
      * if the next word is directly followed by a slash. Otherwise text like "a.php for product/push" would be
      * swallowed. Directory names with more than one space are only masked in quoted paths.
-     * Unix: the lookbehind keeps relative text such as "and/or" or "product/push" untouched.
+     * Windows paths accept both separators and are matched first. Unix: the lookbehind keeps relative text such
+     * as "and/or" or "product/push" untouched.
      */
     private const array PATH_PATTERNS = [
+        '~(?<![\p{L}\p{N}_])[A-Za-z]:(?!//)[\\\\/]'
+        . '(?:[^\\\\/\s\'"<>|:*?]+(?: [^\\\\/\s\'"<>|:*?]+)?[\\\\/])*[^\\\\/\s\'"<>|:*?]*~u',
         '~(?<![\p{L}\p{N}\p{M}_/])/(?:(?:[\p{L}\p{N}\p{M}_.\-@+]+(?: [\p{L}\p{N}\p{M}_.\-@+]+)?/)+'
         . '[\p{L}\p{N}\p{M}_.\-@+]*|[\p{L}\p{N}\p{M}_.\-@+]+)~u',
-        '~[A-Za-z]:\\\\(?:[^\\\\\s\'"<>|:*?]+(?: [^\\\\\s\'"<>|:*?]+)?\\\\)*[^\\\\\s\'"<>|:*?]*~u',
     ];
 
     /**
