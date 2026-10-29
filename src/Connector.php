@@ -31,6 +31,7 @@ use Jtl\Connector\Core\Model\Product;
 use Jtl\Connector\Core\Model\QueryFilter;
 use JtlWooCommerceConnector\Authentication\TokenValidator;
 use JtlWooCommerceConnector\Checksum\ChecksumLoader;
+use JtlWooCommerceConnector\Error\ErrorResponseSanitizer;
 use JtlWooCommerceConnector\Event\CanHandleEvent;
 use JtlWooCommerceConnector\Event\HandleDeleteEvent;
 use JtlWooCommerceConnector\Event\HandlePullEvent;
@@ -45,6 +46,7 @@ use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
 use JtlWooCommerceConnector\Utilities\Util;
 use Noodlehaus\ConfigInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Yaml\Exception\ParseException;
 
@@ -146,52 +148,26 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
-     * Registers a listener that strips internals (stack traces, server paths,
-     * exception details) from error responses before they are sent. Needs to be
-     * registered before Application::run() so that errors raised before the
-     * connector is initialized (e.g. invalid requests, fatal errors) are covered.
+     * Registers a listener that keeps internals (stack traces, server paths, exception details) out of error
+     * responses and logs the original error instead. Needs to be registered before Application::run() so that
+     * errors raised before the connector is initialized (e.g. invalid requests, fatal errors) are covered.
      *
      * @param EventDispatcher $dispatcher
+     * @param LoggerInterface $logger
      * @return void
      */
-    public static function registerErrorSanitizer(EventDispatcher $dispatcher): void
+    public static function registerErrorSanitizer(EventDispatcher $dispatcher, LoggerInterface $logger): void
     {
-        $dispatcher->addListener(Event::createRpcEventName(Event::AFTER), static function (RpcEvent $event): void {
+        $sanitizer = new ErrorResponseSanitizer($logger);
+
+        $dispatcher->addListener(Event::createRpcEventName(Event::AFTER), static function (RpcEvent $event) use (
+            $sanitizer
+        ): void {
             $data = $event->getData();
             if (\is_array($data)) {
-                $event->setData(self::sanitizeErrorData($data));
+                $event->setData($sanitizer->sanitize($data));
             }
         }, -100);
-    }
-
-    /**
-     * Removes the exception details from a serialized RPC error, i.e. an array that
-     * consists of exactly "code", "message" and "data". Any other payload is returned
-     * unchanged.
-     *
-     * @param array<array-key, mixed> $data
-     * @return array<array-key, mixed>
-     */
-    public static function sanitizeErrorData(array $data): array
-    {
-        $keys = \array_keys($data);
-        \sort($keys);
-        if ($keys !== ['code', 'data', 'message']) {
-            return $data;
-        }
-
-        $message = \is_string($data['message']) ? $data['message'] : '';
-        $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
-        $message = (string)\preg_replace(
-            ['~(?<![\w/])/(?:[\w.\-@+]+/)+[\w.\-@+]*~', '~[A-Za-z]:\\\\(?:[^\\\\\s\'"]+\\\\)*[^\\\\\s\'"]*~'],
-            '[path]',
-            $message
-        );
-
-        $data['message'] = $message;
-        $data['data']    = null;
-
-        return $data;
     }
 
     /**
