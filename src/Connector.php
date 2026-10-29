@@ -183,7 +183,10 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
         $message = \is_string($data['message']) ? $data['message'] : '';
         $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
         $message = (string)\preg_replace(
-            ['~(?<![\w/])/(?:[\w.\-@+]+/)+[\w.\-@+]*~', '~[A-Za-z]:\\\\(?:[^\\\\\s\'"]+\\\\)*[^\\\\\s\'"]*~'],
+            [
+                '~(?<![\p{L}\p{N}_/])/(?:[\p{L}\p{N}_.\-@+][\p{L}\p{N}_.\-@+ ]*/)*[\p{L}\p{N}_.\-@+]+~u',
+                '~[A-Za-z]:\\\\(?:[^\\\\\r\n\'"<>|:*?]+\\\\)*[^\\\\\s\'"<>|:*?]*~u',
+            ],
             '[path]',
             $message
         );

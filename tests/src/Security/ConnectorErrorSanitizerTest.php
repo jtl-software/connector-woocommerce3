@@ -59,6 +59,61 @@ class ConnectorErrorSanitizerTest extends TestCase
     }
 
     /**
+     * @param string $message
+     * @param string $expected
+     * @return void
+     * @dataProvider pathMessageProvider
+     * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
+     */
+    public function testPathsAreMaskedCompletely(string $message, string $expected): void
+    {
+        $result = Connector::sanitizeErrorData(['code' => 1, 'message' => $message, 'data' => null]);
+
+        $this->assertSame($expected, $result['message']);
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function pathMessageProvider(): array
+    {
+        return [
+            'unix path with spaces'              => ['/var/www/Shop Name/private/config.php', '[path]'],
+            'unix path with spaces in message'   => [
+                'Cannot read /var/www/Shop Name/private/config.php:3',
+                'Cannot read [path]:3',
+            ],
+            'unix root level file'               => ['Error in /app.php:3', 'Error in [path]:3'],
+            'unix path with non-ascii'           => ['/var/www/Müller/config.php', '[path]'],
+            'unix path in quotes with spaces'    => [
+                "Failed opening '/var/www/a b/c.php' for inclusion",
+                "Failed opening '[path]' for inclusion",
+            ],
+            'windows path with spaces'           => ['C:\\Users\\Max Muster\\shop\\a.php', '[path]'],
+            'windows root level file'            => ['Error in C:\\a.php:3', 'Error in [path]:3'],
+            'windows path with non-ascii'        => ['C:\\Users\\Müller\\a.php', '[path]'],
+            'plain unix path'                    => ['/var/www/html/wp-content/a.php', '[path]'],
+            'no path: relative slash'            => ['for product/push and/or 1/2', 'for product/push and/or 1/2'],
+        ];
+    }
+
+    /**
+     * @return void
+     * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
+     */
+    public function testMessageWithInvalidUtf8DoesNotLeakPath(): void
+    {
+        $result = Connector::sanitizeErrorData([
+            'code'    => 1,
+            'message' => "bad \xFF byte in /var/www/Shop Name/a.php",
+            'data'    => null,
+        ]);
+
+        $this->assertStringNotContainsString('/var/www', $result['message']);
+        $this->assertStringNotContainsString('Shop', $result['message']);
+    }
+
+    /**
      * @return void
      * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
      */
