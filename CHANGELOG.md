@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3619 - fix _price being overwritten with 0 during sync with B2B Market >= 1.0.8
 - CO-3668 - fix stored XSS via unfiltered product, category and manufacturer descriptions
 
 ## 2.4.5 _2026-10-15_
