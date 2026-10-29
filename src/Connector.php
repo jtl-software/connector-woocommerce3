@@ -166,25 +166,35 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
     /**
      * Paths in quotes are masked completely, including any number of spaces. The closing quote must match the
-     * opening one, so the other quote character may be part of a directory or file name. One combined pattern
-     * (Unix and Windows) makes sure the leftmost quoted path wins. The quotes stay.
+     * opening one and must not be followed by a letter or digit, so the same quote may be part of a name
+     * ("O'Reilly") and the other quote character as well. One combined pattern (Unix and Windows) makes sure the
+     * leftmost quoted path wins. The quotes stay.
      */
     private const array QUOTED_PATH_PATTERNS = [
-        '~([\'"])(?:/|[A-Za-z]:(?!//)[\\\\/])(?:(?!\1)[^\r\n])*\1~u',
+        '~([\'"])(?:/|[A-Za-z]:(?!//)[\\\\/])(?:(?!\1(?![\p{L}\p{N}]))[^\r\n])*\1~u',
     ];
+
+    /**
+     * An apostrophe is part of an unquoted name if it sits between two letters ("O'Reilly").
+     */
+    private const string UNIX_NAME_CHAR = '(?:[^\s/\\\\:\'"<>|*?,;()\[\]{}]|(?<=\p{L})\'(?=\p{L}))';
+
+    private const string WINDOWS_NAME_CHAR = '(?:[^\\\\/\s\'"<>|:*?,;()\[\]{}]|(?<=\p{L})\'(?=\p{L}))';
 
     /**
      * Unquoted paths: a directory name may contain one space ("Shop Name/"), i.e. a space is only part of the path
      * if the next word is directly followed by a slash. Otherwise text like "a.php for product/push" would be
-     * swallowed. Directory names with more than one space are only masked in quoted paths.
+     * swallowed. Directory names with more than one space are only masked in quoted paths. Name characters are all
+     * characters except whitespace, path separators and the delimiters : ' " < > | * ? , ; ( ) [ ] { }.
      * Windows paths accept both separators and are matched first. The ASCII lookbehinds keep relative text such as
      * "and/or" or "product/push" untouched while localized text directly before a path does not hide it.
      */
     private const array PATH_PATTERNS = [
         '~(?<![A-Za-z0-9_])[A-Za-z]:(?!//)[\\\\/]'
-        . '(?:[^\\\\/\s\'"<>|:*?]+(?: [^\\\\/\s\'"<>|:*?]+)?[\\\\/])*[^\\\\/\s\'"<>|:*?]*~u',
-        '~(?<![A-Za-z0-9_/])/(?:(?:[\p{L}\p{N}\p{M}_.\-@+]+(?: [\p{L}\p{N}\p{M}_.\-@+]+)?/)+'
-        . '[\p{L}\p{N}\p{M}_.\-@+]*|[\p{L}\p{N}\p{M}_.\-@+]+)~u',
+        . '(?:' . self::WINDOWS_NAME_CHAR . '+(?: ' . self::WINDOWS_NAME_CHAR . '+)?[\\\\/])*'
+        . self::WINDOWS_NAME_CHAR . '*~u',
+        '~(?<![A-Za-z0-9_/])/(?:(?:' . self::UNIX_NAME_CHAR . '+(?: ' . self::UNIX_NAME_CHAR . '+)?/)+'
+        . self::UNIX_NAME_CHAR . '*|' . self::UNIX_NAME_CHAR . '+)~u',
     ];
 
     /**
