@@ -165,6 +165,26 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
+     * Paths in quotes are masked completely, including any number of spaces. The quote characters stay.
+     */
+    private const array QUOTED_PATH_PATTERNS = [
+        '~(?<=[\'"])/[^\'"\r\n]*(?=[\'"])~u',
+        '~(?<=[\'"])[A-Za-z]:\\\\[^\'"\r\n]*(?=[\'"])~u',
+    ];
+
+    /**
+     * Unquoted paths: a directory name may contain one space ("Shop Name/"), i.e. a space is only part of the path
+     * if the next word is directly followed by a slash. Otherwise text like "a.php for product/push" would be
+     * swallowed. Directory names with more than one space are only masked in quoted paths.
+     * Unix: the lookbehind keeps relative text such as "and/or" or "product/push" untouched.
+     */
+    private const array PATH_PATTERNS = [
+        '~(?<![\p{L}\p{N}\p{M}_/])/(?:(?:[\p{L}\p{N}\p{M}_.\-@+]+(?: [\p{L}\p{N}\p{M}_.\-@+]+)?/)+'
+        . '[\p{L}\p{N}\p{M}_.\-@+]*|[\p{L}\p{N}\p{M}_.\-@+]+)~u',
+        '~[A-Za-z]:\\\\(?:[^\\\\\s\'"<>|:*?]+(?: [^\\\\\s\'"<>|:*?]+)?\\\\)*[^\\\\\s\'"<>|:*?]*~u',
+    ];
+
+    /**
      * Removes the exception details from a serialized RPC error, i.e. an array that
      * consists of exactly "code", "message" and "data". Any other payload is returned
      * unchanged.
@@ -182,14 +202,8 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
         $message = \is_string($data['message']) ? $data['message'] : '';
         $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
-        $message = (string)\preg_replace(
-            [
-                '~(?<![\p{L}\p{N}_/])/(?:[\p{L}\p{N}_.\-@+][\p{L}\p{N}_.\-@+ ]*/)*[\p{L}\p{N}_.\-@+]+~u',
-                '~[A-Za-z]:\\\\(?:[^\\\\\r\n\'"<>|:*?]+\\\\)*[^\\\\\s\'"<>|:*?]*~u',
-            ],
-            '[path]',
-            $message
-        );
+        $message = (string)\preg_replace(self::QUOTED_PATH_PATTERNS, '[path]', $message);
+        $message = (string)\preg_replace(self::PATH_PATTERNS, '[path]', $message);
 
         $data['message'] = $message;
         $data['data']    = null;

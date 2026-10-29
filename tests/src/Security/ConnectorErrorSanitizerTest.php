@@ -94,6 +94,24 @@ class ConnectorErrorSanitizerTest extends TestCase
             'windows path with non-ascii'        => ['C:\\Users\\Müller\\a.php', '[path]'],
             'plain unix path'                    => ['/var/www/html/wp-content/a.php', '[path]'],
             'no path: relative slash'            => ['for product/push and/or 1/2', 'for product/push and/or 1/2'],
+            'unix directory with trailing slash' => ['/var/www/Shop Name/', '[path]'],
+            'unix path then controller/action'   => [
+                'Cannot open /var/www/a.php for product/push',
+                'Cannot open [path] for product/push',
+            ],
+            'two unix paths'                     => [
+                'Cannot open /var/www/a.php and /var/www/b.php',
+                'Cannot open [path] and [path]',
+            ],
+            'unix decomposed unicode'            => ["/var/www/Mu\u{0308}ller/private/config.php", '[path]'],
+            'quoted unix path, several spaces'   => [
+                "Failed opening '/var/www/My Great Shop/c.php' for product/push",
+                "Failed opening '[path]' for product/push",
+            ],
+            'quoted windows path with spaces'    => [
+                'Failed opening "C:\\Program Files\\My Shop\\c.php" for product/push',
+                'Failed opening "[path]" for product/push',
+            ],
         ];
     }
 
