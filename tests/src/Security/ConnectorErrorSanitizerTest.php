@@ -108,6 +108,26 @@ class ConnectorErrorSanitizerTest extends TestCase
                 "Failed opening '/var/www/My Great Shop/c.php' for product/push",
                 "Failed opening '[path]' for product/push",
             ],
+            'double-quoted unix path with apostrophe' => [
+                "Failed opening \"/var/www/O'Reilly/private/config.php\" for product/push",
+                'Failed opening "[path]" for product/push',
+            ],
+            'single-quoted unix path with double quote' => [
+                "Failed opening '/var/www/My \"Shop\"/c.php' for product/push",
+                "Failed opening '[path]' for product/push",
+            ],
+            'double-quoted windows path with apostrophe' => [
+                'Failed opening "C:\\Users\\O\'Reilly\\a.php" for product/push',
+                'Failed opening "[path]" for product/push',
+            ],
+            'single-quoted windows path with double quote' => [
+                "Failed opening 'C:\\Users\\My \"Shop\"\\a.php' for product/push",
+                "Failed opening '[path]' for product/push",
+            ],
+            'two quoted unix paths'              => [
+                "Copy '/a b/c.php' to '/d e/f.php'",
+                "Copy '[path]' to '[path]'",
+            ],
             'quoted windows path with spaces'    => [
                 'Failed opening "C:\\Program Files\\My Shop\\c.php" for product/push',
                 'Failed opening "[path]" for product/push',

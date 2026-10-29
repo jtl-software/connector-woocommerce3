@@ -165,11 +165,12 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     }
 
     /**
-     * Paths in quotes are masked completely, including any number of spaces. The quote characters stay.
+     * Paths in quotes are masked completely, including any number of spaces. The closing quote must match the
+     * opening one, so the other quote character may be part of a directory or file name. The quotes stay.
      */
     private const array QUOTED_PATH_PATTERNS = [
-        '~(?<=[\'"])/[^\'"\r\n]*(?=[\'"])~u',
-        '~(?<=[\'"])[A-Za-z]:\\\\[^\'"\r\n]*(?=[\'"])~u',
+        '~([\'"])/(?:(?!\1)[^\r\n])*\1~u',
+        '~([\'"])[A-Za-z]:\\\\(?:(?!\1)[^\r\n])*\1~u',
     ];
 
     /**
@@ -202,7 +203,7 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
 
         $message = \is_string($data['message']) ? $data['message'] : '';
         $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
-        $message = (string)\preg_replace(self::QUOTED_PATH_PATTERNS, '[path]', $message);
+        $message = (string)\preg_replace(self::QUOTED_PATH_PATTERNS, '${1}[path]${1}', $message);
         $message = (string)\preg_replace(self::PATH_PATTERNS, '[path]', $message);
 
         $data['message'] = $message;
