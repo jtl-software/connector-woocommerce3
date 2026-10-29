@@ -3,7 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
-- CO-3718 - fix incomplete redaction of filesystem paths in RPC error responses (paths with spaces, root-level files, non-ASCII characters, Windows paths with spaces)
+- CO-3718 - error responses no longer contain file paths: messages with a path or stack trace are replaced by a generic message with a reference id, the original error is written to the connector error log
 
 ## 2.4.6 _2026-10-20_
 - CO-3671 - fix authentication bypass: reject all RPC calls except connector.auth unless the session was authenticated, closing unauthenticated access to controller actions (e.g. product.push) via an empty or array jtlauth parameter
