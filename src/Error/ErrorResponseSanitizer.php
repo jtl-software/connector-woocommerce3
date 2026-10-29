@@ -48,12 +48,7 @@ final class ErrorResponseSanitizer
 
         $reference = \bin2hex(\random_bytes(self::REFERENCE_BYTES));
 
-        $this->logger->error('RPC error response', [
-            'reference' => $reference,
-            'code'      => $data['code'],
-            'message'   => $data['message'],
-            'data'      => $data['data'],
-        ]);
+        $this->log($reference, $data);
 
         if (!$this->isSafeMessage($data['message'])) {
             $data['message'] = \sprintf(self::PUBLIC_MESSAGE, $reference);
@@ -61,6 +56,34 @@ final class ErrorResponseSanitizer
         $data['data'] = null;
 
         return $data;
+    }
+
+    /**
+     * Logs the original error. A failing logger (full disk, unwritable log directory) must not keep the
+     * response from being sanitized, so the failure is reported to the PHP error log instead.
+     *
+     * @param string                  $reference
+     * @param array<array-key, mixed> $error
+     * @return void
+     */
+    private function log(string $reference, array $error): void
+    {
+        $context = [
+            'reference' => $reference,
+            'code'      => $error['code'],
+            'message'   => $error['message'],
+            'data'      => $error['data'],
+        ];
+
+        try {
+            $this->logger->error('RPC error response', $context);
+        } catch (\Throwable $exception) {
+            \error_log(\sprintf(
+                'JTL connector: writing the RPC error log failed (%s): %s',
+                $exception->getMessage(),
+                (string)\json_encode($context, \JSON_PARTIAL_OUTPUT_ON_ERROR)
+            ));
+        }
     }
 
     /**

@@ -128,6 +128,37 @@ class ErrorResponseSanitizerTest extends AbstractTestCase
     /**
      * @return void
      */
+    public function testFailingLoggerDoesNotPreventSanitization(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error')->willThrowException(new \RuntimeException('disk full'));
+
+        $phpErrorLog = \tempnam(\sys_get_temp_dir(), 'jtlwcc');
+        $this->assertIsString($phpErrorLog);
+        $previous = \ini_set('error_log', $phpErrorLog);
+
+        try {
+            $result      = (new ErrorResponseSanitizer($logger))->sanitize([
+                'code'    => 1,
+                'message' => 'Cannot open /var/www/html/a.txt',
+                'data'    => 'trace in /var/www/html/B.php:7',
+            ]);
+            $fallbackLog = (string)\file_get_contents($phpErrorLog);
+        } finally {
+            \ini_set('error_log', \is_string($previous) ? $previous : '');
+            \unlink($phpErrorLog);
+        }
+
+        $this->assertSame(1, $result['code']);
+        $this->assertNull($result['data']);
+        $this->assertMatchesRegularExpression(self::PUBLIC_MESSAGE_PATTERN, $result['message']);
+        $this->assertStringContainsString('disk full', $fallbackLog);
+        $this->assertStringContainsString('Cannot open', $fallbackLog);
+    }
+
+    /**
+     * @return void
+     */
     public function testNonStringMessageIsReplaced(): void
     {
         $result = (new ErrorResponseSanitizer($this->createMock(LoggerInterface::class)))
