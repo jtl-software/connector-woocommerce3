@@ -185,6 +185,22 @@ class ConnectorErrorSanitizerTest extends TestCase
             ],
             'phar url with spaces'               => ['phar:///var/www/My Shop/a.phar/b.php', 'phar://[path]'],
             'file url with windows drive'        => ['file:///C:/Users/a.php', 'file:///[path]'],
+            'quoted phar url with spaces'        => [
+                "Failed opening 'phar:///var/www/My Great Shop/a.phar/b.php' for inclusion",
+                "Failed opening '[path]' for inclusion",
+            ],
+            'quoted file url with spaces'        => [
+                'Cannot read "file:///var/www/My Great Shop/a.php"',
+                'Cannot read "[path]"',
+            ],
+            'quoted file url with windows drive' => [
+                'Cannot read "file:///C:/My Great Shop/a.php"',
+                'Cannot read "[path]"',
+            ],
+            'quoted url is untouched'            => [
+                "Cannot reach 'https://example.com/My Shop/a' now",
+                "Cannot reach 'https://example.com/My Shop/a' now",
+            ],
             'no path: url'                       => [
                 'Cannot reach https://example.com/api/product for product/push',
                 'Cannot reach https://example.com/api/product for product/push',

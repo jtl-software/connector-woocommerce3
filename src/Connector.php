@@ -167,11 +167,12 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     /**
      * Paths in quotes are masked completely, including any number of spaces. The closing quote must match the
      * opening one and must not be followed by a letter or digit, so the same quote may be part of a name
-     * ("O'Reilly") and the other quote character as well. One combined pattern (Unix and Windows) makes sure the
-     * leftmost quoted path wins. The quotes stay.
+     * ("O'Reilly") and the other quote character as well. A scheme such as file:// or phar:// is part of the
+     * path. One combined pattern (Unix and Windows) makes sure the leftmost quoted path wins. The quotes stay.
      */
     private const array QUOTED_PATH_PATTERNS = [
-        '~([\'"])(?:/|\\\\\\\\|[A-Za-z]:(?!//)[\\\\/])(?:(?!\1(?![\p{L}\p{N}]))[^\r\n])*\1~u',
+        '~([\'"])(?:[A-Za-z][A-Za-z0-9+.\-]*://)?(?:/|\\\\\\\\|[A-Za-z]:(?!//)[\\\\/])'
+        . '(?:(?!\1(?![\p{L}\p{N}]))[^\r\n])*\1~u',
     ];
 
     /**
