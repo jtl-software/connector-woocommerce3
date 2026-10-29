@@ -135,6 +135,17 @@ class ConnectorErrorSanitizerTest extends TestCase
             'windows path, forward slashes'      => ['C:/Users/Max Muster/shop/a.php', '[path]'],
             'windows path, mixed separators'     => ['C:\\Users/Max Muster\\a.php', '[path]'],
             'windows root level file, slash'     => ['Error in C:/a.php:3', 'Error in [path]:3'],
+            'quoted windows then quoted unix path, inner quote' => [
+                "Copy \"C:/Users/Customers'/a.php\" to '/var/www/My Great Shop/private/config.php'",
+                "Copy \"[path]\" to '[path]'",
+            ],
+            'quoted unix then quoted windows path, inner quote' => [
+                "Copy '/var/www/My \"Shop\"/a.php' to \"C:\\Users\\My Great Shop\\b.php\"",
+                "Copy '[path]' to \"[path]\"",
+            ],
+            'windows path after localized text'  => ['无法读取C:\\Users\\Mueller\\private\\config.php', '无法读取[path]'],
+            'unix path after localized text'     => ['无法读取/var/www/html/a.php', '无法读取[path]'],
+            'unix path after cyrillic text'      => ['Ошибка/var/www/html/a.php', 'Ошибка[path]'],
             'no path: url'                       => [
                 'Cannot reach https://example.com/api/product for product/push',
                 'Cannot reach https://example.com/api/product for product/push',
