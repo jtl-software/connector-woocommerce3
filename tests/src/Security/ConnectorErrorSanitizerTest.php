@@ -164,6 +164,27 @@ class ConnectorErrorSanitizerTest extends TestCase
             'path followed by line number'       => ['in /var/www/a.php(12): x', 'in [path](12): x'],
             'path in parentheses'                => ['(see /var/www/a.php)', '(see [path])'],
             'two paths separated by comma'       => ['/var/www/a.php,/var/www/b.php', '[path],[path]'],
+            'windows dir with parentheses'       => ['C:\\inetpub\\shop(backup)\\private\\config.php', '[path]'],
+            'windows dir with brackets'          => ['C:\\inetpub\\shop[1]\\private\\config.php', '[path]'],
+            'windows file followed by line no.'  => ['in C:\\inetpub\\a.php(12): x', 'in [path](12): x'],
+            'unix dir with parentheses'          => ['/var/www/shop(backup)/private/config.php', '[path]'],
+            'unix dir with space and parentheses' => ['/var/www/Shop (old)/a.php', '[path]'],
+            'unix dir with brackets'             => ['/var/www/[x]/{y}/a.php', '[path]'],
+            'path in parentheses, then path'     => ['(see /var/www/a.php) and /b/c.php', '(see [path]) and [path]'],
+            'unc path'                           => [
+                'Cannot open \\\\server\\share\\dir\\a.php for product/push',
+                'Cannot open [path] for product/push',
+            ],
+            'quoted unc path with spaces'        => [
+                'Failed opening "\\\\server\\My Share\\a b.php"',
+                'Failed opening "[path]"',
+            ],
+            'file url'                           => [
+                'Cannot read file:///var/www/html/a.php',
+                'Cannot read file://[path]',
+            ],
+            'phar url with spaces'               => ['phar:///var/www/My Shop/a.phar/b.php', 'phar://[path]'],
+            'file url with windows drive'        => ['file:///C:/Users/a.php', 'file:///[path]'],
             'no path: url'                       => [
                 'Cannot reach https://example.com/api/product for product/push',
                 'Cannot reach https://example.com/api/product for product/push',

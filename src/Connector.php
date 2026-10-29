@@ -171,29 +171,39 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
      * leftmost quoted path wins. The quotes stay.
      */
     private const array QUOTED_PATH_PATTERNS = [
-        '~([\'"])(?:/|[A-Za-z]:(?!//)[\\\\/])(?:(?!\1(?![\p{L}\p{N}]))[^\r\n])*\1~u',
+        '~([\'"])(?:/|\\\\\\\\|[A-Za-z]:(?!//)[\\\\/])(?:(?!\1(?![\p{L}\p{N}]))[^\r\n])*\1~u',
     ];
 
     /**
-     * An apostrophe is part of an unquoted name if it sits between two letters ("O'Reilly").
+     * Name characters of unquoted paths: everything except whitespace, path separators and the delimiters
+     * : ' " < > | * ? , ; An apostrophe is part of a name if it sits between two letters ("O'Reilly").
+     * Directory names may also contain ( ) [ ] { }; the last component may not, so annotations such as
+     * "a.php(12)" or a closing parenthesis around a path stay visible.
      */
+    private const string UNIX_DIR_CHAR = '(?:[^\s/\\\\:\'"<>|*?,;]|(?<=\p{L})\'(?=\p{L}))';
+
     private const string UNIX_NAME_CHAR = '(?:[^\s/\\\\:\'"<>|*?,;()\[\]{}]|(?<=\p{L})\'(?=\p{L}))';
+
+    private const string WINDOWS_DIR_CHAR = '(?:[^\\\\/\s\'"<>|:*?,;]|(?<=\p{L})\'(?=\p{L}))';
 
     private const string WINDOWS_NAME_CHAR = '(?:[^\\\\/\s\'"<>|:*?,;()\[\]{}]|(?<=\p{L})\'(?=\p{L}))';
 
     /**
      * Unquoted paths: a directory name may contain one space ("Shop Name/"), i.e. a space is only part of the path
      * if the next word is directly followed by a slash. Otherwise text like "a.php for product/push" would be
-     * swallowed. Directory names with more than one space are only masked in quoted paths. Name characters are all
-     * characters except whitespace, path separators and the delimiters : ' " < > | * ? , ; ( ) [ ] { }.
-     * Windows paths accept both separators and are matched first. The ASCII lookbehinds keep relative text such as
+     * swallowed. Directory names with more than one space are only masked in quoted paths.
+     * Windows paths (drive and UNC) accept both separators and are matched first; a path may directly follow
+     * a scheme such as file:// or phar://. The ASCII lookbehinds keep relative text such as
      * "and/or" or "product/push" untouched while localized text directly before a path does not hide it.
      */
     private const array PATH_PATTERNS = [
         '~(?<![A-Za-z0-9_])[A-Za-z]:(?!//)[\\\\/]'
-        . '(?:' . self::WINDOWS_NAME_CHAR . '+(?: ' . self::WINDOWS_NAME_CHAR . '+)?[\\\\/])*'
+        . '(?:' . self::WINDOWS_DIR_CHAR . '+(?: ' . self::WINDOWS_DIR_CHAR . '+)?[\\\\/])*'
         . self::WINDOWS_NAME_CHAR . '*~u',
-        '~(?<![A-Za-z0-9_/])/(?:(?:' . self::UNIX_NAME_CHAR . '+(?: ' . self::UNIX_NAME_CHAR . '+)?/)+'
+        '~(?<![\\\\A-Za-z0-9_])\\\\\\\\(?:' . self::WINDOWS_DIR_CHAR . '+(?: ' . self::WINDOWS_DIR_CHAR
+        . '+)?[\\\\/])+' . self::WINDOWS_NAME_CHAR . '*~u',
+        '~(?:(?<![A-Za-z0-9_/])|(?<=[A-Za-z]://))/'
+        . '(?:(?:' . self::UNIX_DIR_CHAR . '+(?: ' . self::UNIX_DIR_CHAR . '+)?/)+'
         . self::UNIX_NAME_CHAR . '*|' . self::UNIX_NAME_CHAR . '+)~u',
     ];
 
