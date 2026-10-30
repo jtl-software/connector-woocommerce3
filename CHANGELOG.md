@@ -3,6 +3,7 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3668 - fix stored XSS via unfiltered product, category and manufacturer descriptions
 - CO-3660 - read VAT ID and salutation of orders via the order object (HPOS) and support Germanized Pro keys without underscore
 
 ## 2.4.6 _2026-10-20_
