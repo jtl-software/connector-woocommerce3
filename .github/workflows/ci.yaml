@@ -31,7 +31,7 @@ jobs:
       image: ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.4
       options: --user root
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -41,7 +41,7 @@ jobs:
         id: composer-cache-dir
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-composer-php84-${{ hashFiles('**/composer.lock') }}
@@ -71,11 +71,11 @@ jobs:
       matrix:
         php-version: ['8.4', '8.5']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
@@ -85,7 +85,7 @@ jobs:
         id: composer-cache-dir
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-composer-php${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
@@ -100,7 +100,7 @@ jobs:
 
       - name: Upload JUnit results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: junit-php-${{ matrix.php-version }}
           path: junit.xml
@@ -114,12 +114,12 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
 
-      - uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+      - uses: reviewdog/action-actionlint@48e36f54d8da326b83ab061aee2cc5e01b5ca46f # v1.80.6
         with:
           reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
           fail_level: error
@@ -132,12 +132,12 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github/scripts
 
-      - uses: reviewdog/action-shellcheck@4c07458293ac342d477251099501a718ae5ef86e # v1.32.0
+      - uses: reviewdog/action-shellcheck@d0b8d5fd7fad6afdb6e1b6ce1778892be4d1f427 # v1.34.1
         with:
           reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
           path: .github/scripts
