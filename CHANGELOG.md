@@ -4,6 +4,10 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-3668 - fix stored XSS via unfiltered product, category and manufacturer descriptions
+- CO-3660 - read VAT ID and salutation of orders via the order object (HPOS) and support Germanized Pro keys without underscore
+
+## 2.4.6 _2026-10-20_
+- CO-3671 - fix authentication bypass via an empty or array jtlauth parameter: authentication is now checked before any other request processing, all RPC calls except connector.auth are rejected without an authenticated session, and error responses no longer contain stack traces, exception details or server paths
 
 ## 2.4.5 _2026-10-15_
 - CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method

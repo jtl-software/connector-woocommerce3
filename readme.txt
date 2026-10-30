@@ -6,7 +6,7 @@ Tested up to: 7.1
 Requires PHP: 8.4
 WC requires at least: 3.4.7
 WC tested up to: 10.8.1
-Stable tag: 2.4.5
+Stable tag: 2.4.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -202,6 +202,9 @@ This section describes how to install the plugin and get it working.
 7. The JTL-Connector for WooCommerce (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 2.4.6 =
+* Security: Fixed authentication bypass via an empty jtlauth parameter; authentication is now checked before any other request processing and error responses no longer contain stack traces, exception details or server paths
 
 = 2.4.5 =
 * Security: Fixed unauthenticated SQL injection in the product identity and checksum endpoints (CVE-2026-78193)
