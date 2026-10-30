@@ -204,9 +204,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 2.4.6 =
-* Security: Fixed authentication bypass allowing unauthenticated access to controller actions via an empty jtlauth parameter
-* Security: Authentication is now checked before any other request processing
-* Security: Error responses no longer contain stack traces, exception details or server paths
+* Security: Fixed authentication bypass via an empty jtlauth parameter; authentication is now checked before any other request processing and error responses no longer contain stack traces, exception details or server paths
 
 = 2.4.5 =
 * Security: Fixed unauthenticated SQL injection in the product identity and checksum endpoints (CVE-2026-78193)
