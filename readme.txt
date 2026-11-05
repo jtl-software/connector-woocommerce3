@@ -204,7 +204,13 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 2.4.6 =
+* Security: Updated the JTL-Connector core to 6.0.1; requests are authenticated before the requested method is resolved and every method except the authentication itself requires an authenticated session
 * Security: Fixed authentication bypass via an empty jtlauth parameter; authentication is now checked before any other request processing and error responses no longer contain stack traces, exception details or server paths
+* Security: Fixed SQL injection in the payment linking of order status changes
+* Security: Fixed stored XSS via product, category and manufacturer descriptions
+* Fix: an empty file in the image archive no longer aborts the image push
+* Fix: run the database update only after a plugin update instead of on every admin request
+* Fix: transfer VAT ID and salutation of orders with HPOS and Germanized Pro
 
 = 2.4.5 =
 * Security: Fixed unauthenticated SQL injection in the product identity and checksum endpoints (CVE-2026-78193)
