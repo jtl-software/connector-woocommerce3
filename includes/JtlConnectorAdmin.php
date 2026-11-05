@@ -1866,6 +1866,10 @@ final class JtlConnectorAdmin //phpcs:ignore PSR1.Classes.ClassDeclaration.Missi
             );
         }
 
+        if (version_compare($installed_version, Config::getBuildVersion(), '>=')) {
+            return;
+        }
+
         $installed_version = version_compare($installed_version, '1.3.0', '<') ? '1.0' : $installed_version;
 
         switch ($installed_version) {

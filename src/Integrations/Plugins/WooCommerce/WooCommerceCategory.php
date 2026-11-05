@@ -105,7 +105,6 @@ class WooCommerceCategory extends AbstractComponent
             'slug' => !empty($categoryI18n->getUrlPath()) ? $categoryI18n->getUrlPath() : $categoryI18n->getName()
         ];
 
-        \remove_filter('pre_term_description', 'wp_filter_kses');
         if (empty($categoryId)) {
             $result = \wp_insert_term($categoryI18n->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
         } else {
@@ -127,7 +126,6 @@ class WooCommerceCategory extends AbstractComponent
                 $wpmlTermTranslation->enableGetTermAdjustId();
             }
         }
-        \add_filter('pre_term_description', 'wp_filter_kses');
 
         if ($result instanceof \WP_Error) {
             $this->logger->error(ErrorFormatter::formatError($result));

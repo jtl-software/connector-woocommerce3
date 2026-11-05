@@ -55,6 +55,20 @@ class Germanized
     }
 
     /**
+     * Reads the salutation via the order object, so it works with HPOS as well.
+     *
+     * @param \WC_Order $order
+     * @param string    $addressType 'billing' or 'shipping'
+     * @return string
+     */
+    public function getSalutationFromOrder(\WC_Order $order, string $addressType): string
+    {
+        $index = $order->get_meta('_' . $addressType . '_title', true);
+
+        return $this->parseIndexToSalutation(\is_scalar($index) ? (string)$index : '');
+    }
+
+    /**
      * @param string $code
      * @return string
      */

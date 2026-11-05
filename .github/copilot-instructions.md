@@ -4,7 +4,7 @@
 
 A WordPress plugin that synchronizes WooCommerce shop data (products, categories, customers, orders) with JTL-Wawi ERP via the `jtl/connector` core framework. The plugin exposes a `/jtlconnector` HTTP endpoint that JTL-Wawi calls to pull and push data.
 
-Distribution: packaged as a ZIP for wordpress.org via SVN. PHP >= 8.1 required.
+Distribution: packaged as a ZIP for wordpress.org via SVN. PHP >= 8.4 required.
 
 ## Commands
 
@@ -37,7 +37,7 @@ composer run analyse
 ./build.sh
 ```
 
-CI uses the container `ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.3`. Tests run against PHP 8.1, 8.2, and 8.3 in the matrix.
+CI uses the container `ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.4`. PHPUnit runs against PHP 8.4 and 8.5 in the matrix.
 
 ## Architecture
 
@@ -95,7 +95,7 @@ Workflows in `.github/workflows/`:
 
 | File | Trigger | Purpose |
 |---|---|---|
-| `check.yaml` | push master / PRs | phpcs + phpstan + phpunit (PHP 8.1/8.2/8.3) |
+| `ci.yaml` | push master / PRs / weekly schedule | phpcs + phpstan (PHP 8.4) + phpunit (PHP 8.4/8.5) |
 | `build-and-deploy.yaml` | tag push | Phing ZIP + SVN deploy to wordpress.org |
 | `auto-draft-pr.yaml` | push to feature branches | Auto-creates draft PR |
 | `update-changelog.yaml` | release published | Calls reusable workflow in `changelog-extractor` repo |

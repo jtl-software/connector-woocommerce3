@@ -33,7 +33,7 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
             ->setEMail($order->get_billing_email())
             ->setCompany($order->get_billing_company())
             ->setPhone($order->get_billing_phone())
-            ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
+            ->setVatNumber(Util::getVatIdFromOrder($order));
 
         $this->createDefaultAddresses($address);
 
@@ -42,9 +42,7 @@ class CustomerOrderBillingAddressController extends CustomerOrderAddressControll
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
             || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
         ) {
-            /** @var int|string $index */
-            $index = \get_post_meta($order->get_id(), '_billing_title', true);
-            $address->setSalutation((new Germanized())->parseIndexToSalutation((string)$index));
+            $address->setSalutation((new Germanized())->getSalutationFromOrder($order, 'billing'));
         }
 
         return $address;

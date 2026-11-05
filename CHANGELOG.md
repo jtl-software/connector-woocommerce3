@@ -4,10 +4,14 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 
-## 2.4.6 _2026-10-20_
-- CO-3671 - fix authentication bypass: reject all RPC calls except connector.auth unless the session was authenticated, closing unauthenticated access to controller actions (e.g. product.push) via an empty or array jtlauth parameter
-- CO-3671 - check authentication before any other request processing: requests without a valid authenticated session are rejected before the core framework handles them
-- CO-3671 - remove stack traces, exception details and server paths from error responses
+## 2.5.0 _2026-11-05_
+- CO-3683 - update to jtl/connector 6.0.1, which authenticates RPC calls before the requested method is resolved and requires an authenticated session for every method except connector.auth; bundled libraries updated to PHP-DI 7, Monolog 3, psr/log 3, Symfony 7.4 and Doctrine DBAL 4 (custom extensions that use @Inject annotations must switch to #[Inject] attributes)
+- CO-3669 - an empty (0-byte) file in the image archive no longer aborts the image push (jtl/connector 6.0.1)
+- CO-3667 - fix SQL injection in the payment linking of order status changes
+- CO-3668 - fix stored XSS via unfiltered product, category and manufacturer descriptions
+- CO-3671 - fix authentication bypass via an empty or array jtlauth parameter: authentication is now checked before any other request processing, all RPC calls except connector.auth are rejected without an authenticated session, and error responses no longer contain stack traces, exception details or server paths
+- CO-3661 - run the database update only when the installed plugin version is older than the current one, instead of on every admin request
+- CO-3660 - read VAT ID and salutation of orders via the order object (HPOS) and support Germanized Pro keys without underscore
 
 ## 2.4.5 _2026-10-15_
 - CO-3663 - fix unauthenticated SQL injection in product identity/checksum queries and arbitrary file upload via the image.push method

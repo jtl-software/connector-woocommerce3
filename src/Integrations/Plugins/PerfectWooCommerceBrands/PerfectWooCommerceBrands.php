@@ -88,8 +88,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
     ): \WP_Term|array|WP_Error|bool {
         $manufacturerTerm = $this->getManufacturerBySlug($jtlManufacturer->getName());
 
-        \remove_filter('pre_term_description', 'wp_filter_kses');
-
         if ($manufacturerTerm === false) {
             $slug                = $this->sanitizeSlug($jtlManufacturer->getName());
             $newManufacturerTerm = $this->createManufacturer($slug, $jtlManufacturer->getName(), $manufacturerI18n);
@@ -108,8 +106,6 @@ class PerfectWooCommerceBrands extends AbstractPlugin
         } else {
             $this->updateManufacturer((int) $manufacturerTerm->term_id, $jtlManufacturer->getName(), $manufacturerI18n);
         }
-
-        \add_filter('pre_term_description', 'wp_filter_kses');
 
         if ($manufacturerTerm instanceof \WP_Term) {
             $jtlManufacturer->getId()->setEndpoint((string)$manufacturerTerm->term_id);

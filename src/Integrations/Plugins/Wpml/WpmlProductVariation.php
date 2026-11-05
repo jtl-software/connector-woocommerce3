@@ -85,9 +85,13 @@ class WpmlProductVariation extends AbstractComponent
                             \update_post_meta(
                                 $translation->get_id(),
                                 '_variation_description',
-                                $productI18n->getDescription()
+                                \wp_kses_post($productI18n->getDescription())
                             );
-                            \update_post_meta($translation->get_id(), '_mini_dec', $productI18n->getShortDescription());
+                            \update_post_meta(
+                                $translation->get_id(),
+                                '_mini_dec',
+                                \wp_kses_post($productI18n->getShortDescription())
+                            );
                         }
                     }
                 }
