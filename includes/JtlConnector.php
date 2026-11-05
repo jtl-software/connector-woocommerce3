@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
+use Jtl\Connector\Core\Logger\LoggerService;
 use Jtl\Connector\Core\Utilities\Validator\Validate;
 use JtlWooCommerceConnector\Authentication\RequestAuthenticator;
 use JtlWooCommerceConnector\Connector;
@@ -31,7 +32,10 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             $connector      = new Connector();
             $application    = new Application(CONNECTOR_DIR, $config);
             $sessionHandler = new AuthenticatedSqliteSessionHandler(\sprintf('%s/var', CONNECTOR_DIR));
-            Connector::registerErrorSanitizer($application->getEventDispatcher());
+            Connector::registerErrorSanitizer(
+                $application->getEventDispatcher(),
+                $application->getLoggerService()->get(LoggerService::CHANNEL_ERROR)
+            );
             $application->setSessionHandler($sessionHandler);
 
             // Authentication runs first: nothing else is handled for unauthenticated requests
