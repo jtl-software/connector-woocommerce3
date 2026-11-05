@@ -232,16 +232,14 @@ class CustomerController extends AbstractBaseController implements PullInterface
                 ->setCustomerGroupId($this->getDefaultCustomerGroup())
                 ->setIsActive(false)
                 ->setHasCustomerAccount(false)
-                ->setVatNumber(Util::getVatIdFromOrder($order->get_id()));
+                ->setVatNumber(Util::getVatIdFromOrder($order));
 
             if (
                 SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZED2)
                 || SupportedPlugins::isActive(SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO)
             ) {
-                /** @var bool|int|string $index */
-                $index = \get_post_meta($order->get_id(), '_billing_title', true);
-                $customer->setSalutation((new Germanized())->parseIndexToSalutation((string)$index));
+                $customer->setSalutation((new Germanized())->getSalutationFromOrder($order, 'billing'));
             }
 
             $customers[] = $customer;
