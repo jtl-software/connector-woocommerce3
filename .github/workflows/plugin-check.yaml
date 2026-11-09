@@ -52,12 +52,14 @@ jobs:
             phing.phar
             build.sh
             zip-build.sh
+            .gitattributes
             .gitignore
             .gitkeep
             CLAUDE.md
             Db.php
           exclude-directories: |
             .github
+            bin
             config
             db
             logs

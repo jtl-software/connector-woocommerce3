@@ -33,11 +33,21 @@ composer run phpstan
 # Run both phpcs + phpstan
 composer run analyse
 
+# Bump the version for a release (see "Release process")
+bin/bump-version.sh 2.5.1
+
 # Build release ZIP (requires phing)
 ./build.sh
 ```
 
 CI uses the container `ghcr.io/jtl-software/connector-utils-ci-docker/php/cli:8.4`. PHPUnit runs against PHP 8.4 and 8.5 in the matrix.
+
+## Release process
+
+1. Make sure every change has an entry under `## Unreleased` in `CHANGELOG.md` (`- CO-1234 - description`).
+2. Run `bin/bump-version.sh <x.y.z>` (bash, e.g. Git Bash or WSL on Windows). It sets the version in `build-config.yaml`, the plugin header of `woo-jtl-connector.php` and `Stable tag` in `readme.txt`, moves the `## Unreleased` entries to `## x.y.z _YYYY-MM-DD_` and adds them as a draft `= x.y.z =` section to the changelog in `readme.txt`. It rejects invalid versions, versions that already exist, an empty `## Unreleased` section and missing or read-only target files; all checks run before the first file is written, so a failed check leaves every file unchanged.
+3. Edit the draft entries in `readme.txt`: all entries are prefixed with `Feature:` — change them to `Security:`, `Fix:`, `Update:` etc. and phrase them for shop owners (no ticket numbers).
+4. Review `git diff`, commit, open a PR and tag the release after merge (the tag triggers `build-and-deploy.yaml`).
 
 ## Architecture
 
