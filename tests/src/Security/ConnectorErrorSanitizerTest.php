@@ -59,6 +59,131 @@ class ConnectorErrorSanitizerTest extends TestCase
     }
 
     /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public function pathMessageProvider(): array
+    {
+        return [
+            'unix: space in directory name' => [
+                'Cannot open /var/www/Shop Name/private/config.php',
+                'Cannot open [path]',
+            ],
+            'unix: several spaces in directory names' => [
+                'Cannot open /home/shop/Local Sites/My Shop/app/public/a.php',
+                'Cannot open [path]',
+            ],
+            'unix: root level file' => [
+                'Cannot open /app.php',
+                'Cannot open [path]',
+            ],
+            'unix: non-ASCII characters' => [
+                'Cannot open /var/www/Müller/Größe/config.php',
+                'Cannot open [path]',
+            ],
+            'unix: non-ASCII character at segment start' => [
+                'Cannot open /var/www/Ärzte/config.php',
+                'Cannot open [path]',
+            ],
+            'unix: duplicate separators' => [
+                'Cannot open /var/www//html/a.php',
+                'Cannot open [path]',
+            ],
+            'unix: space in file name before line number' => [
+                'Uncaught Exception: boom in /var/www/Shop Name/My File.php:12',
+                'Uncaught Exception: boom in [path]:12',
+            ],
+            'unix: space in file name before "on line"' => [
+                'thrown in /var/www/Shop Name/My File.php on line 12',
+                'thrown in [path] on line 12',
+            ],
+            'unix: space in file name inside parentheses' => [
+                'copy(/tmp/jtl/Mein Bild.jpg): Failed to open stream',
+                'copy([path]): Failed to open stream',
+            ],
+            'unix: space in quoted directory name' => [
+                "Directory '/home/Max Mustermann' is not writable",
+                "Directory '[path]' is not writable",
+            ],
+            'unix: space in file name at the end of the message' => [
+                'Cannot read /var/www/Shop Name/my file.json.',
+                'Cannot read [path].',
+            ],
+            'unix: text after the path is kept' => [
+                'Directory /var/www/uploads is not writable',
+                'Directory [path] is not writable',
+            ],
+            'unix: text after a file name is kept even if it contains a slash' => [
+                'Cannot copy /tmp/a.jpg for product 4711/XL',
+                'Cannot copy [path] for product 4711/XL',
+            ],
+            'unix: URLs and relative paths are kept' => [
+                'Download of https://shop.example/img/a.jpg to wp-content/uploads/a.jpg failed',
+                'Download of https://shop.example/img/a.jpg to wp-content/uploads/a.jpg failed',
+            ],
+            'windows: space in directory name' => [
+                'Cannot open C:\\Program Files\\Shop\\config.php',
+                'Cannot open [path]',
+            ],
+            'windows: parentheses in directory name' => [
+                'Cannot open C:\\Program Files (x86)\\Shop\\config.php',
+                'Cannot open [path]',
+            ],
+            'windows: mixed separators and line number' => [
+                'boom in C:\\Users\\Max Mustermann\\Local Sites\\shop\\app\\public/wp-content/plugins/a.php:12',
+                'boom in [path]:12',
+            ],
+            'windows: forward slashes and non-ASCII characters' => [
+                'Cannot open C:/xampp/htdocs/Müller/config.php',
+                'Cannot open [path]',
+            ],
+            'windows: root level file' => [
+                'Cannot open D:\\app.php',
+                'Cannot open [path]',
+            ],
+            'windows: space in file name before "on line"' => [
+                'thrown in C:\\Shop Name\\My File.php on line 3',
+                'thrown in [path] on line 3',
+            ],
+            'windows: UNC path' => [
+                'Cannot open \\\\fileserver\\Shop Name\\config.php',
+                'Cannot open [path]',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider pathMessageProvider
+     * @param string $message
+     * @param string $expected
+     * @return void
+     * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
+     */
+    public function testCompletePathsAreMasked(string $message, string $expected): void
+    {
+        $result = Connector::sanitizeErrorData(['code' => 1, 'message' => $message, 'data' => null]);
+
+        $this->assertSame($expected, $result['message']);
+    }
+
+    /**
+     * @return void
+     * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
+     */
+    public function testPathsAreMaskedInMessageWithInvalidUtf8(): void
+    {
+        $result = Connector::sanitizeErrorData([
+            'code'    => 1,
+            'message' => "Cannot open /var/www/Shop Name/a.php \xFF",
+            'data'    => null,
+        ]);
+
+        $this->assertIsString($result['message']);
+        $this->assertStringStartsWith('Cannot open [path] ', $result['message']);
+        $this->assertStringNotContainsString('Name', $result['message']);
+        $this->assertTrue(\mb_check_encoding($result['message'], 'UTF-8'));
+    }
+
+    /**
      * @return void
      * @covers \JtlWooCommerceConnector\Connector::sanitizeErrorData
      */

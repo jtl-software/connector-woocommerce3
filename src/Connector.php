@@ -51,6 +51,51 @@ use Symfony\Component\Yaml\Exception\ParseException;
 
 class Connector implements ConnectorInterface, UseChecksumInterface, HandleRequestInterface
 {
+    /**
+     * Matches absolute filesystem paths in error messages: Unix ("/var/www/a.php",
+     * "/app.php"), Windows ("C:\Shop\a.php", "C:/Shop/a.php", mixed separators) and
+     * UNC ("\\server\share\a.php") paths, including non-ASCII characters.
+     *
+     * Paths in error messages are not delimited, so spaces are handled heuristically:
+     * - A directory name may contain spaces ("/var/www/Shop Name/a.php"), but a word
+     *   that looks like a file name ends the path ("/tmp/a.jpg for product 4711/XL").
+     * - The last segment may contain spaces if the path is followed by a line number
+     *   (":12", " on line 12") or a closing quote or bracket, or if it ends the message
+     *   with a file extension. Otherwise it ends at the first space, so that the text
+     *   after a path ("/var/www/uploads is not writable") is kept.
+     *
+     * The character class of a path word is repeated inline instead of being a
+     * subroutine and all repetitions are possessive, so that long messages do not
+     * exhaust the PCRE stack (preg_replace() would return null).
+     */
+    private const string PATH_PATTERN = <<<'REGEX'
+        ~
+        (?(DEFINE)
+            # a word of a path segment, may contain balanced parentheses ("(x86)")
+            (?<word> (?: [^\s/\\:*?"'`<>|()\[\]{},;]++ | \( [^\s/\\:*?"'`<>|()\[\]{},;]*+ \) )++ )
+            # a word and the space after it, unless the word looks like a file name ("a.jpg")
+            # or the space starts " on line 12"
+            (?<inner>
+                (?! [^\s/\\:*?"'`<>|()\[\]{},;]* \.\p{L}[\p{L}\p{N}]* \x20 )
+                (?&word) \x20 (?! on\x20line\x20\d )
+            )
+            # a path segment of up to 16 words
+            (?<name> (?&inner){0,15}+ (?&word) )
+        )
+        # root: "/" (not inside URLs or relative paths), "C:\", "C:/" or "\\"
+        (?: (?<![\w/]) / | (?<!\w) [A-Za-z]: [/\\]+ | (?<![\w\\]) \\{2,} )
+        (?= (?&word) )
+        # directories
+        (?: (?&name) [/\\]+ )*+
+        # last segment
+        (?:
+            (?&name) (?= [)\]'"`] | :\d | \x20on\x20line\x20\d )
+          | (?&inner){1,15}+ [^\s/\\:*?"'`<>|()\[\]{},;]* \.\p{L}[\p{L}\p{N}]* (?= \.?\s*\z )
+          | (?&word)?
+        )
+        ~xu
+        REGEX;
+
     protected Db $db;
 
     protected LoggerService $loggerService;
@@ -183,13 +228,10 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
             return $data;
         }
 
-        $message = \is_string($data['message']) ? $data['message'] : '';
+        // PATH_PATTERN is a UTF-8 pattern, preg_replace() would return null for invalid UTF-8
+        $message = \mb_scrub(\is_string($data['message']) ? $data['message'] : '', 'UTF-8');
         $message = (string)\preg_replace('/\s*Stack trace:.*$/s', '', $message);
-        $message = (string)\preg_replace(
-            ['~(?<![\w/])/(?:[\w.\-@+]+/)+[\w.\-@+]*~', '~[A-Za-z]:\\\\(?:[^\\\\\s\'"]+\\\\)*[^\\\\\s\'"]*~'],
-            '[path]',
-            $message
-        );
+        $message = (string)\preg_replace(self::PATH_PATTERN, '[path]', $message);
 
         $data['message'] = $message;
         $data['data']    = null;

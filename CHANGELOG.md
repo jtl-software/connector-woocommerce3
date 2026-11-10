@@ -4,6 +4,7 @@ This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
 - CO-3619 - fix _price being overwritten with 0 during sync with B2B Market >= 1.0.8
+- CO-3718 - error responses no longer contain parts of server paths: paths with spaces or non-ASCII characters, files in the root directory and Windows network paths are now removed completely
 
 ## 2.5.0 _2026-11-05_
 - CO-3683 - update to jtl/connector 6.0.1, which authenticates RPC calls before the requested method is resolved and requires an authenticated session for every method except connector.auth; bundled libraries updated to PHP-DI 7, Monolog 3, psr/log 3, Symfony 7.4 and Doctrine DBAL 4 (custom extensions that use @Inject annotations must switch to #[Inject] attributes)
