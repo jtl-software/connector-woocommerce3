@@ -6,6 +6,7 @@ use Jtl\Connector\Core\Application\Application;
 use Jtl\Connector\Core\Config\ConfigSchema;
 use Jtl\Connector\Core\Config\FileConfig;
 use Jtl\Connector\Core\Utilities\Validator\Validate;
+use JtlWooCommerceConnector\Authentication\RequestAuthenticator;
 use JtlWooCommerceConnector\Connector;
 use JtlWooCommerceConnector\Session\AuthenticatedSqliteSessionHandler;
 use Psr\Log\LogLevel;
@@ -27,11 +28,27 @@ final class JtlConnector //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNam
             $config = new FileConfig(\sprintf('%s/config/config.json', CONNECTOR_DIR));
             $config->set(ConfigSchema::SERIALIZER_ENABLE_CACHE, false);
 
-            $connector   = new Connector();
-            $application = new Application(CONNECTOR_DIR, $config);
-            $application->setSessionHandler(
-                new AuthenticatedSqliteSessionHandler(\sprintf('%s/var', CONNECTOR_DIR))
+            $connector      = new Connector();
+            $application    = new Application(CONNECTOR_DIR, $config);
+            $sessionHandler = new AuthenticatedSqliteSessionHandler(\sprintf('%s/var', CONNECTOR_DIR));
+            Connector::registerErrorSanitizer($application->getEventDispatcher());
+            $application->setSessionHandler($sessionHandler);
+
+            // Authentication runs first: nothing else is handled for unauthenticated requests
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- Intentional: token-based auth, values are only compared, never output
+            $jtlrpc  = $_GET['jtlrpc'] ?? $_POST['jtlrpc'] ?? '';
+            $jtlauth = $_GET['jtlauth'] ?? $_POST['jtlauth'] ?? null;
+            // phpcs:enable
+            $authError = RequestAuthenticator::check(
+                \is_string($jtlrpc) ? $jtlrpc : '',
+                $jtlauth,
+                static fn (string $sessionId): bool => $sessionHandler->validateId($sessionId)
             );
+            if ($authError !== null) {
+                \wp_send_json(
+                    RequestAuthenticator::createErrorResponse(\is_string($jtlrpc) ? $jtlrpc : '', $authError)
+                );
+            }
 
             // abort existing session
             if (\session_status() === PHP_SESSION_ACTIVE) {

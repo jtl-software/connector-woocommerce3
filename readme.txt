@@ -6,7 +6,7 @@ Tested up to: 7.1
 Requires PHP: 8.4
 WC requires at least: 3.4.7
 WC tested up to: 10.8.1
-Stable tag: 2.4.5
+Stable tag: 2.5.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0.html
 
@@ -202,6 +202,16 @@ This section describes how to install the plugin and get it working.
 7. The JTL-Connector for WooCommerce (>=1.7.0) settings panel.
 
 == Changelog ==
+
+= 2.5.0 =
+* Security: Updated the JTL-Connector core to 6.0.1; requests are authenticated before the requested method is resolved and every method except the authentication itself requires an authenticated session
+* Update: bundled libraries updated (PHP-DI 7, Monolog 3, Symfony 7.4, Doctrine DBAL 4); custom extensions that use @Inject annotations must switch to #[Inject] attributes
+* Security: Fixed authentication bypass via an empty jtlauth parameter; authentication is now checked before any other request processing and error responses no longer contain stack traces, exception details or server paths
+* Security: Fixed SQL injection in the payment linking of order status changes
+* Security: Fixed stored XSS via product, category and manufacturer descriptions
+* Fix: an empty file in the image archive no longer aborts the image push
+* Fix: run the database update only after a plugin update instead of on every admin request
+* Fix: transfer VAT ID and salutation of orders with HPOS and Germanized Pro
 
 = 2.4.5 =
 * Security: Fixed unauthenticated SQL injection in the product identity and checksum endpoints (CVE-2026-78193)
