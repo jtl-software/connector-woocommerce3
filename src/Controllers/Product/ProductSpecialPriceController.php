@@ -596,12 +596,12 @@ class ProductSpecialPriceController extends AbstractBaseController
                         } else {
                             /** @var false|string $regularPrice */
                             $regularPrice = \get_post_meta((int)$productId, $regularPriceMetaKey, true);
-                            if (!\is_bool($regularPrice)) {
+                            if (!\is_bool($regularPrice) && $priceMetaKey !== null) {
                                 \update_post_meta(
                                     (int)$productId,
-                                    $priceMetaKey ?? '_price',
+                                    $priceMetaKey,
                                     \wc_format_decimal((float)$regularPrice, $pd),
-                                    \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
+                                    \get_post_meta((int)$productId, $priceMetaKey, true)
                                 );
                             }
                         }
@@ -761,12 +761,14 @@ class ProductSpecialPriceController extends AbstractBaseController
                 continue;
             }
 
-            \update_post_meta(
-                (int)$productId,
-                $priceMetaKey ?? '_price',
-                \wc_format_decimal((float)$regularPrice, $pd),
-                \get_post_meta((int)$productId, $priceMetaKey ?? '_price', true)
-            );
+            if ($priceMetaKey !== null) {
+                \update_post_meta(
+                    (int)$productId,
+                    $priceMetaKey,
+                    \wc_format_decimal((float)$regularPrice, $pd),
+                    \get_post_meta((int)$productId, $priceMetaKey, true)
+                );
+            }
 
             if ($productType === ProductController::TYPE_CHILD) {
                 if (isset($COPpriceMetaKey)) {
