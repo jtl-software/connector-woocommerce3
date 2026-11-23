@@ -216,11 +216,7 @@ class WpmlProduct extends AbstractComponent
 
             switch ($type) {
                 case self::POST_TYPE_VARIATION:
-                    \remove_filter('content_save_pre', 'wp_filter_post_kses');
-                    \remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
                     $productController->updateVariationCombinationChild($jtlProduct, $wcProduct, $productI18n);
-                    \add_filter('content_save_pre', 'wp_filter_post_kses');
-                    \add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
                     /** @var WpmlProductVariation $wpmlProductVariation */
                     $wpmlProductVariation = $wpmlPlugin->getComponent(WpmlProductVariation::class);

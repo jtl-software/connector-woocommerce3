@@ -95,7 +95,7 @@ class Util extends WordpressUtils
                                          ]);
 
         if (! empty($taxRates)) {
-            return (double) \array_values($taxRates)[0]['rate'];
+            return (float) \array_values($taxRates)[0]['rate'];
         }
 
         return 0.0;
@@ -199,6 +199,8 @@ class Util extends WordpressUtils
             'billing_vat'      => SupportedPlugins::PLUGIN_GERMAN_MARKET,
             '_billing_vat_id'  => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
             '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'billing_vat_id'   => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'shipping_vat_id'  => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
         ];
 
         return Util::findVatId($customerId, $vatIdPlugins, function ($id, $metaKey) {
@@ -207,21 +209,26 @@ class Util extends WordpressUtils
     }
 
     /**
-     * @param int $orderId
+     * Reads via the order object, so it works with HPOS as well as with post based order storage.
+     *
+     * @param \WC_Order $order
      *
      * @return string
      */
-    public static function getVatIdFromOrder(int $orderId): string
+    public static function getVatIdFromOrder(\WC_Order $order): string
     {
         $vatIdPlugins = [
             'billing_vat'      => SupportedPlugins::PLUGIN_GERMAN_MARKET,
             '_shipping_vat_id' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
             '_billing_vat_id'  => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
             '_vat_id'          => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'shipping_vat_id'  => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'billing_vat_id'   => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
+            'vat_id'           => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO,
         ];
 
-        return Util::findVatId($orderId, $vatIdPlugins, function ($id, $metaKey) {
-            return \get_post_meta($id, $metaKey, true);
+        return Util::findVatId($order->get_id(), $vatIdPlugins, function ($id, $metaKey) use ($order) {
+            return $order->get_meta($metaKey, true);
         });
     }
 

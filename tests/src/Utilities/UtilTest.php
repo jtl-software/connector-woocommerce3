@@ -158,10 +158,104 @@ class UtilTest extends TestCase
     }
 
     /**
+     * @dataProvider vatIdFromOrderProvider
+     *
+     * @param array<string, string> $orderMeta
+     * @param array<int, string>    $activePlugins
+     * @param string                $expected
+     * @return void
+     * @throws \phpmock\MockEnabledException
+     * @covers Util::getVatIdFromOrder
+     */
+    public function testGetVatIdFromOrderReadsMetaViaOrderObject(
+        array $orderMeta,
+        array $activePlugins,
+        string $expected
+    ): void {
+        $plugins = [];
+        foreach ($activePlugins as $name) {
+            $plugins[$name] = ['Name' => $name];
+        }
+        $this->enablePlugins($plugins);
+
+        $order = $this->createMock(\WC_Order::class);
+        $order->method('get_meta')->willReturnCallback(
+            fn(string $key) => $orderMeta[$key] ?? ''
+        );
+
+        $this->assertSame($expected, Util::getVatIdFromOrder($order));
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function vatIdFromOrderProvider(): array
+    {
+        $pro = SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO;
+        $gm  = SupportedPlugins::PLUGIN_GERMAN_MARKET;
+
+        return [
+            'germanized pro key with underscore' => [['_billing_vat_id' => 'DE1'], [$pro], 'DE1'],
+            'germanized pro billing key without underscore' => [['billing_vat_id' => 'DE2'], [$pro], 'DE2'],
+            'germanized pro shipping key without underscore' => [['shipping_vat_id' => 'DE3'], [$pro], 'DE3'],
+            'germanized pro vat_id key without underscore' => [['vat_id' => 'DE4'], [$pro], 'DE4'],
+            'german market key' => [['billing_vat' => 'DE5'], [$gm], 'DE5'],
+            'no vat id' => [[], [$pro, $gm], ''],
+            'plugin inactive' => [['billing_vat_id' => 'DE6'], [], ''],
+        ];
+    }
+
+    /**
+     * @dataProvider vatIdFromCustomerProvider
+     *
+     * @param array<string, string> $userMeta
+     * @param string                $expected
+     * @return void
+     * @throws \phpmock\MockEnabledException
+     * @covers Util::getVatIdFromCustomer
+     */
+    public function testGetVatIdFromCustomerChecksGermanizedProKeys(array $userMeta, string $expected): void
+    {
+        $this->enablePlugins([
+            'gpro' => ['Name' => SupportedPlugins::PLUGIN_WOOCOMMERCE_GERMANIZEDPRO],
+        ]);
+
+        \WP_Mock::userFunction('get_user_meta')->andReturnUsing(
+            fn(int $id, string $key) => $userMeta[$key] ?? ''
+        );
+
+        $this->assertSame($expected, Util::getVatIdFromCustomer(7));
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function vatIdFromCustomerProvider(): array
+    {
+        return [
+            'key with underscore' => [['_billing_vat_id' => 'DE1'], 'DE1'],
+            'billing key without underscore' => [['billing_vat_id' => 'DE2'], 'DE2'],
+            'shipping key without underscore' => [['shipping_vat_id' => 'DE3'], 'DE3'],
+            'none' => [[], ''],
+        ];
+    }
+
+    /**
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        require_once __DIR__ . '/../WcOrderStub.php';
+        \WP_Mock::setUp();
+    }
+
+    /**
      * @return void
      */
     protected function tearDown(): void
     {
+        \WP_Mock::tearDown();
         foreach ($this->mockedFunctions as $function) {
             $function->disable();
         }

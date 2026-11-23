@@ -44,6 +44,7 @@ use JtlWooCommerceConnector\Utilities\Config;
 use JtlWooCommerceConnector\Utilities\Db;
 use JtlWooCommerceConnector\Utilities\SqlHelper;
 use JtlWooCommerceConnector\Utilities\SupportedPlugins;
+use JtlWooCommerceConnector\Utilities\TermDescriptionFilter;
 use JtlWooCommerceConnector\Utilities\Util;
 use Noodlehaus\ConfigInterface;
 use Psr\Log\LoggerInterface;
@@ -74,6 +75,8 @@ class Connector implements ConnectorInterface, UseChecksumInterface, HandleReque
     public function initialize(ConfigInterface $config, Container $container, EventDispatcher $dispatcher): void
     {
         global $wpdb;
+
+        TermDescriptionFilter::register();
 
         $db   = new Db($wpdb);
         $util = new Util($db);

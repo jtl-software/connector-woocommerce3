@@ -69,7 +69,6 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
      */
     public function saveTranslations(Manufacturer $jtlManufacturer): void
     {
-        \remove_filter('pre_term_description', 'wp_filter_kses');
         $mainManufacturerId = (int)$jtlManufacturer->getId()->getEndpoint();
 
         /** @var Wpml $wpmlPlugin */
@@ -140,7 +139,6 @@ class WpmlPerfectWooCommerceBrands extends AbstractComponent
                 }
             }
         }
-        \add_filter('pre_term_description', 'wp_filter_kses');
     }
 
     /**

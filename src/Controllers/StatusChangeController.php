@@ -72,16 +72,16 @@ class StatusChangeController extends AbstractBaseController implements PushInter
         global $wpdb;
         $jclp            = $wpdb->prefix . LinkTableNames::PAYMENT;
         $customerOrderId = $statusChange->getCustomerOrderId();
-        $endpointId      = $customerOrderId instanceof Identity ? $customerOrderId->getEndpoint() : "0";
+        $endpointId      = $customerOrderId instanceof Identity ? (int)$customerOrderId->getEndpoint() : 0;
 
         $paymentLink = $this->db->queryOne(\sprintf(
-            'SELECT * FROM %s WHERE `endpoint_id` = %s',
+            'SELECT * FROM %s WHERE `endpoint_id` = %d',
             $jclp,
             $endpointId
         ));
         if (empty($paymentLink)) {
             $this->db->query(\sprintf(
-                'INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%s,%s)',
+                'INSERT INTO %s (`endpoint_id`, `host_id`) VALUES (%d,%d)',
                 $jclp,
                 $endpointId,
                 0

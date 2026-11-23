@@ -57,13 +57,13 @@ class ProductGermanizedFieldsController extends AbstractBaseController
             }
 
             $code            = $germanizedUtils->parseUnit($unitObject->slug);
-            $productQuantity = (double)$germanizedUtils->getUnitProduct($wcProduct);
+            $productQuantity = (float)$germanizedUtils->getUnitProduct($wcProduct);
             $product->setMeasurementQuantity($productQuantity);
             $product->setMeasurementUnitId(new Identity((string)$unitObject->term_id));
             $product->setMeasurementUnitCode($code);
 
             $product->setConsiderBasePrice(true);
-            $baseQuantity = (double)$germanizedUtils->getUnitBase($wcProduct);
+            $baseQuantity = (float)$germanizedUtils->getUnitBase($wcProduct);
 
             if ($baseQuantity !== 0.0) {
                 $product->setBasePriceDivisor($productQuantity / $baseQuantity);

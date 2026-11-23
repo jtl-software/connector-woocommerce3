@@ -25,7 +25,7 @@ class ProductStockLevelController extends AbstractBaseController
 
         return (new StockLevelModel())
             ->setProductId(new Identity((string)$product->get_id()))
-            ->setStockLevel(\is_null($stockLevel) ? 0.0 : (double)$stockLevel);
+            ->setStockLevel(\is_null($stockLevel) ? 0.0 : (float)$stockLevel);
     }
 
     /**

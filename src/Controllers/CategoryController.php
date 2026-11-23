@@ -206,8 +206,6 @@ class CategoryController extends AbstractBaseController implements
                 'slug' => !empty($urlPath) ? $urlPath : \strtolower($meta->getName())
             ];
 
-            \remove_filter('pre_term_description', 'wp_filter_kses');
-
             if (empty($categoryId)) {
                 $result = \wp_insert_term($meta->getName(), CategoryUtil::TERM_TAXONOMY, $categoryData);
             } else {
@@ -237,8 +235,6 @@ class CategoryController extends AbstractBaseController implements
                     $wpmlTermTranslation->enableGetTermAdjustId();
                 }
             }
-
-            \add_filter('pre_term_description', 'wp_filter_kses');
 
             if ($result instanceof \WP_Error) {
                 $this->logger->error(ErrorFormatter::formatError($result));
