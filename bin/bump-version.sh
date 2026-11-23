@@ -70,6 +70,26 @@ escaped_version="${version//./\\.}"
 
 current_version="$(tr -d '\r' < "$build_config" | sed -n 's/^version: *//p')"
 [ "$current_version" != "$version" ] || die "version $version is already set in $build_config"
+[[ "$current_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+  || die "current version '$current_version' in $build_config is not x.y.z"
+
+# Succeeds if version $1 is greater than version $2 (both x.y.z).
+is_greater() {
+  local -a a b
+  local i
+  IFS=. read -r -a a <<< "$1"
+  IFS=. read -r -a b <<< "$2"
+  for i in 0 1 2; do
+    if [ "$((10#${a[i]}))" -gt "$((10#${b[i]}))" ]; then
+      return 0
+    elif [ "$((10#${a[i]}))" -lt "$((10#${b[i]}))" ]; then
+      return 1
+    fi
+  done
+  return 1
+}
+is_greater "$version" "$current_version" \
+  || die "version $version must be greater than the current version $current_version"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -205,6 +225,11 @@ awk -v version="$version" -v entries_file="$tmp_dir/readme-entries" '
 
 # Write all files only after every transformation succeeded.
 for file in "$build_config" "$plugin_file" "$readme" "$changelog"; do
+  # awk always terminates the last line; drop that newline again if the original had none.
+  if [ -n "$(tail -c 1 "$file")" ]; then
+    head -c "$(($(wc -c < "$tmp_dir/$file") - 1))" "$tmp_dir/$file" > "$tmp_dir/$file.trimmed"
+    mv "$tmp_dir/$file.trimmed" "$tmp_dir/$file"
+  fi
   cat "$tmp_dir/$file" > "$file"
 done
 
