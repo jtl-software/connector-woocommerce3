@@ -3,6 +3,8 @@
 This is the changelog of our "JTL WooCommerce Connector".
 
 ## Unreleased
+- CO-3718 - error responses no longer contain file paths: messages with a path or stack trace are replaced by a generic message with a reference id, the original error is written to the connector error log
+- CO-3619 - fix _price being overwritten with 0 during sync with B2B Market >= 1.0.8
 - CO-3641 - add bin/bump-version.sh to set the release version in all files and move the unreleased changelog entries
 
 ## 2.5.0 _2026-11-05_
