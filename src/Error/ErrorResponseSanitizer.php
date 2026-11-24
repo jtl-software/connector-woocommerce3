@@ -78,6 +78,7 @@ final class ErrorResponseSanitizer
         try {
             $this->logger->error('RPC error response', $context);
         } catch (\Throwable $exception) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional: last-resort fallback when the connector logger itself fails
             \error_log(\sprintf(
                 'JTL connector: writing the RPC error log failed (%s): %s',
                 $exception->getMessage(),
